@@ -29,13 +29,26 @@ else
                         @pullRequest.RepositoryName</td>
                     <td><a href="@pullRequest.Url">@pullRequest.Title</a></td>
                     <td>
-                        <img src="@pullRequest.CreatedBy.AvatarUrl" width="24" height="24"
-                             alt="@pullRequest.CreatedBy.DisplayName"
-                             title="@pullRequest.CreatedBy.DisplayName" />
-                        <span class="timestamp">
-                            @pullRequest.CreationDate.LocalDateTime.ToString("yyyy-MM-dd")
-                        </span>
-
+                        <div style="display: flex;">
+                            <div style="align-self: center;">
+                                <img src="@pullRequest.CreatedBy.AvatarUrl" width="24" height="24"
+                                     alt="@pullRequest.CreatedBy.DisplayName"
+                                     title="@pullRequest.CreatedBy.DisplayName" />
+                            </div>
+                            <div style="margin-left: 3px;">
+                                <div>
+                                    <span class="timestamp">
+                                        @pullRequest.CreationDate.LocalDateTime.ToString("yyyy-MM-dd")
+                                    </span>
+                                </div>
+                                @if (@pullRequest.Status == PullRequestStatus.Draft)
+                                {
+                                    <div style="margin-top: -10px;">
+                                        <span class="badge bg-warning" style="font-size:0.5rem;">Draft</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
                     </td>
 
                     <td>
