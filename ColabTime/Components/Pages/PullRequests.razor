@@ -32,14 +32,20 @@ else
                         <img src="@pullRequest.CreatedBy.AvatarUrl" width="24" height="24"
                              alt="@pullRequest.CreatedBy.DisplayName"
                              title="@pullRequest.CreatedBy.DisplayName" />
-                        <br />
                         <span class="timestamp">
                             @pullRequest.CreationDate.LocalDateTime.ToString("yyyy-MM-dd")
                         </span>
 
                     </td>
 
-                    <td>@pullRequest.Reviews.Count</td>
+                    <td>
+                        @foreach (var review in @pullRequest.Reviews)
+                        {
+                            <img src="@review.Reviewer.AvatarUrl" width="24" height="24"
+                                 alt="@review.Reviewer.DisplayName"
+                                 title="@review.Reviewer.DisplayName" />
+                        }
+                    </td>
                 </tr>
             }
         </tbody>
