@@ -49,3 +49,8 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+
+.timestamp {
+    font-size: 0.6em;
+    opacity: 0.5;   /* text-muted */
+}

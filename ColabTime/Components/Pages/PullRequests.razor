@@ -25,7 +25,13 @@ else
             <tr>
                 <td>@pullRequest.Project @pullRequest.RepositoryName</td>
                 <td><a href="@pullRequest.Url">@pullRequest.Title</a></td>
-                <td><img src="@pullRequest.CreatedBy.AvatarUrl" width="24" height="24" /> </td>
+                <td>
+                    <img src="@pullRequest.CreatedBy.AvatarUrl" width="24" height="24"/> <br/>
+                        <span class="timestamp">
+                            @pullRequest.CreationDate.LocalDateTime.ToString("yyyy-MM-dd")
+                    </span>
+                    
+                </td>
                 
                 <td>@pullRequest.Reviews.Count</td>
             </tr>
