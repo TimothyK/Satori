@@ -12,30 +12,33 @@ else
 {
     <table class="table">
         <thead>
-        <tr>
-            <th>Repo</th>
-            <th>Pull Request</th>
-            <th>Created By</th>
-            <th>Reviews</th>
-        </tr>
+            <tr>
+                <th>Repo</th>
+                <th>Pull Request</th>
+                <th>Created By</th>
+                <th>Reviews</th>
+            </tr>
         </thead>
         <tbody>
             @foreach (var pullRequest in pullRequests)
-        {
-            <tr>
-                <td>@pullRequest.Project @pullRequest.RepositoryName</td>
-                <td><a href="@pullRequest.Url">@pullRequest.Title</a></td>
-                <td>
-                    <img src="@pullRequest.CreatedBy.AvatarUrl" width="24" height="24"/> <br/>
+            {
+                <tr>
+                    <td>@pullRequest.Project @pullRequest.RepositoryName</td>
+                    <td><a href="@pullRequest.Url">@pullRequest.Title</a></td>
+                    <td>
+                        <img src="@pullRequest.CreatedBy.AvatarUrl" width="24" height="24"
+                             alt="@pullRequest.CreatedBy.DisplayName"
+                             title="@pullRequest.CreatedBy.DisplayName" />
+                        <br />
                         <span class="timestamp">
                             @pullRequest.CreationDate.LocalDateTime.ToString("yyyy-MM-dd")
-                    </span>
-                    
-                </td>
-                
-                <td>@pullRequest.Reviews.Count</td>
-            </tr>
-        }
+                        </span>
+
+                    </td>
+
+                    <td>@pullRequest.Reviews.Count</td>
+                </tr>
+            }
         </tbody>
     </table>
 }
@@ -45,8 +48,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var timothy = new Person() {Id = "MAYFIELD\\Timothyk", DisplayName = "Timothy Klenke", AvatarUrl = "https://devops.mayfield.pscl.com/PSDev/_api/_common/identityImage?id=c00ef764-dc77-4b32-9a19-590db59f039b"};
-        var alex = new Person() {Id = "MAYFIELD\\AlexG", DisplayName = "Alex Garand", AvatarUrl = "https://devops.mayfield.pscl.com/PSDev/_api/_common/identityImage?id=443db5de-3fbc-4be4-a1f2-8b492923b657"};
+        var timothy = new Person() { Id = "MAYFIELD\\Timothyk", DisplayName = "Timothy Klenke", AvatarUrl = "https://devops.mayfield.pscl.com/PSDev/_api/_common/identityImage?id=c00ef764-dc77-4b32-9a19-590db59f039b" };
+        var alex = new Person() { Id = "MAYFIELD\\AlexG", DisplayName = "Alex Garand", AvatarUrl = "https://devops.mayfield.pscl.com/PSDev/_api/_common/identityImage?id=443db5de-3fbc-4be4-a1f2-8b492923b657" };
         var jonathan = new Person() { Id = "MAYFIELD\\JonathanE", DisplayName = "Jonathan Ettie", AvatarUrl = "https://devops.mayfield.pscl.com/PSDev/_api/_common/identityImage?id=428991e1-02ed-4a09-8a96-17c777f25646" };
         var barbara = new Person() { Id = "MAYFIELD\\barbaray", DisplayName = "Barbara Yue Yang", AvatarUrl = "https://devops.mayfield.pscl.com/PSDev/_api/_common/identityImage?id=200dc4de-d4b4-4c44-a380-510d3e5d29c5" };
 
