@@ -54,3 +54,8 @@ h1:focus {
     font-size: 0.6em;
     opacity: 0.5;   /* text-muted */
 }
+
+.project {
+    font-size: 0.6em;
+    opacity: 0.75;
+}

@@ -22,8 +22,11 @@ else
         <tbody>
             @foreach (var pullRequest in pullRequests)
             {
-                <tr>
-                    <td>@pullRequest.Project @pullRequest.RepositoryName</td>
+                <tr style="vertical-align:middle;">
+                    <td>
+                        <span class="project">@pullRequest.Project/</span>
+                        <br/>
+                        @pullRequest.RepositoryName</td>
                     <td><a href="@pullRequest.Url">@pullRequest.Title</a></td>
                     <td>
                         <img src="@pullRequest.CreatedBy.AvatarUrl" width="24" height="24"
