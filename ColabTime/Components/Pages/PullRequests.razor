@@ -55,17 +55,36 @@ else
                     </td>
 
                     <td>
-                        @foreach (var review in @pullRequest.Reviews)
-                        {
-                            <img src="@review.Reviewer.AvatarUrl" width="24" height="24"
-                                 alt="@review.Reviewer.DisplayName"
-                                 title="@review.Reviewer.DisplayName" />
-                        }
+                        <div class="avatar-row">
+                            @foreach (var review in @pullRequest.Reviews)
+                            {
+                                <div class="avatar-cell">
+                                    <img src="@review.Reviewer.AvatarUrl" width="24" height="24"
+                                         alt="@review.Reviewer.DisplayName"
+                                         title="@review.Reviewer.DisplayName"/>
+                                    @if (review.Vote >= ReviewVote.ApprovedWithSuggestions)
+                                    {
+                                        <span class="vote vote-approved"></span>
+                                    }
+                                    @if (review.Vote is ReviewVote.WaitingForAuthor or ReviewVote.NoVote)
+                                    {
+                                        <span class="vote vote-wait"></span>
+                                    }
+                                    @if (review.Vote == ReviewVote.Rejected)
+                                    {
+                                        <span class="vote vote-rejected"></span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        
+
                     </td>
                 </tr>
             }
         </tbody>
     </table>
+
 }
 
 @code {
@@ -96,7 +115,7 @@ else
                 {
                     new Review()
                     {
-                        Id = new Guid("443db5de-3fbc-4be4-a1f2-8b492923b657"),IsRequired = true,Vote = ReviewVote.NoVote,
+                        Id = new Guid("443db5de-3fbc-4be4-a1f2-8b492923b657"),IsRequired = true,Vote = ReviewVote.Rejected,
                         Reviewer = alex
                     },
                 }

@@ -50,12 +50,4 @@ h1:focus {
     border-color: #929292;
 }
 
-.timestamp {
-    font-size: 0.6em;
-    opacity: 0.5;   /* text-muted */
-}
 
-.project {
-    font-size: 0.6em;
-    opacity: 0.75;
-}
