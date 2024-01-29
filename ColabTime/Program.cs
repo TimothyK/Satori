@@ -6,6 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+AzureDevOpsToken = builder.Configuration["AzureDevOps:PersonalAccessToken"] ?? string.Empty;
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -25,3 +27,10 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
+
+
+public partial class Program
+{
+    public static string AzureDevOpsToken { get; set; }
+}
