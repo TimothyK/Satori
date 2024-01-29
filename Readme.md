@@ -2,7 +2,7 @@
 
 It's Collaboration Time!  This is web applications that:
 - pulls data from multiple systems
-  - Bug tracking: Azure DevOps
+  - Bug & backlog tracking: Azure DevOps
   - Source Control: Azure DevOps (git)
   - Call tracking: CMS, Sentry
   - Time tracking: Kimai, TimeTrack
