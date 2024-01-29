@@ -1,4 +1,17 @@
-ColabTime
+# ColabTime
+
+It's Collaboration Time!  This is web applications that:
+- pulls data from multiple systems
+  - Bug tracking: Azure DevOps
+  - Source Control: Azure DevOps (git)
+  - Call tracking: CMS, Sentry
+  - Time tracking: Kimai, TimeTrack
+  - Email: Outlook
+  - Project Management: BaseCamp
+  - Wikis: Confluence
+- quick access to the same issue across those multiple systems
+- quick mechanisms to stay focused on high priority items
+- quick actions to repair inconsistencies between systems
 
 # Getting Started
 
