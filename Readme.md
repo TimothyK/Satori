@@ -4,11 +4,12 @@ It's Collaboration Time!  This is web applications that:
 - pulls data from multiple systems
   - Bug & backlog tracking: Azure DevOps
   - Source Control: Azure DevOps (git)
-  - Call tracking: CMS, Sentry
-  - Time tracking: Kimai, TimeTrack
+  - Support Ticket & Sales tracking: Microsoft Dynamics CRM, Sentry
+  - Time tracking: Kimai, TimeTrack, Scrum - 3 questions
   - Email: Outlook
+  - Chat: Slack
   - Project Management: BaseCamp
-  - Wikis: Confluence
+  - Wiki: Confluence
 - quick access to the same issue across those multiple systems
 - quick mechanisms to stay focused on high priority items
 - quick actions to repair inconsistencies between systems
