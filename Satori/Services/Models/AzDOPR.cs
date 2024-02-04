@@ -1,4 +1,4 @@
-﻿namespace ColabTime.Services.Models
+﻿namespace Satori.Services.Models
 {
 
 

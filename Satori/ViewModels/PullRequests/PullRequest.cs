@@ -1,4 +1,4 @@
-﻿namespace ColabTime.ViewModels.PullRequests;
+﻿namespace Satori.ViewModels.PullRequests;
 
 public class PullRequest
 {

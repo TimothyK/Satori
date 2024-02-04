@@ -1,4 +1,4 @@
-using ColabTime.Components;
+using Satori.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 

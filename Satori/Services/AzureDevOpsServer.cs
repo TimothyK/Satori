@@ -1,9 +1,9 @@
-﻿using ColabTime.Services.Models;
-using ColabTime.ViewModels;
-using ColabTime.ViewModels.PullRequests;
+﻿using Satori.Services.Models;
+using Satori.ViewModels;
+using Satori.ViewModels.PullRequests;
 using System.Text.Json;
 
-namespace ColabTime.Services
+namespace Satori.Services
 {
     public class AzureDevOpsServer
     {

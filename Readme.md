@@ -1,18 +1,25 @@
-# ColabTime
+# Satori
 
-It's Collaboration Time!  This is web applications that:
-- pulls data from multiple systems
-  - Bug & backlog tracking: Azure DevOps
-  - Source Control: Azure DevOps (git)
-  - Support Ticket & Sales tracking: Microsoft Dynamics CRM, Sentry
-  - Time tracking: Kimai, TimeTrack, Scrum - 3 questions
-  - Email: Outlook
-  - Chat: Slack
-  - Project Management: BaseCamp
-  - Wiki: Confluence
-- quick access to the same issue across those multiple systems
-- quick mechanisms to stay focused on high priority items
-- quick actions to repair inconsistencies between systems
+Satori is web application that provides comprehension and understanding to the existing systems you already are using.  These include issue tracking, project management, time tracking, and other systems.  Unified dashboards pull information from multiple systems and merging them into a consistent view.  
+
+This is not yet another To Do List, you already have enough of those.  Satori does not store any data itself.  It only makes sense of the distributed data you already have.  It streamlines navigating between those systems.  Quick actions ensure that data is kept consistent between all systems.
+
+Supported Systems 
+- Bug & backlog tracking: Azure DevOps
+- Source Control: Azure DevOps (git)
+- Support Ticket & Sales tracking: Microsoft Dynamics CRM, Sentry
+- Time tracking: Kimai, TimeTrack
+- Email: Outlook
+- Chat: Slack, Microsoft Teams
+- Wiki: Confluence
+- Project Management: BaseCamp
+  
+Features:
+- Quick navigation to the same issue across those multiple systems
+- Quick actions to repair inconsistencies between systems, and keep the issues in all systems progressing.
+- Dashboards and reminders to stay focused on high priority items, and not bombard you with the other high priority items you can worry about tomorrow.  Realistic time management and Work In Progress (WIP) limits.
+- Daily stand-up boards to answer the 3 questions:  yesterday's accomplishments & impediments, and today's plan.
+- Accurate time tracking.  Although we don't need big brother tracking us every minute of every day, if we are going to track our time we may as well do it well.
 
 # Getting Started
 

@@ -1,4 +1,4 @@
-﻿namespace ColabTime.ViewModels;
+﻿namespace Satori.ViewModels;
 
 public class Person
 {
