@@ -1,23 +1,28 @@
-﻿using Satori.AzureDevOps.Models;
+﻿using Flurl;
+using Satori.AzureDevOps.Models;
 using System.Text.Json;
 
 namespace Satori.AzureDevOps
 {
     public class AzureDevOpsServer
     {
-        private readonly string _token;
+        private readonly ConnectionSettings _connectionSettings;
 
-        public AzureDevOpsServer(string token)
+        public AzureDevOpsServer(ConnectionSettings connectionSettings)
         {
-            _token = token;
+            _connectionSettings = connectionSettings;
         }
 
         public async Task<Value[]> GetPullRequestsAsync()
         {
-            var request = new HttpRequestMessage(HttpMethod.Get,
-                "https://devops.mayfield.pscl.com/PSDev/_apis/git/pullrequests/?api-version=6.0");
+            var url = _connectionSettings.Url
+                .AppendPathSegment("_apis/git/pullrequests")
+                .AppendQueryParam("api-version", "6.0");
 
-            request.Headers.Add("Authorization", $"Basic {_token}");
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            request.Headers.Add("Authorization", $"Basic {_connectionSettings.PersonalAccessToken}");
+            
 
             using var client = new HttpClient();
             var response = await client.SendAsync(request);

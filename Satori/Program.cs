@@ -1,36 +1,52 @@
+using Satori.AzureDevOps;
 using Satori.Components;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
-
-AzureDevOpsToken = builder.Configuration["AzureDevOps:PersonalAccessToken"] ?? string.Empty;
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+internal class Program
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}
+    public static void Main(string[] args)
+    {
+        var builder = WebApplication.CreateBuilder(args);
 
-app.UseHttpsRedirection();
+        // Add services to the container.
+        builder.Services.AddRazorComponents()
+            .AddInteractiveServerComponents();
 
-app.UseStaticFiles();
-app.UseAntiforgery();
+        SetAzureDevOpsConnectionSettings(builder);
 
-app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+        var app = builder.Build();
 
-app.Run();
+        // Configure the HTTP request pipeline.
+        if (!app.Environment.IsDevelopment())
+        {
+            app.UseExceptionHandler("/Error", createScopeForErrors: true);
+            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+            app.UseHsts();
+        }
 
+        app.UseHttpsRedirection();
 
+        app.UseStaticFiles();
+        app.UseAntiforgery();
 
-public partial class Program
-{
-    public static string AzureDevOpsToken { get; set; }
+        app.MapRazorComponents<App>()
+            .AddInteractiveServerRenderMode();
+
+        app.Run();
+    }
+
+    private static void SetAzureDevOpsConnectionSettings(WebApplicationBuilder builder)
+    {
+        AzureDevOpsConnectionSettings = GetConnectionSettings(builder);
+    }
+
+    private static ConnectionSettings GetConnectionSettings(WebApplicationBuilder builder)
+    {
+        return new ConnectionSettings()
+        {
+            Url = new Uri(builder.Configuration["AzureDevOps:Url"] ?? throw new InvalidOperationException("Missing AzureDevOps:Url in settings")),
+            PersonalAccessToken = builder.Configuration["AzureDevOps:PersonalAccessToken"] ?? string.Empty
+        };
+    }
+
+    internal static ConnectionSettings AzureDevOpsConnectionSettings { get; private set; }
 }

@@ -9,7 +9,8 @@ namespace Satori.Services
     {
         public async Task<IEnumerable<PullRequest>> GetPullRequestsAsync()
         {
-            var srv = new AzureDevOpsServer(Program.AzureDevOpsToken);
+            
+            var srv = new AzureDevOpsServer(Program.AzureDevOpsConnectionSettings);
             var pullRequests = await srv.GetPullRequestsAsync();
             return pullRequests.Select(ToViewModel).ToArray();
         }
