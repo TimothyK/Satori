@@ -1,9 +1,5 @@
-﻿namespace Satori.Services.Models
+﻿namespace Satori.AzureDevOps.Models
 {
-
-
-
-
     public class Rootobject
     {
         public int count { get; set; }
