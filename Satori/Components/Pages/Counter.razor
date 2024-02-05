@@ -1,5 +1,6 @@
 ﻿@page "/counter"
-@rendermode InteractiveServer
+@using Satori.Utilities
+@attribute [RenderModeInteractiveServer]
 
 <PageTitle>Counter</PageTitle>
 
@@ -16,4 +17,6 @@
     {
         currentCount++;
     }
+
+
 }
