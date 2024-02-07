@@ -7,10 +7,15 @@ namespace Satori.AzureDevOps
     public class AzureDevOpsServer
     {
         private readonly ConnectionSettings _connectionSettings;
+        private readonly HttpClient _httpClient;
 
-        public AzureDevOpsServer(ConnectionSettings connectionSettings)
+        public AzureDevOpsServer(ConnectionSettings connectionSettings) : this(connectionSettings, new HttpClient())
+        {
+        }
+        public AzureDevOpsServer(ConnectionSettings connectionSettings, HttpClient httpClient)
         {
             _connectionSettings = connectionSettings;
+            _httpClient = httpClient;
         }
 
         public async Task<Value[]> GetPullRequestsAsync()
@@ -23,9 +28,7 @@ namespace Satori.AzureDevOps
 
             request.Headers.Add("Authorization", $"Basic {_connectionSettings.PersonalAccessToken}");
             
-
-            using var client = new HttpClient();
-            var response = await client.SendAsync(request);
+            var response = await _httpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
             {
