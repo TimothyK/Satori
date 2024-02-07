@@ -18,7 +18,7 @@ namespace Satori.AzureDevOps
             _httpClient = httpClient;
         }
 
-        public async Task<Value[]> GetPullRequestsAsync()
+        public async Task<PullRequest[]> GetPullRequestsAsync()
         {
             var url = _connectionSettings.Url
                 .AppendPathSegment("_apis/git/pullrequests")
@@ -36,7 +36,7 @@ namespace Satori.AzureDevOps
             }
 
             await using var responseStream = await response.Content.ReadAsStreamAsync();
-            var root = await JsonSerializer.DeserializeAsync<Rootobject>(responseStream) 
+            var root = await JsonSerializer.DeserializeAsync<RootObject<PullRequest>>(responseStream) 
                        ?? throw new ApplicationException("Server did not respond"); ;
 
             return root.value;

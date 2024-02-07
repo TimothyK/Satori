@@ -35,13 +35,13 @@ namespace Satori.AzureDevOps.Tests.PullRequests
 
         #region Act
 
-        private Value[] GetPullRequests()
+        private PullRequest[] GetPullRequests()
         {
             var srv = new AzureDevOpsServer(_connectionSettings, _mockHttp.ToHttpClient());
             return srv.GetPullRequestsAsync().Result;
         }
 
-        private Value SinglePullRequest()
+        private PullRequest SinglePullRequest()
         {
             //Arrange
             SetResponse(GetPullRequestsUrl, PullRequestResponses.SinglePullRequest);

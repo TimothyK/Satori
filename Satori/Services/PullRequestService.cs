@@ -2,12 +2,13 @@
 using Satori.AzureDevOps.Models;
 using Satori.ViewModels;
 using Satori.ViewModels.PullRequests;
+using PullRequest = Satori.AzureDevOps.Models.PullRequest;
 
 namespace Satori.Services
 {
     public class PullRequestService
     {
-        public async Task<IEnumerable<PullRequest>> GetPullRequestsAsync()
+        public async Task<IEnumerable<ViewModels.PullRequests.PullRequest>> GetPullRequestsAsync()
         {
             
             var srv = new AzureDevOpsServer(Program.AzureDevOpsConnectionSettings);
@@ -15,7 +16,7 @@ namespace Satori.Services
             return pullRequests.Select(ToViewModel).ToArray();
         }
 
-        private static PullRequest ToViewModel(Value pr)
+        private static ViewModels.PullRequests.PullRequest ToViewModel(PullRequest pr)
         {
             var reviews = pr.reviewers
                 .Select(ToViewModel)
@@ -23,7 +24,7 @@ namespace Satori.Services
                 .ThenBy(x => x.Reviewer.DisplayName)
                 .ToList();
 
-            var pullRequest = new PullRequest
+            var pullRequest = new ViewModels.PullRequests.PullRequest
             {
                 Id = pr.pullRequestId,
                 Title = pr.title,
@@ -58,7 +59,7 @@ namespace Satori.Services
             };
         }
 
-        private static Person ToViewModel(Createdby user)
+        private static Person ToViewModel(User user)
         {
             return new Person()
             {

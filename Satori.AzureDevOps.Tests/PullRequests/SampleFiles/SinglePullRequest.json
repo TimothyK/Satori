@@ -69,7 +69,14 @@
                     "imageUrl": "http://devops.test/Team/_api/_common/identityImage?id=c00ef764-dc77-4b32-9a19-590db59f039b"
                 }
             ],
-            "url": "http://devops.test/Team/79fe37ca-ab34-41d2-93c0-ed629f1cf998/_apis/git/repositories/21b05cfe-0c96-42ea-8df6-8118e292c42e/pullRequests/710",
+            "labels": [
+                {
+                    "id": "feb908aa-d092-4af7-bbac-9925ff8bda8e",
+                    "name": "NoBuild",
+                    "active": true
+                }
+            ],
+			"url": "http://devops.test/Team/79fe37ca-ab34-41d2-93c0-ed629f1cf998/_apis/git/repositories/21b05cfe-0c96-42ea-8df6-8118e292c42e/pullRequests/710",
             "completionOptions": {
                 "mergeCommitMessage": "Merged PR 1: Test PR",
                 "deleteSourceBranch": true,
