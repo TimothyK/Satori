@@ -47,12 +47,11 @@ namespace Satori.Services
         {
             return new Review()
             {
-                Id = reviewer.id,
                 IsRequired = reviewer.isRequired,
                 Vote = (ReviewVote)reviewer.vote,
                 Reviewer = new Person()
                 {
-                    Id = reviewer.uniqueName,
+                    Id = reviewer.id,
                     DisplayName = reviewer.displayName,
                     AvatarUrl = reviewer.imageUrl,
                 },
@@ -63,7 +62,7 @@ namespace Satori.Services
         {
             return new Person()
             {
-                Id = user.uniqueName,
+                Id = user.id,
                 DisplayName = user.displayName,
                 AvatarUrl = user.imageUrl,
             };
