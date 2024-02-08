@@ -82,6 +82,9 @@ namespace Satori.AzureDevOps.Tests.PullRequests
             .ShouldBe(new DateTime(2023, 10, 11, 6, 32, 15, DateTimeKind.Utc).AddTicks(7700876));
 
         [TestMethod]
+        public void CreatedById() => SinglePullRequest().createdBy.id.ShouldBe("c00ef764-dc77-4b32-9a19-590db59f039b");
+
+        [TestMethod]
         public void CreatedByUniqueName() => SinglePullRequest().createdBy.uniqueName.ShouldBe(@"Domain\Timothyk");
 
         [TestMethod]
