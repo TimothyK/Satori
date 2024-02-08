@@ -2,7 +2,7 @@
 
 public class Project
 {
-    public string id { get; set; }
+    public Guid id { get; set; }
     public DateTime lastUpdateTime { get; set; }
     public string name { get; set; }
     public string state { get; set; }

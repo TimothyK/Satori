@@ -3,6 +3,6 @@
 public class Label
 {
     public bool active { get; set; }
-    public string id { get; set; }
+    public Guid id { get; set; }
     public string name { get; set; }
 }

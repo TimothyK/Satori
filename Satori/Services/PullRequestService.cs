@@ -47,7 +47,7 @@ namespace Satori.Services
         {
             return new Review()
             {
-                Id = new Guid(reviewer.id),
+                Id = reviewer.id,
                 IsRequired = reviewer.isRequired,
                 Vote = (ReviewVote)reviewer.vote,
                 Reviewer = new Person()

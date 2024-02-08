@@ -76,7 +76,7 @@
                     "active": true
                 }
             ],
-			"url": "http://devops.test/Team/79fe37ca-ab34-41d2-93c0-ed629f1cf998/_apis/git/repositories/21b05cfe-0c96-42ea-8df6-8118e292c42e/pullRequests/710",
+			      "url": "http://devops.test/Team/79fe37ca-ab34-41d2-93c0-ed629f1cf998/_apis/git/repositories/21b05cfe-0c96-42ea-8df6-8118e292c42e/pullRequests/710",
             "completionOptions": {
                 "mergeCommitMessage": "Merged PR 1: Test PR",
                 "deleteSourceBranch": true,
