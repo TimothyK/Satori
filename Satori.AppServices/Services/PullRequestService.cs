@@ -49,12 +49,12 @@ namespace Satori.AppServices.Services
             {
                 Id = wi.id,
                 Title = wi.fields.SystemTitle,
-                AssignedTo = ToNullableViewModel(wi.fields.SystemAssignedTo),
-                CreatedBy = ToViewModel(wi.fields.SystemCreatedBy),
+                AssignedTo = ToNullableViewModel(wi.fields.AssignedTo),
+                CreatedBy = ToViewModel(wi.fields.CreatedBy),
                 CreatedDate = wi.fields.SystemCreatedDate,
-                IterationPath = wi.fields.SystemIterationPath,
-                Type = wi.fields.SystemWorkItemType,
-                State = wi.fields.SystemState,
+                IterationPath = wi.fields.IterationPath,
+                Type = wi.fields.WorkItemType,
+                State = wi.fields.State,
             };
 
             workItem.Url = _connectionSettings.AzureDevOps.Url

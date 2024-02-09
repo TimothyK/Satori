@@ -63,6 +63,16 @@ namespace Satori.AzureDevOps.Tests.WorkItems.SampleFiles {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] BlockedWorkItem {
+            get {
+                object obj = ResourceManager.GetObject("BlockedWorkItem", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] SingleWorkItem {
             get {
                 object obj = ResourceManager.GetObject("SingleWorkItem", resourceCulture);

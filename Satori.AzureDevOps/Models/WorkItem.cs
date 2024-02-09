@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using Satori.AzureDevOps.Converters;
 
 namespace Satori.AzureDevOps.Models
 {
@@ -12,43 +13,44 @@ namespace Satori.AzureDevOps.Models
 
     public class Fields
     {
-        public string SystemAreaPath { get; set; }
+        [JsonPropertyName("System.AreaPath")]
+        public string AreaPath { get; set; }
         public string SystemTeamProject { get; set; }
-        public string SystemIterationPath { get; set; }
+        [JsonPropertyName("System.IterationPath")]
+        public string IterationPath { get; set; }
         [JsonPropertyName("System.WorkItemType")]
-        public string SystemWorkItemType { get; set; }
-        public string SystemState { get; set; }
+        public string WorkItemType { get; set; }
+        [JsonPropertyName("System.State")]
+        public string State { get; set; }
         public string SystemReason { get; set; }
         [JsonPropertyName("System.AssignedTo")]
-        public User? SystemAssignedTo { get; set; }
+        public User? AssignedTo { get; set; }
         [JsonPropertyName("System.CreatedDate")] 
         public DateTimeOffset SystemCreatedDate { get; set; }
         [JsonPropertyName("System.CreatedBy")]
-        public User SystemCreatedBy { get; set; }
+        public required User CreatedBy { get; set; }
         public DateTime SystemChangedDate { get; set; }
         public User SystemChangedBy { get; set; }
-        public int SystemCommentCount { get; set; }
+        [JsonPropertyName("System.CommentCount")]
+        public int CommentCount { get; set; }
         [JsonPropertyName("System.Title")]
         public string SystemTitle { get; set; }
-        public float MicrosoftVSTSSchedulingOriginalEstimate { get; set; }
-        public DateTime MicrosoftVSTSCommonStateChangeDate { get; set; }
-        public DateTime MicrosoftVSTSCommonActivatedDate { get; set; }
-        public User MicrosoftVSTSCommonActivatedBy { get; set; }
-        public DateTime MicrosoftVSTSCommonClosedDate { get; set; }
-        public User MicrosoftVSTSCommonClosedBy { get; set; }
-        public int MicrosoftVSTSCommonPriority { get; set; }
-        public string SystemBoardColumn { get; set; }
-        public bool SystemBoardColumnDone { get; set; }
+
+        [JsonPropertyName("Microsoft.VSTS.Common.Priority")]
+        public int Priority { get; set; }
         public string MicrosoftVSTSCommonSeverity { get; set; }
         public string MicrosoftVSTSCommonValueArea { get; set; }
         public string MicrosoftVSTSCommonTriage { get; set; }
-        public string MicrosoftVSTSCMMIBlocked { get; set; }
-        public float MicrosoftVSTSCommonBacklogPriority { get; set; }
-        public string WEF_9C125D321B9B4525BE75E33CE4ACA209_KanbanColumn { get; set; }
-        public bool WEF_9C125D321B9B4525BE75E33CE4ACA209_KanbanColumnDone { get; set; }
+        [JsonPropertyName("Microsoft.VSTS.CMMI.Blocked")]
+        [JsonConverter(typeof(YesNoConverter))]
+        public bool Blocked { get; set; }
+        [JsonPropertyName("Microsoft.VSTS.Common.BacklogPriority")]
+        public double BacklogPriority { get; set; }
+
+        [JsonPropertyName("Custom.ProjectCode")]
+        public string ProjectCode { get; set; }
         public string MicrosoftVSTSTCMSystemInfo { get; set; }
         public string MicrosoftVSTSTCMReproSteps { get; set; }
         public string CustomObservedBehavior { get; set; }
     }
-
 }

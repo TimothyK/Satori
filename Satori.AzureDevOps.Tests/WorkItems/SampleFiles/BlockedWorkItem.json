@@ -2,7 +2,7 @@
     "count": 1,
     "value": [
         {
-            "id": 2,
+            "id": 3,
             "rev": 16,
             "fields": {
                 "System.AreaPath": "Product\\AppArea",
@@ -59,7 +59,7 @@
                 "Microsoft.VSTS.Common.StateChangeDate": "2024-01-13T20:16:53.407Z",
                 "Microsoft.VSTS.Common.Priority": 2,
                 "Microsoft.VSTS.Common.ValueArea": "Business",
-                "Microsoft.VSTS.CMMI.Blocked": "No",
+                "Microsoft.VSTS.CMMI.Blocked": "Yes",
                 "Microsoft.VSTS.Common.BacklogPriority": 27103990.0,
                 "Custom.ProjectCode": "1.2.3 - Skunk Works",
                 "WEF_9C125D321B9B4525BE75E33CE4ACA209_Kanban.Column": "New",
