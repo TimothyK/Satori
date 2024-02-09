@@ -1,7 +1,6 @@
-﻿namespace Satori.AppServices.Models
+﻿namespace Satori.AppServices.Models;
+
+public class ConnectionSettings
 {
-    public class ConnectionSettings
-    {
-         public AzureDevOps.ConnectionSettings AzureDevOps { get; set; }
-    }
+    public AzureDevOps.ConnectionSettings AzureDevOps { get; set; }
 }
