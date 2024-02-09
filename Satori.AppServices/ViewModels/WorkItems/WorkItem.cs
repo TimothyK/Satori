@@ -9,6 +9,6 @@ public class WorkItem
     public Person CreatedBy { get; set; }
     public DateTimeOffset CreatedDate { get; set; }
     public string IterationPath { get; set; }
-    public string Type { get; set; }
+    public WorkItemType Type { get; set; }
     public string State { get; set; }
 }

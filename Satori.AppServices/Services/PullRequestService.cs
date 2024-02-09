@@ -1,6 +1,7 @@
 ﻿using Flurl;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.PullRequests;
+using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 using ConnectionSettings = Satori.AppServices.Models.ConnectionSettings;
@@ -53,7 +54,7 @@ public class PullRequestService
             CreatedBy = ToViewModel(wi.fields.CreatedBy),
             CreatedDate = wi.fields.SystemCreatedDate,
             IterationPath = wi.fields.IterationPath,
-            Type = wi.fields.WorkItemType,
+            Type = WorkItemType.FromApiValue(wi.fields.WorkItemType),
             State = wi.fields.State,
         };
 
