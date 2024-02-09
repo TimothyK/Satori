@@ -1,4 +1,4 @@
-﻿namespace Satori.ViewModels.PullRequests;
+﻿namespace Satori.AppServices.ViewModels.PullRequests;
 
 public class Review
 {

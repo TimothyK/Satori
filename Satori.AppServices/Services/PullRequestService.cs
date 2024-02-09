@@ -1,22 +1,30 @@
-﻿using Satori.AzureDevOps;
+﻿using Satori.AppServices.ViewModels;
+using Satori.AppServices.ViewModels.PullRequests;
+using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
-using Satori.ViewModels;
-using Satori.ViewModels.PullRequests;
-using PullRequest = Satori.AzureDevOps.Models.PullRequest;
+using ConnectionSettings = Satori.AppServices.Models.ConnectionSettings;
+using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
+using PullRequestDto = Satori.AzureDevOps.Models.PullRequest;
 
-namespace Satori.Services
+namespace Satori.AppServices.Services
 {
     public class PullRequestService
     {
-        public async Task<IEnumerable<ViewModels.PullRequests.PullRequest>> GetPullRequestsAsync()
+        private readonly ConnectionSettings _connectionSettings;
+
+        public PullRequestService(ConnectionSettings connectionSettings)
+        {
+            _connectionSettings = connectionSettings;
+        }
+        public async Task<IEnumerable<PullRequest>> GetPullRequestsAsync()
         {
             
-            var srv = new AzureDevOpsServer(Program.AzureDevOpsConnectionSettings);
+            var srv = new AzureDevOpsServer(_connectionSettings.AzureDevOps);
             var pullRequests = await srv.GetPullRequestsAsync();
             return pullRequests.Select(ToViewModel).ToArray();
         }
 
-        private static ViewModels.PullRequests.PullRequest ToViewModel(PullRequest pr)
+        private static PullRequest ToViewModel(PullRequestDto pr)
         {
             var reviews = pr.reviewers
                 .Select(ToViewModel)
@@ -24,7 +32,7 @@ namespace Satori.Services
                 .ThenBy(x => x.Reviewer.DisplayName)
                 .ToList();
 
-            var pullRequest = new ViewModels.PullRequests.PullRequest
+            var pullRequest = new PullRequest
             {
                 Id = pr.pullRequestId,
                 Title = pr.title,

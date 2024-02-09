@@ -1,4 +1,4 @@
-﻿namespace Satori.ViewModels;
+﻿namespace Satori.AppServices.ViewModels;
 
 public class Person
 {

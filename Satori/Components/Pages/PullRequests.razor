@@ -1,6 +1,6 @@
 ﻿@page "/PullRequests"
-@using Satori.ViewModels.PullRequests
-@using Satori.Services
+@using Satori.AppServices.Services
+@using Satori.AppServices.ViewModels.PullRequests
 
 <PageTitle>Pull Requests</PageTitle>
 
@@ -94,7 +94,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var srv = new PullRequestService();
+        var srv = new PullRequestService(Program.ConnectionSettings);
 
         _pullRequests = await srv.GetPullRequestsAsync();
     }

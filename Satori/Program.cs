@@ -1,5 +1,5 @@
-using Satori.AzureDevOps;
 using Satori.Components;
+using ConnectionSettings = Satori.AppServices.Models.ConnectionSettings;
 
 internal class Program
 {
@@ -36,17 +36,20 @@ internal class Program
 
     private static void SetAzureDevOpsConnectionSettings(WebApplicationBuilder builder)
     {
-        AzureDevOpsConnectionSettings = GetConnectionSettings(builder);
+        ConnectionSettings = new()
+        {
+            AzureDevOps = GetAzureDevOpsSettings(builder)
+        };
     }
 
-    private static ConnectionSettings GetConnectionSettings(WebApplicationBuilder builder)
+    private static Satori.AzureDevOps.ConnectionSettings GetAzureDevOpsSettings(WebApplicationBuilder builder)
     {
-        return new ConnectionSettings()
+        return new Satori.AzureDevOps.ConnectionSettings()
         {
             Url = new Uri(builder.Configuration["AzureDevOps:Url"] ?? throw new InvalidOperationException("Missing AzureDevOps:Url in settings")),
             PersonalAccessToken = builder.Configuration["AzureDevOps:PersonalAccessToken"] ?? string.Empty
         };
     }
 
-    internal static ConnectionSettings AzureDevOpsConnectionSettings { get; private set; }
+    internal static ConnectionSettings ConnectionSettings { get; private set; }
 }
