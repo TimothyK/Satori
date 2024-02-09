@@ -21,7 +21,7 @@ namespace Satori.AzureDevOps.Tests.PullRequests
 
         private Url GetPullRequestsUrl =>
             _connectionSettings.Url
-                .AppendPathSegment("_apis/git/pullrequests")
+                .AppendPathSegment("_apis/git/pullRequests")
                 .AppendQueryParam("api-version", "6.0");
 
         private readonly MockHttpMessageHandler _mockHttp = new();

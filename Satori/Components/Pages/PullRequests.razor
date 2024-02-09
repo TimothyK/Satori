@@ -18,6 +18,7 @@ else
                 <th>PR#</th>
                 <th>Repo</th>
                 <th>Title</th>
+                <th>Work Items</th>
                 <th>Created By</th>
                 <th>Reviews</th>
             </tr>
@@ -33,6 +34,12 @@ else
                         @pullRequest.RepositoryName
                     </td>
                     <td><a href="@pullRequest.Url">@pullRequest.Title</a></td>
+                    <td>
+                        @foreach (var workItem in pullRequest.WorkItems)
+                        {
+                            <div>D#@workItem.Id</div>
+                        }
+                    </td>
                     <td>
                         <div style="display: flex;">
                             <div style="align-self: center;">

@@ -1,4 +1,6 @@
-﻿namespace Satori.AppServices.ViewModels.PullRequests;
+﻿using Satori.AppServices.ViewModels.WorkItems;
+
+namespace Satori.AppServices.ViewModels.PullRequests;
 
 public class PullRequest
 {
@@ -12,5 +14,6 @@ public class PullRequest
     public DateTimeOffset CreationDate { get; set; }
     public Person CreatedBy { get; set; }
     public List<Review> Reviews { get; set; }
-    //TODO: Add WorkItems and Comments
+    public List<WorkItem> WorkItems { get; set; }
+    //TODO: Add Comments
 }

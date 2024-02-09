@@ -1,6 +1,7 @@
 ﻿using Flurl;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.PullRequests;
+using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 using ConnectionSettings = Satori.AppServices.Models.ConnectionSettings;
@@ -19,10 +20,24 @@ namespace Satori.AppServices.Services
         }
         public async Task<IEnumerable<PullRequest>> GetPullRequestsAsync()
         {
-            
             var srv = new AzureDevOpsServer(_connectionSettings.AzureDevOps);
             var pullRequests = await srv.GetPullRequestsAsync();
-            return pullRequests.Select(ToViewModel).ToArray();
+
+            var workItemMap = new Dictionary<int, List<int>>();
+            foreach (var pr in pullRequests)
+            {
+                var idMap = await srv.GetPullRequestWorkItemIdsAsync(pr);
+                var workItemIds = idMap.Select(x => int.Parse(x.id)).ToList();
+                workItemMap.Add(pr.pullRequestId, workItemIds);
+            }
+
+            var viewModels = pullRequests.Select(ToViewModel).ToArray();
+            foreach (var pr in viewModels)
+            {
+                pr.WorkItems = workItemMap[pr.Id].Select(workItemId => new WorkItem() {Id = workItemId}).ToList();
+            }
+
+            return viewModels;
         }
 
         private PullRequest ToViewModel(PullRequestDto pr)
@@ -50,7 +65,7 @@ namespace Satori.AppServices.Services
                 .AppendPathSegment(pullRequest.Project)
                 .AppendPathSegment("_git")
                 .AppendPathSegment(pullRequest.RepositoryName)
-                .AppendPathSegment("pullrequest")
+                .AppendPathSegment("pullRequest")
                 .AppendPathSegment(pullRequest.Id);
 
             return pullRequest;

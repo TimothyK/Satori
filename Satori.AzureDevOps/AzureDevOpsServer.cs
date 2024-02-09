@@ -21,13 +21,32 @@ namespace Satori.AzureDevOps
         public async Task<PullRequest[]> GetPullRequestsAsync()
         {
             var url = _connectionSettings.Url
-                .AppendPathSegment("_apis/git/pullrequests")
+                .AppendPathSegment("_apis/git/pullRequests")
                 .AppendQueryParam("api-version", "6.0");
 
+            return await GetAsync<PullRequest>(url);
+        }
+
+        public async Task<IdMap[]> GetPullRequestWorkItemIdsAsync(PullRequest pr)
+        {
+            var url = _connectionSettings.Url
+                .AppendPathSegment(pr.repository.project.name)
+                .AppendPathSegment("_apis/git/repositories")
+                .AppendPathSegment(pr.repository.name)
+                .AppendPathSegment("pullRequests")
+                .AppendPathSegment(pr.pullRequestId)
+                .AppendPathSegment("workItems")
+                .AppendQueryParam("api-version", "6.0");
+
+            return await GetAsync<IdMap>(url);
+        }
+
+        private async Task<T[]> GetAsync<T>(Url url)
+        {
             var request = new HttpRequestMessage(HttpMethod.Get, url);
 
             request.Headers.Add("Authorization", $"Basic {_connectionSettings.PersonalAccessToken}");
-            
+
             var response = await _httpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
@@ -36,11 +55,10 @@ namespace Satori.AzureDevOps
             }
 
             await using var responseStream = await response.Content.ReadAsStreamAsync();
-            var root = await JsonSerializer.DeserializeAsync<RootObject<PullRequest>>(responseStream) 
-                       ?? throw new ApplicationException("Server did not respond"); ;
+            var root = await JsonSerializer.DeserializeAsync<RootObject<T>>(responseStream)
+                       ?? throw new ApplicationException("Server did not respond");
 
             return root.value;
         }
-
     }
 }
