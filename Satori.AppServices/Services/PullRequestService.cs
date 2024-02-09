@@ -1,4 +1,5 @@
-﻿using Satori.AppServices.ViewModels;
+﻿using Flurl;
+using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
@@ -24,7 +25,7 @@ namespace Satori.AppServices.Services
             return pullRequests.Select(ToViewModel).ToArray();
         }
 
-        private static PullRequest ToViewModel(PullRequestDto pr)
+        private PullRequest ToViewModel(PullRequestDto pr)
         {
             var reviews = pr.reviewers
                 .Select(ToViewModel)
@@ -45,8 +46,12 @@ namespace Satori.AppServices.Services
                 Reviews = reviews,
             };
 
-            pullRequest.Url = string.Format("https://devops.mayfield.pscl.com/PSDev/{0}/_git/{1}/pullrequest/{2}",
-                pullRequest.Project, pullRequest.RepositoryName, pullRequest.Id);
+            pullRequest.Url = _connectionSettings.AzureDevOps.Url
+                .AppendPathSegment(pullRequest.Project)
+                .AppendPathSegment("_git")
+                .AppendPathSegment(pullRequest.RepositoryName)
+                .AppendPathSegment("pullrequest")
+                .AppendPathSegment(pullRequest.Id);
 
             return pullRequest;
         }
