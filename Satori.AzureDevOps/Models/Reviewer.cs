@@ -6,6 +6,5 @@ public class Reviewer : User
     public bool isFlagged { get; set; }
     public bool isRequired { get; set; }
     public string reviewerUrl { get; set; }
-    public string uniqueName { get; set; }
     public int vote { get; set; }
 }

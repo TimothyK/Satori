@@ -29,12 +29,21 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>PullRequestResponses.resx</DependentUpon>
     </Compile>
+    <Compile Update="WorkItems\SampleFiles\WorkItemResponses.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>WorkItemResponses.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Update="PullRequests\SampleFiles\PullRequestResponses.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>PullRequestResponses.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="WorkItems\SampleFiles\WorkItemResponses.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>WorkItemResponses.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 

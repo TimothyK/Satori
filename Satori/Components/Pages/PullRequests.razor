@@ -37,7 +37,9 @@ else
                     <td>
                         @foreach (var workItem in pullRequest.WorkItems)
                         {
-                            <div>D#@workItem.Id</div>
+                            <div>
+                                <a href="@workItem.Url">D#@workItem.Id</a> @workItem.Title
+                            </div>
                         }
                     </td>
                     <td>

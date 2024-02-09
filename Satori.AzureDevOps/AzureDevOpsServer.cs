@@ -1,4 +1,5 @@
 ﻿using Flurl;
+using Pscl.CommaSeparatedValues;
 using Satori.AzureDevOps.Models;
 using System.Text.Json;
 
@@ -39,6 +40,17 @@ namespace Satori.AzureDevOps
                 .AppendQueryParam("api-version", "6.0");
 
             return await GetAsync<IdMap>(url);
+        }
+
+        public async Task<WorkItem[]> GetWorkItemsAsync(IEnumerable<int> workItemIds) => await GetWorkItemsAsync(workItemIds.ToArray());
+        public async Task<WorkItem[]> GetWorkItemsAsync(params int[] workItemIds)
+        {
+            var url = _connectionSettings.Url
+                .AppendPathSegment("_apis/wit/workItems")
+                .AppendQueryParam("ids", workItemIds.ToCommaSeparatedValues())
+                .AppendQueryParam("api-version", "6.0");
+
+            return await GetAsync<WorkItem>(url);
         }
 
         private async Task<T[]> GetAsync<T>(Url url)

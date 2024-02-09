@@ -1,12 +1,12 @@
 ﻿using Flurl;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.PullRequests;
-using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 using ConnectionSettings = Satori.AppServices.Models.ConnectionSettings;
 using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using PullRequestDto = Satori.AzureDevOps.Models.PullRequest;
+using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.Services
 {
@@ -27,17 +27,41 @@ namespace Satori.AppServices.Services
             foreach (var pr in pullRequests)
             {
                 var idMap = await srv.GetPullRequestWorkItemIdsAsync(pr);
-                var workItemIds = idMap.Select(x => int.Parse(x.id)).ToList();
-                workItemMap.Add(pr.pullRequestId, workItemIds);
+                workItemMap.Add(pr.pullRequestId, idMap.Select(x => int.Parse(x.id)).ToList());
             }
+
+            var workItemIds = workItemMap.SelectMany(kvp => kvp.Value).Distinct();
+            var workItems = (await srv.GetWorkItemsAsync(workItemIds))
+                .ToDictionary(wi => wi.id, ToViewModel);
 
             var viewModels = pullRequests.Select(ToViewModel).ToArray();
             foreach (var pr in viewModels)
             {
-                pr.WorkItems = workItemMap[pr.Id].Select(workItemId => new WorkItem() {Id = workItemId}).ToList();
+                pr.WorkItems = workItemMap[pr.Id].Select(workItemId => workItems[workItemId]).ToList();
             }
 
             return viewModels;
+        }
+
+        private WorkItem ToViewModel(AzureDevOps.Models.WorkItem wi)
+        {
+            var workItem = new WorkItem()
+            {
+                Id = wi.id,
+                Title = wi.fields.SystemTitle,
+                AssignedTo = ToNullableViewModel(wi.fields.SystemAssignedTo),
+                CreatedBy = ToViewModel(wi.fields.SystemCreatedBy),
+                CreatedDate = wi.fields.SystemCreatedDate,
+                IterationPath = wi.fields.SystemIterationPath,
+                Type = wi.fields.SystemWorkItemType,
+                State = wi.fields.SystemState,
+            };
+
+            workItem.Url = _connectionSettings.AzureDevOps.Url
+                .AppendPathSegment("_workItems/edit")
+                .AppendPathSegment(workItem.Id);
+
+            return workItem;
         }
 
         private PullRequest ToViewModel(PullRequestDto pr)
@@ -85,6 +109,8 @@ namespace Satori.AppServices.Services
                 },
             };
         }
+
+        private static Person? ToNullableViewModel(User? user) => user == null ? null : ToViewModel(user);
 
         private static Person ToViewModel(User user)
         {
