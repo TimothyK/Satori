@@ -48,6 +48,14 @@ else
                                 P#@projectCode
                             </div>
                         }
+                        @foreach (var label in pullRequest.Labels)
+                        {
+                            <div style="display: flex;">
+                                <div style="align-self: center;">
+                                    <span class="badge bg-secondary bg-gradient" style="font-size:0.5rem;">@label</span>
+                                </div>
+                            </div>
+                        }
                     </td>
                     <td>
                         <div style="display: flex;">

@@ -85,6 +85,7 @@ public class PullRequestService
             CreationDate = pr.creationDate,
             CreatedBy = ToViewModel(pr.createdBy),
             Reviews = reviews,
+            Labels = pr.labels?.Where(label => label.active).Select(label => label.name).ToList() ?? new List<string>(),
         };
 
         pullRequest.Url = _connectionSettings.AzureDevOps.Url

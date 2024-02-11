@@ -115,6 +115,12 @@ public class PullRequestTests
     public void ReviewerImageUrl() => SinglePullRequest().reviewers.Single().imageUrl
         .ShouldBe("http://devops.test/Team/_api/_common/identityImage?id=c00ef764-dc77-4b32-9a19-590db59f039b");
 
-
-
+    [TestMethod]
+    public void Label()
+    {
+        var labels = SinglePullRequest().labels;
+        labels.Length.ShouldBe(1);
+        labels.Single().name.ShouldBe("NoBuild");
+        labels.Single().active.ShouldBeTrue();
+    }
 }

@@ -15,5 +15,11 @@ public class PullRequest
     public Person CreatedBy { get; set; }
     public List<Review> Reviews { get; set; }
     public List<WorkItem> WorkItems { get; set; }
+
+    /// <summary>
+    /// PR Tags
+    /// </summary>
+    public List<string> Labels { get; set; }
+
     //TODO: Add Comments
 }
