@@ -8,5 +8,4 @@ public interface IAzureDevOpsServer
     Task<PullRequest[]> GetPullRequestsAsync();
     Task<IdMap[]> GetPullRequestWorkItemIdsAsync(PullRequest pr);
     Task<WorkItem[]> GetWorkItemsAsync(IEnumerable<int> workItemIds);
-    Task<WorkItem[]> GetWorkItemsAsync(params int[] workItemIds);
 }
