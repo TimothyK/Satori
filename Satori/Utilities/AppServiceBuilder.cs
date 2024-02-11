@@ -12,7 +12,7 @@ namespace Satori.Utilities
             builder.Services.AddSingleton<HttpClient>();
             builder.Services.AddSingleton<PullRequestService>();
             builder.Services.AddSingleton(settings.AzureDevOps);
-            builder.Services.AddSingleton<AzureDevOpsServer>();
+            builder.Services.AddSingleton<IAzureDevOpsServer, AzureDevOpsServer>();
 
             return builder;
         }

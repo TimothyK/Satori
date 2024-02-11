@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace Satori.AzureDevOps;
 
-public class AzureDevOpsServer
+public class AzureDevOpsServer : IAzureDevOpsServer
 {
     public ConnectionSettings ConnectionSettings { get; }
     private readonly HttpClient _httpClient;

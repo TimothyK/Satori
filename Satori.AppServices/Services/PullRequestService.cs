@@ -12,10 +12,10 @@ namespace Satori.AppServices.Services;
 
 public class PullRequestService
 {
-    public AzureDevOpsServer AzureDevOpsServer { get; }
+    private IAzureDevOpsServer AzureDevOpsServer { get; }
     private ConnectionSettings ConnectionSettings => AzureDevOpsServer.ConnectionSettings;
 
-    public PullRequestService(AzureDevOpsServer azureDevOpsServer)
+    public PullRequestService(IAzureDevOpsServer azureDevOpsServer)
     {
         AzureDevOpsServer = azureDevOpsServer;
     }
