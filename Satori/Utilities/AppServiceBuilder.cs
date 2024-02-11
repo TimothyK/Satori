@@ -1,4 +1,5 @@
 ﻿using Satori.AppServices.Services;
+using Satori.AzureDevOps;
 
 namespace Satori.Utilities
 {
@@ -7,7 +8,11 @@ namespace Satori.Utilities
         public static WebApplicationBuilder AddAppServices(this WebApplicationBuilder builder)
         {
             var settings = builder.GetConnectionSettings();
-            builder.Services.AddSingleton(new PullRequestService(settings));
+            builder.Services.AddSingleton(settings);
+            builder.Services.AddSingleton<HttpClient>();
+            builder.Services.AddSingleton<PullRequestService>();
+            builder.Services.AddSingleton(settings.AzureDevOps);
+            builder.Services.AddSingleton<AzureDevOpsServer>();
 
             return builder;
         }
@@ -20,9 +25,9 @@ namespace Satori.Utilities
             };
         }
 
-        private static AzureDevOps.ConnectionSettings GetAzureDevOpsSettings(this WebApplicationBuilder builder)
+        private static ConnectionSettings GetAzureDevOpsSettings(this WebApplicationBuilder builder)
         {
-            return new AzureDevOps.ConnectionSettings()
+            return new ConnectionSettings()
             {
                 Url = new Uri(builder.Configuration["AzureDevOps:Url"] ?? throw new InvalidOperationException("Missing AzureDevOps:Url in settings")),
                 PersonalAccessToken = builder.Configuration["AzureDevOps:PersonalAccessToken"] ?? string.Empty

@@ -4,7 +4,6 @@ using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
-using ConnectionSettings = Satori.AppServices.Models.ConnectionSettings;
 using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using PullRequestDto = Satori.AzureDevOps.Models.PullRequest;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
@@ -13,15 +12,16 @@ namespace Satori.AppServices.Services;
 
 public class PullRequestService
 {
-    private readonly ConnectionSettings _connectionSettings;
+    public AzureDevOpsServer AzureDevOpsServer { get; }
+    private ConnectionSettings ConnectionSettings => AzureDevOpsServer.ConnectionSettings;
 
-    public PullRequestService(ConnectionSettings connectionSettings)
+    public PullRequestService(AzureDevOpsServer azureDevOpsServer)
     {
-        _connectionSettings = connectionSettings;
+        AzureDevOpsServer = azureDevOpsServer;
     }
     public async Task<IEnumerable<PullRequest>> GetPullRequestsAsync()
     {
-        var srv = new AzureDevOpsServer(_connectionSettings.AzureDevOps);
+        var srv = AzureDevOpsServer;
         var pullRequests = await srv.GetPullRequestsAsync();
 
         var workItemMap = new Dictionary<int, List<int>>();
@@ -59,7 +59,7 @@ public class PullRequestService
             ProjectCode = wi.fields.ProjectCode,
         };
 
-        workItem.Url = _connectionSettings.AzureDevOps.Url
+        workItem.Url = ConnectionSettings.Url
             .AppendPathSegment("_workItems/edit")
             .AppendPathSegment(workItem.Id);
 
@@ -88,7 +88,7 @@ public class PullRequestService
             Labels = pr.labels?.Where(label => label.active).Select(label => label.name).ToList() ?? new List<string>(),
         };
 
-        pullRequest.Url = _connectionSettings.AzureDevOps.Url
+        pullRequest.Url = ConnectionSettings.Url
             .AppendPathSegment(pullRequest.Project)
             .AppendPathSegment("_git")
             .AppendPathSegment(pullRequest.RepositoryName)

@@ -7,21 +7,18 @@ namespace Satori.AzureDevOps;
 
 public class AzureDevOpsServer
 {
-    private readonly ConnectionSettings _connectionSettings;
+    public ConnectionSettings ConnectionSettings { get; }
     private readonly HttpClient _httpClient;
 
-    public AzureDevOpsServer(ConnectionSettings connectionSettings) : this(connectionSettings, new HttpClient())
-    {
-    }
     public AzureDevOpsServer(ConnectionSettings connectionSettings, HttpClient httpClient)
     {
-        _connectionSettings = connectionSettings;
+        ConnectionSettings = connectionSettings;
         _httpClient = httpClient;
     }
 
     public async Task<PullRequest[]> GetPullRequestsAsync()
     {
-        var url = _connectionSettings.Url
+        var url = ConnectionSettings.Url
             .AppendPathSegment("_apis/git/pullRequests")
             .AppendQueryParam("api-version", "6.0");
 
@@ -30,7 +27,7 @@ public class AzureDevOpsServer
 
     public async Task<IdMap[]> GetPullRequestWorkItemIdsAsync(PullRequest pr)
     {
-        var url = _connectionSettings.Url
+        var url = ConnectionSettings.Url
             .AppendPathSegment(pr.repository.project.name)
             .AppendPathSegment("_apis/git/repositories")
             .AppendPathSegment(pr.repository.name)
@@ -45,7 +42,7 @@ public class AzureDevOpsServer
     public async Task<WorkItem[]> GetWorkItemsAsync(IEnumerable<int> workItemIds) => await GetWorkItemsAsync(workItemIds.ToArray());
     public async Task<WorkItem[]> GetWorkItemsAsync(params int[] workItemIds)
     {
-        var url = _connectionSettings.Url
+        var url = ConnectionSettings.Url
             .AppendPathSegment("_apis/wit/workItems")
             .AppendQueryParam("ids", workItemIds.ToCommaSeparatedValues())
             .AppendQueryParam("api-version", "6.0");
@@ -57,7 +54,7 @@ public class AzureDevOpsServer
     {
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
-        request.Headers.Add("Authorization", $"Basic {_connectionSettings.PersonalAccessToken}");
+        request.Headers.Add("Authorization", $"Basic {ConnectionSettings.PersonalAccessToken}");
 
         var response = await _httpClient.SendAsync(request);
 
