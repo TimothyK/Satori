@@ -1,6 +1,7 @@
 ﻿@page "/PullRequests"
 @using Satori.AppServices.Services
 @using Satori.AppServices.ViewModels.PullRequests
+@using Pscl.Linq
 
 <PageTitle>Pull Requests</PageTitle>
 
@@ -39,6 +40,12 @@ else
                         {
                             <div class="work-item @workItem.Type.CssClass">
                                 <a href="@workItem.Url">D#@workItem.Id</a> @workItem.Title
+                            </div>
+                        }
+                        @foreach (var projectCode in pullRequest.WorkItems.SelectWhereHasValue(wi => wi.ProjectCode).Distinct())
+                        {
+                            <div class="project-code">
+                                P#@projectCode
                             </div>
                         }
                     </td>

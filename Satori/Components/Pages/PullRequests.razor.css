@@ -65,3 +65,9 @@
 .work-item-unknown {
     border-color: gray;
 }
+
+.project-code {
+    border-left: solid 5px black;
+    padding-left: 3px;
+    font-size: 0.8em;
+}

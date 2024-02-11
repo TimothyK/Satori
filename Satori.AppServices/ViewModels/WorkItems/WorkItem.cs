@@ -11,4 +11,5 @@ public class WorkItem
     public string IterationPath { get; set; }
     public WorkItemType Type { get; set; }
     public string State { get; set; }
+    public string ProjectCode { get; set; }
 }

@@ -56,6 +56,7 @@ public class PullRequestService
             IterationPath = wi.fields.IterationPath,
             Type = WorkItemType.FromApiValue(wi.fields.WorkItemType),
             State = wi.fields.State,
+            ProjectCode = wi.fields.ProjectCode,
         };
 
         workItem.Url = _connectionSettings.AzureDevOps.Url
