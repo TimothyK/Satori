@@ -21,7 +21,7 @@ public class PullRequest
     public string targetRefName { get; set; }
     public string title { get; set; }
     public string url { get; set; }
-    public CompletionOptions completionOptions { get; set; }
+    public CompletionOptions? completionOptions { get; set; }
     public User autoCompleteSetBy { get; set; }
-    public Label[] labels { get; set; }
+    public Label[]? labels { get; set; }
 }
