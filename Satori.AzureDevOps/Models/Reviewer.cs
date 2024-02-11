@@ -1,10 +1,18 @@
-﻿namespace Satori.AzureDevOps.Models;
+﻿using System.Text.Json.Serialization;
 
+namespace Satori.AzureDevOps.Models;
+
+// ReSharper disable once ClassNeverInstantiated.Global
 public class Reviewer : User
 {
-    public bool hasDeclined { get; set; }
-    public bool isFlagged { get; set; }
-    public bool isRequired { get; set; }
-    public string reviewerUrl { get; set; }
-    public int vote { get; set; }
+    [JsonPropertyName("hasDeclined")]
+    public bool HasDeclined { get; set; }
+    [JsonPropertyName("isFlagged")]
+    public bool IsFlagged { get; set; }
+    [JsonPropertyName("isRequired")]
+    public bool IsRequired { get; set; }
+    [JsonPropertyName("reviewerUrl")]
+    public required string ReviewerUrl { get; set; }
+    [JsonPropertyName("vote")]
+    public int Vote { get; set; }
 }

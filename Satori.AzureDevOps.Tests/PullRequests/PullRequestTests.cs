@@ -60,67 +60,73 @@ public class PullRequestTests
     #endregion Helpers
 
     [TestMethod]
-    public void _SmokeTest() => SinglePullRequest().pullRequestId.ShouldBe(1);
+    public void _SmokeTest() => SinglePullRequest().PullRequestId.ShouldBe(1);
 
     [TestMethod]
-    public void Title() => SinglePullRequest().title.ShouldBe("My PR Title");
+    public void Title() => SinglePullRequest().Title.ShouldBe("My PR Title");
 
     [TestMethod]
-    public void RepoName() => SinglePullRequest().repository.name.ShouldBe("MyRepoName");
+    public void RepoName() => SinglePullRequest().Repository.Name.ShouldBe("MyRepoName");
 
     [TestMethod]
-    public void Project() => SinglePullRequest().repository.project.name.ShouldBe("MyProject");
+    public void Project() => SinglePullRequest().Repository.Project.Name.ShouldBe("MyProject");
 
     [TestMethod]
-    public void IsDraft() => SinglePullRequest().isDraft.ShouldBeFalse();
+    public void IsDraft() => SinglePullRequest().IsDraft.ShouldBeFalse();
 
     [TestMethod]
-    public void MergeCommitMessage() => SinglePullRequest().completionOptions.mergeCommitMessage.ShouldBe("Merged PR 1: Test PR");
+    public void MergeCommitMessage()
+    {
+        var completionOptions = SinglePullRequest().CompletionOptions;
+        completionOptions.ShouldNotBeNull();
+        completionOptions.MergeCommitMessage.ShouldBe("Merged PR 1: Test PR");
+    }
 
     [TestMethod]
-    public void CreationDate() => SinglePullRequest().creationDate
+    public void CreationDate() => SinglePullRequest().CreationDate
         .ShouldBe(new DateTimeOffset(2023, 10, 11, 6, 32, 15, TimeSpan.Zero).AddTicks(7700876));
 
     [TestMethod]
-    public void CreatedById() => SinglePullRequest().createdBy.id.ShouldBe(new Guid("c00ef764-dc77-4b32-9a19-590db59f039b"));
+    public void CreatedById() => SinglePullRequest().CreatedBy.Id.ShouldBe(new Guid("c00ef764-dc77-4b32-9a19-590db59f039b"));
 
     [TestMethod]
-    public void CreatedByUniqueName() => SinglePullRequest().createdBy.uniqueName.ShouldBe(@"Domain\Timothyk");
+    public void CreatedByUniqueName() => SinglePullRequest().CreatedBy.UniqueName.ShouldBe(@"Domain\Timothyk");
 
     [TestMethod]
-    public void CreatedByDisplayName() => SinglePullRequest().createdBy.displayName.ShouldBe("Timothy Klenke");
+    public void CreatedByDisplayName() => SinglePullRequest().CreatedBy.DisplayName.ShouldBe("Timothy Klenke");
 
     [TestMethod]
-    public void CreatedByImageUrl() => SinglePullRequest().createdBy.imageUrl
+    public void CreatedByImageUrl() => SinglePullRequest().CreatedBy.ImageUrl
         .ShouldBe("http://devops.test/Team/_api/_common/identityImage?id=c00ef764-dc77-4b32-9a19-590db59f039b");
 
     [TestMethod]
-    public void Reviewers() => SinglePullRequest().reviewers.Length.ShouldBe(1);
+    public void Reviewers() => SinglePullRequest().Reviewers.Length.ShouldBe(1);
 
     [TestMethod]
-    public void ReviewerId() => SinglePullRequest().reviewers.Single().id.ShouldBe(new Guid("c00ef764-dc77-4b32-9a19-590db59f039b"));
+    public void ReviewerId() => SinglePullRequest().Reviewers.Single().Id.ShouldBe(new Guid("c00ef764-dc77-4b32-9a19-590db59f039b"));
 
     [TestMethod]
-    public void ReviewerIsRequired() => SinglePullRequest().reviewers.Single().isRequired.ShouldBeTrue();
+    public void ReviewerIsRequired() => SinglePullRequest().Reviewers.Single().IsRequired.ShouldBeTrue();
     [TestMethod]
-    public void ReviewerVote() => SinglePullRequest().reviewers.Single().vote.ShouldBe(10);
+    public void ReviewerVote() => SinglePullRequest().Reviewers.Single().Vote.ShouldBe(10);
         
     [TestMethod]
-    public void ReviewerUniqueName() => SinglePullRequest().reviewers.Single().uniqueName.ShouldBe(@"Domain\Timothyk");
+    public void ReviewerUniqueName() => SinglePullRequest().Reviewers.Single().UniqueName.ShouldBe(@"Domain\Timothyk");
 
     [TestMethod]
-    public void ReviewerDisplayName() => SinglePullRequest().reviewers.Single().displayName.ShouldBe("Timothy Klenke");
+    public void ReviewerDisplayName() => SinglePullRequest().Reviewers.Single().DisplayName.ShouldBe("Timothy Klenke");
 
     [TestMethod]
-    public void ReviewerImageUrl() => SinglePullRequest().reviewers.Single().imageUrl
+    public void ReviewerImageUrl() => SinglePullRequest().Reviewers.Single().ImageUrl
         .ShouldBe("http://devops.test/Team/_api/_common/identityImage?id=c00ef764-dc77-4b32-9a19-590db59f039b");
 
     [TestMethod]
     public void Label()
     {
-        var labels = SinglePullRequest().labels;
+        var labels = SinglePullRequest().Labels;
+        labels.ShouldNotBeNull();
         labels.Length.ShouldBe(1);
-        labels.Single().name.ShouldBe("NoBuild");
-        labels.Single().active.ShouldBeTrue();
+        labels.Single().Name.ShouldBe("NoBuild");
+        labels.Single().Active.ShouldBeTrue();
     }
 }

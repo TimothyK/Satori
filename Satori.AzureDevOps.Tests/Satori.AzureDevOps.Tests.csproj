@@ -15,6 +15,7 @@
     <PackageReference Include="MSTest.TestAdapter" Version="3.0.4" />
     <PackageReference Include="MSTest.TestFramework" Version="3.0.4" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="Object.Builder" Version="1.2.0" />
     <PackageReference Include="RichardSzalay.MockHttp" Version="7.0.0" />
     <PackageReference Include="Shouldly" Version="4.2.1" />
   </ItemGroup>
@@ -24,6 +25,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="PullRequests\SampleFiles\PrWorkItemResponses.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrWorkItemResponses.resx</DependentUpon>
+    </Compile>
     <Compile Update="PullRequests\SampleFiles\PullRequestResponses.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -37,6 +43,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="PullRequests\SampleFiles\PrWorkItemResponses.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>PrWorkItemResponses.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Update="PullRequests\SampleFiles\PullRequestResponses.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>PullRequestResponses.Designer.cs</LastGenOutput>

@@ -28,11 +28,11 @@ public class AzureDevOpsServer : IAzureDevOpsServer
     public async Task<IdMap[]> GetPullRequestWorkItemIdsAsync(PullRequest pr)
     {
         var url = ConnectionSettings.Url
-            .AppendPathSegment(pr.repository.project.name)
+            .AppendPathSegment(pr.Repository.Project.Name)
             .AppendPathSegment("_apis/git/repositories")
-            .AppendPathSegment(pr.repository.name)
+            .AppendPathSegment(pr.Repository.Name)
             .AppendPathSegment("pullRequests")
-            .AppendPathSegment(pr.pullRequestId)
+            .AppendPathSegment(pr.PullRequestId)
             .AppendPathSegment("workItems")
             .AppendQueryParam("api-version", "6.0");
 
@@ -67,6 +67,6 @@ public class AzureDevOpsServer : IAzureDevOpsServer
         var root = await JsonSerializer.DeserializeAsync<RootObject<T>>(responseStream)
                    ?? throw new ApplicationException("Server did not respond");
 
-        return root.value;
+        return root.Value;
     }
 }

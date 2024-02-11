@@ -1,10 +1,12 @@
-﻿namespace Satori.AzureDevOps.Models;
+﻿using System.Text.Json.Serialization;
 
+namespace Satori.AzureDevOps.Models;
+
+// ReSharper disable once ClassNeverInstantiated.Global
 public class Project
 {
-    public Guid id { get; set; }
-    public DateTime lastUpdateTime { get; set; }
-    public string name { get; set; }
-    public string state { get; set; }
-    public string visibility { get; set; }
+    [JsonPropertyName("id")]
+    public Guid Id { get; set; }
+    [JsonPropertyName("name")]
+    public required string Name { get; set; }
 }

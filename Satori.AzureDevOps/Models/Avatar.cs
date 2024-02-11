@@ -1,6 +1,10 @@
-﻿namespace Satori.AzureDevOps.Models;
+﻿using System.Text.Json.Serialization;
 
+namespace Satori.AzureDevOps.Models;
+
+// ReSharper disable once ClassNeverInstantiated.Global
 public class Avatar
 {
-    public string href { get; set; }
+    [JsonPropertyName("href")]
+    public required string Href { get; set; }
 }

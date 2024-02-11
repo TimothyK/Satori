@@ -73,65 +73,65 @@ public class WorkItemTests
     #endregion Helpers
 
     [TestMethod]
-    public void _SmokeTest() => SingleWorkItem().id.ShouldBe(SingleWorkItemId);
+    public void _SmokeTest() => SingleWorkItem().Id.ShouldBe(SingleWorkItemId);
 
     [TestMethod]
-    public void Title() => SingleWorkItem().fields.SystemTitle.ShouldBe("Program no longer crashes on startup");
+    public void Title() => SingleWorkItem().Fields.Title.ShouldBe("Program no longer crashes on startup");
 
     [TestMethod]
-    public void WorkItemType() => SingleWorkItem().fields.WorkItemType.ShouldBe("Product Backlog Item");
+    public void WorkItemType() => SingleWorkItem().Fields.WorkItemType.ShouldBe("Product Backlog Item");
 
 
     [TestMethod]
-    public void Area() => SingleWorkItem().fields.AreaPath.ShouldBe("Product\\AppArea");
+    public void Area() => SingleWorkItem().Fields.AreaPath.ShouldBe("Product\\AppArea");
 
     [TestMethod]
-    public void IterationPath() => SingleWorkItem().fields.IterationPath.ShouldBe("CD\\Skunk\\Sprint 2024-02");
+    public void IterationPath() => SingleWorkItem().Fields.IterationPath.ShouldBe("CD\\Skunk\\Sprint 2024-02");
 
     [TestMethod]
-    public void State() => SingleWorkItem().fields.State.ShouldBe("New");
+    public void State() => SingleWorkItem().Fields.State.ShouldBe("New");
 
     [TestMethod]
     public void AssignedTo()
     {
-        var assignedTo = SingleWorkItem().fields.AssignedTo;
+        var assignedTo = SingleWorkItem().Fields.AssignedTo;
         assignedTo.ShouldNotBeNull();
-        assignedTo.id.ShouldBe(new Guid("c00ef764-dc77-4b32-9a19-590db59f039b"));
-        assignedTo.displayName.ShouldBe("Timothy Klenke");
-        assignedTo.imageUrl.ShouldBe("http://devops.test/Team/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc");
+        assignedTo.Id.ShouldBe(new Guid("c00ef764-dc77-4b32-9a19-590db59f039b"));
+        assignedTo.DisplayName.ShouldBe("Timothy Klenke");
+        assignedTo.ImageUrl.ShouldBe("http://devops.test/Team/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc");
     }
         
     [TestMethod]
     public void CreatedBy()
     {
-        var createdBy = SingleWorkItem().fields.CreatedBy;
+        var createdBy = SingleWorkItem().Fields.CreatedBy;
         createdBy.ShouldNotBeNull();
-        createdBy.id.ShouldBe(new Guid("c00ef764-dc77-4b32-9a19-590db59f039b"));
-        createdBy.displayName.ShouldBe("Timothy Klenke");
-        createdBy.imageUrl.ShouldBe("http://devops.test/Team/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc");
+        createdBy.Id.ShouldBe(new Guid("c00ef764-dc77-4b32-9a19-590db59f039b"));
+        createdBy.DisplayName.ShouldBe("Timothy Klenke");
+        createdBy.ImageUrl.ShouldBe("http://devops.test/Team/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc");
     }
 
     [TestMethod]
-    public void CreationDate() => SingleWorkItem().fields.SystemCreatedDate
+    public void CreationDate() => SingleWorkItem().Fields.SystemCreatedDate
         .ShouldBe(new DateTimeOffset(2024, 1, 13, 20, 16, 53, TimeSpan.Zero).AddMilliseconds(407));
 
 
     [TestMethod]
-    public void Priority() => SingleWorkItem().fields.Priority.ShouldBe(2);
+    public void Priority() => SingleWorkItem().Fields.Priority.ShouldBe(2);
 
     [TestMethod]
-    public void BacklogPriority() => SingleWorkItem().fields.BacklogPriority.ShouldBe(27103990.0);
+    public void BacklogPriority() => SingleWorkItem().Fields.BacklogPriority.ShouldBe(27103990.0);
 
     [TestMethod]
-    public void Blocked_No() => SingleWorkItem().fields.Blocked.ShouldBeFalse();
+    public void Blocked_No() => SingleWorkItem().Fields.Blocked.ShouldBeFalse();
         
     [TestMethod]
-    public void Blocked_Yes() => SingleWorkItem(BlockedWorkItemId).fields.Blocked.ShouldBeTrue();
+    public void Blocked_Yes() => SingleWorkItem(BlockedWorkItemId).Fields.Blocked.ShouldBeTrue();
 
     [TestMethod]
-    public void ProjectCode() => SingleWorkItem().fields.ProjectCode.ShouldBe("1.2.3 - Skunk Works");
+    public void ProjectCode() => SingleWorkItem().Fields.ProjectCode.ShouldBe("1.2.3 - Skunk Works");
         
     [TestMethod]
-    public void CommentCount() => SingleWorkItem().fields.CommentCount.ShouldBe(0);
+    public void CommentCount() => SingleWorkItem().Fields.CommentCount.ShouldBe(0);
 
 }

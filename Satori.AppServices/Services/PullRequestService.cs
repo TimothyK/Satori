@@ -28,12 +28,12 @@ public class PullRequestService
         foreach (var pr in pullRequests)
         {
             var idMap = await srv.GetPullRequestWorkItemIdsAsync(pr);
-            workItemMap.Add(pr.pullRequestId, idMap.Select(x => int.Parse(x.id)).ToList());
+            workItemMap.Add(pr.PullRequestId, idMap.Select(x => x.Id).ToList());
         }
 
         var workItemIds = workItemMap.SelectMany(kvp => kvp.Value).Distinct();
         var workItems = (await srv.GetWorkItemsAsync(workItemIds))
-            .ToDictionary(wi => wi.id, ToViewModel);
+            .ToDictionary(wi => wi.Id, ToViewModel);
 
         var viewModels = pullRequests.Select(ToViewModel).ToArray();
         foreach (var pr in viewModels)
@@ -48,15 +48,15 @@ public class PullRequestService
     {
         var workItem = new WorkItem()
         {
-            Id = wi.id,
-            Title = wi.fields.SystemTitle,
-            AssignedTo = ToNullableViewModel(wi.fields.AssignedTo),
-            CreatedBy = ToViewModel(wi.fields.CreatedBy),
-            CreatedDate = wi.fields.SystemCreatedDate,
-            IterationPath = wi.fields.IterationPath,
-            Type = WorkItemType.FromApiValue(wi.fields.WorkItemType),
-            State = wi.fields.State,
-            ProjectCode = wi.fields.ProjectCode,
+            Id = wi.Id,
+            Title = wi.Fields.Title,
+            AssignedTo = ToNullableViewModel(wi.Fields.AssignedTo),
+            CreatedBy = ToViewModel(wi.Fields.CreatedBy),
+            CreatedDate = wi.Fields.SystemCreatedDate,
+            IterationPath = wi.Fields.IterationPath ?? string.Empty,
+            Type = WorkItemType.FromApiValue(wi.Fields.WorkItemType),
+            State = wi.Fields.State,
+            ProjectCode = wi.Fields.ProjectCode ?? string.Empty,
         };
 
         workItem.Url = ConnectionSettings.Url
@@ -68,7 +68,7 @@ public class PullRequestService
 
     private PullRequest ToViewModel(PullRequestDto pr)
     {
-        var reviews = pr.reviewers
+        var reviews = pr.Reviewers
             .Select(ToViewModel)
             .OrderByDescending(x => x.Vote)
             .ThenBy(x => x.Reviewer.DisplayName)
@@ -76,16 +76,16 @@ public class PullRequestService
 
         var pullRequest = new PullRequest
         {
-            Id = pr.pullRequestId,
-            Title = pr.title,
-            RepositoryName = pr.repository.name,
-            Project = pr.repository.project.name,
-            Status = pr.isDraft ? Status.Draft : Status.Open,
-            AutoComplete = !string.IsNullOrEmpty(pr.completionOptions?.mergeCommitMessage),
-            CreationDate = pr.creationDate,
-            CreatedBy = ToViewModel(pr.createdBy),
+            Id = pr.PullRequestId,
+            Title = pr.Title,
+            RepositoryName = pr.Repository.Name,
+            Project = pr.Repository.Project.Name,
+            Status = pr.IsDraft ? Status.Draft : Status.Open,
+            AutoComplete = !string.IsNullOrEmpty(pr.CompletionOptions?.MergeCommitMessage),
+            CreationDate = pr.CreationDate,
+            CreatedBy = ToViewModel(pr.CreatedBy),
             Reviews = reviews,
-            Labels = pr.labels?.Where(label => label.active).Select(label => label.name).ToList() ?? new List<string>(),
+            Labels = pr.Labels?.Where(label => label.Active).Select(label => label.Name).ToList() ?? new List<string>(),
         };
 
         pullRequest.Url = ConnectionSettings.Url
@@ -102,13 +102,13 @@ public class PullRequestService
     {
         return new Review()
         {
-            IsRequired = reviewer.isRequired,
-            Vote = (ReviewVote)reviewer.vote,
+            IsRequired = reviewer.IsRequired,
+            Vote = (ReviewVote)reviewer.Vote,
             Reviewer = new Person()
             {
-                Id = reviewer.id,
-                DisplayName = reviewer.displayName,
-                AvatarUrl = reviewer.imageUrl,
+                Id = reviewer.Id,
+                DisplayName = reviewer.DisplayName,
+                AvatarUrl = reviewer.ImageUrl,
             },
         };
     }
@@ -119,9 +119,9 @@ public class PullRequestService
     {
         return new Person()
         {
-            Id = user.id,
-            DisplayName = user.displayName,
-            AvatarUrl = user.imageUrl,
+            Id = user.Id,
+            DisplayName = user.DisplayName,
+            AvatarUrl = user.ImageUrl,
         };
     }
 

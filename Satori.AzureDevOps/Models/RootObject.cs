@@ -1,7 +1,11 @@
-﻿namespace Satori.AzureDevOps.Models;
+﻿using System.Text.Json.Serialization;
+
+namespace Satori.AzureDevOps.Models;
 
 public class RootObject<T>
 {
-    public int count { get; set; }
-    public T[] value { get; set; }
+    [JsonPropertyName("count")]
+    public int Count { get; set; }
+    [JsonPropertyName("value")]
+    public required T[] Value { get; set; }
 }

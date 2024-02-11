@@ -1,27 +1,53 @@
-﻿namespace Satori.AzureDevOps.Models;
+﻿using System.Text.Json.Serialization;
 
+namespace Satori.AzureDevOps.Models;
+
+// ReSharper disable once ClassNeverInstantiated.Global
 public class PullRequest
 {
-    public int codeReviewId { get; set; }
-    public User createdBy { get; set; }
-    public DateTimeOffset creationDate { get; set; }
-    public string description { get; set; }
-    public bool isDraft { get; set; }
-    public Commit lastMergeCommit { get; set; }
-    public Commit lastMergeSourceCommit { get; set; }
-    public Commit lastMergeTargetCommit { get; set; }
-    public Guid mergeId { get; set; }
-    public string mergeStatus { get; set; }
-    public int pullRequestId { get; set; }
-    public Repository repository { get; set; }
-    public Reviewer[] reviewers { get; set; }
-    public string sourceRefName { get; set; }
-    public string status { get; set; }
-    public bool supportsIterations { get; set; }
-    public string targetRefName { get; set; }
-    public string title { get; set; }
-    public string url { get; set; }
-    public CompletionOptions? completionOptions { get; set; }
-    public User autoCompleteSetBy { get; set; }
-    public Label[]? labels { get; set; }
+    [JsonPropertyName("createdBy")]
+    public required User CreatedBy { get; set; }
+    [JsonPropertyName("creationDate")]
+    public DateTimeOffset CreationDate { get; set; }
+    /// <summary>
+    /// This should be treated as the draft Release Note
+    /// </summary>
+    [JsonPropertyName("description")]
+    public string? Description { get; set; }
+    [JsonPropertyName("isDraft")]
+    public bool IsDraft { get; set; }
+    [JsonPropertyName("lastMergeCommit")]
+    public required Commit LastMergeCommit { get; set; }
+    [JsonPropertyName("lastMergeSourceCommit")]
+    public required Commit LastMergeSourceCommit { get; set; }
+    [JsonPropertyName("lastMergeTargetCommit")]
+    public required Commit LastMergeTargetCommit { get; set; }
+    [JsonPropertyName("mergeId")]
+    public Guid MergeId { get; set; }
+    [JsonPropertyName("mergeStatus")]
+    public required string MergeStatus { get; set; }
+    [JsonPropertyName("pullRequestId")]
+    public int PullRequestId { get; set; }
+    [JsonPropertyName("repository")]
+    public required Repository Repository { get; set; }
+    [JsonPropertyName("reviewers")]
+    public required Reviewer[] Reviewers { get; set; }
+    [JsonPropertyName("sourceRefName")]
+    public required string SourceRefName { get; set; }
+    [JsonPropertyName("status")]
+    public required string Status { get; set; }
+    [JsonPropertyName("supportsIterations")]
+    public bool SupportsIterations { get; set; }
+    [JsonPropertyName("targetRefName")]
+    public required string TargetRefName { get; set; }
+    [JsonPropertyName("title")]
+    public required string Title { get; set; }
+    [JsonPropertyName("url")]
+    public required string Url { get; set; }
+    [JsonPropertyName("completionOptions")]
+    public CompletionOptions? CompletionOptions { get; set; }
+    [JsonPropertyName("autoCompleteSetBy")]
+    public User? AutoCompleteSetBy { get; set; }
+    [JsonPropertyName("labels")]
+    public Label[]? Labels { get; set; }
 }

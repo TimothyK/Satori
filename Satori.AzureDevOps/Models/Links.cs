@@ -1,6 +1,10 @@
-﻿namespace Satori.AzureDevOps.Models;
+﻿using System.Text.Json.Serialization;
 
+namespace Satori.AzureDevOps.Models;
+
+// ReSharper disable once ClassNeverInstantiated.Global
 public class Links
 {
-    public Avatar avatar { get; set; }
+    [JsonPropertyName("avatar")]
+    public Avatar? Avatar { get; set; }
 }
