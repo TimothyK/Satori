@@ -118,7 +118,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var srv = new PullRequestService(Program.ConnectionSettings);
+        var srv = Program.App.Services.GetRequiredService<PullRequestService>();
 
         _pullRequests = await srv.GetPullRequestsAsync();
     }

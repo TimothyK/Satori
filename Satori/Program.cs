@@ -1,5 +1,7 @@
 using Satori.Components;
-using ConnectionSettings = Satori.AppServices.Models.ConnectionSettings;
+using Satori.Utilities;
+
+namespace Satori;
 
 internal class Program
 {
@@ -10,8 +12,8 @@ internal class Program
         // Add services to the container.
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
-
-        SetAzureDevOpsConnectionSettings(builder);
+        
+        builder.AddAppServices();
 
         var app = builder.Build();
 
@@ -30,26 +32,13 @@ internal class Program
 
         app.MapRazorComponents<App>()
             .AddInteractiveServerRenderMode();
+        
+        App = app;
 
         app.Run();
     }
 
-    private static void SetAzureDevOpsConnectionSettings(WebApplicationBuilder builder)
-    {
-        ConnectionSettings = new()
-        {
-            AzureDevOps = GetAzureDevOpsSettings(builder)
-        };
-    }
 
-    private static Satori.AzureDevOps.ConnectionSettings GetAzureDevOpsSettings(WebApplicationBuilder builder)
-    {
-        return new Satori.AzureDevOps.ConnectionSettings()
-        {
-            Url = new Uri(builder.Configuration["AzureDevOps:Url"] ?? throw new InvalidOperationException("Missing AzureDevOps:Url in settings")),
-            PersonalAccessToken = builder.Configuration["AzureDevOps:PersonalAccessToken"] ?? string.Empty
-        };
-    }
 
-    internal static ConnectionSettings ConnectionSettings { get; private set; }
+    public static WebApplication App { get; private set; }
 }
