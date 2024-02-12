@@ -32,13 +32,15 @@ internal class Program
 
         app.MapRazorComponents<App>()
             .AddInteractiveServerRenderMode();
-        
+
         App = app;
 
         app.Run();
     }
 
+    public static IServiceProvider Services => 
+        App?.Services 
+        ?? throw new InvalidOperationException("Services are not available until web application is initialized.");
 
-
-    public static WebApplication App { get; private set; }
+    private static WebApplication? App { get; set; }
 }
