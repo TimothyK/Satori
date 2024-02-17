@@ -52,16 +52,20 @@ public class PullRequestTests
         var mock = new Mock<IAzureDevOpsServer>();
         mock.Setup(srv => srv.ConnectionSettings)
             .Returns(new ConnectionSettings() { Url = new Uri("http://azureDevops.test/Team"), PersonalAccessToken = "token" });
+
         mock.Setup(srv => srv.GetPullRequestsAsync())
             .ReturnsAsync(_pullRequests.ToArray());
-        foreach (var pullRequest in _pullRequests)
+
+        mock.Setup(srv => srv.GetPullRequestWorkItemIdsAsync(It.IsAny<PullRequest>()))
+            .ReturnsAsync((PullRequest pr) => GetWorkItemMap(pr));
+        IdMap[] GetWorkItemMap(PullRequest pullRequest)
         {
-            var idMaps = _pullRequestWorkItems
+            return _pullRequestWorkItems
                 .Where(map => map.PullRequestId == pullRequest.PullRequestId)
-                .Select(map => Builder.Builder<IdMap>.New().Build(idMap => idMap.Id = map.WorkItem.Id));
-            mock.Setup(srv => srv.GetPullRequestWorkItemIdsAsync(pullRequest))
-                .ReturnsAsync(idMaps.ToArray());
+                .Select(map => Builder.Builder<IdMap>.New().Build(idMap => idMap.Id = map.WorkItem.Id))
+                .ToArray();
         }
+
         var workItems = _pullRequestWorkItems
             .Select(map => map.WorkItem)
             .Distinct()
