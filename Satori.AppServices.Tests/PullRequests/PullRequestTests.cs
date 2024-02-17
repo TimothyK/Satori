@@ -355,5 +355,37 @@ public class PullRequestTests
         actual.Id.ShouldBe(expected.Id);
     }
 
+    [TestMethod]
+    public void MultiPullRequests_MultiWorkItems()
+    {
+        //Arrange
+        var pr1 = BuildPullRequest();
+        var pr2 = BuildPullRequest();
+        var pr3 = BuildPullRequest();
+        var workItem1 = BuildWorkItem();
+        var workItem2 = BuildWorkItem();
+        var workItem3 = BuildWorkItem();
+        AddPullRequest(pr1);
+        AddPullRequest(pr2);
+        AddPullRequest(pr3);
+        LinkWorkItem(pr1, workItem1);
+        LinkWorkItem(pr3, workItem1);
+        LinkWorkItem(pr3, workItem2);
+        
+        //Act
+        var prs = GetPullRequests();
+
+        //Assert
+        prs.Length.ShouldBe(3);
+        //pr1
+        prs.Single(pr => pr.Id == pr1.PullRequestId).WorkItems.Count.ShouldBe(1);
+        prs.Single(pr => pr.Id == pr1.PullRequestId).WorkItems.Select(wi => wi.Id).ShouldContain(workItem1.Id);
+        //pr2
+        prs.Single(pr => pr.Id == pr2.PullRequestId).WorkItems.ShouldBeEmpty();
+        //pr3
+        prs.Single(pr => pr.Id == pr3.PullRequestId).WorkItems.Count.ShouldBe(2);
+        prs.Single(pr => pr.Id == pr3.PullRequestId).WorkItems.Select(wi => wi.Id).ShouldBe(new[] { workItem1.Id, workItem2.Id });
+    }
+
     #endregion Work Items
 }
