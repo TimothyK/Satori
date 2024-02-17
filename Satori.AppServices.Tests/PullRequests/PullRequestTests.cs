@@ -15,6 +15,7 @@ public class PullRequestTests
     #region Helpers
 
     #region Arrange
+    private const string AzureDevOpsRootUrl = "http://azuredevops.test/Team";
 
     private readonly List<PullRequest> _pullRequests = new();
     private readonly List<(int PullRequestId, WorkItem WorkItem)> _pullRequestWorkItems = new();
@@ -51,7 +52,7 @@ public class PullRequestTests
         //Arrange
         var mock = new Mock<IAzureDevOpsServer>();
         mock.Setup(srv => srv.ConnectionSettings)
-            .Returns(new ConnectionSettings() { Url = new Uri("http://azureDevops.test/Team"), PersonalAccessToken = "token" });
+            .Returns(new ConnectionSettings() { Url = new Uri(AzureDevOpsRootUrl), PersonalAccessToken = "token" });
 
         mock.Setup(srv => srv.GetPullRequestsAsync())
             .ReturnsAsync(_pullRequests.ToArray());
@@ -325,6 +326,18 @@ public class PullRequestTests
         actual.Labels.ShouldBeEmpty();
     }
 
+    [TestMethod]
+    public void Url()
+    {
+        //Arrange
+        var pr = BuildPullRequest();
+
+        //Act
+        var actual = GetSinglePullRequests(pr);
+
+        //Assert
+        actual.Url.ShouldBe($"{AzureDevOpsRootUrl}/{pr.Repository.Project.Name}/_git/{pr.Repository.Name}/pullRequest/{pr.PullRequestId}");
+    }
     #endregion
 
     #region Work Items
@@ -368,7 +381,6 @@ public class PullRequestTests
         var pr3 = BuildPullRequest();
         var workItem1 = BuildWorkItem();
         var workItem2 = BuildWorkItem();
-        var workItem3 = BuildWorkItem();
         AddPullRequest(pr1);
         AddPullRequest(pr2);
         AddPullRequest(pr3);
