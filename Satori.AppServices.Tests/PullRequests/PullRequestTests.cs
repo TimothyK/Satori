@@ -1,8 +1,6 @@
-using Moq;
-using Pscl.Linq;
 using Satori.AppServices.Services;
+using Satori.AppServices.Tests.PullRequests.TestDoubles;
 using Satori.AppServices.ViewModels.PullRequests;
-using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 using Shouldly;
 using PullRequest = Satori.AzureDevOps.Models.PullRequest;
@@ -12,35 +10,16 @@ namespace Satori.AppServices.Tests.PullRequests;
 [TestClass]
 public class PullRequestTests
 {
+    private readonly TestAzureDevOpsServer _azureDevOpsServer = new();
+    private Uri AzureDevOpsRootUrl => _azureDevOpsServer.AsInterface().ConnectionSettings.Url;
+
     #region Helpers
 
     #region Arrange
-    private const string AzureDevOpsRootUrl = "http://azuredevops.test/Team";
 
-    private readonly List<PullRequest> _pullRequests = new();
-    private readonly List<(int PullRequestId, WorkItem WorkItem)> _pullRequestWorkItems = new();
-
-    private static PullRequest BuildPullRequest()
+    private PullRequest BuildPullRequest()
     {
-        var pr = Builder.Builder<PullRequest>.New().Build(int.MaxValue);
-        pr.Reviewers = Array.Empty<Reviewer>();
-        return pr;
-    }
-
-    private static WorkItem BuildWorkItem()
-    {
-        var expected = Builder.Builder<WorkItem>.New().Build(int.MaxValue);
-        return expected;
-    }
-
-    private void AddPullRequest(PullRequest pullRequest)
-    {
-        _pullRequests.Add(pullRequest);
-    }
-
-    private void LinkWorkItem(PullRequest pullRequest, WorkItem workItem)
-    {
-        _pullRequestWorkItems.Add((pullRequest.PullRequestId, workItem));
+        return _azureDevOpsServer.AddPullRequest().PullRequest;
     }
 
     #endregion Arrange
@@ -49,40 +28,14 @@ public class PullRequestTests
 
     private Satori.AppServices.ViewModels.PullRequests.PullRequest[] GetPullRequests()
     {
-        //Arrange
-        var mock = new Mock<IAzureDevOpsServer>();
-        mock.Setup(srv => srv.ConnectionSettings)
-            .Returns(new ConnectionSettings() { Url = new Uri(AzureDevOpsRootUrl), PersonalAccessToken = "token" });
-
-        mock.Setup(srv => srv.GetPullRequestsAsync())
-            .ReturnsAsync(_pullRequests.ToArray());
-
-        mock.Setup(srv => srv.GetPullRequestWorkItemIdsAsync(It.IsAny<PullRequest>()))
-            .ReturnsAsync((PullRequest pr) => GetWorkItemMap(pr));
-        IdMap[] GetWorkItemMap(PullRequest pullRequest)
-        {
-            return _pullRequestWorkItems
-                .Where(map => map.PullRequestId == pullRequest.PullRequestId)
-                .Select(map => Builder.Builder<IdMap>.New().Build(idMap => idMap.Id = map.WorkItem.Id))
-                .ToArray();
-        }
-
-        var workItems = _pullRequestWorkItems
-            .Select(map => map.WorkItem)
-            .Distinct()
-            .ToArray();
-        mock.Setup(srv => srv.GetWorkItemsAsync(It.IsAny<IEnumerable<int>>()))
-            .ReturnsAsync((IEnumerable<int> workItemIds) => workItems.Where(wi => wi.Id.IsIn(workItemIds)).ToArray());
-
         //Act
-        var srv = new PullRequestService(mock.Object);
+        var srv = new PullRequestService(_azureDevOpsServer.AsInterface());
         return srv.GetPullRequestsAsync().Result.ToArray();
     }
 
-    private Satori.AppServices.ViewModels.PullRequests.PullRequest GetSinglePullRequests(PullRequest pr)
+    private Satori.AppServices.ViewModels.PullRequests.PullRequest GetSinglePullRequests()
     {
         //Arrange
-        AddPullRequest(pr);
 
         //Act
         var pullRequests = GetPullRequests();
@@ -100,8 +53,7 @@ public class PullRequestTests
     public void SmokeTest()
     {
         //Arrange
-        var pr = BuildPullRequest();
-        AddPullRequest(pr);
+        var pr = _azureDevOpsServer.AddPullRequest().PullRequest;
 
         //Act
         var pullRequests = GetPullRequests();
@@ -121,12 +73,12 @@ public class PullRequestTests
         var pr = BuildPullRequest();
 
         //Act
-        var actual = GetSinglePullRequests(pr);
+        var actual = GetSinglePullRequests();
 
         //Assert
         actual.Title.ShouldBe(pr.Title);
     }
-        
+
     [TestMethod]
     public void RepoName()
     {
@@ -134,7 +86,7 @@ public class PullRequestTests
         var pr = BuildPullRequest();
 
         //Act
-        var actual = GetSinglePullRequests(pr);
+        var actual = GetSinglePullRequests();
 
         //Assert
         actual.RepositoryName.ShouldBe(pr.Repository.Name);
@@ -147,7 +99,7 @@ public class PullRequestTests
         var pr = BuildPullRequest();
 
         //Act
-        var actual = GetSinglePullRequests(pr);
+        var actual = GetSinglePullRequests();
 
         //Assert
         actual.Project.ShouldBe(pr.Repository.Project.Name);
@@ -161,7 +113,7 @@ public class PullRequestTests
         pr.IsDraft = true;
 
         //Act
-        var actual = GetSinglePullRequests(pr);
+        var actual = GetSinglePullRequests();
 
         //Assert
         actual.Status.ShouldBe(Status.Draft);
@@ -175,7 +127,7 @@ public class PullRequestTests
         pr.IsDraft = false;
 
         //Act
-        var actual = GetSinglePullRequests(pr);
+        var actual = GetSinglePullRequests();
 
         //Assert
         actual.Status.ShouldBe(Status.Open);
@@ -189,7 +141,7 @@ public class PullRequestTests
         pr.CompletionOptions = null;
 
         //Act
-        var actual = GetSinglePullRequests(pr);
+        var actual = GetSinglePullRequests();
 
         //Assert
         actual.AutoComplete.ShouldBeFalse();
@@ -204,7 +156,7 @@ public class PullRequestTests
         pr.CompletionOptions.MergeCommitMessage = "Feature X - now with awesomeness";
 
         //Act
-        var actual = GetSinglePullRequests(pr);
+        var actual = GetSinglePullRequests();
 
         //Assert
         actual.AutoComplete.ShouldBeTrue();
@@ -217,7 +169,7 @@ public class PullRequestTests
         var pr = BuildPullRequest();
 
         //Act
-        var actual = GetSinglePullRequests(pr);
+        var actual = GetSinglePullRequests();
 
         //Assert
         actual.CreationDate.ShouldBe(pr.CreationDate);
@@ -231,7 +183,7 @@ public class PullRequestTests
         var expected = pr.CreatedBy;
 
         //Act
-        var actual = GetSinglePullRequests(pr)
+        var actual = GetSinglePullRequests()
             .CreatedBy;
 
         //Assert
@@ -246,10 +198,10 @@ public class PullRequestTests
         //Arrange
         var pr = BuildPullRequest();
         var expected = Builder.Builder<Reviewer>.New().Build(x => x.Vote = 0);
-        pr.Reviewers = new[] { expected };
+        pr.Reviewers = [expected];
 
         //Act
-        var actual = GetSinglePullRequests(pr)
+        var actual = GetSinglePullRequests()
             .Reviews.Single();
 
         //Assert
@@ -271,10 +223,10 @@ public class PullRequestTests
         //Arrange
         var pr = BuildPullRequest();
         var reviewer = Builder.Builder<Reviewer>.New().Build(x => x.Vote = (int)expected);
-        pr.Reviewers = new[] { reviewer };
+        pr.Reviewers = [reviewer];
 
         //Act
-        var actual = GetSinglePullRequests(pr)
+        var actual = GetSinglePullRequests()
             .Reviews.Single();
 
         //Assert
@@ -289,7 +241,7 @@ public class PullRequestTests
         pr.Labels = null;
 
         //Act
-        var actual = GetSinglePullRequests(pr);
+        var actual = GetSinglePullRequests();
 
         //Assert
         actual.Labels.ShouldBeEmpty();
@@ -301,10 +253,10 @@ public class PullRequestTests
         //Arrange
         var pr = BuildPullRequest();
         var expected = Builder.Builder<Label>.New().Build(x => x.Active = true);
-        pr.Labels = new[] { expected };
+        pr.Labels = [expected];
 
         //Act
-        var actual = GetSinglePullRequests(pr);
+        var actual = GetSinglePullRequests();
 
         //Assert
         actual.Labels.Count.ShouldBe(1);
@@ -317,10 +269,10 @@ public class PullRequestTests
         //Arrange
         var pr = BuildPullRequest();
         var expected = Builder.Builder<Label>.New().Build(x => x.Active = false);
-        pr.Labels = new[] { expected };
+        pr.Labels = [expected];
 
         //Act
-        var actual = GetSinglePullRequests(pr);
+        var actual = GetSinglePullRequests();
 
         //Assert
         actual.Labels.ShouldBeEmpty();
@@ -333,7 +285,7 @@ public class PullRequestTests
         var pr = BuildPullRequest();
 
         //Act
-        var actual = GetSinglePullRequests(pr);
+        var actual = GetSinglePullRequests();
 
         //Assert
         actual.Url.ShouldBe($"{AzureDevOpsRootUrl}/{pr.Repository.Project.Name}/_git/{pr.Repository.Name}/pullRequest/{pr.PullRequestId}");
@@ -346,10 +298,10 @@ public class PullRequestTests
     public void WorkItems_Empty()
     {
         //Arrange
-        var pr = BuildPullRequest();
+        BuildPullRequest();
 
         //Act
-        var actual = GetSinglePullRequests(pr);
+        var actual = GetSinglePullRequests();
 
         //Assert
         actual.WorkItems.ShouldBeEmpty();
@@ -359,12 +311,11 @@ public class PullRequestTests
     public void WorkItems_SmokeTest()
     {
         //Arrange
-        var pr = BuildPullRequest();
-        var expected = BuildWorkItem();
-        LinkWorkItem(pr, expected);
+        _azureDevOpsServer.AddPullRequest()
+            .WithWorkItem(out var expected);
 
         //Act
-        var pullRequest = GetSinglePullRequests(pr);
+        var pullRequest = GetSinglePullRequests();
 
         //Assert
         pullRequest.WorkItems.Count.ShouldBe(1);
@@ -376,17 +327,9 @@ public class PullRequestTests
     public void MultiPullRequests_MultiWorkItems()
     {
         //Arrange
-        var pr1 = BuildPullRequest();
-        var pr2 = BuildPullRequest();
-        var pr3 = BuildPullRequest();
-        var workItem1 = BuildWorkItem();
-        var workItem2 = BuildWorkItem();
-        AddPullRequest(pr1);
-        AddPullRequest(pr2);
-        AddPullRequest(pr3);
-        LinkWorkItem(pr1, workItem1);
-        LinkWorkItem(pr3, workItem1);
-        LinkWorkItem(pr3, workItem2);
+        _azureDevOpsServer.AddPullRequest(out var pr1).WithWorkItem(out var workItem1);
+        _azureDevOpsServer.AddPullRequest(out var pr2);
+        _azureDevOpsServer.AddPullRequest(out var pr3).WithWorkItem(workItem1).WithWorkItem(out var workItem2);
         
         //Act
         var prs = GetPullRequests();
@@ -400,7 +343,7 @@ public class PullRequestTests
         prs.Single(pr => pr.Id == pr2.PullRequestId).WorkItems.ShouldBeEmpty();
         //pr3
         prs.Single(pr => pr.Id == pr3.PullRequestId).WorkItems.Count.ShouldBe(2);
-        prs.Single(pr => pr.Id == pr3.PullRequestId).WorkItems.Select(wi => wi.Id).ShouldBe(new[] { workItem1.Id, workItem2.Id });
+        prs.Single(pr => pr.Id == pr3.PullRequestId).WorkItems.Select(wi => wi.Id).ShouldBe([workItem1.Id, workItem2.Id]);
     }
 
     #endregion Work Items

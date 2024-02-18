@@ -1,9 +1,6 @@
-﻿using Moq;
-using Pscl.Linq;
-using Satori.AppServices.Services;
+﻿using Satori.AppServices.Services;
+using Satori.AppServices.Tests.PullRequests.TestDoubles;
 using Satori.AppServices.ViewModels.WorkItems;
-using Satori.AzureDevOps;
-using Satori.AzureDevOps.Models;
 using Shouldly;
 using WorkItem = Satori.AzureDevOps.Models.WorkItem;
 
@@ -22,75 +19,43 @@ namespace Satori.AppServices.Tests.PullRequests;
 [TestClass]
 public class WorkItemTests
 {
+    private readonly TestAzureDevOpsServer _azureDevOpsServer = new();
+    private Uri AzureDevOpsRootUrl => _azureDevOpsServer.AsInterface().ConnectionSettings.Url;
+
     #region Helpers
 
     #region Arrange
 
-    private const string AzureDevOpsRootUrl = "http://azuredevops.test/Team";
-
-    private readonly List<WorkItem> _workItems = new();
-
-    private WorkItem Expected => _workItems.SingleOrDefault() ?? BuildWorkItem();
-
-    private WorkItem BuildWorkItem()
+    private WorkItem? _expected;
+    private WorkItem Expected
     {
-        var workItem = Builder.Builder<WorkItem>.New().Build(int.MaxValue);
-        _workItems.Add(workItem);
-        return workItem;
-    }
+        get
+        {
+            if (_expected != null)
+            {
+                return _expected;
+            }
 
-    private static PullRequest BuildPullRequest()
-    {
-        var pr = Builder.Builder<PullRequest>.New().Build(int.MaxValue);
-        pr.Reviewers = Array.Empty<Reviewer>();
-        return pr;
+            _azureDevOpsServer.AddPullRequest().WithWorkItem(out _expected);
+            return _expected;
+        }
     }
 
     #endregion Arrange
 
     #region Act
 
-    private ViewModels.WorkItems.WorkItem[] GetWorkItems(params int[] workItemIds)
+    private IEnumerable<ViewModels.WorkItems.WorkItem> GetWorkItems()
     {
-        //Arrange
-        var pr = BuildPullRequest();
-        var mock = new Mock<IAzureDevOpsServer>();
-        mock.Setup(srv => srv.ConnectionSettings)
-            .Returns(new ConnectionSettings() { Url = new Uri(AzureDevOpsRootUrl), PersonalAccessToken = "token" });
-
-        mock.Setup(srv => srv.GetPullRequestsAsync())
-            .ReturnsAsync(pr.Yield().ToArray());
-
-        mock.Setup(srv => srv.GetPullRequestWorkItemIdsAsync(pr))
-            .ReturnsAsync(GetWorkItemMap);
-        IdMap[] GetWorkItemMap()
-        {
-            return workItemIds
-                .Select(id => Builder.Builder<IdMap>.New().Build(idMap => idMap.Id = id))
-                .ToArray();
-        }
-
-        mock.Setup(srv => srv.GetWorkItemsAsync(It.IsAny<IEnumerable<int>>()))
-            .ReturnsAsync((IEnumerable<int> ids) => _workItems.Where(wi => wi.Id.IsIn(ids)).ToArray());
-
-        //Act
-        var srv = new PullRequestService(mock.Object);
-        return srv.GetPullRequestsAsync().Result.Single().WorkItems.ToArray();
+        var srv = new PullRequestService(_azureDevOpsServer.AsInterface());
+        return [.. srv.GetPullRequestsAsync().Result.Single().WorkItems];
     }
 
     private ViewModels.WorkItems.WorkItem GetSingleWorkItem()
     {
-        if (_workItems.Count > 1)
-        {
-            throw new InvalidOperationException("Only arrange 1 work item");
-        }
-        if (_workItems.None())
-        {
-            BuildWorkItem();
-        }
+        _ = Expected;  //Force lazy load of expected WorkItem
 
-        var id = _workItems.Single().Id;
-        return GetWorkItems(id).Single();
+        return GetWorkItems().Single();
     }
 
     #endregion Act
@@ -101,7 +66,7 @@ public class WorkItemTests
     public void SmokeTest()
     {
         //Arrange
-        var expected = BuildWorkItem();
+        var expected = Expected;
 
         //Act
         var actual = GetSingleWorkItem();
@@ -153,7 +118,7 @@ public class WorkItemTests
     public void Type(string type)
     {
         //Arrange
-        var workItem = BuildWorkItem();
+        var workItem = Expected;
         workItem.Fields.WorkItemType = type;
         var expected = WorkItemType.FromApiValue(type);
 
