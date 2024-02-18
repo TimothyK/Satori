@@ -53,8 +53,7 @@ public class AzureDevOpsServer : IAzureDevOpsServer
     private async Task<T[]> GetAsync<T>(Url url)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, url);
-
-        request.Headers.Add("Authorization", $"Basic {ConnectionSettings.PersonalAccessToken}");
+        AddAuthHeader(request);
 
         var response = await _httpClient.SendAsync(request);
 
@@ -68,5 +67,12 @@ public class AzureDevOpsServer : IAzureDevOpsServer
                    ?? throw new ApplicationException("Server did not respond");
 
         return root.Value;
+    }
+
+    private void AddAuthHeader(HttpRequestMessage request)
+    {
+        var userNamePasswordPair = $":{ConnectionSettings.PersonalAccessToken}";
+        var cred = Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes(userNamePasswordPair));
+        request.Headers.Add("Authorization", $"Basic {cred}");
     }
 }
