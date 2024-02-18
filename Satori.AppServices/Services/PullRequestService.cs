@@ -1,34 +1,44 @@
 ﻿using Flurl;
+using Microsoft.Extensions.Logging;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
+using System.Diagnostics;
 using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using PullRequestDto = Satori.AzureDevOps.Models.PullRequest;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.Services;
 
-public class PullRequestService(IAzureDevOpsServer azureDevOpsServer)
+public class PullRequestService(IAzureDevOpsServer azureDevOpsServer, ILoggerFactory loggerFactory)
 {
     private IAzureDevOpsServer AzureDevOpsServer { get; } = azureDevOpsServer;
     private ConnectionSettings ConnectionSettings => AzureDevOpsServer.ConnectionSettings;
 
+    private ILogger<PullRequestService> Logger => loggerFactory.CreateLogger<PullRequestService>();
+
     public async Task<IEnumerable<PullRequest>> GetPullRequestsAsync()
     {
+        var stopWatch = Stopwatch.StartNew();
         var pullRequests = await AzureDevOpsServer.GetPullRequestsAsync();
+        Logger.LogDebug("Got {PullRequestCount} pull requests in {ElapsedMilliseconds}ms", pullRequests.Length, stopWatch.ElapsedMilliseconds);
 
+        stopWatch = Stopwatch.StartNew();
         var workItemMap = new Dictionary<int, List<int>>();
         foreach (var pr in pullRequests)
         {
             var idMap = await AzureDevOpsServer.GetPullRequestWorkItemIdsAsync(pr);
             workItemMap.Add(pr.PullRequestId, idMap.Select(x => x.Id).ToList());
         }
+        Logger.LogDebug("WorkItem Map loaded in {ElapsedMilliseconds}ms", stopWatch.ElapsedMilliseconds);
 
+        stopWatch = Stopwatch.StartNew();
         var workItemIds = workItemMap.SelectMany(kvp => kvp.Value).Distinct();
         var workItems = (await AzureDevOpsServer.GetWorkItemsAsync(workItemIds))
             .ToDictionary(wi => wi.Id, ToViewModel);
+        Logger.LogDebug("Got {WorkItemCount} work items in {ElapsedMilliseconds}ms", workItems.Count, stopWatch.ElapsedMilliseconds);
 
         var viewModels = pullRequests.Select(ToViewModel).ToArray();
         foreach (var pr in viewModels)

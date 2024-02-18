@@ -1,5 +1,6 @@
 ﻿using Satori.AppServices.Services;
 using Satori.AzureDevOps;
+using Serilog;
 
 namespace Satori.Utilities
 {
@@ -13,6 +14,8 @@ namespace Satori.Utilities
             builder.Services.AddSingleton<PullRequestService>();
             builder.Services.AddSingleton(settings.AzureDevOps);
             builder.Services.AddSingleton<IAzureDevOpsServer, AzureDevOpsServer>();
+            var loggerFactory = new LoggerFactory().AddSerilog();
+            builder.Services.AddSingleton(loggerFactory);
 
             return builder;
         }

@@ -1,4 +1,5 @@
-﻿using Pscl.Linq;
+﻿using Microsoft.Extensions.Logging.Abstractions;
+using Pscl.Linq;
 using Satori.AppServices.Services;
 using Satori.AppServices.Tests.PullRequests.TestDoubles;
 using Satori.AppServices.ViewModels.WorkItems;
@@ -48,7 +49,7 @@ public class WorkItemTests
 
     private IEnumerable<ViewModels.WorkItems.WorkItem> GetWorkItems()
     {
-        var srv = new PullRequestService(_azureDevOpsServer.AsInterface());
+        var srv = new PullRequestService(_azureDevOpsServer.AsInterface(), NullLoggerFactory.Instance);
         return [.. srv.GetPullRequestsAsync().Result.Single().WorkItems];
     }
 

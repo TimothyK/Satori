@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
 using Satori.AppServices.Tests.PullRequests.TestDoubles;
 using Satori.AppServices.ViewModels.PullRequests;
@@ -29,7 +30,7 @@ public class PullRequestTests
     private Satori.AppServices.ViewModels.PullRequests.PullRequest[] GetPullRequests()
     {
         //Act
-        var srv = new PullRequestService(_azureDevOpsServer.AsInterface());
+        var srv = new PullRequestService(_azureDevOpsServer.AsInterface(), NullLoggerFactory.Instance);
         return srv.GetPullRequestsAsync().Result.ToArray();
     }
 
