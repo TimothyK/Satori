@@ -10,29 +10,24 @@ using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.Services;
 
-public class PullRequestService
+public class PullRequestService(IAzureDevOpsServer azureDevOpsServer)
 {
-    private IAzureDevOpsServer AzureDevOpsServer { get; }
+    private IAzureDevOpsServer AzureDevOpsServer { get; } = azureDevOpsServer;
     private ConnectionSettings ConnectionSettings => AzureDevOpsServer.ConnectionSettings;
 
-    public PullRequestService(IAzureDevOpsServer azureDevOpsServer)
-    {
-        AzureDevOpsServer = azureDevOpsServer;
-    }
     public async Task<IEnumerable<PullRequest>> GetPullRequestsAsync()
     {
-        var srv = AzureDevOpsServer;
-        var pullRequests = await srv.GetPullRequestsAsync();
+        var pullRequests = await AzureDevOpsServer.GetPullRequestsAsync();
 
         var workItemMap = new Dictionary<int, List<int>>();
         foreach (var pr in pullRequests)
         {
-            var idMap = await srv.GetPullRequestWorkItemIdsAsync(pr);
+            var idMap = await AzureDevOpsServer.GetPullRequestWorkItemIdsAsync(pr);
             workItemMap.Add(pr.PullRequestId, idMap.Select(x => x.Id).ToList());
         }
 
         var workItemIds = workItemMap.SelectMany(kvp => kvp.Value).Distinct();
-        var workItems = (await srv.GetWorkItemsAsync(workItemIds))
+        var workItems = (await AzureDevOpsServer.GetWorkItemsAsync(workItemIds))
             .ToDictionary(wi => wi.Id, ToViewModel);
 
         var viewModels = pullRequests.Select(ToViewModel).ToArray();
@@ -46,9 +41,10 @@ public class PullRequestService
 
     private WorkItem ToViewModel(AzureDevOps.Models.WorkItem wi)
     {
+        var id = wi.Id;
         var workItem = new WorkItem()
         {
-            Id = wi.Id,
+            Id = id,
             Title = wi.Fields.Title,
             AssignedTo = ToNullableViewModel(wi.Fields.AssignedTo),
             CreatedBy = ToViewModel(wi.Fields.CreatedBy),
@@ -57,11 +53,10 @@ public class PullRequestService
             Type = WorkItemType.FromApiValue(wi.Fields.WorkItemType),
             State = wi.Fields.State,
             ProjectCode = wi.Fields.ProjectCode ?? string.Empty,
+            Url = ConnectionSettings.Url
+                .AppendPathSegment("_workItems/edit")
+                .AppendPathSegment(id),
         };
-
-        workItem.Url = ConnectionSettings.Url
-            .AppendPathSegment("_workItems/edit")
-            .AppendPathSegment(workItem.Id);
 
         return workItem;
     }
@@ -74,26 +69,29 @@ public class PullRequestService
             .ThenBy(x => x.Reviewer.DisplayName)
             .ToList();
 
+        var projectName = pr.Repository.Project.Name;
+        var repositoryName = pr.Repository.Name;
+        var id = pr.PullRequestId;
         var pullRequest = new PullRequest
         {
-            Id = pr.PullRequestId,
+            Id = id,
             Title = pr.Title,
-            RepositoryName = pr.Repository.Name,
-            Project = pr.Repository.Project.Name,
+            RepositoryName = repositoryName,
+            Project = projectName,
             Status = pr.IsDraft ? Status.Draft : Status.Open,
             AutoComplete = !string.IsNullOrEmpty(pr.CompletionOptions?.MergeCommitMessage),
             CreationDate = pr.CreationDate,
             CreatedBy = ToViewModel(pr.CreatedBy),
             Reviews = reviews,
-            Labels = pr.Labels?.Where(label => label.Active).Select(label => label.Name).ToList() ?? new List<string>(),
+            Labels = pr.Labels?.Where(label => label.Active).Select(label => label.Name).ToList() ?? [],
+            WorkItems = [],
+            Url = ConnectionSettings.Url
+                .AppendPathSegment(projectName)
+                .AppendPathSegment("_git")
+                .AppendPathSegment(repositoryName)
+                .AppendPathSegment("pullRequest")
+                .AppendPathSegment(id),
         };
-
-        pullRequest.Url = ConnectionSettings.Url
-            .AppendPathSegment(pullRequest.Project)
-            .AppendPathSegment("_git")
-            .AppendPathSegment(pullRequest.RepositoryName)
-            .AppendPathSegment("pullRequest")
-            .AppendPathSegment(pullRequest.Id);
 
         return pullRequest;
     }

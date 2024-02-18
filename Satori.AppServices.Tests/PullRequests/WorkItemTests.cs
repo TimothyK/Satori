@@ -1,4 +1,5 @@
-﻿using Satori.AppServices.Services;
+﻿using Pscl.Linq;
+using Satori.AppServices.Services;
 using Satori.AppServices.Tests.PullRequests.TestDoubles;
 using Satori.AppServices.ViewModels.WorkItems;
 using Shouldly;
@@ -128,6 +129,7 @@ public class WorkItemTests
         //Assert
         actual.Type.ShouldBe(expected);
     }
+
 
     [TestMethod] public void State() => GetSingleWorkItem().State.ShouldBe(Expected.Fields.State);
     

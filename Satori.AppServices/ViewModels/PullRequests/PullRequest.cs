@@ -8,13 +8,13 @@ public class PullRequest
     public required string Title { get; init; }
     public required string RepositoryName { get; init; }
     public required string Project { get; init; }
-    public string Url { get; set; }
+    public required string Url { get; init; }
     public Status Status { get; init; }
-    public bool AutoComplete { get; set; }  //set if /completionOptions/mergeCommitMessage has a value
+    public bool AutoComplete { get; init; }  //set if /completionOptions/mergeCommitMessage has a value
     public DateTimeOffset CreationDate { get; init; }
     public required Person CreatedBy { get; init; }
     public required List<Review> Reviews { get; init; }
-    public List<WorkItem> WorkItems { get; set; }
+    public required List<WorkItem> WorkItems { get; set; }
 
     /// <summary>
     /// PR Tags

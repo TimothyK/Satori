@@ -2,5 +2,5 @@
 
 public class ConnectionSettings
 {
-    public AzureDevOps.ConnectionSettings AzureDevOps { get; set; }
+    public required AzureDevOps.ConnectionSettings AzureDevOps { get; init; }
 }

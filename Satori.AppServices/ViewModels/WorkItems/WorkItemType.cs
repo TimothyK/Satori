@@ -7,13 +7,13 @@ public class WorkItemType
         _apiValue = apiValue;
         CssClassSuffix = cssClassSuffix ?? _apiValue.ToLower();
 
-        _all.Add(this);
+        Members.Add(this);
     }
 
     #region All
 
-    private static readonly List<WorkItemType> _all = new();
-    public static IEnumerable<WorkItemType> All() => _all;
+    private static readonly List<WorkItemType> Members = [];
+    public static IEnumerable<WorkItemType> All() => Members;
 
     #endregion
 
