@@ -1,5 +1,6 @@
 using Satori.Components;
 using Satori.Utilities;
+using Serilog;
 
 namespace Satori;
 
@@ -12,6 +13,13 @@ internal class Program
         // Add services to the container.
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
+
+        Log.Logger = new LoggerConfiguration()
+            .WriteToSatoriSinks(builder)
+            .CreateLogger();
+        Log.Logger.Information("Starting Satori");
+
+        builder.Logging.AddSerilog();
         
         builder.AddAppServices();
 
