@@ -1,7 +1,8 @@
 ﻿@page "/PullRequests"
-@using Satori.AppServices.Services
+@attribute [StreamRendering]
 @using Satori.AppServices.ViewModels.PullRequests
 @using Pscl.Linq
+@using Satori.AppServices.Services
 
 <PageTitle>Pull Requests</PageTitle>
 
@@ -114,12 +115,11 @@ else
 }
 
 @code {
-    private IEnumerable<PullRequest>? _pullRequests;
+    private PullRequest[]? _pullRequests;
 
     protected override async Task OnInitializedAsync()
     {
         var srv = Program.Services.GetRequiredService<PullRequestService>();
-
-        _pullRequests = await srv.GetPullRequestsAsync();
+        _pullRequests = (await srv.GetPullRequestsAsync()).ToArray();
     }
 }
