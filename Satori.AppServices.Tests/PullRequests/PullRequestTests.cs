@@ -344,7 +344,9 @@ public class PullRequestTests
         prs.Single(pr => pr.Id == pr2.PullRequestId).WorkItems.ShouldBeEmpty();
         //pr3
         prs.Single(pr => pr.Id == pr3.PullRequestId).WorkItems.Count.ShouldBe(2);
-        prs.Single(pr => pr.Id == pr3.PullRequestId).WorkItems.Select(wi => wi.Id).ShouldBe([workItem1.Id, workItem2.Id]);
+        prs.Single(pr => pr.Id == pr3.PullRequestId)
+            .WorkItems.Select(wi => wi.Id)
+            .ShouldBe([workItem1.Id, workItem2.Id], ignoreOrder: true);
     }
 
     #endregion Work Items

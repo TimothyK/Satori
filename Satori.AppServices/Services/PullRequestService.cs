@@ -5,10 +5,12 @@ using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using PullRequestDto = Satori.AzureDevOps.Models.PullRequest;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
+
 
 namespace Satori.AppServices.Services;
 
@@ -26,12 +28,7 @@ public class PullRequestService(IAzureDevOpsServer azureDevOpsServer, ILoggerFac
         Logger.LogDebug("Got {PullRequestCount} pull requests in {ElapsedMilliseconds}ms", pullRequests.Length, stopWatch.ElapsedMilliseconds);
 
         stopWatch = Stopwatch.StartNew();
-        var workItemMap = new Dictionary<int, List<int>>();
-        foreach (var pr in pullRequests)
-        {
-            var idMap = await AzureDevOpsServer.GetPullRequestWorkItemIdsAsync(pr);
-            workItemMap.Add(pr.PullRequestId, idMap.Select(x => x.Id).ToList());
-        }
+        var workItemMap = await GetWorkItemMap(pullRequests);
         Logger.LogDebug("WorkItem Map loaded in {ElapsedMilliseconds}ms", stopWatch.ElapsedMilliseconds);
 
         stopWatch = Stopwatch.StartNew();
@@ -43,10 +40,36 @@ public class PullRequestService(IAzureDevOpsServer azureDevOpsServer, ILoggerFac
         var viewModels = pullRequests.Select(ToViewModel).ToArray();
         foreach (var pr in viewModels)
         {
-            pr.WorkItems = workItemMap[pr.Id].Select(workItemId => workItems[workItemId]).ToList();
+            if (workItemMap.TryGetValue(pr.Id, out var ids))
+            {
+                pr.WorkItems = ids.Select(workItemId => workItems[workItemId]).ToList();
+            }
         }
 
         return viewModels;
+    }
+
+    private async Task<Dictionary<int, List<int>>> GetWorkItemMap(PullRequestDto[] pullRequests)
+    {
+        var pullRequestWorkItemMappings = new ConcurrentBag<(int pullRequestId, int workItemId)>();
+        var options = new ParallelOptions() { MaxDegreeOfParallelism = 8 };
+        await Parallel.ForEachAsync(pullRequests, options, async (pr, token) =>
+        {
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            var idMap = await AzureDevOpsServer.GetPullRequestWorkItemIdsAsync(pr);
+            foreach (var workItemId in idMap.Select(map => map.Id))
+            {
+                pullRequestWorkItemMappings.Add((pr.PullRequestId, workItemId));
+            }
+        });
+
+        return pullRequestWorkItemMappings
+            .GroupBy(map => map.pullRequestId)
+            .ToDictionary(g => g.Key, g => g.Select(map => map.workItemId).ToList());
     }
 
     private WorkItem ToViewModel(AzureDevOps.Models.WorkItem wi)
