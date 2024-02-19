@@ -1,0 +1,29 @@
+﻿@page "/SprintBoards"
+@attribute [StreamRendering]
+
+
+<PageTitle>Sprint Boards</PageTitle>
+
+<h3>Sprint Boards</h3>
+
+@if (_workItems == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <p><em>Coming Soon...</em></p>
+}
+
+
+@code {
+    private object[]? _workItems;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(TimeSpan.FromMilliseconds(500));
+        _workItems = [];
+        // var srv = Program.Services.GetRequiredService<PullRequestService>();
+        // _pullRequests = (await srv.GetPullRequestsAsync()).ToArray();
+    }
+}

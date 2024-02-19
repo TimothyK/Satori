@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Satori.AzureDevOps.Tests", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Satori.AppServices", "Satori.AppServices\Satori.AppServices.csproj", "{5C9CD62F-B853-43BC-BBC2-76C742F3D4C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Satori.AppServices.Tests", "Satori.AppServices.Tests\Satori.AppServices.Tests.csproj", "{C3C57096-0EC0-4A39-A3E8-C09E60260D79}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Satori.AppServices.Tests", "Satori.AppServices.Tests\Satori.AppServices.Tests.csproj", "{C3C57096-0EC0-4A39-A3E8-C09E60260D79}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
