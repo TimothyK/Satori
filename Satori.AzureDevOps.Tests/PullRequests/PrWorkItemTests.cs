@@ -1,5 +1,6 @@
 ﻿using Builder;
 using Flurl;
+using Microsoft.Extensions.Logging.Abstractions;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Models;
 using Satori.AzureDevOps.Tests.PullRequests.SampleFiles;
@@ -52,7 +53,7 @@ namespace Satori.AzureDevOps.Tests.PullRequests
             SetResponse(url, PrWorkItemResponses.PrWorkItem);
 
             //Act
-            var srv = new AzureDevOpsServer(_connectionSettings, _mockHttp.ToHttpClient());
+            var srv = new AzureDevOpsServer(_connectionSettings, _mockHttp.ToHttpClient(), NullLoggerFactory.Instance);
             return srv.GetPullRequestWorkItemIdsAsync(_samplePullRequest).Result;
         }
 

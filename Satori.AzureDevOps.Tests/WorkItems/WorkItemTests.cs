@@ -1,4 +1,5 @@
 ﻿using Flurl;
+using Microsoft.Extensions.Logging.Abstractions;
 using Pscl.CommaSeparatedValues;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Models;
@@ -39,7 +40,7 @@ public class WorkItemTests
 
     private WorkItem[] GetWorkItems(int workItemId)
     {
-        var srv = new AzureDevOpsServer(_connectionSettings, _mockHttp.ToHttpClient());
+        var srv = new AzureDevOpsServer(_connectionSettings, _mockHttp.ToHttpClient(), NullLoggerFactory.Instance);
         return srv.GetWorkItemsAsync(workItemId).Result;
     }
 

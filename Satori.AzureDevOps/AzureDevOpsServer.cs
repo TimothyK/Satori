@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace Satori.AzureDevOps;
 
-public class AzureDevOpsServer : IAzureDevOpsServer
+public class AzureDevOpsServer(ConnectionSettings connectionSettings, HttpClient httpClient) : IAzureDevOpsServer
 {
     public ConnectionSettings ConnectionSettings { get; }
     private readonly HttpClient _httpClient;
@@ -52,10 +52,11 @@ public class AzureDevOpsServer : IAzureDevOpsServer
 
     private async Task<T[]> GetAsync<T>(Url url)
     {
+        Logger.LogInformation("GET {Url}", url);
         var request = new HttpRequestMessage(HttpMethod.Get, url);
         AddAuthHeader(request);
 
-        var response = await _httpClient.SendAsync(request);
+        var response = await httpClient.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
         {
