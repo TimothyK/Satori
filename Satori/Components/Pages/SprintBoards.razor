@@ -1,4 +1,6 @@
 ﻿@page "/SprintBoards"
+@using Satori.AppServices.Services
+@using Satori.AppServices.ViewModels.Sprints
 @attribute [StreamRendering]
 
 
@@ -6,24 +8,27 @@
 
 <h3>Sprint Boards</h3>
 
-@if (_workItems == null)
+@if (_sprints == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    <p><em>Coming Soon...</em></p>
+    <ul>
+        @foreach (var sprint in _sprints)
+        {
+            <li><a href="@sprint.SprintBoardUrl">@sprint.TeamName</a> @sprint.Name ending @sprint.FinishTime.ToString("yyyy-MM-dd")</li>
+        }
+    </ul>
 }
 
 
 @code {
-    private object[]? _workItems;
+    private Sprint[]? _sprints;
 
     protected override async Task OnInitializedAsync()
     {
-        await Task.Delay(TimeSpan.FromMilliseconds(500));
-        _workItems = [];
-        // var srv = Program.Services.GetRequiredService<PullRequestService>();
-        // _pullRequests = (await srv.GetPullRequestsAsync()).ToArray();
+         var srv = Program.Services.GetRequiredService<SprintBoardService>();
+         _sprints = (await srv.GetActiveSprintsAsync()).ToArray();
     }
 }

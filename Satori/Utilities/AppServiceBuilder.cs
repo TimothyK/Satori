@@ -11,6 +11,7 @@ namespace Satori.Utilities
             var settings = builder.GetConnectionSettings();
             builder.Services.AddSingleton(settings);
             builder.Services.AddSingleton<HttpClient>();
+            builder.Services.AddSingleton<SprintBoardService>();
             builder.Services.AddSingleton<PullRequestService>();
             builder.Services.AddSingleton(settings.AzureDevOps);
             builder.Services.AddSingleton<IAzureDevOpsServer, AzureDevOpsServer>();

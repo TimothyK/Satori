@@ -1,20 +1,17 @@
 ﻿using Flurl;
+using Microsoft.Extensions.Logging;
 using Pscl.CommaSeparatedValues;
+using Satori.AzureDevOps.Exceptions;
 using Satori.AzureDevOps.Models;
 using System.Text.Json;
 
 namespace Satori.AzureDevOps;
 
-public class AzureDevOpsServer(ConnectionSettings connectionSettings, HttpClient httpClient) : IAzureDevOpsServer
+public class AzureDevOpsServer(ConnectionSettings connectionSettings, HttpClient httpClient, ILoggerFactory loggerFactory) : IAzureDevOpsServer
 {
-    public ConnectionSettings ConnectionSettings { get; }
-    private readonly HttpClient _httpClient;
+    public ConnectionSettings ConnectionSettings { get; } = connectionSettings;
 
-    public AzureDevOpsServer(ConnectionSettings connectionSettings, HttpClient httpClient)
-    {
-        ConnectionSettings = connectionSettings;
-        _httpClient = httpClient;
-    }
+    private ILogger<AzureDevOpsServer> Logger => loggerFactory.CreateLogger<AzureDevOpsServer>();
 
     public async Task<PullRequest[]> GetPullRequestsAsync()
     {
@@ -50,6 +47,41 @@ public class AzureDevOpsServer(ConnectionSettings connectionSettings, HttpClient
         return await GetAsync<WorkItem>(url);
     }
 
+    public async Task<Team[]> GetTeamsAsync()
+    {
+        var url = ConnectionSettings.Url
+            .AppendPathSegment("_apis/teams")
+            .AppendQueryParam("api-version", "6.0-preview.2");
+
+        return await GetAsync<Team>(url);
+    }
+
+    public async Task<Iteration?> GetCurrentIterationAsync(Team team)
+    {
+        var url = ConnectionSettings.Url
+            .AppendPathSegments(team.projectName, team.name)
+            .AppendPathSegment("_apis")
+            .AppendPathSegment("work/teamSettings/iterations")
+            .AppendQueryParam("$timeframe", "Current")
+            .AppendQueryParam("api-version", "6.1-preview");
+
+        Iteration? iteration;
+        try
+        {
+            iteration = (await GetAsync<Iteration>(url)).SingleOrDefault();
+        }
+        catch (AzureHttpRequestException ex) when (ex.TypeKey == "CurrentIterationDoesNotExistException")
+        {
+            return null;
+        }
+
+        if (iteration?.attributes.finishDate == null || iteration.attributes.finishDate < DateTimeOffset.UtcNow)
+        {
+            return null;
+        }
+        return iteration;
+    }
+
     private async Task<T[]> GetAsync<T>(Url url)
     {
         Logger.LogInformation("GET {Url}", url);
@@ -57,17 +89,23 @@ public class AzureDevOpsServer(ConnectionSettings connectionSettings, HttpClient
         AddAuthHeader(request);
 
         var response = await httpClient.SendAsync(request);
-
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new Exception($"Azure DevOps returned {(int)response.StatusCode} {response.StatusCode}");
-        }
+        await VerifySuccessfulResponseAsync(response);
 
         await using var responseStream = await response.Content.ReadAsStreamAsync();
         var root = await JsonSerializer.DeserializeAsync<RootObject<T>>(responseStream)
                    ?? throw new ApplicationException("Server did not respond");
 
         return root.Value;
+    }
+
+    private static async Task VerifySuccessfulResponseAsync(HttpResponseMessage response)
+    {
+        if (response.IsSuccessStatusCode)
+        {
+            return;
+        }
+
+        throw await AzureHttpRequestException.FromResponseAsync(response);
     }
 
     private void AddAuthHeader(HttpRequestMessage request)
