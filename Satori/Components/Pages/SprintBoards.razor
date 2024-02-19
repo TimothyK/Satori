@@ -1,6 +1,7 @@
 ﻿@page "/SprintBoards"
 @using Satori.AppServices.Services
 @using Satori.AppServices.ViewModels.Sprints
+@using System.Web
 @attribute [StreamRendering]
 
 
@@ -14,12 +15,16 @@
 }
 else
 {
-    <ul>
-        @foreach (var sprint in _sprints)
+    <div class="avatar-row">
+        @foreach (var sprint in _sprints.OrderBy(x => x.TeamName))
         {
-            <li><a href="@sprint.SprintBoardUrl">@sprint.TeamName</a> @sprint.Name ending @sprint.FinishTime.ToString("yyyy-MM-dd")</li>
+            <div class="avatar-cell">
+                <img src="@sprint.TeamAvatarUrl" width="24" height="24" 
+                     alt="@sprint.TeamName"
+                     title="@sprint.TeamName @HttpUtility.HtmlEncode("\r") @sprint.Name @HttpUtility.HtmlEncode("\r") Finishes: @sprint.FinishTime.ToString("yyyy-MM-dd")" />
+            </div>
         }
-    </ul>
+    </div>
 }
 
 

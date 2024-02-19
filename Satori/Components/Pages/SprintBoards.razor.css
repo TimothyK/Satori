@@ -1,0 +1,10 @@
+﻿.avatar-row {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.avatar-cell {
+    position: relative;
+    text-align: left;
+    margin-right: 8px;
+}

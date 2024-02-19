@@ -28,6 +28,11 @@ namespace Satori.AppServices.Services
                 .AppendPathSegment(teamName)
                 .AppendPathSegment(iterationPath.Replace(@"\", "/"));
 
+            var teamID = team.id;
+            var teamAvatarUrl = azureDevOpsServer.ConnectionSettings.Url
+                .AppendPathSegment("_api/_common/IdentityImage")
+                .AppendQueryParam("id", teamID);
+
             return new Sprint()
             {
                 Id = iteration.id,
@@ -35,9 +40,10 @@ namespace Satori.AppServices.Services
                 IterationPath = iterationPath,
                 StartTime = iteration.attributes.startDate ?? throw new InvalidOperationException("Iteration missing startDate"),
                 FinishTime = iteration.attributes.finishDate ?? throw new InvalidOperationException("Iteration missing finishDate"),
-                TeamId = team.id,
+                TeamId = teamID,
                 TeamName = teamName,
-                SprintBoardUrl = sprintBoardUrl
+                SprintBoardUrl = sprintBoardUrl,
+                TeamAvatarUrl = teamAvatarUrl,
             };
         }
 

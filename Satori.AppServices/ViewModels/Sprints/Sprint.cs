@@ -12,7 +12,7 @@
         public required Guid TeamId { get; init; }
         public required string TeamName { get; init; }
 
-        public string TeamAvatarUrl { get; init; }
+        public required string TeamAvatarUrl { get; init; }
         public required string SprintBoardUrl { get; init; }
     }
 }
