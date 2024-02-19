@@ -4,7 +4,7 @@
             "repository": {
                 "id": "21b05cfe-0c96-42ea-8df6-8118e292c42e",
                 "name": "MyRepoName",
-                "url": "http://devops.test/Team/79fe37ca-ab34-41d2-93c0-ed629f1cf998/_apis/git/repositories/21b05cfe-0c96-42ea-8df6-8118e292c42e",
+                "url": "http://devops.test/Org/79fe37ca-ab34-41d2-93c0-ed629f1cf998/_apis/git/repositories/21b05cfe-0c96-42ea-8df6-8118e292c42e",
                 "project": {
                     "id": "79fe37ca-ab34-41d2-93c0-ed629f1cf998",
                     "name": "MyProject",
@@ -18,15 +18,15 @@
             "status": "completed",
             "createdBy": {
                 "displayName": "Timothy Klenke",
-                "url": "http://devops.test/Team/_apis/Identities/c00ef764-dc77-4b32-9a19-590db59f039b",
+                "url": "http://devops.test/Org/_apis/Identities/c00ef764-dc77-4b32-9a19-590db59f039b",
                 "_links": {
                     "avatar": {
-                        "href": "http://devops.test/Team/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc"
+                        "href": "http://devops.test/Org/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc"
                     }
                 },
                 "id": "c00ef764-dc77-4b32-9a19-590db59f039b",
                 "uniqueName": "Domain\\Timothyk",
-                "imageUrl": "http://devops.test/Team/_api/_common/identityImage?id=c00ef764-dc77-4b32-9a19-590db59f039b",
+                "imageUrl": "http://devops.test/Org/_api/_common/identityImage?id=c00ef764-dc77-4b32-9a19-590db59f039b",
                 "descriptor": "win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc"
             },
             "creationDate": "2023-10-11T06:32:15.7700876Z",
@@ -40,33 +40,33 @@
             "mergeId": "a3b5be53-59eb-4406-a580-32845ff8e59b",
             "lastMergeSourceCommit": {
                 "commitId": "3d6dda07fb88e4b1e09a9e00fe3f6ccac1a3447c",
-                "url": "http://devops.test/Team/79fe37ca-ab34-41d2-93c0-ed629f1cf998/_apis/git/repositories/21b05cfe-0c96-42ea-8df6-8118e292c42e/commits/3d6dda07fb88e4b1e09a9e00fe3f6ccac1a3447c"
+                "url": "http://devops.test/Org/79fe37ca-ab34-41d2-93c0-ed629f1cf998/_apis/git/repositories/21b05cfe-0c96-42ea-8df6-8118e292c42e/commits/3d6dda07fb88e4b1e09a9e00fe3f6ccac1a3447c"
             },
             "lastMergeTargetCommit": {
                 "commitId": "8d3a00df1081821608e83722fdad4c813ff36f45",
-                "url": "http://devops.test/Team/79fe37ca-ab34-41d2-93c0-ed629f1cf998/_apis/git/repositories/21b05cfe-0c96-42ea-8df6-8118e292c42e/commits/8d3a00df1081821608e83722fdad4c813ff36f45"
+                "url": "http://devops.test/Org/79fe37ca-ab34-41d2-93c0-ed629f1cf998/_apis/git/repositories/21b05cfe-0c96-42ea-8df6-8118e292c42e/commits/8d3a00df1081821608e83722fdad4c813ff36f45"
             },
             "lastMergeCommit": {
                 "commitId": "3d6dda07fb88e4b1e09a9e00fe3f6ccac1a3447c",
-                "url": "http://devops.test/Team/79fe37ca-ab34-41d2-93c0-ed629f1cf998/_apis/git/repositories/21b05cfe-0c96-42ea-8df6-8118e292c42e/commits/3d6dda07fb88e4b1e09a9e00fe3f6ccac1a3447c"
+                "url": "http://devops.test/Org/79fe37ca-ab34-41d2-93c0-ed629f1cf998/_apis/git/repositories/21b05cfe-0c96-42ea-8df6-8118e292c42e/commits/3d6dda07fb88e4b1e09a9e00fe3f6ccac1a3447c"
             },
             "reviewers": [
                 {
-                    "reviewerUrl": "http://devops.test/Team/79fe37ca-ab34-41d2-93c0-ed629f1cf998/_apis/git/repositories/21b05cfe-0c96-42ea-8df6-8118e292c42e/pullRequests/710/reviewers/c00ef764-dc77-4b32-9a19-590db59f039b",
+                    "reviewerUrl": "http://devops.test/Org/79fe37ca-ab34-41d2-93c0-ed629f1cf998/_apis/git/repositories/21b05cfe-0c96-42ea-8df6-8118e292c42e/pullRequests/710/reviewers/c00ef764-dc77-4b32-9a19-590db59f039b",
                     "vote": 10,
                     "hasDeclined": false,
                     "isRequired": true,
                     "isFlagged": false,
                     "displayName": "Timothy Klenke",
-                    "url": "http://devops.test/Team/_apis/Identities/c00ef764-dc77-4b32-9a19-590db59f039b",
+                    "url": "http://devops.test/Org/_apis/Identities/c00ef764-dc77-4b32-9a19-590db59f039b",
                     "_links": {
                         "avatar": {
-                            "href": "http://devops.test/Team/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc"
+                            "href": "http://devops.test/Org/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc"
                         }
                     },
                     "id": "c00ef764-dc77-4b32-9a19-590db59f039b",
                     "uniqueName": "Domain\\Timothyk",
-                    "imageUrl": "http://devops.test/Team/_api/_common/identityImage?id=c00ef764-dc77-4b32-9a19-590db59f039b"
+                    "imageUrl": "http://devops.test/Org/_api/_common/identityImage?id=c00ef764-dc77-4b32-9a19-590db59f039b"
                 }
             ],
             "labels": [
@@ -76,7 +76,7 @@
                     "active": true
                 }
             ],
-			      "url": "http://devops.test/Team/79fe37ca-ab34-41d2-93c0-ed629f1cf998/_apis/git/repositories/21b05cfe-0c96-42ea-8df6-8118e292c42e/pullRequests/710",
+			      "url": "http://devops.test/Org/79fe37ca-ab34-41d2-93c0-ed629f1cf998/_apis/git/repositories/21b05cfe-0c96-42ea-8df6-8118e292c42e/pullRequests/710",
             "completionOptions": {
                 "mergeCommitMessage": "Merged PR 1: Test PR",
                 "deleteSourceBranch": true,

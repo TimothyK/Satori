@@ -3,7 +3,7 @@
     "value": [
         {
             "id": "123",
-            "url": "https://devops.test/Team/_apis/wit/workItems/123"
+            "url": "https://devops.test/Org/_apis/wit/workItems/123"
         }
     ]
 }

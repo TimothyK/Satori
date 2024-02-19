@@ -16,7 +16,7 @@ namespace Satori.AzureDevOps.Tests.PullRequests
         
         private readonly ConnectionSettings _connectionSettings = new()
         {
-            Url = new Uri("http://devops.test/Team"),
+            Url = new Uri("http://devops.test/Org"),
             PersonalAccessToken = "test"
         };
 

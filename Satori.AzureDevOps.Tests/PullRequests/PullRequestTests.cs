@@ -15,7 +15,7 @@ public class PullRequestTests
 
     private readonly ConnectionSettings _connectionSettings = new()
     {
-        Url = new Uri( "http://devops.test/Team" ), 
+        Url = new Uri( "http://devops.test/Org" ), 
         PersonalAccessToken = "test"
     };
 
@@ -97,7 +97,7 @@ public class PullRequestTests
 
     [TestMethod]
     public void CreatedByImageUrl() => SinglePullRequest().CreatedBy.ImageUrl
-        .ShouldBe("http://devops.test/Team/_api/_common/identityImage?id=c00ef764-dc77-4b32-9a19-590db59f039b");
+        .ShouldBe("http://devops.test/Org/_api/_common/identityImage?id=c00ef764-dc77-4b32-9a19-590db59f039b");
 
     [TestMethod]
     public void Reviewers() => SinglePullRequest().Reviewers.Length.ShouldBe(1);
@@ -118,7 +118,7 @@ public class PullRequestTests
 
     [TestMethod]
     public void ReviewerImageUrl() => SinglePullRequest().Reviewers.Single().ImageUrl
-        .ShouldBe("http://devops.test/Team/_api/_common/identityImage?id=c00ef764-dc77-4b32-9a19-590db59f039b");
+        .ShouldBe("http://devops.test/Org/_api/_common/identityImage?id=c00ef764-dc77-4b32-9a19-590db59f039b");
 
     [TestMethod]
     public void Label()

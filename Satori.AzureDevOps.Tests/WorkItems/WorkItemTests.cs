@@ -16,7 +16,7 @@ public class WorkItemTests
 
     private readonly ConnectionSettings _connectionSettings = new()
     {
-        Url = new Uri("http://devops.test/Team"),
+        Url = new Uri("http://devops.test/Org"),
         PersonalAccessToken = "test"
     };
 
@@ -98,7 +98,7 @@ public class WorkItemTests
         assignedTo.ShouldNotBeNull();
         assignedTo.Id.ShouldBe(new Guid("c00ef764-dc77-4b32-9a19-590db59f039b"));
         assignedTo.DisplayName.ShouldBe("Timothy Klenke");
-        assignedTo.ImageUrl.ShouldBe("http://devops.test/Team/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc");
+        assignedTo.ImageUrl.ShouldBe("http://devops.test/Org/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc");
     }
         
     [TestMethod]
@@ -108,7 +108,7 @@ public class WorkItemTests
         createdBy.ShouldNotBeNull();
         createdBy.Id.ShouldBe(new Guid("c00ef764-dc77-4b32-9a19-590db59f039b"));
         createdBy.DisplayName.ShouldBe("Timothy Klenke");
-        createdBy.ImageUrl.ShouldBe("http://devops.test/Team/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc");
+        createdBy.ImageUrl.ShouldBe("http://devops.test/Org/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc");
     }
 
     [TestMethod]

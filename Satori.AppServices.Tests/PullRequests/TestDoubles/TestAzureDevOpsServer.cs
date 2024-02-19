@@ -13,7 +13,7 @@ internal interface IBuilderAccess
 
 internal class TestAzureDevOpsServer : IBuilderAccess
 {
-    private const string AzureDevOpsRootUrl = "http://azuredevops.test/Team";
+    private const string AzureDevOpsRootUrl = "http://devops.test/Org";
 
     private readonly List<PullRequest> _pullRequests = [];
     private readonly List<(int PullRequestId, WorkItem WorkItem)> _pullRequestWorkItems = [];
