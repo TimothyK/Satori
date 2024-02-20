@@ -65,7 +65,7 @@ public class WorkItemTests
     #endregion Helpers
 
     [TestMethod]
-    public void SmokeTest()
+    public void ASmokeTest()
     {
         //Arrange
         var expected = Expected;

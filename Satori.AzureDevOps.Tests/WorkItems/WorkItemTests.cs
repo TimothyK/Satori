@@ -74,7 +74,7 @@ public class WorkItemTests
     #endregion Helpers
 
     [TestMethod]
-    public void _SmokeTest() => SingleWorkItem().Id.ShouldBe(SingleWorkItemId);
+    public void ASmokeTest() => SingleWorkItem().Id.ShouldBe(SingleWorkItemId);
 
     [TestMethod]
     public void Title() => SingleWorkItem().Fields.Title.ShouldBe("Program no longer crashes on startup");

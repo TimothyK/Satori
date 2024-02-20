@@ -61,7 +61,7 @@ public class PullRequestTests
     #endregion Helpers
 
     [TestMethod]
-    public void _SmokeTest() => SinglePullRequest().PullRequestId.ShouldBe(1);
+    public void ASmokeTest() => SinglePullRequest().PullRequestId.ShouldBe(1);
 
     [TestMethod]
     public void Title() => SinglePullRequest().Title.ShouldBe("My PR Title");

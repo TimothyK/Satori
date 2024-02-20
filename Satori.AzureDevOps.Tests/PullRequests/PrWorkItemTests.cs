@@ -63,7 +63,7 @@ public class PrWorkItemTests
 
 
     [TestMethod]
-    public void SmokeTest()
+    public void ASmokeTest()
     {
         //Act
         var workItemMap = GetPrWorkItems();

@@ -51,7 +51,7 @@ public class PullRequestTests
     #endregion Helpers
 
     [TestMethod]
-    public void SmokeTest()
+    public void ASmokeTest()
     {
         //Arrange
         var pr = _azureDevOpsServer.AddPullRequest().PullRequest;
