@@ -1,4 +1,5 @@
-﻿using Flurl;
+﻿using Autofac;
+using Flurl;
 using Microsoft.Extensions.Logging.Abstractions;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Models;
@@ -12,7 +13,7 @@ namespace Satori.AzureDevOps.Tests.Teams;
 [TestClass]
 public class IterationTests
 {
-    private readonly TestTimeServer _timeServer = new();
+    private readonly TestTimeServer _timeServer = Globals.Services.Scope.Resolve<TestTimeServer>();
 
     public IterationTests()
     {
@@ -23,11 +24,7 @@ public class IterationTests
 
     #region Arrange
 
-    private readonly ConnectionSettings _connectionSettings = new()
-    {
-        Url = new Uri("http://devops.test/Org"),
-        PersonalAccessToken = "test"
-    };
+    private readonly ConnectionSettings _connectionSettings = Globals.Services.Scope.Resolve<ConnectionSettings>();
 
     private Url GetIterationUrl(Team team) =>
         _connectionSettings.Url
@@ -37,7 +34,7 @@ public class IterationTests
             .AppendQueryParam("$timeframe", "Current")
             .AppendQueryParam("api-version", "6.1-preview");
 
-    private readonly MockHttpMessageHandler _mockHttp = new();
+    private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
 
     private void SetResponse(Team team)
     {
@@ -69,7 +66,7 @@ public class IterationTests
         SetResponse(team);
 
         //Act
-        var srv = new AzureDevOpsServer(_connectionSettings, _mockHttp.ToHttpClient(), _timeServer, NullLoggerFactory.Instance);
+        var srv = Globals.Services.Scope.Resolve<IAzureDevOpsServer>();
         return srv.GetCurrentIterationAsync(team).Result;
     }
 

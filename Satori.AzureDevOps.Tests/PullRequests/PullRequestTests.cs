@@ -1,8 +1,7 @@
+using Autofac;
 using Flurl;
-using Microsoft.Extensions.Logging.Abstractions;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Models;
-using Satori.AzureDevOps.Services;
 using Satori.AzureDevOps.Tests.PullRequests.SampleFiles;
 using Shouldly;
 
@@ -15,18 +14,14 @@ public class PullRequestTests
 
     #region Arrange
 
-    private readonly ConnectionSettings _connectionSettings = new()
-    {
-        Url = new Uri( "http://devops.test/Org" ), 
-        PersonalAccessToken = "test"
-    };
+    private readonly ConnectionSettings _connectionSettings = Globals.Services.Scope.Resolve<ConnectionSettings>();
 
     private Url GetPullRequestsUrl =>
         _connectionSettings.Url
             .AppendPathSegment("_apis/git/pullRequests")
             .AppendQueryParam("api-version", "6.0");
 
-    private readonly MockHttpMessageHandler _mockHttp = new();
+    private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
 
     private void SetResponse(Url url, byte[] response)
     {
@@ -37,9 +32,9 @@ public class PullRequestTests
 
     #region Act
 
-    private PullRequest[] GetPullRequests()
+    private static PullRequest[] GetPullRequests()
     {
-        var srv = new AzureDevOpsServer(_connectionSettings, _mockHttp.ToHttpClient(), new TimeServer(), NullLoggerFactory.Instance);
+        var srv = Globals.Services.Scope.Resolve<IAzureDevOpsServer>();
         return srv.GetPullRequestsAsync().Result;
     }
 

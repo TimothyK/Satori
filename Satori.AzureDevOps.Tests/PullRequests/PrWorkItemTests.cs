@@ -1,4 +1,5 @@
-﻿using Builder;
+﻿using Autofac;
+using Builder;
 using Flurl;
 using Microsoft.Extensions.Logging.Abstractions;
 using RichardSzalay.MockHttp;
@@ -16,11 +17,7 @@ public class PrWorkItemTests
 
     #region Arrange
         
-    private readonly ConnectionSettings _connectionSettings = new()
-    {
-        Url = new Uri("http://devops.test/Org"),
-        PersonalAccessToken = "test"
-    };
+    private readonly ConnectionSettings _connectionSettings = Globals.Services.Scope.Resolve<ConnectionSettings>();
 
     private readonly PullRequest _samplePullRequest = Builder<PullRequest>.New().Build(int.MaxValue);
 
@@ -34,7 +31,7 @@ public class PrWorkItemTests
             .AppendPathSegment("workItems")
             .AppendQueryParam("api-version", "6.0");
 
-    private readonly MockHttpMessageHandler _mockHttp = new();
+    private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
 
     private void SetResponse(Url url, byte[] response)
     {
@@ -54,7 +51,7 @@ public class PrWorkItemTests
         SetResponse(url, PrWorkItemResponses.PrWorkItem);
 
         //Act
-        var srv = new AzureDevOpsServer(_connectionSettings, _mockHttp.ToHttpClient(),new TimeServer(), NullLoggerFactory.Instance);
+        var srv = Globals.Services.Scope.Resolve<IAzureDevOpsServer>();
         return srv.GetPullRequestWorkItemIdsAsync(_samplePullRequest).Result;
     }
 

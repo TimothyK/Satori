@@ -1,4 +1,5 @@
-﻿using Flurl;
+﻿using Autofac;
+using Flurl;
 using Microsoft.Extensions.Logging.Abstractions;
 using Pscl.CommaSeparatedValues;
 using RichardSzalay.MockHttp;
@@ -17,18 +18,14 @@ public class TeamTests
 
     #region Arrange
 
-    private readonly ConnectionSettings _connectionSettings = new()
-    {
-        Url = new Uri("http://devops.test/Org"),
-        PersonalAccessToken = "test"
-    };
+    private readonly ConnectionSettings _connectionSettings = Globals.Services.Scope.Resolve<ConnectionSettings>();
 
     private Url GetTeamsUrl() =>
         _connectionSettings.Url
             .AppendPathSegment("_apis/teams")
             .AppendQueryParam("api-version", "6.0-preview.2");
 
-    private readonly MockHttpMessageHandler _mockHttp = new();
+    private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
 
     private void SetResponse(Url url, byte[] response)
     {
@@ -41,7 +38,7 @@ public class TeamTests
 
     private Team[] GetTeams()
     {
-        var srv = new AzureDevOpsServer(_connectionSettings, _mockHttp.ToHttpClient(), new TimeServer(), NullLoggerFactory.Instance);
+        var srv = Globals.Services.Scope.Resolve<IAzureDevOpsServer>();
         return srv.GetTeamsAsync().Result;
     }
 
