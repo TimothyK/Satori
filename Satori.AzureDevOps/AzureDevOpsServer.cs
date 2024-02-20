@@ -3,11 +3,17 @@ using Microsoft.Extensions.Logging;
 using Pscl.CommaSeparatedValues;
 using Satori.AzureDevOps.Exceptions;
 using Satori.AzureDevOps.Models;
+using Satori.AzureDevOps.Services;
 using System.Text.Json;
 
 namespace Satori.AzureDevOps;
 
-public class AzureDevOpsServer(ConnectionSettings connectionSettings, HttpClient httpClient, ILoggerFactory loggerFactory) : IAzureDevOpsServer
+public class AzureDevOpsServer(
+    ConnectionSettings connectionSettings
+    , HttpClient httpClient
+    , ITimeServer timeServer
+    , ILoggerFactory loggerFactory
+) : IAzureDevOpsServer
 {
     public ConnectionSettings ConnectionSettings { get; } = connectionSettings;
 
@@ -75,7 +81,7 @@ public class AzureDevOpsServer(ConnectionSettings connectionSettings, HttpClient
             return null;
         }
 
-        if (iteration?.attributes.finishDate == null || iteration.attributes.finishDate < DateTimeOffset.UtcNow)
+        if (iteration?.attributes.finishDate == null || iteration.attributes.finishDate < timeServer.GetUtcNow())
         {
             return null;
         }

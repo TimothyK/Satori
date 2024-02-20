@@ -2,9 +2,9 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Models;
+using Satori.AzureDevOps.Tests.Globals;
 using Satori.AzureDevOps.Tests.Teams.SampleFiles;
 using Shouldly;
-using System.Net;
 using System.Text;
 
 namespace Satori.AzureDevOps.Tests.Teams;
@@ -12,6 +12,13 @@ namespace Satori.AzureDevOps.Tests.Teams;
 [TestClass]
 public class IterationTests
 {
+    private readonly TestTimeServer _timeServer = new();
+
+    public IterationTests()
+    {
+        _timeServer.SetTime(new DateTimeOffset(2024, 02, 20, 0, 0, 0, TimeSpan.Zero));
+    }
+
     #region Helpers
 
     #region Arrange
@@ -62,7 +69,7 @@ public class IterationTests
         SetResponse(team);
 
         //Act
-        var srv = new AzureDevOpsServer(_connectionSettings, _mockHttp.ToHttpClient(), NullLoggerFactory.Instance);
+        var srv = new AzureDevOpsServer(_connectionSettings, _mockHttp.ToHttpClient(), _timeServer, NullLoggerFactory.Instance);
         return srv.GetCurrentIterationAsync(team).Result;
     }
 
@@ -97,12 +104,26 @@ public class IterationTests
     public void StartDate() => 
         GetRequiredIteration(SampleTeams.Active)
             .attributes.startDate.ShouldBe(new DateTimeOffset(2024, 02, 05, 0, 0, 0, TimeSpan.Zero));
-    
+
+    private readonly DateTimeOffset _activeFinishDate = new(2024, 02, 23, 0, 0, 0, TimeSpan.Zero);
+
     [TestMethod] 
-    public void FinishDate() => 
+    public void FinishDate() =>
         GetRequiredIteration(SampleTeams.Active)
-            .attributes.finishDate.ShouldBe(new DateTimeOffset(2024, 02, 23, 0, 0, 0, TimeSpan.Zero));
+            .attributes.finishDate.ShouldBe(_activeFinishDate);
+
+    [TestMethod]
+    public void Expired_ReturnsNull()
+    {
+        var now = _activeFinishDate.AddDays(1);
+        _timeServer.SetTime(now);
+        GetIteration(SampleTeams.Active).ShouldBeNull();
+    }
 
     [TestMethod]
     public void InactiveTeam_ReturnsNull() => GetIteration(SampleTeams.Inactive).ShouldBeNull();
+
+
+    [TestMethod]
+    public void UndatedTeam_ReturnsNull() => GetIteration(SampleTeams.Undated).ShouldBeNull();
 }

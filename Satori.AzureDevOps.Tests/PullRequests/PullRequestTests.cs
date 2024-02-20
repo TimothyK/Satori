@@ -2,6 +2,7 @@ using Flurl;
 using Microsoft.Extensions.Logging.Abstractions;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Models;
+using Satori.AzureDevOps.Services;
 using Satori.AzureDevOps.Tests.PullRequests.SampleFiles;
 using Shouldly;
 
@@ -38,7 +39,7 @@ public class PullRequestTests
 
     private PullRequest[] GetPullRequests()
     {
-        var srv = new AzureDevOpsServer(_connectionSettings, _mockHttp.ToHttpClient(), NullLoggerFactory.Instance);
+        var srv = new AzureDevOpsServer(_connectionSettings, _mockHttp.ToHttpClient(), new TimeServer(), NullLoggerFactory.Instance);
         return srv.GetPullRequestsAsync().Result;
     }
 

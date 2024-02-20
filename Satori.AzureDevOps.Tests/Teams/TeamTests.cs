@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Pscl.CommaSeparatedValues;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Models;
+using Satori.AzureDevOps.Services;
 using Satori.AzureDevOps.Tests.Teams.SampleFiles;
 using Satori.AzureDevOps.Tests.WorkItems.SampleFiles;
 using Shouldly;
@@ -40,7 +41,7 @@ public class TeamTests
 
     private Team[] GetTeams()
     {
-        var srv = new AzureDevOpsServer(_connectionSettings, _mockHttp.ToHttpClient(), NullLoggerFactory.Instance);
+        var srv = new AzureDevOpsServer(_connectionSettings, _mockHttp.ToHttpClient(), new TimeServer(), NullLoggerFactory.Instance);
         return srv.GetTeamsAsync().Result;
     }
 

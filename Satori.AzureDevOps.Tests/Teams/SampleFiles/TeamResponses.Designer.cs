@@ -83,6 +83,16 @@ namespace Satori.AzureDevOps.Tests.Teams.SampleFiles {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] NullFinishDate_iteration {
+            get {
+                object obj = ResourceManager.GetObject("NullFinishDate_iteration", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] SingleTeam {
             get {
                 object obj = ResourceManager.GetObject("SingleTeam", resourceCulture);
