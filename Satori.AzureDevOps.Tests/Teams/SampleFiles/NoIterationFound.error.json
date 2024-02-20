@@ -1,0 +1,9 @@
+{
+  "$id": "1",
+  "innerException": null,
+  "message": "No current iteration was found. No iteration contains today's date.",
+  "typeName": "Microsoft.Azure.Boards.Agile.Common.Exceptions.CurrentIterationDoesNotExistException, Microsoft.Azure.Boards.Agile.Common",
+  "typeKey": "CurrentIterationDoesNotExistException",
+  "errorCode": 0,
+  "eventId": 3000
+}

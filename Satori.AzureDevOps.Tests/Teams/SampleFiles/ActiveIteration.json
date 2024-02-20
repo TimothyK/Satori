@@ -1,0 +1,16 @@
+{
+  "count": 1,
+  "value": [
+    {
+      "id": "e75e0e39-27e0-4b63-a518-a8040c8fbe12",
+      "name": "Sprint 2024-02",
+      "path": "MyProject\\MyTeam\\Sprint 2024-02",
+      "attributes": {
+        "startDate": "2024-02-05T00:00:00Z",
+        "finishDate": "2024-02-23T00:00:00Z",
+        "timeFrame": "current"
+      },
+      "url": "http://devops.test/Org/a460ebaf-28f0-4353-96a5-1f9694c5626a/2d664368-033a-4891-a99e-fe2f6de18676/_apis/work/teamsettings/iterations/e75e0e39-27e0-4b63-a518-a8040c8fbe12"
+    }
+  ]
+}

@@ -35,6 +35,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>PullRequestResponses.resx</DependentUpon>
     </Compile>
+    <Compile Update="Teams\SampleFiles\TeamResponses.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TeamResponses.resx</DependentUpon>
+    </Compile>
     <Compile Update="WorkItems\SampleFiles\WorkItemResponses.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -50,6 +55,10 @@
     <EmbeddedResource Update="PullRequests\SampleFiles\PullRequestResponses.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>PullRequestResponses.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Teams\SampleFiles\TeamResponses.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>TeamResponses.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Update="WorkItems\SampleFiles\WorkItemResponses.resx">
       <Generator>ResXFileCodeGenerator</Generator>
