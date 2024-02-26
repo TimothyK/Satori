@@ -1,6 +1,5 @@
 ﻿using Autofac;
 using Flurl;
-using Microsoft.Extensions.Logging.Abstractions;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Models;
 using Satori.AzureDevOps.Tests.Globals;
@@ -28,7 +27,7 @@ public class IterationTests
 
     private Url GetIterationUrl(Team team) =>
         _connectionSettings.Url
-            .AppendPathSegments(team.projectName, team.name)
+            .AppendPathSegments(team.ProjectName, team.Name)
             .AppendPathSegment("_apis")
             .AppendPathSegment("work/teamSettings/iterations")
             .AppendQueryParam("$timeframe", "Current")
@@ -85,29 +84,29 @@ public class IterationTests
     [TestMethod] 
     public void ASmokeTest() => 
         GetRequiredIteration(SampleTeams.Active)
-            .id.ShouldBe(new Guid("e75e0e39-27e0-4b63-a518-a8040c8fbe12"));
+            .Id.ShouldBe(new Guid("e75e0e39-27e0-4b63-a518-a8040c8fbe12"));
 
     [TestMethod] 
     public void Name() => 
         GetRequiredIteration(SampleTeams.Active)
-            .name.ShouldBe("Sprint 2024-02");
+            .Name.ShouldBe("Sprint 2024-02");
     
     [TestMethod] 
     public void Path() => 
         GetRequiredIteration(SampleTeams.Active)
-            .path.ShouldBe("MyProject\\MyTeam\\Sprint 2024-02");
+            .Path.ShouldBe("MyProject\\MyTeam\\Sprint 2024-02");
 
     [TestMethod] 
     public void StartDate() => 
         GetRequiredIteration(SampleTeams.Active)
-            .attributes.startDate.ShouldBe(new DateTimeOffset(2024, 02, 05, 0, 0, 0, TimeSpan.Zero));
+            .Attributes.StartDate.ShouldBe(new DateTimeOffset(2024, 02, 05, 0, 0, 0, TimeSpan.Zero));
 
     private readonly DateTimeOffset _activeFinishDate = new(2024, 02, 23, 0, 0, 0, TimeSpan.Zero);
 
     [TestMethod] 
     public void FinishDate() =>
         GetRequiredIteration(SampleTeams.Active)
-            .attributes.finishDate.ShouldBe(_activeFinishDate);
+            .Attributes.FinishDate.ShouldBe(_activeFinishDate);
 
     [TestMethod]
     public void Expired_ReturnsNull()

@@ -18,7 +18,7 @@ internal class AzureHttpRequestException : HttpRequestException
         var error = await JsonSerializer.DeserializeAsync<Error>(responseStream)
                     ?? throw new ApplicationException("Server did not respond");
 
-        return new AzureHttpRequestException(error.message + fromUriMsg, response.StatusCode, error.typeKey); 
+        return new AzureHttpRequestException(error.Message + fromUriMsg, response.StatusCode, error.TypeKey); 
     }
 
     private AzureHttpRequestException(string message, HttpStatusCode statusCode, string typeKey, Exception? inner = null) 

@@ -1,12 +1,19 @@
-﻿namespace Satori.AzureDevOps.Models;
+﻿using System.Text.Json.Serialization;
 
+namespace Satori.AzureDevOps.Models;
+
+// ReSharper disable ClassNeverInstantiated.Global
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 public class Team
 {
-    public Guid id { get; set; }
-    public string name { get; set; }
-    public string url { get; set; }
-    public string description { get; set; }
-    public string identityUrl { get; set; }
-    public string projectName { get; set; }
-    public string projectId { get; set; }
+    [JsonPropertyName("id")]
+    public Guid Id { get; set; }
+    [JsonPropertyName("name")]
+    public required string Name { get; set; }
+    [JsonPropertyName("description")]
+    public string? Description { get; set; }
+    [JsonPropertyName("projectName")]
+    public required string ProjectName { get; set; }
+    [JsonPropertyName("projectId")]
+    public Guid ProjectId { get; set; }
 }

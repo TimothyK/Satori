@@ -2,6 +2,7 @@
 
 namespace Satori.AzureDevOps.Models;
 
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 public class User
 {
     [JsonPropertyName("_links")]

@@ -1,12 +1,19 @@
-﻿namespace Satori.AzureDevOps.Models;
+﻿using System.Text.Json.Serialization;
+
+namespace Satori.AzureDevOps.Models;
 
 public class Error
 {
-    public string id { get; set; }
-    public object innerException { get; set; }
-    public string message { get; set; }
-    public string typeName { get; set; }
-    public string typeKey { get; set; }
-    public int errorCode { get; set; }
-    public int eventId { get; set; }
+    [JsonPropertyName("id")]
+    public string? Id { get; init; }
+    [JsonPropertyName("message")]
+    public required string Message { get; init; }
+    [JsonPropertyName("typeName")]
+    public string? TypeName { get; init; }
+    [JsonPropertyName("typeKey")]
+    public required string TypeKey { get; init; }
+    [JsonPropertyName("errorCode")]
+    public int ErrorCode { get; init; }
+    [JsonPropertyName("eventId")]
+    public int EventId { get; init; }
 }

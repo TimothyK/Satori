@@ -2,7 +2,8 @@
 
 namespace Satori.AzureDevOps.Models;
 
-// ReSharper disable once ClassNeverInstantiated.Global
+// ReSharper disable ClassNeverInstantiated.Global
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 public class Label
 {
     [JsonPropertyName("active")]

@@ -3,7 +3,8 @@ using Satori.AzureDevOps.Converters;
 
 namespace Satori.AzureDevOps.Models;
 
-// ReSharper disable once ClassNeverInstantiated.Global
+// ReSharper disable ClassNeverInstantiated.Global
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 public class WorkItem
 {
     [JsonPropertyName("id")]
@@ -11,13 +12,12 @@ public class WorkItem
     [JsonPropertyName("rev")]
     public int Rev { get; set; }
     [JsonPropertyName("fields")]
-    public required Fields Fields { get; set; }
+    public required WorkItemFields Fields { get; set; }
     [JsonPropertyName("url")]
     public required string Url { get; set; }
 }
 
-// ReSharper disable once ClassNeverInstantiated.Global
-public class Fields
+public class WorkItemFields
 {
     [JsonPropertyName("System.AreaPath")]
     public string? AreaPath { get; set; }

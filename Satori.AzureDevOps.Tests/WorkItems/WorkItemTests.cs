@@ -34,7 +34,7 @@ public class WorkItemTests
 
     #region Act
 
-    private WorkItem[] GetWorkItems(int workItemId)
+    private static WorkItem[] GetWorkItems(int workItemId)
     {
         var srv = Globals.Services.Scope.Resolve<IAzureDevOpsServer>();
         return srv.GetWorkItemsAsync(workItemId).Result;

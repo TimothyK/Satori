@@ -65,7 +65,7 @@ public class AzureDevOpsServer(
     public async Task<Iteration?> GetCurrentIterationAsync(Team team)
     {
         var url = ConnectionSettings.Url
-            .AppendPathSegments(team.projectName, team.name)
+            .AppendPathSegments(team.ProjectName, team.Name)
             .AppendPathSegment("_apis")
             .AppendPathSegment("work/teamSettings/iterations")
             .AppendQueryParam("$timeframe", "Current")
@@ -81,7 +81,7 @@ public class AzureDevOpsServer(
             return null;
         }
 
-        if (iteration?.attributes.finishDate == null || iteration.attributes.finishDate < timeServer.GetUtcNow())
+        if (iteration?.Attributes.FinishDate == null || iteration.Attributes.FinishDate < timeServer.GetUtcNow())
         {
             return null;
         }

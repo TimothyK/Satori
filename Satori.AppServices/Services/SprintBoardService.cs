@@ -19,27 +19,27 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer)
 
     private Sprint ToViewModel(Team team, Iteration iteration)
     {
-        var projectName = team.projectName;
-        var teamName = team.name;
-        var iterationPath = iteration.path;
+        var projectName = team.ProjectName;
+        var teamName = team.Name;
+        var iterationPath = iteration.Path;
         var sprintBoardUrl = azureDevOpsServer.ConnectionSettings.Url
             .AppendPathSegment(projectName)
             .AppendPathSegment("_sprints/taskBoard")
             .AppendPathSegment(teamName)
             .AppendPathSegment(iterationPath.Replace(@"\", "/"));
 
-        var teamID = team.id;
+        var teamID = team.Id;
         var teamAvatarUrl = azureDevOpsServer.ConnectionSettings.Url
             .AppendPathSegment("_api/_common/IdentityImage")
             .AppendQueryParam("id", teamID);
 
         return new Sprint()
         {
-            Id = iteration.id,
-            Name = iteration.name,
+            Id = iteration.Id,
+            Name = iteration.Name,
             IterationPath = iterationPath,
-            StartTime = iteration.attributes.startDate ?? throw new InvalidOperationException($"Iteration {iterationPath} missing startDate"),
-            FinishTime = iteration.attributes.finishDate ?? throw new InvalidOperationException($"Iteration {iterationPath} missing finishDate"),
+            StartTime = iteration.Attributes.StartDate ?? throw new InvalidOperationException($"Iteration {iterationPath} missing startDate"),
+            FinishTime = iteration.Attributes.FinishDate ?? throw new InvalidOperationException($"Iteration {iterationPath} missing finishDate"),
             TeamId = teamID,
             TeamName = teamName,
             SprintBoardUrl = sprintBoardUrl,

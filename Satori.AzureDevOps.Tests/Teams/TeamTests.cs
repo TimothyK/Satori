@@ -1,12 +1,8 @@
 ﻿using Autofac;
 using Flurl;
-using Microsoft.Extensions.Logging.Abstractions;
-using Pscl.CommaSeparatedValues;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Models;
-using Satori.AzureDevOps.Services;
 using Satori.AzureDevOps.Tests.Teams.SampleFiles;
-using Satori.AzureDevOps.Tests.WorkItems.SampleFiles;
 using Shouldly;
 
 namespace Satori.AzureDevOps.Tests.Teams;
@@ -36,7 +32,7 @@ public class TeamTests
 
     #region Act
 
-    private Team[] GetTeams()
+    private static Team[] GetTeams()
     {
         var srv = Globals.Services.Scope.Resolve<IAzureDevOpsServer>();
         return srv.GetTeamsAsync().Result;
@@ -59,8 +55,8 @@ public class TeamTests
 
     #endregion Helpers
 
-    [TestMethod] public void ASmokeTest() => SingleTeam().id.ShouldBe(new Guid("91d8c103-651c-4c92-8f41-f8c2b67c8b9d"));
-    [TestMethod] public void Name() => SingleTeam().name.ShouldBe("MyTeam");
-    [TestMethod] public void ProjectName() => SingleTeam().projectName.ShouldBe("MyProject");
+    [TestMethod] public void ASmokeTest() => SingleTeam().Id.ShouldBe(new Guid("91d8c103-651c-4c92-8f41-f8c2b67c8b9d"));
+    [TestMethod] public void Name() => SingleTeam().Name.ShouldBe("MyTeam");
+    [TestMethod] public void ProjectName() => SingleTeam().ProjectName.ShouldBe("MyProject");
 
 }
