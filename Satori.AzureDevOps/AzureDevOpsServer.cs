@@ -81,7 +81,7 @@ public class AzureDevOpsServer(
             return null;
         }
 
-        if (iteration?.Attributes.FinishDate == null || iteration.Attributes.FinishDate < timeServer.GetUtcNow())
+        if (iteration?.Attributes.FinishDate == null || iteration.Attributes.FinishDate.Value.AddDays(1) <= timeServer.GetUtcNow())
         {
             return null;
         }

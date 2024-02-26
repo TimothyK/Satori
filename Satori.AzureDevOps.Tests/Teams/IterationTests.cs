@@ -108,6 +108,24 @@ public class IterationTests
         GetRequiredIteration(SampleTeams.Active)
             .Attributes.FinishDate.ShouldBe(_activeFinishDate);
 
+    /// <summary>
+    /// Returns the iteration even if it is the last day of the iteration.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The FinishDate returned by Azure DevOps only contains a date portion for the <see cref="DateTimeOffset"/> value.
+    /// The time portion will always be midnight.
+    /// The check for the end of the iteration period should treat the finish date as 11:59:59.9999999 PM, not midnight.
+    /// </para>
+    /// </remarks>
+    [TestMethod]
+    public void LastDay_ReturnsNull()
+    {
+        var now = _activeFinishDate.AddHours(23);
+        _timeServer.SetTime(now);
+        GetIteration(SampleTeams.Active).ShouldNotBeNull();
+    }
+    
     [TestMethod]
     public void Expired_ReturnsNull()
     {
