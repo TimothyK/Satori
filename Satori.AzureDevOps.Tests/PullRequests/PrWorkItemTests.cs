@@ -1,10 +1,8 @@
 ﻿using Autofac;
 using Builder;
 using Flurl;
-using Microsoft.Extensions.Logging.Abstractions;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Models;
-using Satori.AzureDevOps.Services;
 using Satori.AzureDevOps.Tests.PullRequests.SampleFiles;
 using Shouldly;
 

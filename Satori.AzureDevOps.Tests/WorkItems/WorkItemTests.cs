@@ -1,10 +1,8 @@
 ﻿using Autofac;
 using Flurl;
-using Microsoft.Extensions.Logging.Abstractions;
 using Pscl.CommaSeparatedValues;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Models;
-using Satori.AzureDevOps.Services;
 using Satori.AzureDevOps.Tests.WorkItems.SampleFiles;
 using Shouldly;
 
