@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
 using Pscl.Linq;
 using Satori.AppServices.Services;
-using Satori.AppServices.Tests.PullRequests.TestDoubles;
+using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.ViewModels.WorkItems;
 using Shouldly;
 using WorkItem = Satori.AzureDevOps.Models.WorkItem;
@@ -38,7 +38,7 @@ public class WorkItemTests
                 return _expected;
             }
 
-            _azureDevOpsServer.AddPullRequest().WithWorkItem(out _expected);
+            _azureDevOpsServer.BuildPullRequest().WithWorkItem(out _expected);
             return _expected;
         }
     }

@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
-using Satori.AppServices.Tests.PullRequests.TestDoubles;
+using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AzureDevOps.Models;
 using Shouldly;
@@ -20,7 +20,7 @@ public class PullRequestTests
 
     private PullRequest BuildPullRequest()
     {
-        return _azureDevOpsServer.AddPullRequest().PullRequest;
+        return _azureDevOpsServer.BuildPullRequest().PullRequest;
     }
 
     #endregion Arrange
@@ -54,7 +54,7 @@ public class PullRequestTests
     public void ASmokeTest()
     {
         //Arrange
-        var pr = _azureDevOpsServer.AddPullRequest().PullRequest;
+        var pr = _azureDevOpsServer.BuildPullRequest().PullRequest;
 
         //Act
         var pullRequests = GetPullRequests();
@@ -312,7 +312,7 @@ public class PullRequestTests
     public void WorkItems_SmokeTest()
     {
         //Arrange
-        _azureDevOpsServer.AddPullRequest()
+        _azureDevOpsServer.BuildPullRequest()
             .WithWorkItem(out var expected);
 
         //Act
@@ -328,9 +328,9 @@ public class PullRequestTests
     public void MultiPullRequests_MultiWorkItems()
     {
         //Arrange
-        _azureDevOpsServer.AddPullRequest(out var pr1).WithWorkItem(out var workItem1);
-        _azureDevOpsServer.AddPullRequest(out var pr2);
-        _azureDevOpsServer.AddPullRequest(out var pr3).WithWorkItem(workItem1).WithWorkItem(out var workItem2);
+        _azureDevOpsServer.BuildPullRequest(out var pr1).WithWorkItem(out var workItem1);
+        _azureDevOpsServer.BuildPullRequest(out var pr2);
+        _azureDevOpsServer.BuildPullRequest(out var pr3).WithWorkItem(workItem1).WithWorkItem(out var workItem2);
         
         //Act
         var prs = GetPullRequests();
