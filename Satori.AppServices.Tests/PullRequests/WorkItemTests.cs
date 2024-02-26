@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
-using Pscl.Linq;
 using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
+using Satori.AppServices.Tests.TestDoubles.Builders;
 using Satori.AppServices.ViewModels.WorkItems;
 using Shouldly;
 using WorkItem = Satori.AzureDevOps.Models.WorkItem;
@@ -21,8 +21,15 @@ namespace Satori.AppServices.Tests.PullRequests;
 [TestClass]
 public class WorkItemTests
 {
-    private readonly TestAzureDevOpsServer _azureDevOpsServer = new();
+    private readonly TestAzureDevOpsServer _azureDevOpsServer;
+    private readonly AzureDevOpsDatabaseBuilder _builder;
     private Uri AzureDevOpsRootUrl => _azureDevOpsServer.AsInterface().ConnectionSettings.Url;
+
+    public WorkItemTests()
+    {
+        _azureDevOpsServer = new TestAzureDevOpsServer();
+        _builder = _azureDevOpsServer.CreateBuilder();
+    }
 
     #region Helpers
 
@@ -38,7 +45,7 @@ public class WorkItemTests
                 return _expected;
             }
 
-            _azureDevOpsServer.BuildPullRequest().WithWorkItem(out _expected);
+            _builder.BuildPullRequest().WithWorkItem(out _expected);
             return _expected;
         }
     }

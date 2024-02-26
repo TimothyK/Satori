@@ -1,16 +1,17 @@
-﻿using Satori.AzureDevOps.Models;
+﻿using Satori.AppServices.Tests.TestDoubles.Database;
+using Satori.AzureDevOps.Models;
 
-namespace Satori.AppServices.Tests.TestDoubles;
+namespace Satori.AppServices.Tests.TestDoubles.Builders;
 
 internal class PullRequestBuilder
 {
-    private readonly IBuilderAccess _server;
+    private readonly IAzureDevOpsDatabaseWriter _database;
 
-    public PullRequestBuilder(IBuilderAccess server)
+    public PullRequestBuilder(IAzureDevOpsDatabaseWriter database)
     {
-        _server = server;
+        _database = database;
         PullRequest = BuildPullRequest();
-        _server.AddPullRequest(PullRequest);
+        _database.AddPullRequest(PullRequest);
     }
 
     public PullRequest PullRequest { get; }
@@ -40,7 +41,7 @@ internal class PullRequestBuilder
     /// <returns></returns>
     public PullRequestBuilder WithWorkItem(WorkItem workItem)
     {
-        _server.LinkWorkItem(PullRequest, workItem);
+        _database.LinkWorkItem(PullRequest, workItem);
         return this;
     }
 

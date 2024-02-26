@@ -1,8 +1,8 @@
 ﻿using Satori.AzureDevOps.Models;
 
-namespace Satori.AppServices.Tests.TestDoubles;
+namespace Satori.AppServices.Tests.TestDoubles.Database;
 
-internal interface IBuilderAccess
+internal interface IAzureDevOpsDatabaseWriter
 {
     void AddPullRequest(PullRequest pullRequest);
     void LinkWorkItem(PullRequest pullRequest, WorkItem workItem);

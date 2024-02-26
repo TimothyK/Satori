@@ -1,15 +1,33 @@
 ﻿using Moq;
-using Pscl.Linq;
+using Satori.AppServices.Tests.TestDoubles.Builders;
+using Satori.AppServices.Tests.TestDoubles.Database;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 
 namespace Satori.AppServices.Tests.TestDoubles;
 
+/// <summary>
+/// Mock implementation of <see cref="IAzureDevOpsServer"/>
+/// </summary>
+/// <remarks>
+/// <para>
+/// This class doesn't implement <see cref="IAzureDevOpsServer"/>, but it can be used as that via <see cref="AsInterface"/>.
+/// </para>
+/// <para>
+/// This class does hold a database of objects that will be returned from <see cref="IAzureDevOpsServer"/>.
+/// This database is internal, but can be written to via <see cref="CreateBuilder"/>.
+/// </para>
+/// </remarks>
 internal class TestAzureDevOpsServer
 {
     private const string AzureDevOpsRootUrl = "http://devops.test/Org";
 
+    #region Database
+
     private readonly AzureDevOpsDatabase _database = new();
+    public AzureDevOpsDatabaseBuilder CreateBuilder() => new(_database);
+
+    #endregion Database
 
     private readonly Mock<IAzureDevOpsServer> _mock;
 
@@ -44,14 +62,5 @@ internal class TestAzureDevOpsServer
 
     public IAzureDevOpsServer AsInterface() => _mock.Object;
 
-    public PullRequestBuilder BuildPullRequest()
-    {
-        return BuildPullRequest(out _);
-    }
-    public PullRequestBuilder BuildPullRequest(out PullRequest pullRequest)
-    {
-        var builder = new PullRequestBuilder(_database);
-        pullRequest = builder.PullRequest;
-        return builder;
-    }
+ 
 }

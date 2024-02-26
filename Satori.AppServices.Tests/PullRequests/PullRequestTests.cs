@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
+using Satori.AppServices.Tests.TestDoubles.Builders;
 using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AzureDevOps.Models;
 using Shouldly;
@@ -11,8 +12,15 @@ namespace Satori.AppServices.Tests.PullRequests;
 [TestClass]
 public class PullRequestTests
 {
-    private readonly TestAzureDevOpsServer _azureDevOpsServer = new();
+    private readonly TestAzureDevOpsServer _azureDevOpsServer;
+    private readonly AzureDevOpsDatabaseBuilder _builder;
     private Uri AzureDevOpsRootUrl => _azureDevOpsServer.AsInterface().ConnectionSettings.Url;
+
+    public PullRequestTests()
+    {
+        _azureDevOpsServer = new TestAzureDevOpsServer();
+        _builder = _azureDevOpsServer.CreateBuilder();
+    }
 
     #region Helpers
 
@@ -20,7 +28,7 @@ public class PullRequestTests
 
     private PullRequest BuildPullRequest()
     {
-        return _azureDevOpsServer.BuildPullRequest().PullRequest;
+        return _builder.BuildPullRequest().PullRequest;
     }
 
     #endregion Arrange
@@ -54,7 +62,7 @@ public class PullRequestTests
     public void ASmokeTest()
     {
         //Arrange
-        var pr = _azureDevOpsServer.BuildPullRequest().PullRequest;
+        var pr = _builder.BuildPullRequest().PullRequest;
 
         //Act
         var pullRequests = GetPullRequests();
@@ -312,7 +320,7 @@ public class PullRequestTests
     public void WorkItems_SmokeTest()
     {
         //Arrange
-        _azureDevOpsServer.BuildPullRequest()
+        _builder.BuildPullRequest()
             .WithWorkItem(out var expected);
 
         //Act
@@ -328,9 +336,9 @@ public class PullRequestTests
     public void MultiPullRequests_MultiWorkItems()
     {
         //Arrange
-        _azureDevOpsServer.BuildPullRequest(out var pr1).WithWorkItem(out var workItem1);
-        _azureDevOpsServer.BuildPullRequest(out var pr2);
-        _azureDevOpsServer.BuildPullRequest(out var pr3).WithWorkItem(workItem1).WithWorkItem(out var workItem2);
+        _builder.BuildPullRequest(out var pr1).WithWorkItem(out var workItem1);
+        _builder.BuildPullRequest(out var pr2);
+        _builder.BuildPullRequest(out var pr3).WithWorkItem(workItem1).WithWorkItem(out var workItem2);
         
         //Act
         var prs = GetPullRequests();
