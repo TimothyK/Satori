@@ -17,8 +17,12 @@ public class PullRequest
     public string? Description { get; set; }
     [JsonPropertyName("isDraft")]
     public bool IsDraft { get; set; }
+    
+    /// <summary>
+    /// LastMergeCommit - this will be null if there are merge conflicts.
+    /// </summary>
     [JsonPropertyName("lastMergeCommit")]
-    public required Commit LastMergeCommit { get; set; }
+    public Commit? LastMergeCommit { get; set; }  
     [JsonPropertyName("lastMergeSourceCommit")]
     public required Commit LastMergeSourceCommit { get; set; }
     [JsonPropertyName("lastMergeTargetCommit")]
