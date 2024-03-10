@@ -1,4 +1,4 @@
-﻿using Satori.AzureDevOps.Services;
+﻿using Satori.TimeServices;
 
 namespace Satori.AzureDevOps.Tests.Globals;
 

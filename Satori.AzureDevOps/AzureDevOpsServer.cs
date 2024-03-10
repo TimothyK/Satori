@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Pscl.CommaSeparatedValues;
 using Satori.AzureDevOps.Exceptions;
 using Satori.AzureDevOps.Models;
-using Satori.AzureDevOps.Services;
+using Satori.TimeServices;
 using System.Text.Json;
 
 namespace Satori.AzureDevOps;

@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Satori.AppServices\Satori.AppServices.csproj" />
+    <ProjectReference Include="..\Satori.TimeServices\Satori.TimeServices.csproj" />
   </ItemGroup>
 
 </Project>

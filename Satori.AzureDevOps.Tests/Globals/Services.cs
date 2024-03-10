@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using RichardSzalay.MockHttp;
-using Satori.AzureDevOps.Services;
+using Satori.TimeServices;
 
 namespace Satori.AzureDevOps.Tests.Globals;
 

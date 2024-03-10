@@ -1,6 +1,6 @@
 ﻿using Satori.AppServices.Services;
 using Satori.AzureDevOps;
-using Satori.AzureDevOps.Services;
+using Satori.TimeServices;
 using Serilog;
 
 namespace Satori.Utilities;
