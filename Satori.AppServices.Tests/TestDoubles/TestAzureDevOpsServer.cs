@@ -46,6 +46,12 @@ internal class TestAzureDevOpsServer
         _mock.Setup(srv => srv.GetWorkItemsAsync(It.IsAny<IEnumerable<int>>()))
             .ReturnsAsync((IEnumerable<int> workItemIds) => GetWorkItems(workItemIds));
 
+        _mock.Setup(srv => srv.GetTeamsAsync())
+            .ReturnsAsync(() => _database.GetTeams());
+
+        _mock.Setup(srv => srv.GetCurrentIterationAsync(It.IsAny<Team>()))
+            .ReturnsAsync((Team team) => _database.GetIterationForTeam(team));
+
         return;
         IdMap[] GetWorkItemMap(PullRequest pullRequest)
         {

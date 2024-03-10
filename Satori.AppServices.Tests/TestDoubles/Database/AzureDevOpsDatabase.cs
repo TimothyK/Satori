@@ -18,6 +18,8 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
 
     private readonly List<PullRequest> _pullRequests = [];
     private readonly List<(int PullRequestId, WorkItem WorkItem)> _pullRequestWorkItems = [];
+    private readonly List<Team> _teams = [];
+    private readonly Dictionary<Team, Iteration> _iterations = [];
 
     #endregion Storage (the tables)
 
@@ -31,6 +33,15 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
     void IAzureDevOpsDatabaseWriter.LinkWorkItem(PullRequest pullRequest, WorkItem workItem)
     {
         _pullRequestWorkItems.Add((pullRequest.PullRequestId, workItem));
+    }
+
+    void IAzureDevOpsDatabaseWriter.AddTeam(Team team)
+    {
+        _teams.Add(team);
+    }
+    void IAzureDevOpsDatabaseWriter.LinkIteration(Team team, Iteration iteration)
+    {
+        _iterations[team] = iteration;
     }
 
     #endregion Write Access
@@ -54,6 +65,14 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
             .Distinct()
             .Where(wi => wi.Id.IsIn(workItemIds))
             .ToArray();
+    }
+
+    public Team[] GetTeams() => [.. _teams];
+
+    public Iteration? GetIterationForTeam(Team team)
+    {
+        _iterations.TryGetValue(team, out var iteration);
+        return iteration;
     }
 }
 

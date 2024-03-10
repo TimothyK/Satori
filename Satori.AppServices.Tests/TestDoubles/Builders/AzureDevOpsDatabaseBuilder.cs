@@ -20,4 +20,16 @@ internal class AzureDevOpsDatabaseBuilder(IAzureDevOpsDatabaseWriter database)
         pullRequest = builder.PullRequest;
         return builder;
     }
+
+    public TeamBuilder BuildTeam()
+    {
+        return BuildTeam(out _);
+    }
+    public TeamBuilder BuildTeam(out Team team)
+    {
+        var builder = new TeamBuilder(database);
+        team = builder.Team;
+        return builder;
+    }
+
 }
