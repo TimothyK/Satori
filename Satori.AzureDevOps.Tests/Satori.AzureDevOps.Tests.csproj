@@ -26,7 +26,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Satori.AzureDevOps\Satori.AzureDevOps.csproj" />
-    <ProjectReference Include="..\Satori.TimeServices\Satori.TimeServices.csproj" />
   </ItemGroup>
 
   <ItemGroup>

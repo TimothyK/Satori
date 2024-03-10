@@ -2,11 +2,12 @@
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
+using Satori.TimeServices;
 using System.Collections.Concurrent;
 
 namespace Satori.AppServices.Services;
 
-public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer)
+public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServer timeServer)
 {
     public async Task<IEnumerable<Sprint>> GetActiveSprintsAsync()
     {
@@ -59,11 +60,12 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer)
             }
 
             var iteration = await azureDevOpsServer.GetCurrentIterationAsync(team);
-            if (iteration != null)
+            if (iteration?.Attributes.FinishDate == null || iteration.Attributes.FinishDate.Value.AddDays(1) <= timeServer.GetUtcNow())
             {
-                iterations.Add((team, iteration));
+                return;
             }
 
+            iterations.Add((team, iteration));
         });
 
         return iterations;

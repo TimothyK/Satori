@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using RichardSzalay.MockHttp;
-using Satori.TimeServices;
 
 namespace Satori.AzureDevOps.Tests.Globals;
 
@@ -24,10 +23,6 @@ internal static class Services
         builder.Register(_ => mockHttp.ToHttpClient()).As<HttpClient>();
 
         builder.Register(_ => NullLoggerFactory.Instance).As<ILoggerFactory>();
-
-        var timeServer = new TestTimeServer();
-        builder.Register(_ => timeServer).As<ITimeServer>();
-        builder.Register(_ => timeServer).As<TestTimeServer>();
 
         builder.RegisterType<AzureDevOpsServer>().As<IAzureDevOpsServer>();
 

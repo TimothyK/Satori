@@ -1,6 +1,7 @@
 ﻿using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles.Builders;
 using Satori.AppServices.Tests.TestDoubles;
+using Satori.AppServices.Tests.TestDoubles.Services;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AzureDevOps.Models;
 using Shouldly;
@@ -12,6 +13,7 @@ public class SprintBoardTests
 {
     private readonly TestAzureDevOpsServer _azureDevOpsServer;
     private readonly AzureDevOpsDatabaseBuilder _builder;
+    private readonly TestTimeServer _timeServer = new();
     private Uri AzureDevOpsRootUrl => _azureDevOpsServer.AsInterface().ConnectionSettings.Url;
 
     public SprintBoardTests()
@@ -42,7 +44,7 @@ public class SprintBoardTests
     private Sprint[] GetSprints()
     {
         //Arrange
-        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface());
+        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), _timeServer);
 
         //Act
         return srv.GetActiveSprintsAsync().Result.ToArray();
@@ -70,6 +72,8 @@ public class SprintBoardTests
         sprints.ShouldNotBeEmpty();
     }
 
+    #region No Data
+
     [TestMethod]
     public void NoTeams_NoSprints()
     {
@@ -92,6 +96,10 @@ public class SprintBoardTests
         //Assert
         sprints.ShouldBeEmpty();
     }
+
+    #endregion
+
+    #region Iteration Properties
 
     [TestMethod]
     public void Id()
@@ -159,7 +167,47 @@ public class SprintBoardTests
         //Assert
         sprint.FinishTime.ShouldBe(finishDate);
     }
+
+    #endregion Iteration Properties
+
+    #region Date Bounds
     
+    [TestMethod]
+    public void LastDay_TreatedAsActive()
+    {
+        //Arrange
+        var iteration = BuildIteration();
+        var now = DateTimeOffset.UtcNow;
+        _timeServer.SetTime(now);
+        iteration.Attributes.FinishDate = now.Date;  //Finished at midnight today.
+
+        //Act
+        var sprint = GetSingleSprint();
+
+        //Assert
+        sprint.Id.ShouldBe(iteration.Id);
+    }
+
+    [TestMethod]
+    public void Expired_ReturnsNull()
+    {
+        //Arrange
+        var iteration = BuildIteration();
+        var now = DateTimeOffset.UtcNow;
+        _timeServer.SetTime(now);
+        iteration.Attributes.FinishDate = now.AddDays(-1);
+
+        //Act
+        var sprints = GetSprints();
+
+        //Assert
+        sprints.ShouldBeEmpty();
+    }
+
+    #endregion Date Bounds
+
+    #region Team Properties
+
     [TestMethod]
     public void TeamId()
     {
@@ -212,4 +260,5 @@ public class SprintBoardTests
         sprint.SprintBoardUrl.ShouldBe($"{AzureDevOpsRootUrl}/{team.ProjectName}/_sprints/taskBoard/{team.Name}/{iteration.Path}");
     }
 
+    #endregion
 }

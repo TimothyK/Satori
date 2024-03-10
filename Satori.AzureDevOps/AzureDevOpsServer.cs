@@ -11,7 +11,6 @@ namespace Satori.AzureDevOps;
 public class AzureDevOpsServer(
     ConnectionSettings connectionSettings
     , HttpClient httpClient
-    , ITimeServer timeServer
     , ILoggerFactory loggerFactory
 ) : IAzureDevOpsServer
 {
@@ -80,11 +79,11 @@ public class AzureDevOpsServer(
         {
             return null;
         }
-
-        if (iteration?.Attributes.FinishDate == null || iteration.Attributes.FinishDate.Value.AddDays(1) <= timeServer.GetUtcNow())
+        if (iteration?.Attributes.FinishDate == null)
         {
             return null;
         }
+
         return iteration;
     }
 
