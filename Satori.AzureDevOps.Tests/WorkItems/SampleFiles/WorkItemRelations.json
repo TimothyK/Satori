@@ -1,0 +1,38 @@
+{
+    "workItemRelations": [
+        {
+            "rel": null,
+            "source": null,
+            "target": {
+                "id": 1,
+                "url": "http://devops.test/Org/_apis/wit/workItems/29228"
+            }
+        },
+        {
+            "rel": "System.LinkTypes.Hierarchy-Forward",
+            "source": {
+                "id": 1,
+                "url": "http://devops.test/Org/_apis/wit/workItems/29228"
+            },
+            "target": {
+                "id": 2,
+                "url": "http://devops.test/Org/_apis/wit/workItems/29789"
+            }
+        }
+    ],
+    "url": "http://devops.test/Org/a460ebaf-28f0-4353-96a5-1f9694c5626a/2d664368-033a-4891-a99e-fe2f6de18676/_apis/work/teamsettings/iterations/e75e0e39-27e0-4b63-a518-a8040c8fbe12/workitems",
+    "_links": {
+        "self": {
+            "href": "http://devops.test/Org/a460ebaf-28f0-4353-96a5-1f9694c5626a/2d664368-033a-4891-a99e-fe2f6de18676/_apis/work/teamsettings/iterations/e75e0e39-27e0-4b63-a518-a8040c8fbe12/workitems"
+        },
+        "project": {
+            "href": "http://devops.test/Org/_apis/projects/a460ebaf-28f0-4353-96a5-1f9694c5626a"
+        },
+        "team": {
+            "href": "http://devops.test/Org/_apis/projects/a460ebaf-28f0-4353-96a5-1f9694c5626a/teams/2d664368-033a-4891-a99e-fe2f6de18676"
+        },
+        "teamIteration": {
+            "href": "http://devops.test/Org/a460ebaf-28f0-4353-96a5-1f9694c5626a/2d664368-033a-4891-a99e-fe2f6de18676/_apis/work/teamsettings/iterations/e75e0e39-27e0-4b63-a518-a8040c8fbe12"
+        }
+    }
+}
