@@ -14,4 +14,5 @@ public class Sprint
 
     public required string TeamAvatarUrl { get; init; }
     public required string SprintBoardUrl { get; init; }
+    public required string ProjectName { get; init; }
 }

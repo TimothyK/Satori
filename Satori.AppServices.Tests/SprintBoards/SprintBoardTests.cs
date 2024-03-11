@@ -235,6 +235,19 @@ public class SprintBoardTests
     }
     
     [TestMethod]
+    public void ProjectName()
+    {
+        //Arrange
+        BuildIteration(out var team);
+
+        //Act
+        var sprint = GetSingleSprint();
+
+        //Assert
+        sprint.ProjectName.ShouldBe(team.ProjectName);
+    }
+    
+    [TestMethod]
     public void TeamAvatarUrl()
     {
         //Arrange

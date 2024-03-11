@@ -43,6 +43,7 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServe
             FinishTime = iteration.Attributes.FinishDate ?? throw new InvalidOperationException($"Iteration {iterationPath} missing finishDate"),
             TeamId = teamID,
             TeamName = teamName,
+            ProjectName = team.ProjectName,
             SprintBoardUrl = sprintBoardUrl,
             TeamAvatarUrl = teamAvatarUrl,
         };
