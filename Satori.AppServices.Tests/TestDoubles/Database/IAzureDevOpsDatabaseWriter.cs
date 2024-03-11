@@ -8,4 +8,5 @@ internal interface IAzureDevOpsDatabaseWriter
     void LinkWorkItem(PullRequest pullRequest, WorkItem workItem);
     void AddTeam(Team team);
     void LinkIteration(Team team, Iteration iteration);
+    void AddWorkItem(WorkItem workItem);
 }

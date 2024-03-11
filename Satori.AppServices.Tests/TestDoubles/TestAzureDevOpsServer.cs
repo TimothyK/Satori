@@ -1,6 +1,7 @@
 ﻿using Moq;
 using Satori.AppServices.Tests.TestDoubles.Builders;
 using Satori.AppServices.Tests.TestDoubles.Database;
+using Satori.AppServices.ViewModels.Sprints;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 
@@ -51,6 +52,9 @@ internal class TestAzureDevOpsServer
 
         _mock.Setup(srv => srv.GetCurrentIterationAsync(It.IsAny<Team>()))
             .ReturnsAsync((Team team) => _database.GetIterationForTeam(team));
+
+        _mock.Setup(srv => srv.GetIterationWorkItemsAsync(It.IsAny<IterationId>()))
+            .ReturnsAsync((IterationId iteration) => _database.GetWorkItemsForIteration(iteration));
 
         return;
         IdMap[] GetWorkItemMap(PullRequest pullRequest)

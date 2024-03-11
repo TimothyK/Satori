@@ -5,7 +5,8 @@ public class IterationId
     /// <summary>
     /// ID of the Iteration
     /// </summary>
-    public Guid Id { get; set; }
-    public required string TeamName { get; set; }
-    public required string ProjectName { get; set; }
+    public Guid Id { get; init; }
+    public required string IterationPath { get; init; }
+    public required string TeamName { get; init; }
+    public required string ProjectName { get; init; }
 }

@@ -1,15 +1,14 @@
 ﻿using Flurl;
 using Microsoft.Extensions.Logging;
+using Satori.AppServices.Services.Converters;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.PullRequests;
-using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using PullRequestDto = Satori.AzureDevOps.Models.PullRequest;
-using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 
 namespace Satori.AppServices.Services;
@@ -34,7 +33,7 @@ public class PullRequestService(IAzureDevOpsServer azureDevOpsServer, ILoggerFac
         stopWatch = Stopwatch.StartNew();
         var workItemIds = workItemMap.SelectMany(kvp => kvp.Value).Distinct();
         var workItems = (await AzureDevOpsServer.GetWorkItemsAsync(workItemIds))
-            .ToDictionary(wi => wi.Id, ToViewModel);
+            .ToDictionary(wi => wi.Id, wi => wi.ToViewModel(ConnectionSettings.Url));
         Logger.LogDebug("Got {WorkItemCount} work items in {ElapsedMilliseconds}ms", workItems.Count, stopWatch.ElapsedMilliseconds);
 
         var viewModels = pullRequests.Select(ToViewModel).ToArray();
@@ -72,27 +71,6 @@ public class PullRequestService(IAzureDevOpsServer azureDevOpsServer, ILoggerFac
             .ToDictionary(g => g.Key, g => g.Select(map => map.workItemId).ToList());
     }
 
-    private WorkItem ToViewModel(AzureDevOps.Models.WorkItem wi)
-    {
-        var id = wi.Id;
-        var workItem = new WorkItem()
-        {
-            Id = id,
-            Title = wi.Fields.Title,
-            AssignedTo = ToNullableViewModel(wi.Fields.AssignedTo),
-            CreatedBy = ToViewModel(wi.Fields.CreatedBy),
-            CreatedDate = wi.Fields.SystemCreatedDate,
-            IterationPath = wi.Fields.IterationPath ?? string.Empty,
-            Type = WorkItemType.FromApiValue(wi.Fields.WorkItemType),
-            State = wi.Fields.State,
-            ProjectCode = wi.Fields.ProjectCode ?? string.Empty,
-            Url = ConnectionSettings.Url
-                .AppendPathSegment("_workItems/edit")
-                .AppendPathSegment(id),
-        };
-
-        return workItem;
-    }
 
     private PullRequest ToViewModel(PullRequestDto pr)
     {
@@ -114,7 +92,7 @@ public class PullRequestService(IAzureDevOpsServer azureDevOpsServer, ILoggerFac
             Status = pr.IsDraft ? Status.Draft : Status.Open,
             AutoComplete = !string.IsNullOrEmpty(pr.CompletionOptions?.MergeCommitMessage),
             CreationDate = pr.CreationDate,
-            CreatedBy = ToViewModel(pr.CreatedBy),
+            CreatedBy = pr.CreatedBy.ToViewModel(),
             Reviews = reviews,
             Labels = pr.Labels?.Where(label => label.Active).Select(label => label.Name).ToList() ?? [],
             WorkItems = [],
@@ -141,18 +119,6 @@ public class PullRequestService(IAzureDevOpsServer azureDevOpsServer, ILoggerFac
                 DisplayName = reviewer.DisplayName,
                 AvatarUrl = reviewer.ImageUrl,
             },
-        };
-    }
-
-    private static Person? ToNullableViewModel(User? user) => user == null ? null : ToViewModel(user);
-
-    private static Person ToViewModel(User user)
-    {
-        return new Person()
-        {
-            Id = user.Id,
-            DisplayName = user.DisplayName,
-            AvatarUrl = user.ImageUrl,
         };
     }
 

@@ -32,4 +32,12 @@ internal class AzureDevOpsDatabaseBuilder(IAzureDevOpsDatabaseWriter database)
         return builder;
     }
 
+    public WorkItemBuilder BuildWorkItem() => BuildWorkItem(out _);
+    public WorkItemBuilder BuildWorkItem(out WorkItem workItem)
+    {
+        var builder = new WorkItemBuilder(database);
+        workItem = builder.WorkItem;
+        return builder;
+    }
+
 }

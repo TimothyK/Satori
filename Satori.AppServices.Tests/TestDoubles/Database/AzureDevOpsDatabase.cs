@@ -17,8 +17,9 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
     #region Storage (the tables)
 
     private readonly List<PullRequest> _pullRequests = [];
-    private readonly List<(int PullRequestId, WorkItem WorkItem)> _pullRequestWorkItems = [];
+    private readonly List<(int PullRequestId, int WorkItemId)> _pullRequestWorkItems = [];
     private readonly List<Team> _teams = [];
+    private readonly List<WorkItem> _workItems = [];
     private readonly Dictionary<Team, Iteration> _iterations = [];
 
     #endregion Storage (the tables)
@@ -32,7 +33,8 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
 
     void IAzureDevOpsDatabaseWriter.LinkWorkItem(PullRequest pullRequest, WorkItem workItem)
     {
-        _pullRequestWorkItems.Add((pullRequest.PullRequestId, workItem));
+        AddWorkItem(workItem);
+        _pullRequestWorkItems.Add((pullRequest.PullRequestId, workItem.Id));
     }
 
     void IAzureDevOpsDatabaseWriter.AddTeam(Team team)
@@ -42,6 +44,14 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
     void IAzureDevOpsDatabaseWriter.LinkIteration(Team team, Iteration iteration)
     {
         _iterations[team] = iteration;
+    }
+
+    public void AddWorkItem(WorkItem workItem)
+    {
+        if (!_workItems.Contains(workItem))
+        {
+            _workItems.Add(workItem);
+        }
     }
 
     #endregion Write Access
@@ -54,15 +64,13 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
     {
         return _pullRequestWorkItems
             .Where(map => map.PullRequestId == pullRequestId)
-            .Select(map => map.WorkItem.Id)
+            .Select(map => map.WorkItemId)
             .ToArray();
     }
 
     public IEnumerable<WorkItem> GetWorkItemsById(IEnumerable<int> workItemIds)
     {
-        return _pullRequestWorkItems
-            .Select(map => map.WorkItem)
-            .Distinct()
+        return _workItems
             .Where(wi => wi.Id.IsIn(workItemIds))
             .ToArray();
     }
@@ -73,6 +81,14 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
     {
         _iterations.TryGetValue(team, out var iteration);
         return iteration;
+    }
+
+    public WorkItemRelation[] GetWorkItemsForIteration(IterationId iteration)
+    {
+        return _workItems
+            .Where(wi => wi.Fields.IterationPath == iteration.IterationPath && wi.Fields.ProjectName == iteration.ProjectName)
+            .Select(wi => new WorkItemRelation() { Target = new WorkItemId() { Id = wi.Id } })
+            .ToArray();
     }
 }
 

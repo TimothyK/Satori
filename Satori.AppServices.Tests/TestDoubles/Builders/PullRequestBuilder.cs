@@ -47,7 +47,8 @@ internal class PullRequestBuilder
 
     private static WorkItem BuildWorkItem()
     {
-        var expected = Builder.Builder<WorkItem>.New().Build(int.MaxValue);
-        return expected;
+        var workItem = Builder.Builder<WorkItem>.New().Build(int.MaxValue);
+        workItem.Url = $"http://devops.test/Org/{workItem.Fields.ProjectName}/_apis/wit/workItems/{workItem.Id}";
+        return workItem;
     }
 }

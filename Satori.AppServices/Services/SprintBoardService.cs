@@ -1,9 +1,11 @@
 ﻿using Flurl;
+using Satori.AppServices.Services.Converters;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 using Satori.TimeServices;
 using System.Collections.Concurrent;
+using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.Services;
 
@@ -16,6 +18,29 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServe
         var iterations = await GetIterationsAsync(teams);
 
         return iterations.Select(map => ToViewModel(map.Team, map.Iteration));
+    }
+
+    public async Task<IEnumerable<WorkItem>> GetWorkItemsAsync(params Sprint[] sprints)
+    {
+        var workItems = new List<WorkItem>();
+
+        foreach (var sprint in sprints)
+        {
+            var iteration = new IterationId()
+            {
+                Id = sprint.Id,
+                IterationPath = sprint.IterationPath,
+                TeamName = sprint.TeamName,
+                ProjectName = sprint.ProjectName
+            };
+
+            var relations = await azureDevOpsServer.GetIterationWorkItemsAsync(iteration);
+            var workItemIds = relations.Select(x => x.Target.Id);
+            var items = await azureDevOpsServer.GetWorkItemsAsync(workItemIds);
+            workItems.AddRange(items.Select(wi => wi.ToViewModel(azureDevOpsServer.ConnectionSettings.Url)));
+        }
+
+        return workItems;
     }
 
     private Sprint ToViewModel(Team team, Iteration iteration)
