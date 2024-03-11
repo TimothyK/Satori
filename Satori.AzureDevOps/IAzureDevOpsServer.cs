@@ -12,5 +12,5 @@ public interface IAzureDevOpsServer
     Task<WorkItem[]> GetWorkItemsAsync(params int[] workItemIds);
     Task<Team[]> GetTeamsAsync();
     Task<Iteration?> GetCurrentIterationAsync(Team team);
-    Task<WorkItemRelation[]> GetIterationWorkItems(IterationId iteration);
+    Task<WorkItemRelation[]> GetIterationWorkItemsAsync(IterationId iteration);
 }

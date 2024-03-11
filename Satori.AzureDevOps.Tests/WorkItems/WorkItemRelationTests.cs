@@ -59,7 +59,7 @@ public class WorkItemRelationTests
         SetResponse(GetIterationWorkItemsUrl(iteration), GetPayload(iteration));
 
         //Act
-        return srv.GetIterationWorkItems(iteration).Result;
+        return srv.GetIterationWorkItemsAsync(iteration).Result;
     }
 
     #endregion Act

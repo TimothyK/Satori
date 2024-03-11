@@ -86,7 +86,7 @@ public class AzureDevOpsServer(
         return iteration;
     }
 
-    public async Task<WorkItemRelation[]> GetIterationWorkItems(IterationId iteration)
+    public async Task<WorkItemRelation[]> GetIterationWorkItemsAsync(IterationId iteration)
     {
         var url = ConnectionSettings.Url
             .AppendPathSegments(iteration.ProjectName, iteration.TeamName)
