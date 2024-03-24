@@ -1,6 +1,7 @@
 ﻿using Flurl;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.ViewModels.Sprints;
+using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 using Satori.TimeServices;
@@ -38,7 +39,27 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServe
             var relations = await azureDevOpsServer.GetIterationWorkItemsAsync(iteration);
             var workItemIds = relations.Select(x => x.Target.Id);
             var items = await azureDevOpsServer.GetWorkItemsAsync(workItemIds);
-            workItems.AddRange(items.Select(wi => wi.ToViewModel()));
+            var iterationWorkItems = items.Select(wi => wi.ToViewModel()).ToList();
+            
+            var iterationTasks = iterationWorkItems.Where(wi => wi.Type == WorkItemType.Task).ToArray();
+            var iterationBoardItems = iterationWorkItems.Where(wi => wi.Type == WorkItemType.ProductBacklogItem || wi.Type == WorkItemType.Bug).ToList();
+            foreach (var relation in relations)
+            {
+                var parentWorkItemId = relation.Source?.Id;
+                if (parentWorkItemId != null)
+                {
+                    var parent = iterationBoardItems.FirstOrDefault(wi => wi.Id == parentWorkItemId);
+                    var task = iterationTasks.FirstOrDefault(wi => wi.Id == relation.Target.Id);
+
+                    if (parent != null && task != null)
+                    {
+                        task.Parent = parent;
+                        parent.Children.Add(task);
+                    }
+                }
+            }
+
+            workItems.AddRange(iterationBoardItems);
         }
 
         return workItems;

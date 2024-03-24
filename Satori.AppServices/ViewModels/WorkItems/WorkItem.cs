@@ -12,4 +12,7 @@ public class WorkItem
     public required WorkItemType Type { get; init; }
     public required string State { get; init; }
     public string? ProjectCode { get; init; }
+
+    public WorkItem? Parent { get; set; }
+    public List<WorkItem> Children { get; } = [];
 }

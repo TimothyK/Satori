@@ -1,5 +1,8 @@
 ﻿using Pscl.Linq;
+using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps.Models;
+using NotSupportedException = System.NotSupportedException;
+using WorkItem = Satori.AzureDevOps.Models.WorkItem;
 
 namespace Satori.AppServices.Tests.TestDoubles.Database;
 
@@ -21,6 +24,7 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
     private readonly List<Team> _teams = [];
     private readonly List<WorkItem> _workItems = [];
     private readonly Dictionary<Team, Iteration> _iterations = [];
+    private readonly Dictionary<int, int> _parentWorkItemId = [];
 
     #endregion Storage (the tables)
 
@@ -54,6 +58,22 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
         }
     }
 
+    public void AddWorkItemLink(WorkItem leftWorkItem, LinkType linkType, WorkItem rightWorkItem)
+    {
+        if (linkType == LinkType.IsParentOf)
+        {
+            _parentWorkItemId[rightWorkItem.Id] = leftWorkItem.Id;
+            return;
+        }
+        if (linkType == LinkType.IsChildOf)
+        {
+            _parentWorkItemId[leftWorkItem.Id] = rightWorkItem.Id;
+            return;
+        }
+
+        throw new NotSupportedException();
+    }
+
     #endregion Write Access
 
     #region Read Access
@@ -85,10 +105,35 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
 
     public WorkItemRelation[] GetWorkItemsForIteration(IterationId iteration)
     {
-        return _workItems
-            .Where(wi => wi.Fields.IterationPath == iteration.IterationPath && wi.Fields.ProjectName == iteration.ProjectName)
-            .Select(wi => new WorkItemRelation() { Target = new WorkItemId() { Id = wi.Id } })
+        var workItems = _workItems
+            .Where(wi => wi.Fields.IterationPath == iteration.IterationPath && wi.Fields.ProjectName == iteration.ProjectName).ToArray();
+        var parents = workItems
+            .Where(wi => wi.Fields.WorkItemType == WorkItemType.Task.ToApiValue())
+            .Select(t => _parentWorkItemId.TryGetValue(t.Id, out var parentId) ? _workItems.FirstOrDefault(wi => wi.Id == parentId) : null);
+
+        return workItems.Union(parents)
+            .Where(wi => wi != null).Select(wi => wi ?? throw new ArgumentNullException(nameof(wi)))
+            .Select(wi => new WorkItemRelation()
+            {
+                Source = GetParentSource(wi),
+                Target = new WorkItemId() { Id = wi.Id }
+            })
             .ToArray();
+
+        WorkItemId? GetParentSource(WorkItem childWorkItem)
+        {
+            if (childWorkItem.Fields.WorkItemType != WorkItemType.Task.ToApiValue())
+            {
+                return null;
+            }
+            if (_parentWorkItemId.TryGetValue(childWorkItem.Id, out var parentId))
+            {
+                return new WorkItemId() { Id = parentId };
+            }
+
+            return null;
+        }
+
     }
 }
 

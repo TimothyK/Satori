@@ -14,6 +14,7 @@ public class SprintWorkItemTests
     private readonly TestAzureDevOpsServer _azureDevOpsServer;
     private readonly AzureDevOpsDatabaseBuilder _builder;
     private readonly TestTimeServer _timeServer = new();
+    private readonly RandomGenerator _random = new();
 
     public SprintWorkItemTests()
     {
@@ -82,5 +83,59 @@ public class SprintWorkItemTests
 
         //Assert
         workItems.ShouldBeEmpty();
+    }
+
+    [TestMethod]
+    public void WorkItemFromDifferentIteration_NotReported()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem().WithSprint(BuildSprint());
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.ShouldBeEmpty();
+    }
+
+    [TestMethod]
+    public void ParentWithTask()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var parentWorkItem).WithSprint(sprint)
+            .AddChild(out var task);
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Length.ShouldBe(1);
+        var workItem = workItems.Single();
+        workItem.Id.ShouldBe(parentWorkItem.Id);
+        workItem.Children.Count.ShouldBe(1);
+        workItem.Children.Single().Id.ShouldBe(task.Id);
+    }
+
+    [TestMethod]
+    public void ParentFromDifferentIteration_ReportedOnCurrentSprint()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var parentWorkItem).WithSprint(BuildSprint())
+            .AddChild(out var task);
+        task.Fields.ProjectName = sprint.ProjectName;
+        task.Fields.IterationPath = sprint.IterationPath;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Length.ShouldBe(1);
+        var workItem = workItems.Single();
+        workItem.Id.ShouldBe(parentWorkItem.Id);
+        workItem.Children.Count.ShouldBe(1);
+        workItem.Children.Single().Id.ShouldBe(task.Id);
     }
 }
