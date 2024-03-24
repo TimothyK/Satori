@@ -20,6 +20,7 @@ internal class PullRequestBuilder
     {
         var pr = Builder.Builder<PullRequest>.New().Build(int.MaxValue);
         pr.Reviewers = [];
+        pr.Url = $"http://devops.test/Org/{pr.Repository.Project.Name}/_apis/git/repositories/{pr.Repository.Name}/pullRequests/{pr.PullRequestId}";
         return pr;
     }
 

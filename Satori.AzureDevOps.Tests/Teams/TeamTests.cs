@@ -58,5 +58,6 @@ public class TeamTests
     [TestMethod] public void ASmokeTest() => SingleTeam().Id.ShouldBe(new Guid("91d8c103-651c-4c92-8f41-f8c2b67c8b9d"));
     [TestMethod] public void Name() => SingleTeam().Name.ShouldBe("MyTeam");
     [TestMethod] public void ProjectName() => SingleTeam().ProjectName.ShouldBe("MyProject");
+    [TestMethod] public void Url() => SingleTeam().Url.ShouldBe("http://devops.test/Org/_apis/projects/673f1d5f-4346-455a-a1b1-9f5128416cb6/teams/91d8c103-651c-4c92-8f41-f8c2b67c8b9d");
 
 }

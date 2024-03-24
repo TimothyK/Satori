@@ -5,7 +5,7 @@ namespace Satori.AppServices.Services.Converters
 {
     internal static class WorkItemExtensions
     {
-        public static WorkItem ToViewModel(this AzureDevOps.Models.WorkItem wi, Uri azureDevOpsOrgUrl)
+        public static WorkItem ToViewModel(this AzureDevOps.Models.WorkItem wi)
         {
             var id = wi.Id;
             var workItem = new WorkItem()
@@ -19,7 +19,7 @@ namespace Satori.AppServices.Services.Converters
                 Type = WorkItemType.FromApiValue(wi.Fields.WorkItemType),
                 State = wi.Fields.State,
                 ProjectCode = wi.Fields.ProjectCode ?? string.Empty,
-                Url = azureDevOpsOrgUrl
+                Url = UriParser.GetAzureDevOpsOrgUrl(wi.Url)
                     .AppendPathSegment("_workItems/edit")
                     .AppendPathSegment(id),
             };

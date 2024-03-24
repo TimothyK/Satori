@@ -16,4 +16,6 @@ public class Team
     public required string ProjectName { get; set; }
     [JsonPropertyName("projectId")]
     public Guid ProjectId { get; set; }
+    [JsonPropertyName("url")]
+    public required string Url { get; set; }
 }

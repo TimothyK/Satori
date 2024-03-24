@@ -5,6 +5,7 @@ using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 using Satori.TimeServices;
 using System.Collections.Concurrent;
+using UriParser = Satori.AppServices.Services.Converters.UriParser;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.Services;
@@ -37,25 +38,27 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServe
             var relations = await azureDevOpsServer.GetIterationWorkItemsAsync(iteration);
             var workItemIds = relations.Select(x => x.Target.Id);
             var items = await azureDevOpsServer.GetWorkItemsAsync(workItemIds);
-            workItems.AddRange(items.Select(wi => wi.ToViewModel(azureDevOpsServer.ConnectionSettings.Url)));
+            workItems.AddRange(items.Select(wi => wi.ToViewModel()));
         }
 
         return workItems;
     }
 
-    private Sprint ToViewModel(Team team, Iteration iteration)
+    private static Sprint ToViewModel(Team team, Iteration iteration)
     {
+        var azureDevOpsUrl = UriParser.GetAzureDevOpsOrgUrl(team.Url);
+
         var projectName = team.ProjectName;
         var teamName = team.Name;
         var iterationPath = iteration.Path;
-        var sprintBoardUrl = azureDevOpsServer.ConnectionSettings.Url
+        var sprintBoardUrl = azureDevOpsUrl
             .AppendPathSegment(projectName)
             .AppendPathSegment("_sprints/taskBoard")
             .AppendPathSegment(teamName)
             .AppendPathSegment(iterationPath.Replace(@"\", "/"));
 
         var teamID = team.Id;
-        var teamAvatarUrl = azureDevOpsServer.ConnectionSettings.Url
+        var teamAvatarUrl = azureDevOpsUrl
             .AppendPathSegment("_api/_common/IdentityImage")
             .AppendQueryParam("id", teamID);
 

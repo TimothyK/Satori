@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Flurl" Version="4.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Pscl.Linq" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>

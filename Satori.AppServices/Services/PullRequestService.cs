@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using PullRequestDto = Satori.AzureDevOps.Models.PullRequest;
+using UriParser = Satori.AppServices.Services.Converters.UriParser;
 
 
 namespace Satori.AppServices.Services;
@@ -16,7 +17,6 @@ namespace Satori.AppServices.Services;
 public class PullRequestService(IAzureDevOpsServer azureDevOpsServer, ILoggerFactory loggerFactory)
 {
     private IAzureDevOpsServer AzureDevOpsServer { get; } = azureDevOpsServer;
-    private ConnectionSettings ConnectionSettings => AzureDevOpsServer.ConnectionSettings;
 
     private ILogger<PullRequestService> Logger => loggerFactory.CreateLogger<PullRequestService>();
 
@@ -33,7 +33,7 @@ public class PullRequestService(IAzureDevOpsServer azureDevOpsServer, ILoggerFac
         stopWatch = Stopwatch.StartNew();
         var workItemIds = workItemMap.SelectMany(kvp => kvp.Value).Distinct();
         var workItems = (await AzureDevOpsServer.GetWorkItemsAsync(workItemIds))
-            .ToDictionary(wi => wi.Id, wi => wi.ToViewModel(ConnectionSettings.Url));
+            .ToDictionary(wi => wi.Id, wi => wi.ToViewModel());
         Logger.LogDebug("Got {WorkItemCount} work items in {ElapsedMilliseconds}ms", workItems.Count, stopWatch.ElapsedMilliseconds);
 
         var viewModels = pullRequests.Select(ToViewModel).ToArray();
@@ -96,7 +96,7 @@ public class PullRequestService(IAzureDevOpsServer azureDevOpsServer, ILoggerFac
             Reviews = reviews,
             Labels = pr.Labels?.Where(label => label.Active).Select(label => label.Name).ToList() ?? [],
             WorkItems = [],
-            Url = ConnectionSettings.Url
+            Url = UriParser.GetAzureDevOpsOrgUrl(pr.Url)
                 .AppendPathSegment(projectName)
                 .AppendPathSegment("_git")
                 .AppendPathSegment(repositoryName)

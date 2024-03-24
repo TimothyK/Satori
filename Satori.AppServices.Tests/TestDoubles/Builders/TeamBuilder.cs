@@ -19,6 +19,7 @@ namespace Satori.AppServices.Tests.TestDoubles.Builders
         private static Team BuildTeam()
         {
             var team = Builder.Builder<Team>.New().Build(int.MaxValue);
+            team.Url = $"http://devops.test/Org/_apis/projects/{team.ProjectName}/teams/{team.Name}";
             return team;
         }
 
