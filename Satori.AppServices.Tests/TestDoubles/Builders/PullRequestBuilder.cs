@@ -45,10 +45,9 @@ internal class PullRequestBuilder
         return this;
     }
 
-    private static WorkItem BuildWorkItem()
+    private WorkItem BuildWorkItem()
     {
-        var workItem = Builder.Builder<WorkItem>.New().Build(int.MaxValue);
-        workItem.Url = $"http://devops.test/Org/{workItem.Fields.ProjectName}/_apis/wit/workItems/{workItem.Id}";
-        return workItem;
+        var builder = new WorkItemBuilder(_database);
+        return builder.WorkItem;
     }
 }
