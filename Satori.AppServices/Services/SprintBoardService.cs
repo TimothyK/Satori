@@ -40,9 +40,10 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServe
             var workItemIds = relations.Select(x => x.Target.Id);
             var items = await azureDevOpsServer.GetWorkItemsAsync(workItemIds);
             var iterationWorkItems = items.Select(wi => wi.ToViewModel()).ToList();
-            foreach (var workItem in iterationWorkItems)
+            foreach (var (sprintPriority, workItem) in iterationWorkItems.OrderBy(wi => wi.AbsolutePriority).Select((wi,i) => (i, wi)))
             {
                 workItem.Sprint = sprint;
+                workItem.SprintPriority = sprintPriority;
             }
 
             var iterationTasks = iterationWorkItems.Where(wi => wi.Type == WorkItemType.Task).ToArray();

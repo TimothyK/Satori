@@ -18,4 +18,6 @@ public class WorkItem
     public WorkItem? Parent { get; set; }
     public List<WorkItem> Children { get; } = [];
     public Sprint? Sprint { get; set; }
+    public int SprintPriority { get; set; }
+    public int AbsolutePriority { get; set; }
 }

@@ -16,6 +16,7 @@ namespace Satori.AppServices.Services.Converters
                 CreatedBy = wi.Fields.CreatedBy.ToViewModel(),
                 CreatedDate = wi.Fields.SystemCreatedDate,
                 IterationPath = wi.Fields.IterationPath ?? string.Empty,
+                AbsolutePriority = wi.Fields.Priority,
                 Type = WorkItemType.FromApiValue(wi.Fields.WorkItemType),
                 State = wi.Fields.State,
                 ProjectCode = wi.Fields.ProjectCode ?? string.Empty,

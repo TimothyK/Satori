@@ -1,6 +1,7 @@
 ﻿@page "/SprintBoards"
 @using Satori.AppServices.Services
 @using Satori.AppServices.ViewModels.Sprints
+@using Satori.AppServices.ViewModels.WorkItems
 @using System.Web
 @attribute [StreamRendering]
 
@@ -11,7 +12,7 @@
 
 @if (_sprints == null)
 {
-    <p><em>Loading...</em></p>
+    <p><em>Loading Sprints...</em></p>
 }
 else
 {
@@ -25,15 +26,61 @@ else
             </div>
         }
     </div>
+
+    if (_workItems == null)
+    {
+        <p><em>Loading Work Items...</em></p>
+    }
+    else
+    {
+        <table>
+            <thead>
+            <th>Board</th>
+                <th>Work Item</th>
+                <th>Title</th>
+                <th>Tasks</th>
+            </thead>
+            <tbody>
+                @foreach (var workItem in _workItems.OrderBy(wi => wi.AbsolutePriority))
+                {
+                    <tr>
+                        <td>
+                            <div class="avatar-cell">
+                                <img src="@workItem.Sprint.TeamAvatarUrl" width="24" height="24"
+                                     alt="@workItem.Sprint.TeamName" />
+                            </div>
+                            @workItem.SprintPriority
+                        </td>
+                        <td>
+                            <a href="@workItem.Url">@workItem.Id</a>
+                        </td>
+                        <td>
+                            <a href="@workItem.Url">@workItem.Title</a>
+                        </td>
+                        <td>
+                            @foreach (var @task in workItem.Children)
+                            {
+                                @task.Id
+                                @task.Title
+                                <br/>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
 }
 
 
 @code {
     private Sprint[]? _sprints;
+    private WorkItem[] _workItems;
 
     protected override async Task OnInitializedAsync()
     {
          var srv = Program.Services.GetRequiredService<SprintBoardService>();
          _sprints = (await srv.GetActiveSprintsAsync()).ToArray();
+         _workItems = (await srv.GetWorkItemsAsync(_sprints)).ToArray();
     }
 }
