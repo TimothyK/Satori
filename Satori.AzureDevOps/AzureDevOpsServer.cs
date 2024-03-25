@@ -1,8 +1,10 @@
 ﻿using Flurl;
 using Microsoft.Extensions.Logging;
+using MoreLinq;
 using Pscl.CommaSeparatedValues;
 using Satori.AzureDevOps.Exceptions;
 using Satori.AzureDevOps.Models;
+using System.Collections.Concurrent;
 using System.Text.Json;
 
 namespace Satori.AzureDevOps;
@@ -43,12 +45,39 @@ public class AzureDevOpsServer(
     public async Task<WorkItem[]> GetWorkItemsAsync(IEnumerable<int> workItemIds) => await GetWorkItemsAsync(workItemIds.ToArray());
     public async Task<WorkItem[]> GetWorkItemsAsync(params int[] workItemIds)
     {
+        const int bucketSize = 200;
+        if (workItemIds.Length > bucketSize)
+        {
+            var batches = workItemIds.Batch(bucketSize);
+            return await GetWorkItemBatchesAsync(batches);
+        }
+
         var url = ConnectionSettings.Url
             .AppendPathSegment("_apis/wit/workItems")
             .AppendQueryParam("ids", workItemIds.ToCommaSeparatedValues())
             .AppendQueryParam("api-version", "6.0");
 
         return await GetRootValueAsync<WorkItem>(url);
+    }
+
+    private async Task<WorkItem[]> GetWorkItemBatchesAsync(IEnumerable<int[]> batches)
+    {
+        var options = new ParallelOptions() { MaxDegreeOfParallelism = 8 };
+        var results = new ConcurrentBag<WorkItem>();
+        await Parallel.ForEachAsync(batches, options, async (batch, token) =>
+        {
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            var workItems = await GetWorkItemsAsync(batch);
+            foreach (var workItem in workItems)
+            {
+                results.Add(workItem);
+            }
+        });
+        return [.. results];
     }
 
     public async Task<Team[]> GetTeamsAsync()
