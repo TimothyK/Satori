@@ -14,7 +14,6 @@ public class SprintWorkItemTests
     private readonly TestAzureDevOpsServer _azureDevOpsServer;
     private readonly AzureDevOpsDatabaseBuilder _builder;
     private readonly TestTimeServer _timeServer = new();
-    private readonly RandomGenerator _random = new();
 
     public SprintWorkItemTests()
     {
@@ -137,5 +136,20 @@ public class SprintWorkItemTests
         workItem.Id.ShouldBe(parentWorkItem.Id);
         workItem.Children.Count.ShouldBe(1);
         workItem.Children.Single().Id.ShouldBe(task.Id);
+    }
+
+    [TestMethod]
+    public void WorkItemHasSprint()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem().WithSprint(sprint);
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Length.ShouldBe(1);
+        workItems.Single().Sprint.ShouldBe(sprint);
     }
 }

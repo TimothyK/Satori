@@ -40,7 +40,11 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServe
             var workItemIds = relations.Select(x => x.Target.Id);
             var items = await azureDevOpsServer.GetWorkItemsAsync(workItemIds);
             var iterationWorkItems = items.Select(wi => wi.ToViewModel()).ToList();
-            
+            foreach (var workItem in iterationWorkItems)
+            {
+                workItem.Sprint = sprint;
+            }
+
             var iterationTasks = iterationWorkItems.Where(wi => wi.Type == WorkItemType.Task).ToArray();
             var iterationBoardItems = iterationWorkItems.Where(wi => wi.Type == WorkItemType.ProductBacklogItem || wi.Type == WorkItemType.Bug).ToList();
             foreach (var relation in relations)

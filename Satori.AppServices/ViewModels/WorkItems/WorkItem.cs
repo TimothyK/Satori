@@ -1,4 +1,6 @@
-﻿namespace Satori.AppServices.ViewModels.WorkItems;
+﻿using Satori.AppServices.ViewModels.Sprints;
+
+namespace Satori.AppServices.ViewModels.WorkItems;
 
 public class WorkItem
 {
@@ -15,4 +17,5 @@ public class WorkItem
 
     public WorkItem? Parent { get; set; }
     public List<WorkItem> Children { get; } = [];
+    public Sprint? Sprint { get; set; }
 }
