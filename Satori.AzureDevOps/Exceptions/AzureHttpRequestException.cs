@@ -13,12 +13,19 @@ internal class AzureHttpRequestException : HttpRequestException
         {
             throw new InvalidOperationException($"Cannot generate request exception.  Response {fromUriMsg} successful.");
         }
-
+        
         await using var responseStream = await response.Content.ReadAsStreamAsync();
-        var error = await JsonSerializer.DeserializeAsync<Error>(responseStream)
-                    ?? throw new ApplicationException("Server did not respond");
+        using var reader = new StreamReader(responseStream);
+        var responseBody = await reader.ReadToEndAsync();
 
-        return new AzureHttpRequestException(error.Message + fromUriMsg, response.StatusCode, error.TypeKey); 
+        if (response.Content.Headers.ContentType?.MediaType != "application/json")
+        {
+            return new AzureHttpRequestException($"Unexpected error {(int)response.StatusCode} {fromUriMsg}. {Environment.NewLine}{responseBody}", response.StatusCode, "");
+        }
+
+        var error = JsonSerializer.Deserialize<Error>(responseBody)
+                        ?? throw new ApplicationException("Server did not respond");
+        return new AzureHttpRequestException(error.Message + fromUriMsg, response.StatusCode, error.TypeKey);
     }
 
     private AzureHttpRequestException(string message, HttpStatusCode statusCode, string typeKey, Exception? inner = null) 
