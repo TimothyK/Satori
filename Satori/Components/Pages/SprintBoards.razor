@@ -56,6 +56,13 @@ else
                                              alt="@workItem.Sprint.TeamName"/>
                                     </div>
                                 }
+                                @if (@workItem.AssignedTo != null)
+                                {
+                                    <div class="avatar-cell">
+                                        <img src="@workItem.AssignedTo.AvatarUrl" width="24" height="24"
+                                             alt="@workItem.AssignedTo.DisplayName" />
+                                    </div>
+                                }
 
                             </div>
                         </td>
