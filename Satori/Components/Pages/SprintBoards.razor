@@ -43,13 +43,21 @@ else
             <tbody>
                 @foreach (var workItem in _workItems.OrderBy(wi => wi.AbsolutePriority))
                 {
-                    <tr>
+                    <tr class="work-item-row @workItem.Type.CssClass">
                         <td>
-                            <div class="avatar-cell">
-                                <img src="@workItem.Sprint.TeamAvatarUrl" width="24" height="24"
-                                     alt="@workItem.Sprint.TeamName" />
+                            <div style="display: flex;">
+                                <div class="sprint-priority">
+                                    @workItem.SprintPriority
+                                </div>
+                                @if (@workItem.Sprint != null)
+                                {
+                                    <div class="avatar-cell">
+                                        <img src="@workItem.Sprint.TeamAvatarUrl" width="24" height="24"
+                                             alt="@workItem.Sprint.TeamName"/>
+                                    </div>
+                                }
+
                             </div>
-                            @workItem.SprintPriority
                         </td>
                         <td>
                             <a href="@workItem.Url">@workItem.Id</a>
@@ -75,7 +83,7 @@ else
 
 @code {
     private Sprint[]? _sprints;
-    private WorkItem[] _workItems;
+    private WorkItem[]? _workItems;
 
     protected override async Task OnInitializedAsync()
     {

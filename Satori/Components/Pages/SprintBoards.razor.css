@@ -8,3 +8,44 @@
     text-align: left;
     margin-right: 8px;
 }
+
+.work-item-row {
+    border-left: solid 5px;
+    padding-left: 3px;
+    font-size: 0.8em;
+}
+
+.work-item-epic {
+    border-color: #E06C00;
+}
+
+.work-item-feature {
+    border-color: #773B93;
+}
+
+.work-item-pbi {
+    border-color: #009CCC;
+}
+
+.work-item-bug {
+    border-color: #CC293D;
+}
+
+.work-item-task {
+    border-color: #F2CB1D;
+}
+
+.work-item-unknown {
+    border-color: gray;
+}
+
+.sprint-priority {
+    font-family: "Roboto", sans-serif;
+    font-weight: 900;
+    font-style: normal;
+    align-self: center;
+    text-align: right;
+    padding-left: 2px;
+    padding-right: 2px;
+    min-width: 27px;
+}
