@@ -13,7 +13,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Satori.AppServices", "Sator
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Satori.AppServices.Tests", "Satori.AppServices.Tests\Satori.AppServices.Tests.csproj", "{C3C57096-0EC0-4A39-A3E8-C09E60260D79}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Satori.TimeServices", "Satori.TimeServices\Satori.TimeServices.csproj", "{EB67839F-4565-4A53-8570-30AC2047BAAA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Satori.TimeServices", "Satori.TimeServices\Satori.TimeServices.csproj", "{EB67839F-4565-4A53-8570-30AC2047BAAA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CB8B22C7-A4D1-4236-9E67-E91299807D1E}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
