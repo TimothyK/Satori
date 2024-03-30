@@ -48,22 +48,22 @@
     font-size: 0.8em;
 }
 .work-item-epic {
-    border-color: #E06C00;
+    border-left-color: #E06C00;
 }
 .work-item-feature {
-    border-color: #773B93;
+    border-left-color: #773B93;
 }
 .work-item-pbi {
-    border-color: #009CCC;
+    border-left-color: #009CCC;
 }
 .work-item-bug {
-    border-color: #CC293D;
+    border-left-color: #CC293D;
 }
 .work-item-task {
-    border-color: #F2CB1D;
+    border-left-color: #F2CB1D;
 }
 .work-item-unknown {
-    border-color: gray;
+    border-left-color: gray;
 }
 
 .project-code {

@@ -33,7 +33,7 @@ else
     }
     else
     {
-        <table>
+        <table class="table">
             <thead>
             <th>Board</th>
                 <th>Work Item</th>
@@ -75,9 +75,19 @@ else
                         <td>
                             @foreach (var @task in workItem.Children)
                             {
-                                @task.Id
-                                @task.Title
-                                <br/>
+                                <div style="display: flex;">
+                                    @if (@task.AssignedTo != null)
+                                    {
+                                        <div class="avatar-cell">
+                                            <img src="@task.AssignedTo.AvatarUrl" width="24" height="24"
+                                                 alt="@task.AssignedTo.DisplayName"
+                                                 title="@task.AssignedTo.DisplayName" />
+                                        </div>
+                                    }
+                                    <div>
+                                        <a href="@task.Url">@task.Title</a>
+                                    </div>
+                                </div>
                             }
                         </td>
                     </tr>
