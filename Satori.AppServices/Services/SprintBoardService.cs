@@ -65,29 +65,25 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServe
             workItem.Sprint = sprint;
         }
 
-        var iterationTasks = iterationWorkItems.Where(wi => wi.Type == WorkItemType.Task).ToArray();
-        var iterationBoardItems = iterationWorkItems.Where(wi => wi.Type == WorkItemType.ProductBacklogItem || wi.Type == WorkItemType.Bug).ToList();
-        foreach (var relation in relations)
+        var iterationTasks = iterationWorkItems.Where(wi => wi.Type == WorkItemType.Task).ToDictionary(wi => wi.Id, wi => wi);
+        var iterationBoardItems = iterationWorkItems
+            .Where(wi => wi.Type == WorkItemType.ProductBacklogItem || wi.Type == WorkItemType.Bug)
+            .ToDictionary(wi => wi.Id, wi => wi);
+        foreach (var relation in relations.Where(r => r.Source != null))
         {
-            var parentWorkItemId = relation.Source?.Id;
-            if (parentWorkItemId != null)
-            {
-                var parent = iterationBoardItems.FirstOrDefault(wi => wi.Id == parentWorkItemId);
-                var task = iterationTasks.FirstOrDefault(wi => wi.Id == relation.Target.Id);
+            var parentWorkItemId = relation.Source?.Id ?? throw new InvalidOperationException();
+            var parent = iterationBoardItems[parentWorkItemId];
+            var task = iterationTasks[relation.Target.Id];
 
-                if (parent != null && task != null)
-                {
-                    task.Parent = parent;
-                    parent.Children.Add(task);
-                }
-            }
+            task.Parent = parent;
+            parent.Children.Add(task);
         }
-        foreach (var (sprintPriority, workItem) in iterationBoardItems.OrderBy(wi => wi.AbsolutePriority).Select((wi, i) => (i, wi)))
+        foreach (var (sprintPriority, workItem) in iterationBoardItems.Values.OrderBy(wi => wi.AbsolutePriority).Select((wi, i) => (i, wi)))
         {
             workItem.SprintPriority = sprintPriority + 1;
         }
 
-        return iterationBoardItems;
+        return iterationBoardItems.Values.ToList();
     }
 
     private static Sprint ToViewModel(Team team, Iteration iteration)
