@@ -24,53 +24,70 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServe
 
     public async Task<IEnumerable<WorkItem>> GetWorkItemsAsync(params Sprint[] sprints)
     {
-        var workItems = new List<WorkItem>();
+        var workItems = new ConcurrentBag<WorkItem>();
 
-        foreach (var sprint in sprints)
+        var options = new ParallelOptions() { MaxDegreeOfParallelism = 8 };
+
+        await Parallel.ForEachAsync(sprints, options, async (sprint, token) =>
         {
-            var iteration = new IterationId()
+            if (token.IsCancellationRequested)
             {
-                Id = sprint.Id,
-                IterationPath = sprint.IterationPath,
-                TeamName = sprint.TeamName,
-                ProjectName = sprint.ProjectName
-            };
-
-            var relations = await azureDevOpsServer.GetIterationWorkItemsAsync(iteration);
-            var workItemIds = relations.Select(x => x.Target.Id);
-            var items = await azureDevOpsServer.GetWorkItemsAsync(workItemIds);
-            var iterationWorkItems = items.Select(wi => wi.ToViewModel()).ToList();
-            foreach (var workItem in iterationWorkItems.OrderBy(wi => wi.AbsolutePriority))
-            {
-                workItem.Sprint = sprint;
+                return;
             }
 
-            var iterationTasks = iterationWorkItems.Where(wi => wi.Type == WorkItemType.Task).ToArray();
-            var iterationBoardItems = iterationWorkItems.Where(wi => wi.Type == WorkItemType.ProductBacklogItem || wi.Type == WorkItemType.Bug).ToList();
-            foreach (var relation in relations)
-            {
-                var parentWorkItemId = relation.Source?.Id;
-                if (parentWorkItemId != null)
-                {
-                    var parent = iterationBoardItems.FirstOrDefault(wi => wi.Id == parentWorkItemId);
-                    var task = iterationTasks.FirstOrDefault(wi => wi.Id == relation.Target.Id);
+            var iterationBoardItems = await GetWorkItemsAsync(sprint);
 
-                    if (parent != null && task != null)
-                    {
-                        task.Parent = parent;
-                        parent.Children.Add(task);
-                    }
-                }
-            }
-            foreach (var (sprintPriority, workItem) in iterationBoardItems.OrderBy(wi => wi.AbsolutePriority).Select((wi, i) => (i, wi)))
+            foreach (var workItem in iterationBoardItems)
             {
-                workItem.SprintPriority = sprintPriority + 1;
+                workItems.Add(workItem);
             }
-
-            workItems.AddRange(iterationBoardItems);
-        }
+        });
 
         return workItems;
+    }
+
+    private async Task<List<WorkItem>> GetWorkItemsAsync(Sprint sprint)
+    {
+        var iteration = new IterationId()
+        {
+            Id = sprint.Id,
+            IterationPath = sprint.IterationPath,
+            TeamName = sprint.TeamName,
+            ProjectName = sprint.ProjectName
+        };
+
+        var relations = await azureDevOpsServer.GetIterationWorkItemsAsync(iteration);
+        var workItemIds = relations.Select(x => x.Target.Id);
+        var items = await azureDevOpsServer.GetWorkItemsAsync(workItemIds);
+        var iterationWorkItems = items.Select(wi => wi.ToViewModel()).ToList();
+        foreach (var workItem in iterationWorkItems.OrderBy(wi => wi.AbsolutePriority))
+        {
+            workItem.Sprint = sprint;
+        }
+
+        var iterationTasks = iterationWorkItems.Where(wi => wi.Type == WorkItemType.Task).ToArray();
+        var iterationBoardItems = iterationWorkItems.Where(wi => wi.Type == WorkItemType.ProductBacklogItem || wi.Type == WorkItemType.Bug).ToList();
+        foreach (var relation in relations)
+        {
+            var parentWorkItemId = relation.Source?.Id;
+            if (parentWorkItemId != null)
+            {
+                var parent = iterationBoardItems.FirstOrDefault(wi => wi.Id == parentWorkItemId);
+                var task = iterationTasks.FirstOrDefault(wi => wi.Id == relation.Target.Id);
+
+                if (parent != null && task != null)
+                {
+                    task.Parent = parent;
+                    parent.Children.Add(task);
+                }
+            }
+        }
+        foreach (var (sprintPriority, workItem) in iterationBoardItems.OrderBy(wi => wi.AbsolutePriority).Select((wi, i) => (i, wi)))
+        {
+            workItem.SprintPriority = sprintPriority + 1;
+        }
+
+        return iterationBoardItems;
     }
 
     private static Sprint ToViewModel(Team team, Iteration iteration)
