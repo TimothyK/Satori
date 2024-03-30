@@ -139,7 +139,7 @@ public class WorkItemTests
     }
 
 
-    [TestMethod] public void State() => GetSingleWorkItem().State.ShouldBe(Expected.Fields.State);
+    [TestMethod] public void State() => GetSingleWorkItem().State.ToApiValue().ShouldBe(Expected.Fields.State);
     
     [TestMethod] public void ProjectCode() => GetSingleWorkItem().ProjectCode.ShouldBe(Expected.Fields.ProjectCode);
 
