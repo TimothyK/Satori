@@ -1,4 +1,5 @@
-﻿using Satori.AppServices.Services;
+﻿using Pscl.Linq;
+using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles.Builders;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.ViewModels.WorkItems;
@@ -61,6 +62,8 @@ public class SprintWorkItemTests
         workItems.Single().Id.ShouldBe(workItem.Id);
     }
 
+    #region Sprint
+
     [TestMethod]
     public void NoSprint()
     {
@@ -97,6 +100,67 @@ public class SprintWorkItemTests
         //Assert
         workItems.ShouldBeEmpty();
     }
+
+    [TestMethod]
+    public void WorkItemHasSprint()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem().WithSprint(sprint);
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Length.ShouldBe(1);
+        workItems.Single().Sprint.ShouldBe(sprint);
+    }
+
+    #endregion
+
+    #region Child Tasks
+
+    [TestMethod]
+    public void ParentWithTask()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var parentWorkItem).WithSprint(sprint)
+            .AddChild(out var task);
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Length.ShouldBe(1);
+        var workItem = workItems.Single();
+        workItem.Id.ShouldBe(parentWorkItem.Id);
+        workItem.Children.Count.ShouldBe(1);
+        workItem.Children.Single().Id.ShouldBe(task.Id);
+    }
+
+    [TestMethod]
+    public void ParentFromDifferentIteration_ReportedOnCurrentSprint()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var parentWorkItem).WithSprint(BuildSprint())
+            .AddChild(out var task);
+        task.Fields.ProjectName = sprint.ProjectName;
+        task.Fields.IterationPath = sprint.IterationPath;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Length.ShouldBe(1);
+        var workItem = workItems.Single();
+        workItem.Id.ShouldBe(parentWorkItem.Id);
+        workItem.Children.Count.ShouldBe(1);
+        workItem.Children.Single().Id.ShouldBe(task.Id);
+    }
+
+    #endregion Child Tasks
 
     #region Properties
 
@@ -341,58 +405,86 @@ public class SprintWorkItemTests
 
     #endregion Properties
 
+    #region Sprint Priority
+
+    private List<AzureDevOps.Models.WorkItem> BuildWorkItems(Sprint sprint, int count)
+    {
+        var workItems = new List<AzureDevOps.Models.WorkItem>();
+
+        for (var i = 0; i < count; i++)
+        {
+            _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+            workItems.Add(workItem);
+        }
+
+        return workItems;
+    }
+
     [TestMethod]
-    public void ParentWithTask()
+    public void SprintPriority_SameAsBacklogProperty()
     {
         //Arrange
         var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var parentWorkItem).WithSprint(sprint)
-            .AddChild(out var task);
+        var source = BuildWorkItems(sprint, 2);
+        var firstWorkItem = source.SingleRandom();
+        var secondWorkItem = source.Except(firstWorkItem.Yield()).Single();
+        firstWorkItem.Fields.BacklogPriority = 5.0;
+        secondWorkItem.Fields.BacklogPriority = 10.0;
 
         //Act
         var workItems = GetWorkItems(sprint);
 
         //Assert
-        workItems.Length.ShouldBe(1);
-        var workItem = workItems.Single();
-        workItem.Id.ShouldBe(parentWorkItem.Id);
-        workItem.Children.Count.ShouldBe(1);
-        workItem.Children.Single().Id.ShouldBe(task.Id);
+        workItems.Single(wi => wi.Id == firstWorkItem.Id).SprintPriority.ShouldBe(1);
+        workItems.Single(wi => wi.Id == secondWorkItem.Id).SprintPriority.ShouldBe(2);
     }
-
+    
     [TestMethod]
-    public void ParentFromDifferentIteration_ReportedOnCurrentSprint()
+    public void SprintPriority_ZeroBacklogPriority_LowestSprintPriority()
     {
         //Arrange
         var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var parentWorkItem).WithSprint(BuildSprint())
-            .AddChild(out var task);
-        task.Fields.ProjectName = sprint.ProjectName;
-        task.Fields.IterationPath = sprint.IterationPath;
+        var source = BuildWorkItems(sprint, 2);
+        var firstWorkItem = source.SingleRandom();
+        var secondWorkItem = source.Except(firstWorkItem.Yield()).Single();
+        firstWorkItem.Fields.BacklogPriority = 5.0;
+        secondWorkItem.Fields.BacklogPriority = 0.0;
 
         //Act
         var workItems = GetWorkItems(sprint);
 
         //Assert
-        workItems.Length.ShouldBe(1);
-        var workItem = workItems.Single();
-        workItem.Id.ShouldBe(parentWorkItem.Id);
-        workItem.Children.Count.ShouldBe(1);
-        workItem.Children.Single().Id.ShouldBe(task.Id);
+        workItems.Single(wi => wi.Id == firstWorkItem.Id).SprintPriority.ShouldBe(1);
+        workItems.Single(wi => wi.Id == secondWorkItem.Id).SprintPriority.ShouldBe(2);
     }
 
     [TestMethod]
-    public void WorkItemHasSprint()
+    public void DifferentSprints_SeparateSprintPrioritySequences()
     {
         //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem().WithSprint(sprint);
+        var sprint1 = BuildSprint();
+        var source1 = BuildWorkItems(sprint1, 2);
+        var firstWorkItem = source1.SingleRandom();
+        var secondWorkItem = source1.Except(firstWorkItem.Yield()).Single();
+        firstWorkItem.Fields.BacklogPriority = 5.0;
+        secondWorkItem.Fields.BacklogPriority = 10.0;
+
+        var sprint2 = BuildSprint();
+        var source2 = BuildWorkItems(sprint2, 5).ToArray();
+        for (var i = 0; i < source2.Length; i++)
+        {
+            source2[i].Fields.BacklogPriority = (i + 1) * 2.0;
+        }
 
         //Act
-        var workItems = GetWorkItems(sprint);
+        var workItems = GetWorkItems(sprint1, sprint2);
 
         //Assert
-        workItems.Length.ShouldBe(1);
-        workItems.Single().Sprint.ShouldBe(sprint);
+        workItems.Single(wi => wi.Id == firstWorkItem.Id).SprintPriority.ShouldBe(1);
+        workItems.Single(wi => wi.Id == secondWorkItem.Id).SprintPriority.ShouldBe(2);
+        workItems.Single(wi => wi.Id == source2[0].Id).SprintPriority.ShouldBe(1);
+        workItems.Single(wi => wi.Id == source2[4].Id).SprintPriority.ShouldBe(5);
     }
+
+    #endregion Sprint Priority
 }

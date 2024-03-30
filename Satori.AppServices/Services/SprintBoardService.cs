@@ -40,10 +40,9 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServe
             var workItemIds = relations.Select(x => x.Target.Id);
             var items = await azureDevOpsServer.GetWorkItemsAsync(workItemIds);
             var iterationWorkItems = items.Select(wi => wi.ToViewModel()).ToList();
-            foreach (var (sprintPriority, workItem) in iterationWorkItems.OrderBy(wi => wi.AbsolutePriority).Select((wi,i) => (i, wi)))
+            foreach (var workItem in iterationWorkItems.OrderBy(wi => wi.AbsolutePriority))
             {
                 workItem.Sprint = sprint;
-                workItem.SprintPriority = sprintPriority;
             }
 
             var iterationTasks = iterationWorkItems.Where(wi => wi.Type == WorkItemType.Task).ToArray();
@@ -62,6 +61,10 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServe
                         parent.Children.Add(task);
                     }
                 }
+            }
+            foreach (var (sprintPriority, workItem) in iterationBoardItems.OrderBy(wi => wi.AbsolutePriority).Select((wi, i) => (i, wi)))
+            {
+                workItem.SprintPriority = sprintPriority + 1;
             }
 
             workItems.AddRange(iterationBoardItems);
