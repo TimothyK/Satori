@@ -49,18 +49,23 @@ public class WorkItemTests
         var workItems = GetWorkItems(workItemId);
 
         //Assert
-        workItems.Length.ShouldBe(1);
-        return workItems.Single();
+        return workItems.Single(wi => wi.Id == workItemId);
     }
 
     private const int SingleWorkItemId = 2;
     private const int BlockedWorkItemId = 3;
+    private static readonly int[] FiveTypesWorkItemIds = [28655, 29924, 29922, 29923, 27850];
 
     private static byte[] GetPayload(int workItemId)
     {
         if (workItemId == BlockedWorkItemId)
         {
             return WorkItemResponses.BlockedWorkItem;
+        }
+
+        if (FiveTypesWorkItemIds.Contains(workItemId))
+        {
+            return WorkItemResponses.FiveTypesWorkItems;
         }
         return WorkItemResponses.SingleWorkItem;
     }
@@ -131,4 +136,11 @@ public class WorkItemTests
     [TestMethod]
     public void CommentCount() => SingleWorkItem().Fields.CommentCount.ShouldBe(0);
 
+    [TestMethod]
+    [DataRow(28655, "Epic")]
+    [DataRow(29924, "Feature")]
+    [DataRow(29922, "Product Backlog Item")]
+    [DataRow(29923, "Task")]
+    [DataRow(27850, "Bug")]
+    public void FiveType(int workItemId, string type) => SingleWorkItem(workItemId).Fields.WorkItemType.ShouldBe(type);
 }
