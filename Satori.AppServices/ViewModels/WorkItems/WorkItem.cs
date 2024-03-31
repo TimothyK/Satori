@@ -13,6 +13,9 @@ public class WorkItem
     public string? IterationPath { get; init; }
     public required WorkItemType Type { get; init; }
     public required ScrumState State { get; init; }
+    public TimeSpan? OriginalEstimate { get; set; }
+    public TimeSpan? CompletedWork { get; set; }
+    public TimeSpan? RemainingWork { get; set; }
     public string? ProjectCode { get; init; }
 
     public WorkItem? Parent { get; set; }

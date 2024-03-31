@@ -403,6 +403,99 @@ public class SprintWorkItemTests
         workItems.Single().Url.ShouldBe($"http://devops.test/Org/_workItems/edit/{workItem.Id}");
     }
 
+    [TestMethod]
+    public void OriginalEstimate()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.OriginalEstimate.ShouldNotBeNull();
+        var expected = TimeSpan.FromHours(workItem.Fields.OriginalEstimate.Value);
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().OriginalEstimate.ShouldBe(expected);
+    }
+
+    [TestMethod]
+    public void OriginalEstimate_Missing()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.OriginalEstimate = null;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().OriginalEstimate.ShouldBeNull();
+    }
+
+    [TestMethod]
+    public void CompletedWork()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.CompletedWork.ShouldNotBeNull();
+        var expected = TimeSpan.FromHours(workItem.Fields.CompletedWork.Value);
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().CompletedWork.ShouldBe(expected);
+    }
+
+    [TestMethod]
+    public void CompletedWork_Missing()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.CompletedWork = null;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().CompletedWork.ShouldBeNull();
+    }
+
+    [TestMethod]
+    public void RemainingWork()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.RemainingWork.ShouldNotBeNull();
+        var expected = TimeSpan.FromHours(workItem.Fields.RemainingWork.Value);
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().RemainingWork.ShouldBe(expected);
+    }
+    
+    [TestMethod]
+    public void RemainingWork_Missing()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.RemainingWork = null;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().RemainingWork.ShouldBeNull();
+    }
+
     #endregion Properties
 
     #region Sprint Priority

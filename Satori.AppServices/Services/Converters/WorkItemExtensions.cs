@@ -19,6 +19,9 @@ namespace Satori.AppServices.Services.Converters
                 AbsolutePriority = wi.Fields.BacklogPriority > 0.0 ? wi.Fields.BacklogPriority : double.MaxValue,
                 Type = WorkItemType.FromApiValue(wi.Fields.WorkItemType),
                 State = ScrumState.FromApiValue(wi.Fields.State),
+                OriginalEstimate = wi.Fields.OriginalEstimate.HoursToTimeSpan(),
+                CompletedWork = wi.Fields.CompletedWork.HoursToTimeSpan(),
+                RemainingWork = wi.Fields.RemainingWork.HoursToTimeSpan(),
                 ProjectCode = wi.Fields.ProjectCode ?? string.Empty,
                 Url = UriParser.GetAzureDevOpsOrgUrl(wi.Url)
                     .AppendPathSegment("_workItems/edit")
@@ -28,5 +31,9 @@ namespace Satori.AppServices.Services.Converters
             return workItem;
         }
 
+        private static TimeSpan? HoursToTimeSpan(this double? value)
+        {
+            return value == null ? null : TimeSpan.FromHours(value.Value);
+        }
     }
 }
