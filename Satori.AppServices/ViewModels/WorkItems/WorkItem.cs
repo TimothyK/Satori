@@ -23,4 +23,36 @@ public class WorkItem
     public Sprint? Sprint { get; set; }
     public int? SprintPriority { get; set; }
     public double AbsolutePriority { get; set; }
+
+    public string? StatusLabel
+    {
+        get
+        {
+            if (State == ScrumState.Done)
+            {
+                return "✔️ Done";
+            }
+            if (State == ScrumState.InProgress)
+            {
+                return "⌛ In Progress" + (
+                    RemainingWork != null ? $" ({RemainingWork.Value.TotalHours:0.0} hr)"
+                        : OriginalEstimate != null ? $" (~{OriginalEstimate.Value.TotalHours:0.0} hr)" : string.Empty
+                        );
+            }
+            if (State == ScrumState.ToDo)
+            {
+                return "⏳ To Do" + (
+                    RemainingWork != null ? $" (~{RemainingWork.Value.TotalHours:0.0} hr)"
+                    : OriginalEstimate != null ? $" (~{OriginalEstimate.Value.TotalHours:0.0} hr)" : string.Empty
+                );
+            }
+            return null;
+        }
+    }
+
+    public string? TaskStatusCssClass =>
+        State == ScrumState.Done ? "task-status-done"
+        : State == ScrumState.InProgress ? "task-status-in-progress"
+        : State == ScrumState.ToDo ? "task-status-to-do"
+        : null;
 }

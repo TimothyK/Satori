@@ -35,8 +35,8 @@ else
     {
         <table class="table">
             <thead>
-            <th>Board</th>
-                <th>Work Item</th>
+                <th></th>
+                <th>D#</th>
                 <th>Title</th>
                 <th>Tasks</th>
             </thead>
@@ -86,6 +86,9 @@ else
                                     }
                                     <div>
                                         <a href="@task.Url">@task.Title</a>
+                                    </div>
+                                    <div class="task-status @task.TaskStatusCssClass">
+                                        @task.StatusLabel
                                     </div>
                                 </div>
                             }

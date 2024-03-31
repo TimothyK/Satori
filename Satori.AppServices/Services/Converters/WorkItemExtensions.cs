@@ -27,7 +27,7 @@ namespace Satori.AppServices.Services.Converters
                     .AppendPathSegment("_workItems/edit")
                     .AppendPathSegment(id),
             };
-
+            
             return workItem;
         }
 

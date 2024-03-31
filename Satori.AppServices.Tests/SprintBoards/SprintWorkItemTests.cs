@@ -408,15 +408,15 @@ public class SprintWorkItemTests
     {
         //Arrange
         var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
-        workItem.Fields.OriginalEstimate.ShouldNotBeNull();
-        var expected = TimeSpan.FromHours(workItem.Fields.OriginalEstimate.Value);
+        _builder.BuildWorkItem().WithSprint(sprint).AddChild(out var task);
+        task.Fields.OriginalEstimate.ShouldNotBeNull();
+        var expected = TimeSpan.FromHours(task.Fields.OriginalEstimate.Value);
 
         //Act
         var workItems = GetWorkItems(sprint);
 
         //Assert
-        workItems.Single().OriginalEstimate.ShouldBe(expected);
+        workItems.Single().Children.Single().OriginalEstimate.ShouldBe(expected);
     }
 
     [TestMethod]
@@ -424,14 +424,14 @@ public class SprintWorkItemTests
     {
         //Arrange
         var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
-        workItem.Fields.OriginalEstimate = null;
+        _builder.BuildWorkItem().WithSprint(sprint).AddChild(out var task);
+        task.Fields.OriginalEstimate = null;
 
         //Act
         var workItems = GetWorkItems(sprint);
 
         //Assert
-        workItems.Single().OriginalEstimate.ShouldBeNull();
+        workItems.Single().Children.Single().OriginalEstimate.ShouldBeNull();
     }
 
     [TestMethod]
@@ -439,15 +439,15 @@ public class SprintWorkItemTests
     {
         //Arrange
         var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
-        workItem.Fields.CompletedWork.ShouldNotBeNull();
-        var expected = TimeSpan.FromHours(workItem.Fields.CompletedWork.Value);
+        _builder.BuildWorkItem().WithSprint(sprint).AddChild(out var task);
+        task.Fields.CompletedWork.ShouldNotBeNull();
+        var expected = TimeSpan.FromHours(task.Fields.CompletedWork.Value);
 
         //Act
         var workItems = GetWorkItems(sprint);
 
         //Assert
-        workItems.Single().CompletedWork.ShouldBe(expected);
+        workItems.Single().Children.Single().CompletedWork.ShouldBe(expected);
     }
 
     [TestMethod]
@@ -455,14 +455,14 @@ public class SprintWorkItemTests
     {
         //Arrange
         var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
-        workItem.Fields.CompletedWork = null;
+        _builder.BuildWorkItem().WithSprint(sprint).AddChild(out var task);
+        task.Fields.CompletedWork = null;
 
         //Act
         var workItems = GetWorkItems(sprint);
 
         //Assert
-        workItems.Single().CompletedWork.ShouldBeNull();
+        workItems.Single().Children.Single().CompletedWork.ShouldBeNull();
     }
 
     [TestMethod]
@@ -470,15 +470,15 @@ public class SprintWorkItemTests
     {
         //Arrange
         var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
-        workItem.Fields.RemainingWork.ShouldNotBeNull();
-        var expected = TimeSpan.FromHours(workItem.Fields.RemainingWork.Value);
+        _builder.BuildWorkItem().WithSprint(sprint).AddChild(out var task);
+        task.Fields.RemainingWork.ShouldNotBeNull();
+        var expected = TimeSpan.FromHours(task.Fields.RemainingWork.Value);
 
         //Act
         var workItems = GetWorkItems(sprint);
 
         //Assert
-        workItems.Single().RemainingWork.ShouldBe(expected);
+        workItems.Single().Children.Single().RemainingWork.ShouldBe(expected);
     }
     
     [TestMethod]
@@ -486,15 +486,139 @@ public class SprintWorkItemTests
     {
         //Arrange
         var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
-        workItem.Fields.RemainingWork = null;
+        _builder.BuildWorkItem().WithSprint(sprint).AddChild(out var task);
+        task.Fields.RemainingWork = null;
 
         //Act
         var workItems = GetWorkItems(sprint);
 
         //Assert
-        workItems.Single().RemainingWork.ShouldBeNull();
+        workItems.Single().Children.Single().RemainingWork.ShouldBeNull();
     }
+    
+    [TestMethod]
+    public void ToDo_NoEstimate()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem().WithSprint(sprint).AddChild(out var task);
+        task.Fields.State = ScrumState.ToDo.ToApiValue();
+        task.Fields.OriginalEstimate = null;
+        task.Fields.RemainingWork = null;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().Children.Single().StatusLabel.ShouldBe("⏳ To Do");
+        workItems.Single().Children.Single().TaskStatusCssClass.ShouldBe("task-status-to-do");
+    }
+    
+    [TestMethod]
+    public void ToDo_Estimate_NoRemaining()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem().WithSprint(sprint).AddChild(out var task);
+        task.Fields.State = ScrumState.ToDo.ToApiValue();
+        task.Fields.OriginalEstimate = 5.0;
+        task.Fields.RemainingWork = null;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().Children.Single().StatusLabel.ShouldBe("⏳ To Do (~5.0 hr)");
+        workItems.Single().Children.Single().TaskStatusCssClass.ShouldBe("task-status-to-do");
+    }
+    
+    [TestMethod]
+    public void ToDo_Estimate_Remaining()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem().WithSprint(sprint).AddChild(out var task);
+        task.Fields.State = ScrumState.ToDo.ToApiValue();
+        task.Fields.OriginalEstimate = 10.0;
+        task.Fields.RemainingWork = 9.9;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().Children.Single().StatusLabel.ShouldBe("⏳ To Do (~9.9 hr)");
+        workItems.Single().Children.Single().TaskStatusCssClass.ShouldBe("task-status-to-do");
+    }
+
+    [TestMethod]
+    public void InProgress_NoEstimate_NoRemaining()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem().WithSprint(sprint).AddChild(out var task);
+        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        task.Fields.OriginalEstimate = null;
+        task.Fields.RemainingWork = null;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().Children.Single().StatusLabel.ShouldBe("⌛ In Progress");
+        workItems.Single().Children.Single().TaskStatusCssClass.ShouldBe("task-status-in-progress");
+    }
+    
+    [TestMethod]
+    public void InProgress_Estimate_NoRemaining()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem().WithSprint(sprint).AddChild(out var task);
+        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        task.Fields.OriginalEstimate = 10.0;
+        task.Fields.RemainingWork = null;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().Children.Single().StatusLabel.ShouldBe("⌛ In Progress (~10.0 hr)");
+        workItems.Single().Children.Single().TaskStatusCssClass.ShouldBe("task-status-in-progress");
+    }
+    
+    [TestMethod]
+    public void InProgress_Remaining()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem().WithSprint(sprint).AddChild(out var task);
+        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        task.Fields.RemainingWork = 9.9;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().Children.Single().StatusLabel.ShouldBe("⌛ In Progress (9.9 hr)");
+        workItems.Single().Children.Single().TaskStatusCssClass.ShouldBe("task-status-in-progress");
+    }
+    
+    [TestMethod]
+    public void Done()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem().WithSprint(sprint).AddChild(out var task);
+        task.Fields.State = ScrumState.Done.ToApiValue();
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().Children.Single().StatusLabel.ShouldBe("✔️ Done");
+        workItems.Single().Children.Single().TaskStatusCssClass.ShouldBe("task-status-done");
+    }
+
 
     #endregion Properties
 
