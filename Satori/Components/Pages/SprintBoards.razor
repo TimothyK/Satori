@@ -75,7 +75,7 @@ else
                         <td>
                             @foreach (var @task in workItem.Children.OrderByDescending(wi => wi.State).ThenBy(wi => wi.Id))
                             {
-                                <div style="display: flex;">
+                                <div class="task-status @task.TaskStatusCssClass" style="display: flex;">
                                     @if (@task.AssignedTo != null)
                                     {
                                         <div class="avatar-cell">
@@ -87,7 +87,7 @@ else
                                     <div>
                                         <a href="@task.Url">@task.Title</a>
                                     </div>
-                                    <div class="task-status @task.TaskStatusCssClass">
+                                    <div>
                                         @task.StatusLabel
                                     </div>
                                 </div>
