@@ -78,7 +78,10 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServe
             task.Parent = parent;
             parent.Children.Add(task);
         }
-        foreach (var (sprintPriority, workItem) in iterationBoardItems.Values.OrderBy(wi => wi.AbsolutePriority).Select((wi, i) => (i, wi)))
+        foreach (var (sprintPriority, workItem) in iterationBoardItems.Values
+                     .Where(wi => wi.State != ScrumState.Done)
+                     .OrderBy(wi => wi.AbsolutePriority).ThenBy(wi => wi.Id)
+                     .Select((wi, i) => (i, wi)))
         {
             workItem.SprintPriority = sprintPriority + 1;
         }

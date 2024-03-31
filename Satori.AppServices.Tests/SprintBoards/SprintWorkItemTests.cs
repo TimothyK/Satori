@@ -733,5 +733,29 @@ public class SprintWorkItemTests
         workItems.Single(wi => wi.Id == source2[4].Id).SprintPriority.ShouldBe(5);
     }
 
+    /// <summary>
+    /// Done items do not get assigned a priority
+    /// </summary>
+    [TestMethod]
+    public void SprintPriority_SkipDone()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        var source = BuildWorkItems(sprint, 2);
+        var firstWorkItem = source.SingleRandom();
+        var secondWorkItem = source.Except(firstWorkItem.Yield()).Single();
+        firstWorkItem.Fields.BacklogPriority = 5.0;
+        secondWorkItem.Fields.BacklogPriority = 10.0;
+
+        firstWorkItem.Fields.State = ScrumState.Done.ToApiValue();
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single(wi => wi.Id == firstWorkItem.Id).SprintPriority.ShouldBeNull();
+        workItems.Single(wi => wi.Id == secondWorkItem.Id).SprintPriority.ShouldBe(1);
+    }
+
     #endregion Sprint Priority
 }
