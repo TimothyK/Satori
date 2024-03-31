@@ -511,7 +511,7 @@ public class SprintWorkItemTests
 
         //Assert
         workItems.Single().Children.Single().StatusLabel.ShouldBe("⏳ To Do");
-        workItems.Single().Children.Single().TaskStatusCssClass.ShouldBe("task-status-to-do");
+        workItems.Single().Children.Single().StatusCssClass.ShouldBe("status-to-do");
     }
     
     [TestMethod]
@@ -529,7 +529,7 @@ public class SprintWorkItemTests
 
         //Assert
         workItems.Single().Children.Single().StatusLabel.ShouldBe("⏳ To Do (~5.0 hr)");
-        workItems.Single().Children.Single().TaskStatusCssClass.ShouldBe("task-status-to-do");
+        workItems.Single().Children.Single().StatusCssClass.ShouldBe("status-to-do");
     }
     
     [TestMethod]
@@ -547,7 +547,7 @@ public class SprintWorkItemTests
 
         //Assert
         workItems.Single().Children.Single().StatusLabel.ShouldBe("⏳ To Do (~9.9 hr)");
-        workItems.Single().Children.Single().TaskStatusCssClass.ShouldBe("task-status-to-do");
+        workItems.Single().Children.Single().StatusCssClass.ShouldBe("status-to-do");
     }
 
     [TestMethod]
@@ -565,7 +565,7 @@ public class SprintWorkItemTests
 
         //Assert
         workItems.Single().Children.Single().StatusLabel.ShouldBe("⌛ In Progress");
-        workItems.Single().Children.Single().TaskStatusCssClass.ShouldBe("task-status-in-progress");
+        workItems.Single().Children.Single().StatusCssClass.ShouldBe("status-in-progress");
     }
     
     [TestMethod]
@@ -583,7 +583,7 @@ public class SprintWorkItemTests
 
         //Assert
         workItems.Single().Children.Single().StatusLabel.ShouldBe("⌛ In Progress (~10.0 hr)");
-        workItems.Single().Children.Single().TaskStatusCssClass.ShouldBe("task-status-in-progress");
+        workItems.Single().Children.Single().StatusCssClass.ShouldBe("status-in-progress");
     }
     
     [TestMethod]
@@ -600,7 +600,7 @@ public class SprintWorkItemTests
 
         //Assert
         workItems.Single().Children.Single().StatusLabel.ShouldBe("⌛ In Progress (9.9 hr)");
-        workItems.Single().Children.Single().TaskStatusCssClass.ShouldBe("task-status-in-progress");
+        workItems.Single().Children.Single().StatusCssClass.ShouldBe("status-in-progress");
     }
     
     [TestMethod]
@@ -616,7 +616,37 @@ public class SprintWorkItemTests
 
         //Assert
         workItems.Single().Children.Single().StatusLabel.ShouldBe("✔️ Done");
-        workItems.Single().Children.Single().TaskStatusCssClass.ShouldBe("task-status-done");
+        workItems.Single().Children.Single().StatusCssClass.ShouldBe("status-done");
+    }
+
+    [TestMethod]
+    public void StatusLabel_Approved()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.State = ScrumState.Approved.ToApiValue();
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().StatusLabel.ShouldBe("Approved by Product Owner");
+    }
+    
+    [TestMethod]
+    public void StatusLabel_Committed()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.State = ScrumState.Committed.ToApiValue();
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().StatusLabel.ShouldBe("Committed by Team");
     }
 
 

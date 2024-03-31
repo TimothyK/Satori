@@ -46,13 +46,21 @@ public class WorkItem
                     : OriginalEstimate != null ? $" (~{OriginalEstimate.Value.TotalHours:0.0} hr)" : string.Empty
                 );
             }
+            if (State == ScrumState.Approved)
+            {
+                return "Approved by Product Owner";
+            }
+            if (State == ScrumState.Committed)
+            {
+                return "Committed by Team";
+            }
             return null;
         }
     }
 
-    public string? TaskStatusCssClass =>
-        State == ScrumState.Done ? "task-status-done"
-        : State == ScrumState.InProgress ? "task-status-in-progress"
-        : State == ScrumState.ToDo ? "task-status-to-do"
+    public string? StatusCssClass =>
+        State == ScrumState.Done ? "status-done"
+        : State == ScrumState.InProgress ? "status-in-progress"
+        : State == ScrumState.ToDo ? "status-to-do"
         : null;
 }

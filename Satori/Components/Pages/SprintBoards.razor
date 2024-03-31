@@ -43,7 +43,7 @@ else
             <tbody>
                 @foreach (var workItem in _workItems.OrderBy(wi => wi.AbsolutePriority))
                 {
-                    <tr class="work-item-row @workItem.Type.CssClass">
+                    <tr class="work-item-row @workItem.Type.CssClass @workItem.StatusCssClass">
                         <td>
                             <div style="display: flex;">
                                 <div class="sprint-priority">
@@ -63,19 +63,19 @@ else
                                              alt="@workItem.AssignedTo.DisplayName" />
                                     </div>
                                 }
-
                             </div>
+                            <div class="work-item-status">@workItem.StatusLabel</div>
                         </td>
-                        <td>
+                        <td class="@workItem.StatusCssClass">
                             <a href="@workItem.Url">@workItem.Id</a>
                         </td>
-                        <td>
+                        <td class="@workItem.StatusCssClass">
                             <a href="@workItem.Url">@workItem.Title</a>
                         </td>
                         <td>
                             @foreach (var @task in workItem.Children.OrderByDescending(wi => wi.State).ThenBy(wi => wi.Id))
                             {
-                                <div class="task-status @task.TaskStatusCssClass" style="display: flex;">
+                                <div class="task-status @task.StatusCssClass" style="display: flex;">
                                     @if (@task.AssignedTo != null)
                                     {
                                         <div class="avatar-cell">

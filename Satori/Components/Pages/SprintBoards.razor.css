@@ -15,28 +15,17 @@
     font-size: 0.8em;
 }
 
-.work-item-epic {
-    border-left-color: #E06C00;
-}
-
-.work-item-feature {
-    border-left-color: #773B93;
-}
-
-.work-item-pbi {
+.work-item-row.work-item-pbi {
     border-left-color: #009CCC;
 }
 
-.work-item-bug {
+.work-item-row.work-item-bug {
     border-left-color: #CC293D;
 }
 
-.work-item-task {
-    border-left-color: #F2CB1D;
-}
-
-.work-item-unknown {
-    border-left-color: gray;
+.work-item-status {
+    text-align: center;
+    font-size: 0.7em;
 }
 
 .sprint-priority {
@@ -57,18 +46,27 @@
     align-self: center;
 }
 
-.task-status-to-do {
+.status-to-do {
     color: #B2B2B2;
     font-size: 0.9em;
 }
 
-.task-status-in-progress {
+.status-in-progress {
     font-size: 1.1em;
     background: rgb(229,245,255);
     background: linear-gradient(90deg, rgba(229,245,255,1) 20%, rgba(255,255,255,1) 100%);
 }
 
-.task-status-done {
+.task-status.status-done {
     color: #339933;
     font-size: 0.7em;
+}
+
+td.status-done {
+    font-size: 0.7em;
+}
+
+.work-item-row.status-done {
+    background-color: #ECF9EC;
+    opacity: 0.5;
 }
