@@ -73,7 +73,7 @@ else
                             <a href="@workItem.Url">@workItem.Title</a>
                         </td>
                         <td>
-                            @foreach (var @task in workItem.Children)
+                            @foreach (var @task in workItem.Children.OrderByDescending(wi => wi.State).ThenBy(wi => wi.Id))
                             {
                                 <div style="display: flex;">
                                     @if (@task.AssignedTo != null)

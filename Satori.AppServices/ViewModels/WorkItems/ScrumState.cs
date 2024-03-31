@@ -9,7 +9,7 @@
 /// https://learn.microsoft.com/en-us/azure/devops/boards/work-items/workflow-and-state-categories?view=azure-devops&tabs=cmmi-process
 /// </para>
 /// </remarks>
-public class ScrumState
+public class ScrumState : IComparable<ScrumState>
 {
     private ScrumState()
     {
@@ -135,6 +135,36 @@ public class ScrumState
 
     #endregion
 
+    #region IComparable
 
+    private static readonly Dictionary<ScrumState, int> OrdinalMap = new()
+    {
+        {New, 1},
+        {ToDo, 2},
+        {Approved, 10},
+        {Committed, 11},
+        {InProgress, 12},
+        {Done, 20},
+        {Removed, 30}
+    };
 
+    private int OrdinalValue => OrdinalMap[this];
+
+    public int CompareTo(ScrumState? other)
+    {
+        var results = new[]
+        {
+            OrdinalValue.CompareTo(other?.OrdinalValue ?? int.MinValue)
+        };
+        return results
+            .SkipWhile(diff => diff == 0)
+            .FirstOrDefault();
+    }
+
+    public static bool operator <(ScrumState lhs, ScrumState rhs) => lhs.CompareTo(rhs) < 0;
+    public static bool operator <=(ScrumState lhs, ScrumState rhs) => lhs.CompareTo(rhs) <= 0;
+    public static bool operator >(ScrumState lhs, ScrumState rhs) => lhs.CompareTo(rhs) > 0;
+    public static bool operator >=(ScrumState lhs, ScrumState rhs) => lhs.CompareTo(rhs) >= 0;
+
+    #endregion
 }
