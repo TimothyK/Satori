@@ -47,6 +47,13 @@ public class WorkItemFields
     [JsonPropertyName("System.Title")]
     public required string Title { get; set; }
 
+    [JsonPropertyName("Microsoft.VSTS.Scheduling.OriginalEstimate")]
+    public double? OriginalEstimate { get; set; }
+    [JsonPropertyName("Microsoft.VSTS.Scheduling.CompletedWork")]
+    public double? CompletedWork { get; set; }
+    [JsonPropertyName("Microsoft.VSTS.Scheduling.RemainingWork")]
+    public double? RemainingWork { get; set; }
+
     [JsonPropertyName("Microsoft.VSTS.Common.Priority")]
     public int Priority { get; set; }
     [JsonPropertyName("Microsoft.VSTS.Common.Severity")]

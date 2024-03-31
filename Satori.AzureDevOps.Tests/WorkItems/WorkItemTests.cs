@@ -142,5 +142,29 @@ public class WorkItemTests
     [DataRow(29922, "Product Backlog Item")]
     [DataRow(29923, "Task")]
     [DataRow(27850, "Bug")]
-    public void FiveType(int workItemId, string type) => SingleWorkItem(workItemId).Fields.WorkItemType.ShouldBe(type);
+    public void Type(int workItemId, string type) => SingleWorkItem(workItemId).Fields.WorkItemType.ShouldBe(type);
+
+    /// <summary>
+    /// Original Estimate is only available on Task work items
+    /// </summary>
+    [TestMethod]
+    public void OriginalEstimate_Missing() => SingleWorkItem().Fields.OriginalEstimate.ShouldBeNull();
+    /// <summary>
+    /// Completed Work is only available on Task work items
+    /// </summary>
+    [TestMethod]
+    public void CompletedWork_Missing() => SingleWorkItem().Fields.CompletedWork.ShouldBeNull();
+    /// <summary>
+    /// Remaining Work is only available on Task work items
+    /// </summary>
+    [TestMethod]
+    public void RemainingWork_Missing() => SingleWorkItem().Fields.RemainingWork.ShouldBeNull();
+    
+    [TestMethod]
+    public void OriginalEstimate() => SingleWorkItem(29923).Fields.OriginalEstimate.ShouldBe(12.0);
+    [TestMethod]
+    public void CompletedWork() => SingleWorkItem(29923).Fields.CompletedWork.ShouldBe(9.0);
+    [TestMethod]
+    public void RemainingWork() => SingleWorkItem(29923).Fields.RemainingWork.ShouldBe(3.0);
+
 }
