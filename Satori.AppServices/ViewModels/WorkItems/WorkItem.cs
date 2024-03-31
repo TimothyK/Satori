@@ -13,6 +13,7 @@ public class WorkItem
     public string? IterationPath { get; init; }
     public required WorkItemType Type { get; init; }
     public required ScrumState State { get; init; }
+    public List<string> Tags { get; init; }
     public TimeSpan? OriginalEstimate { get; set; }
     public TimeSpan? CompletedWork { get; set; }
     public TimeSpan? RemainingWork { get; set; }

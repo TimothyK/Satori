@@ -167,4 +167,6 @@ public class WorkItemTests
     [TestMethod]
     public void RemainingWork() => SingleWorkItem(29923).Fields.RemainingWork.ShouldBe(3.0);
 
+    [TestMethod]
+    public void Tags() => SingleWorkItem().Fields.Tags.ShouldBe("Needs_Design_Review; Waiting_For_Client");
 }

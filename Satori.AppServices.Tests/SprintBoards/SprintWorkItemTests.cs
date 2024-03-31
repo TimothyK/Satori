@@ -316,49 +316,7 @@ public class SprintWorkItemTests
         //Assert
         workItems.Single().Type.ShouldBe(expected);
     }
-    
-    [TestMethod]
-    [DataRow("New")]
-    [DataRow("Approved")]
-    [DataRow("Committed")]
-    [DataRow("Done")]
-    [DataRow("Removed")]
-    public void State(string state)
-    {
-        //Arrange
-        var expected = ScrumState.FromApiValue(state);
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
-        workItem.Fields.State = state;
 
-        //Act
-        var workItems = GetWorkItems(sprint);
-
-        //Assert
-        workItems.Single().State.ShouldBe(expected);
-    }
-    
-    [TestMethod]
-    [DataRow("To Do")]
-    [DataRow("In Progress")]
-    [DataRow("Done")]
-    [DataRow("Removed")]
-    public void TaskStatus(string state)
-    {
-        //Arrange
-        var expected = ScrumState.FromApiValue(state);
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem().WithSprint(sprint)
-            .AddChild(out var task);
-        task.Fields.State = state;
-
-        //Act
-        var workItems = GetWorkItems(sprint);
-
-        //Assert
-        workItems.Single().Children.Single().State.ShouldBe(expected);
-    }
-    
     [TestMethod]
     public void ProjectCode()
     {
@@ -402,6 +360,8 @@ public class SprintWorkItemTests
         //Assert
         workItems.Single().Url.ShouldBe($"http://devops.test/Org/_workItems/edit/{workItem.Id}");
     }
+
+    #region Estimates
 
     [TestMethod]
     public void OriginalEstimate()
@@ -495,7 +455,53 @@ public class SprintWorkItemTests
         //Assert
         workItems.Single().Children.Single().RemainingWork.ShouldBeNull();
     }
+
+    #endregion
+
+    #region Status
+
+    [TestMethod]
+    [DataRow("New")]
+    [DataRow("Approved")]
+    [DataRow("Committed")]
+    [DataRow("Done")]
+    [DataRow("Removed")]
+    public void State(string state)
+    {
+        //Arrange
+        var expected = ScrumState.FromApiValue(state);
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.State = state;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().State.ShouldBe(expected);
+    }
     
+    [TestMethod]
+    [DataRow("To Do")]
+    [DataRow("In Progress")]
+    [DataRow("Done")]
+    [DataRow("Removed")]
+    public void TaskStatus(string state)
+    {
+        //Arrange
+        var expected = ScrumState.FromApiValue(state);
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem().WithSprint(sprint)
+            .AddChild(out var task);
+        task.Fields.State = state;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().Children.Single().State.ShouldBe(expected);
+    }
+
     [TestMethod]
     public void ToDo_NoEstimate()
     {
@@ -649,6 +655,56 @@ public class SprintWorkItemTests
         workItems.Single().StatusLabel.ShouldBe("Committed by Team");
     }
 
+    #endregion
+
+    [TestMethod]
+    public void Tags_Empty()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.Tags = null;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().Tags.ShouldBeEmpty();
+
+    }
+    
+    [TestMethod]
+    public void Tags_OneTag()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.Tags = "Bug_Bounty";
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().Tags.Count.ShouldBe(1);
+        workItems.Single().Tags.Single().ShouldBe("Bug Bounty");
+    }
+    
+    [TestMethod]
+    public void Tags_TwoTags()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.Tags = "Bug_Bounty; DesignReview";
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().Tags.Count.ShouldBe(2);
+        workItems.Single().Tags.ShouldContain("Bug Bounty");
+        workItems.Single().Tags.ShouldContain("DesignReview");
+    }
 
     #endregion Properties
 

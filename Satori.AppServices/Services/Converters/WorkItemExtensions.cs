@@ -19,6 +19,7 @@ namespace Satori.AppServices.Services.Converters
                 AbsolutePriority = wi.Fields.BacklogPriority > 0.0 ? wi.Fields.BacklogPriority : double.MaxValue,
                 Type = WorkItemType.FromApiValue(wi.Fields.WorkItemType),
                 State = ScrumState.FromApiValue(wi.Fields.State),
+                Tags = ParseTags(wi.Fields.Tags),
                 OriginalEstimate = wi.Fields.OriginalEstimate.HoursToTimeSpan(),
                 CompletedWork = wi.Fields.CompletedWork.HoursToTimeSpan(),
                 RemainingWork = wi.Fields.RemainingWork.HoursToTimeSpan(),
@@ -27,8 +28,20 @@ namespace Satori.AppServices.Services.Converters
                     .AppendPathSegment("_workItems/edit")
                     .AppendPathSegment(id),
             };
-            
+
             return workItem;
+        }
+
+        private static List<string> ParseTags(string? tagsString)
+        {
+            if (string.IsNullOrWhiteSpace(tagsString))
+            {
+                return [];
+            }
+
+            return tagsString.Split(";")
+                .Select(tag => tag.Replace("_", " ").Trim())
+                .ToList();
         }
 
         private static TimeSpan? HoursToTimeSpan(this double? value)

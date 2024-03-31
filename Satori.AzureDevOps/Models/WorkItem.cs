@@ -62,6 +62,8 @@ public class WorkItemFields
     public string? ValueArea { get; set; }
     [JsonPropertyName("Microsoft.VSTS.Common.Triage")]
     public string? Triage { get; set; }
+    [JsonPropertyName("System.Tags")]
+    public string? Tags { get; set; }
     [JsonPropertyName("Microsoft.VSTS.CMMI.Blocked")]
     [JsonConverter(typeof(YesNoConverter))]
     public bool Blocked { get; set; }
