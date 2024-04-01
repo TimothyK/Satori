@@ -74,6 +74,9 @@ td.status-done {
     background-color: #ECF9EC;
     opacity: 0.5;
 }
+.work-item-row.status-done:hover {
+    opacity: 1.0;
+}
 
 .blocked {
     color: red;
