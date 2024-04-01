@@ -1,4 +1,7 @@
-﻿namespace Satori.AppServices.ViewModels.WorkItems;
+﻿using Pscl.Linq;
+using System.Collections.Immutable;
+
+namespace Satori.AppServices.ViewModels.WorkItems;
 
 public class WorkItemType
 {
@@ -24,6 +27,7 @@ public class WorkItemType
     public static readonly WorkItemType Task = new("Task");
     public static readonly WorkItemType Feature = new("Feature");
     public static readonly WorkItemType Epic = new("Epic");
+    public static readonly WorkItemType Impediment = new("Impediment");
     public static readonly WorkItemType Unknown = new("Work Item", "unknown");
 
     #endregion
@@ -41,6 +45,17 @@ public class WorkItemType
     }
 
     #endregion
+
+    private static ImmutableArray<WorkItemType>? _boardTypes;
+
+    /// <summary>
+    /// Work item types that can be directly assigned a sprint board.
+    /// <see cref="Task"/> can be assigned to a board, but only as a child of one of these work item types.
+    /// </summary>
+    public static ImmutableArray<WorkItemType> BoardTypes => 
+        _boardTypes ??= All().Where(t => t.CanAssignToBoard).ToImmutableArray();
+
+    private bool CanAssignToBoard => this.IsIn(ProductBacklogItem, Bug, Impediment);
 
     private string CssClassSuffix { get; }
     public string CssClass => "work-item-" + CssClassSuffix;

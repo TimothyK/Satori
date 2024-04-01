@@ -59,6 +59,9 @@
 .work-item-bug {
     border-left-color: #CC293D;
 }
+.work-item-impediment {
+    border-left-color: #B4009E;
+}
 .work-item-task {
     border-left-color: #F2CB1D;
 }

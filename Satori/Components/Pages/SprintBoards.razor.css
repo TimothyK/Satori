@@ -23,6 +23,10 @@
     border-left-color: #CC293D;
 }
 
+.work-item-row.work-item-impediment {
+    border-left-color: #B4009E;
+}
+
 .work-item-status {
     text-align: center;
     font-size: 0.7em;

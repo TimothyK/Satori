@@ -302,6 +302,7 @@ public class SprintWorkItemTests
     [TestMethod]
     [DataRow("Product Backlog Item")]
     [DataRow("Bug")]
+    [DataRow("Impediment")]
     public void Type(string type)
     {
         //Arrange
@@ -653,6 +654,25 @@ public class SprintWorkItemTests
 
         //Assert
         workItems.Single().StatusLabel.ShouldBe("Committed by Team");
+    }
+    
+    [TestMethod]
+    [DataRow("Open", "Open", null)]
+    [DataRow("Closed", "✔️ Closed", "status-done")]
+    public void Status_Impediment(string apiValue, string expectedStatusLabel, string? expectedStatusCssClass)
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.WorkItemType = WorkItemType.Impediment.ToApiValue();
+        workItem.Fields.State = apiValue;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().StatusLabel.ShouldBe(expectedStatusLabel);
+        workItems.Single().StatusCssClass.ShouldBe(expectedStatusCssClass);
     }
 
     [TestMethod]

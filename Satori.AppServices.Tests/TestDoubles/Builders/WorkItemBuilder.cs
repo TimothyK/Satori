@@ -22,7 +22,7 @@ internal class WorkItemBuilder
     private static WorkItem BuildWorkItem()
     {
         var workItem = Builder.Builder<WorkItem>.New().Build(int.MaxValue);
-        workItem.Fields.WorkItemType = new[] { WorkItemType.ProductBacklogItem, WorkItemType.Bug }.SingleRandom().ToApiValue();
+        workItem.Fields.WorkItemType = WorkItemType.BoardTypes.SingleRandom().ToApiValue();
         workItem.Fields.State = ScrumState.Committed.ToApiValue();
         workItem.Fields.Triage = null;
         workItem.Url = $"http://devops.test/Org/{workItem.Fields.ProjectName}/_apis/wit/workItems/{workItem.Id}";
@@ -54,14 +54,13 @@ internal class WorkItemBuilder
     private static WorkItemType GetChildType(string workItemTypeApiValue) => GetChildType(WorkItemType.FromApiValue(workItemTypeApiValue));
     private static WorkItemType GetChildType(WorkItemType workItemType)
     {
-        var boardTypes = new[] { WorkItemType.ProductBacklogItem, WorkItemType.Bug };
-        if (workItemType.IsIn(boardTypes))
+        if (workItemType.IsIn(WorkItemType.BoardTypes))
         {
             return WorkItemType.Task;
         }
         if (workItemType == WorkItemType.Feature)
         {
-            return boardTypes.SingleRandom();
+            return WorkItemType.BoardTypes.SingleRandom();
         }
         if (workItemType == WorkItemType.Epic)
         {

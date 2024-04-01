@@ -31,16 +31,17 @@ public class WorkItem
     {
         get
         {
-            if (State == ScrumState.Done)
+            if (State == ScrumState.New)
             {
-                return "✔️ Done";
+                return Triage == TriageState.Pending ? "Triage Pending"
+                    : Triage == TriageState.MoreInfo ? "Triage waiting for info"
+                    : Triage == TriageState.InfoReceived ? "Triaging"
+                    : Triage == TriageState.Triaged ? "Triaged, waiting for approval"
+                    : "New";
             }
-            if (State == ScrumState.InProgress)
+            if (State == ScrumState.Open)
             {
-                return "⌛ In Progress" + (
-                    RemainingWork != null ? $" ({RemainingWork.Value.TotalHours:0.0} hr)"
-                        : OriginalEstimate != null ? $" (~{OriginalEstimate.Value.TotalHours:0.0} hr)" : string.Empty
-                        );
+                return "Open";
             }
             if (State == ScrumState.ToDo)
             {
@@ -48,6 +49,14 @@ public class WorkItem
                     RemainingWork != null ? $" (~{RemainingWork.Value.TotalHours:0.0} hr)"
                     : OriginalEstimate != null ? $" (~{OriginalEstimate.Value.TotalHours:0.0} hr)" : string.Empty
                 );
+            }
+
+            if (State == ScrumState.InProgress)
+            {
+                return "⌛ In Progress" + (
+                    RemainingWork != null ? $" ({RemainingWork.Value.TotalHours:0.0} hr)"
+                        : OriginalEstimate != null ? $" (~{OriginalEstimate.Value.TotalHours:0.0} hr)" : string.Empty
+                        );
             }
             if (State == ScrumState.Approved)
             {
@@ -57,13 +66,13 @@ public class WorkItem
             {
                 return "Committed by Team";
             }
-            if (State == ScrumState.New)
+            if (State == ScrumState.Done)
             {
-                return Triage == TriageState.Pending ? "Triage Pending" 
-                    : Triage == TriageState.MoreInfo ? "Triage waiting for info"
-                    : Triage == TriageState.InfoReceived ? "Triaging"
-                    : Triage == TriageState.Triaged ? "Triaged, waiting for approval"
-                    : "New";
+                return "✔️ Done";
+            }
+            if (State == ScrumState.Closed)
+            {
+                return "✔️ Closed";
             }
 
             return null;
@@ -74,5 +83,6 @@ public class WorkItem
         State == ScrumState.Done ? "status-done"
         : State == ScrumState.InProgress ? "status-in-progress"
         : State == ScrumState.ToDo ? "status-to-do"
+        : State == ScrumState.Closed ? "status-done"
         : null;
 }

@@ -54,7 +54,7 @@ public class WorkItemTests
 
     private const int SingleWorkItemId = 2;
     private const int BlockedWorkItemId = 3;
-    private static readonly int[] FiveTypesWorkItemIds = [28655, 29924, 29922, 29923, 27850];
+    private static readonly int[] SixTypesWorkItemIds = [28655, 29924, 29922, 29923, 27850, 30343];
 
     private static byte[] GetPayload(int workItemId)
     {
@@ -63,9 +63,9 @@ public class WorkItemTests
             return WorkItemResponses.BlockedWorkItem;
         }
 
-        if (FiveTypesWorkItemIds.Contains(workItemId))
+        if (SixTypesWorkItemIds.Contains(workItemId))
         {
-            return WorkItemResponses.FiveTypesWorkItems;
+            return WorkItemResponses.SixTypesWorkItems;
         }
         return WorkItemResponses.SingleWorkItem;
     }
@@ -142,6 +142,7 @@ public class WorkItemTests
     [DataRow(29922, "Product Backlog Item")]
     [DataRow(29923, "Task")]
     [DataRow(27850, "Bug")]
+    [DataRow(30343, "Impediment")]
     public void Type(int workItemId, string type) => SingleWorkItem(workItemId).Fields.WorkItemType.ShouldBe(type);
 
     /// <summary>

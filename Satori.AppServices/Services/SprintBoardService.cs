@@ -1,4 +1,5 @@
 ﻿using Flurl;
+using Pscl.Linq;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
@@ -67,7 +68,7 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServe
 
         var iterationTasks = iterationWorkItems.Where(wi => wi.Type == WorkItemType.Task).ToDictionary(wi => wi.Id, wi => wi);
         var iterationBoardItems = iterationWorkItems
-            .Where(wi => wi.Type == WorkItemType.ProductBacklogItem || wi.Type == WorkItemType.Bug)
+            .Where(wi => wi.Type.IsIn(WorkItemType.BoardTypes))
             .ToDictionary(wi => wi.Id, wi => wi);
         foreach (var relation in relations.Where(r => r.Source != null))
         {

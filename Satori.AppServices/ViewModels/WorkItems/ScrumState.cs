@@ -46,6 +46,17 @@ public class ScrumState : IComparable<ScrumState>
     public static readonly ScrumState ToDo = new();
 
     /// <summary>
+    /// Task has not started
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Only supported for <see cref="WorkItemType.Impediment"/>.
+    /// </para>
+    /// </remarks>
+    public static readonly ScrumState Open = new();
+
+
+    /// <summary>
     /// Approved by the Product Owner
     /// </summary>
     /// <remarks>
@@ -76,6 +87,17 @@ public class ScrumState : IComparable<ScrumState>
     /// Done-done
     /// </summary>
     public static readonly ScrumState Done = new();
+
+    /// <summary>
+    /// Impediment is resolved
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Only supported for <see cref="WorkItemType.Impediment"/>.
+    /// </para>
+    /// </remarks>
+    public static readonly ScrumState Closed = new();
+
     /// <summary>
     /// Cancelled, won't do
     /// </summary>
@@ -89,10 +111,12 @@ public class ScrumState : IComparable<ScrumState>
     {
         {New, nameof(New)},
         {ToDo, nameof(ToDo)},
+        {Open, nameof(Open)},
         {Approved, nameof(Approved)},
         {Committed, nameof(Committed)},
         {InProgress, nameof(InProgress)},
         {Done, nameof(Done)},
+        {Closed, nameof(Closed)},
         {Removed, nameof(Removed)}
     };
 
@@ -115,10 +139,12 @@ public class ScrumState : IComparable<ScrumState>
     {
         {New, "New"},
         {ToDo, "To Do"},
+        {Open, "Open"},
         {Approved, "Approved"},
         {Committed, "Committed"},
         {InProgress, "In Progress"},
         {Done, "Done"},
+        {Closed, "Closed"},
         {Removed, "Removed"}
     };
 
@@ -141,10 +167,12 @@ public class ScrumState : IComparable<ScrumState>
     {
         {New, 1},
         {ToDo, 2},
+        {Open, 3},
         {Approved, 10},
         {Committed, 11},
         {InProgress, 12},
         {Done, 20},
+        {Closed, 21},
         {Removed, 30}
     };
 
