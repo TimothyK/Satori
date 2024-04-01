@@ -13,17 +13,18 @@ public class WorkItem
     public string? IterationPath { get; init; }
     public required WorkItemType Type { get; init; }
     public required ScrumState State { get; init; }
-    public List<string> Tags { get; init; }
-    public TimeSpan? OriginalEstimate { get; set; }
-    public TimeSpan? CompletedWork { get; set; }
-    public TimeSpan? RemainingWork { get; set; }
+    public TriageState? Triage { get; set; }
+    public required List<string> Tags { get; init; }
+    public TimeSpan? OriginalEstimate { get; init; }
+    public TimeSpan? CompletedWork { get; init; }
+    public TimeSpan? RemainingWork { get; init; }
     public string? ProjectCode { get; init; }
 
     public WorkItem? Parent { get; set; }
     public List<WorkItem> Children { get; } = [];
     public Sprint? Sprint { get; set; }
     public int? SprintPriority { get; set; }
-    public double AbsolutePriority { get; set; }
+    public double AbsolutePriority { get; init; }
 
     public string? StatusLabel
     {
@@ -55,6 +56,15 @@ public class WorkItem
             {
                 return "Committed by Team";
             }
+            if (State == ScrumState.New)
+            {
+                return Triage == TriageState.Pending ? "Triage Pending" 
+                    : Triage == TriageState.MoreInfo ? "Triage waiting for info"
+                    : Triage == TriageState.InfoReceived ? "Triaging"
+                    : Triage == TriageState.Triaged ? "Triaged, waiting for approval"
+                    : "New";
+            }
+
             return null;
         }
     }

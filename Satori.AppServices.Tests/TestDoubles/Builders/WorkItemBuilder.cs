@@ -24,6 +24,7 @@ internal class WorkItemBuilder
         var workItem = Builder.Builder<WorkItem>.New().Build(int.MaxValue);
         workItem.Fields.WorkItemType = new[] { WorkItemType.ProductBacklogItem, WorkItemType.Bug }.SingleRandom().ToApiValue();
         workItem.Fields.State = ScrumState.Committed.ToApiValue();
+        workItem.Fields.Triage = null;
         workItem.Url = $"http://devops.test/Org/{workItem.Fields.ProjectName}/_apis/wit/workItems/{workItem.Id}";
         return workItem;
     }

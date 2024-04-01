@@ -169,4 +169,7 @@ public class WorkItemTests
 
     [TestMethod]
     public void Tags() => SingleWorkItem().Fields.Tags.ShouldBe("Needs_Design_Review; Waiting_For_Client");
+    
+    [TestMethod]
+    public void Triage() => SingleWorkItem(27850).Fields.Triage.ShouldBe("Pending");
 }

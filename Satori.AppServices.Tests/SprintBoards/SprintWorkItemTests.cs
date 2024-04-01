@@ -655,6 +655,50 @@ public class SprintWorkItemTests
         workItems.Single().StatusLabel.ShouldBe("Committed by Team");
     }
 
+    [TestMethod]
+    [DataRow("Pending")]
+    [DataRow("More Info")]
+    [DataRow("Info Received")]
+    [DataRow("Triaged")]
+    [DataRow("")]
+    [DataRow(null)]
+    public void Triage(string apiValue)
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.Triage = apiValue;
+        var expected = TriageState.FromApiValue(apiValue);
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().Triage.ShouldBe(expected);
+    }
+
+    [TestMethod]
+    [DataRow(null, "New")]
+    [DataRow("Pending", "Triage Pending")]
+    [DataRow("More Info", "Triage waiting for info")]
+    [DataRow("Info Received", "Triaging")]
+    [DataRow("Triaged", "Triaged, waiting for approval")]
+    public void Triage_StatusLabel(string? apiValue, string expected)
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.WorkItemType = WorkItemType.Bug.ToApiValue();
+        workItem.Fields.State = ScrumState.New.ToApiValue();
+        workItem.Fields.Triage = apiValue;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().StatusLabel.ShouldBe(expected);
+    }
+    
     #endregion
 
     [TestMethod]
@@ -670,7 +714,6 @@ public class SprintWorkItemTests
 
         //Assert
         workItems.Single().Tags.ShouldBeEmpty();
-
     }
     
     [TestMethod]
