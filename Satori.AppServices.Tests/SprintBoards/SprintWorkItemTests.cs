@@ -702,6 +702,23 @@ public class SprintWorkItemTests
     #endregion
 
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void Blocked(bool expected)
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.Blocked = expected;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().Blocked.ShouldBe(expected);
+    }
+    
+    [TestMethod]
     public void Tags_Empty()
     {
         //Arrange

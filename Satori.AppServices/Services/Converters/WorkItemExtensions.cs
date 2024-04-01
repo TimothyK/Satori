@@ -7,6 +7,20 @@ namespace Satori.AppServices.Services.Converters
     {
         public static WorkItem ToViewModel(this AzureDevOps.Models.WorkItem wi)
         {
+            ArgumentNullException.ThrowIfNull(wi);
+
+            try
+            {
+                return ToViewModelUnsafe(wi);
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException($"Failed to build view model for work item {wi.Id}.  {ex.Message}", ex);
+            }
+        }
+
+        private static WorkItem ToViewModelUnsafe(this AzureDevOps.Models.WorkItem wi)
+        {
             var id = wi.Id;
             var workItem = new WorkItem()
             {
@@ -20,6 +34,7 @@ namespace Satori.AppServices.Services.Converters
                 Type = WorkItemType.FromApiValue(wi.Fields.WorkItemType),
                 State = ScrumState.FromApiValue(wi.Fields.State),
                 Triage = TriageState.FromApiValue(wi.Fields.Triage),
+                Blocked = wi.Fields.Blocked,
                 Tags = ParseTags(wi.Fields.Tags),
                 OriginalEstimate = wi.Fields.OriginalEstimate.HoursToTimeSpan(),
                 CompletedWork = wi.Fields.CompletedWork.HoursToTimeSpan(),

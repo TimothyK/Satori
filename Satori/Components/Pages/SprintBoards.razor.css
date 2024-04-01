@@ -70,3 +70,7 @@ td.status-done {
     background-color: #ECF9EC;
     opacity: 0.5;
 }
+
+.blocked {
+    color: red;
+}
