@@ -1,7 +1,60 @@
 ﻿@page "/"
+@using Satori.AppServices.Models
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Satori</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Welcome to Satori</h1>
+<div style="display: flex;">
+    
+    <div>
+        <p style="text-align: center;">
+            <img src="images/Satori.png" alt="Satori" class="img-fluid" style="width: 100px; height: 214px;"/>
+        </p>
+    </div>
+    <div style="display: flex; justify-content: center; align-items: center; width: 600px; margin-left: 50px;">
+        <p>
+            Satori is web application that provides comprehension and understanding to the existing systems you already are using. 
+            These include issue tracking, project management, time tracking, and other systems. 
+            Unified dashboards pull information from multiple systems and merging them into a consistent view.
+        </p>
 
-Welcome to your new app.
+    </div>
+</div>
+
+<h3>Integrations</h3>
+
+<div style="display: flex">
+    <a href="@azureDevOpsUrl" target="_blank">
+        <div class="card" style="width: 100px;">
+            <img src="images/AzureDevOps-Logo.png" alt="Azure DevOps Logo"/>
+            <div class="card-body">
+                <p class="card-text" style="text-align: center;">Azure DevOps</p>
+            </div>
+        </div>
+    </a>
+</div>
+
+<h4 style="margin-top: 30px;">Coming Soon</h4>
+<ul>
+    <li><a target="_blank" href="http://kimai:8001/">Kimai</a></li>
+    <li><a target="_blank" href="https://outlook.office.com/mail/">Outlook</a></li>
+    <li>and more to come</li>
+</ul>
+
+<h4 style="margin-top: 30px;">Contributions</h4>
+<ul>
+    <li><a target="_blank" href="https://github.com/TimothyK/Satori">Source Code</a></li>
+    <li>by <a target="_blank" href="http://codemonkeyprojectiles.com">Timothy Klenke</a></li>
+</ul>
+
+@code
+{
+    private Uri azureDevOpsUrl;
+
+    protected override void OnInitialized()
+    {
+        var srv = Program.Services.GetRequiredService<ConnectionSettings>();
+        azureDevOpsUrl = srv.AzureDevOps.Url;
+    }
+
+}
