@@ -1,3 +1,4 @@
+using Blazored.LocalStorage;
 using Satori.Components;
 using Satori.Utilities;
 using Serilog;
@@ -20,9 +21,11 @@ internal class Program
         Log.Logger.Information("Starting Satori");
 
         builder.Logging.AddSerilog();
+
+        builder.Services.AddBlazoredLocalStorage();
         
         builder.AddAppServices();
-
+        
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.

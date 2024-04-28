@@ -68,6 +68,7 @@
     </div>
 </div>
 
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @code {
     //bool to send to MainLayout for shrinking sidebar and showing/hide menu text
     private bool IconMenuActive { get; set; } = false;
@@ -76,19 +77,39 @@
     [Parameter]
     public EventCallback<bool> ShowIconMenu { get; set; }
 
-    private bool collapseNavMenu = true;
+    private bool _collapseNavMenu = true;
 
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    private string? NavMenuCssClass => _collapseNavMenu ? "collapse" : null;
 
     private void ToggleNavMenu()
     {
-        collapseNavMenu = !collapseNavMenu;
+        _collapseNavMenu = !_collapseNavMenu;
     }
 
+    private const string IconMenuActiveStorageKey = $"{nameof(NavMenu)}.{nameof(IconMenuActive)}";
     //Method to toggle IconMenuActive bool and send bool via EventCallback
     private async Task ToggleIconMenu()
     {
         IconMenuActive = !IconMenuActive;
+        await LocalStorage.SetItemAsync(IconMenuActiveStorageKey, IconMenuActive);
         await ShowIconMenu.InvokeAsync(IconMenuActive);
     }
+
+    private bool _isInitialized = false;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_isInitialized)
+        {
+            return;
+        }
+
+        var iconMenuActive = await LocalStorage.GetItemAsync<bool>(IconMenuActiveStorageKey);
+        if (iconMenuActive != IconMenuActive)
+        {
+            await ToggleIconMenu();
+        }
+
+        _isInitialized = true;
+    }
+
 }
