@@ -22,9 +22,11 @@ internal static class LogBuilderExtensions
         var filePath = builder.Configuration["Logging:File:Path"];
         if (!string.IsNullOrEmpty(filePath))
         {
-            configuration.WriteTo.RollingFile(Path.Combine(filePath, "{Date}-Satori.log")
+            configuration.WriteTo.File(Path.Combine(filePath, "Satori-.log")
                 , outputTemplate: "{Level:u3} {Timestamp:HH:mm:ss.fff} {ProcessId}:{ThreadId} {Message:l}{NewLine}{SqlStatement}{Exception}"
                 , fileSizeLimitBytes: 500 * 1024 * 1024 //500 MB
+                , rollingInterval: RollingInterval.Day
+                , rollOnFileSizeLimit: false
                 , buffered: false
             );
         }
