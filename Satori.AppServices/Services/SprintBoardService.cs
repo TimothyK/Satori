@@ -135,7 +135,7 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServe
             }
 
             var iteration = await azureDevOpsServer.GetCurrentIterationAsync(team);
-            if (iteration?.Attributes.FinishDate == null || iteration.Attributes.FinishDate.Value.AddDays(1) <= timeServer.GetUtcNow())
+            if (iteration?.Attributes.FinishDate == null || iteration.Attributes.FinishDate.Value.AddDays(7) <= timeServer.GetUtcNow())
             {
                 return;
             }

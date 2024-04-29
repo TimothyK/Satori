@@ -189,13 +189,48 @@ public class SprintBoardTests
     }
 
     [TestMethod]
-    public void Expired_ReturnsNull()
+    public void Expired_Yesterday_ReturnsSprint()
     {
         //Arrange
         var iteration = BuildIteration();
         var now = DateTimeOffset.UtcNow;
         _timeServer.SetTime(now);
         iteration.Attributes.FinishDate = now.AddDays(-1);
+
+        //Act
+        var sprint = GetSingleSprint();
+
+        //Assert
+        sprint.Id.ShouldBe(iteration.Id);
+    }
+
+    /// <summary>
+    /// The active sprint should have a grace period of 7 days.  This gives the scrum master a chance to set up the next sprint. 
+    /// </summary>
+    [TestMethod]
+    public void Expired_ForSixDays_ReturnsSprint()
+    {
+        //Arrange
+        var iteration = BuildIteration();
+        var now = DateTimeOffset.UtcNow;
+        _timeServer.SetTime(now);
+        iteration.Attributes.FinishDate = now.AddDays(-6);
+
+        //Act
+        var sprint = GetSingleSprint();
+
+        //Assert
+        sprint.Id.ShouldBe(iteration.Id); 
+    }
+
+    [TestMethod]
+    public void Expired_ForSevenDays_ReturnsNull()
+    {
+        //Arrange
+        var iteration = BuildIteration();
+        var now = DateTimeOffset.UtcNow;
+        _timeServer.SetTime(now);
+        iteration.Attributes.FinishDate = now.AddDays(-7);
 
         //Act
         var sprints = GetSprints();
