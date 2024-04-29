@@ -46,14 +46,16 @@ else
                     <tr class="work-item-row @workItem.Type.CssClass @workItem.StatusCssClass">
                         <td>
                             <div style="display: flex;">
-                                <div class="sprint-priority">
-                                    @workItem.SprintPriority
-                                </div>
                                 @if (@workItem.Sprint != null)
                                 {
-                                    <div class="avatar-cell">
-                                        <img src="@workItem.Sprint.TeamAvatarUrl" width="24" height="24"
-                                             alt="@workItem.Sprint.TeamName"/>
+                                    <div class="priority-block">
+                                        <div class="avatar-cell">
+                                            <img src="@workItem.Sprint.TeamAvatarUrl" width="24" height="24"
+                                                 alt="@workItem.Sprint.TeamName"/>
+                                        </div>
+                                        <div class="priority-number">
+                                            @workItem.SprintPriority
+                                        </div>
                                     </div>
                                 }
                                 @if (@workItem.AssignedTo != null)
