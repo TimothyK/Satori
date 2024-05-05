@@ -83,12 +83,12 @@ else
 
                     <td>
                         <div class="avatar-row">
-                            @foreach (var review in @pullRequest.Reviews)
+                            @foreach (var review in @pullRequest.Reviews.OrderByDescending(r => r.IsRequired))
                             {
-                                <div class="avatar-cell">
-                                    <img src="@review.Reviewer.AvatarUrl" width="24" height="24"
-                                         alt="@review.Reviewer.DisplayName"
-                                         title="@review.Reviewer.DisplayName"/>
+                                <div class="avatar-cell @(review.IsRequired ? "" : "review-optional")">
+                                    <img src="@review.Reviewer.AvatarUrl"
+                                         alt = "@(review.IsRequired ? "" : "Optional:") @review.Reviewer.DisplayName"
+                                         title="@(review.IsRequired ? "" : "Optional:") @review.Reviewer.DisplayName" />
                                     @if (review.Vote >= ReviewVote.ApprovedWithSuggestions)
                                     {
                                         <span class="vote vote-approved"></span>

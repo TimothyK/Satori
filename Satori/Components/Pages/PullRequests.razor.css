@@ -18,6 +18,14 @@
     text-align: left;
     margin-right: 8px;
 }
+.avatar-cell img {
+    width: 24px;
+    height: 24px;
+}
+
+.review-optional img {
+    border: 2px dotted gray;
+}
 
 .vote {
     position: absolute;
