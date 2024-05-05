@@ -6,7 +6,12 @@
 
 <PageTitle>Pull Requests - Satori</PageTitle>
 
-<h3>Pull Requests</h3>
+<h3>Pull Requests
+    @if (_pullRequests != null)
+    {
+        <span class="badge bg-primary">@_pullRequests.Length</span>
+    }
+</h3>
 
 @if (_pullRequests == null)
 {
