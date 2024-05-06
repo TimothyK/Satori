@@ -8,7 +8,27 @@
 
 <PageTitle>Sprint Boards - Satori</PageTitle>
 
-<h3>Sprint Boards</h3>
+<div>
+    
+    <h3>Sprint Boards
+        <div style="float: right;">
+            @if(_sprints != null)
+            {
+                <div class="avatar-row">
+                    @foreach (var sprint in _sprints.OrderBy(x => x.TeamName))
+                    {
+                        <div class="avatar-cell">
+                            <img src="@sprint.TeamAvatarUrl" width="24" height="24" 
+                                 alt="@sprint.TeamName"
+                                 title="@sprint.TeamName @HttpUtility.HtmlEncode("\r") @sprint.Name @HttpUtility.HtmlEncode("\r") Finishes: @sprint.FinishTime.ToString("yyyy-MM-dd")" />
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </h3>
+    
+</div>
 
 @if (_sprints == null)
 {
@@ -16,17 +36,6 @@
 }
 else
 {
-    <div class="avatar-row">
-        @foreach (var sprint in _sprints.OrderBy(x => x.TeamName))
-        {
-            <div class="avatar-cell">
-                <img src="@sprint.TeamAvatarUrl" width="24" height="24" 
-                     alt="@sprint.TeamName"
-                     title="@sprint.TeamName @HttpUtility.HtmlEncode("\r") @sprint.Name @HttpUtility.HtmlEncode("\r") Finishes: @sprint.FinishTime.ToString("yyyy-MM-dd")" />
-            </div>
-        }
-    </div>
-
     if (_workItems == null)
     {
         <p><em>Loading Work Items...</em></p>
