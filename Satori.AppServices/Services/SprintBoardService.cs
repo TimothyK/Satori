@@ -1,5 +1,5 @@
-﻿using Flurl;
-using Pscl.Linq;
+﻿using CodeMonkeyProjectiles.Linq;
+using Flurl;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;

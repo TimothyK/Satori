@@ -1,7 +1,6 @@
 ﻿using Flurl;
 using Microsoft.Extensions.Logging;
 using MoreLinq;
-using Pscl.CommaSeparatedValues;
 using Satori.AzureDevOps.Exceptions;
 using Satori.AzureDevOps.Models;
 using System.Collections.Concurrent;
@@ -54,7 +53,7 @@ public class AzureDevOpsServer(
 
         var url = ConnectionSettings.Url
             .AppendPathSegment("_apis/wit/workItems")
-            .AppendQueryParam("ids", workItemIds.ToCommaSeparatedValues())
+            .AppendQueryParam("ids", string.Join(',', workItemIds))
             .AppendQueryParam("api-version", "6.0");
 
         return await GetRootValueAsync<WorkItem>(url);

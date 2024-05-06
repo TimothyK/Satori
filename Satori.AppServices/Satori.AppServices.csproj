@@ -9,10 +9,10 @@
   <ItemGroup>
     <PackageReference Include="Flurl" Version="4.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
-    <PackageReference Include="Pscl.Linq" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CodeMonkeyProjectiles.Linq\CodeMonkeyProjectiles.Linq.csproj" />
     <ProjectReference Include="..\Satori.AzureDevOps\Satori.AzureDevOps.csproj" />
   </ItemGroup>
 

@@ -1,4 +1,4 @@
-﻿using Pscl.Linq;
+﻿using CodeMonkeyProjectiles.Linq;
 using Satori.AppServices.Tests.TestDoubles.Database;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;

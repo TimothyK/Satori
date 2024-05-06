@@ -1,6 +1,5 @@
 ﻿using Autofac;
 using Flurl;
-using Pscl.CommaSeparatedValues;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Models;
 using Satori.AzureDevOps.Tests.WorkItems.SampleFiles;
@@ -20,7 +19,7 @@ public class WorkItemTests
     private Url GetWorkItemUrl(params int[] workItemIds) =>
         _connectionSettings.Url
             .AppendPathSegment("_apis/wit/workItems")
-            .AppendQueryParam("ids", workItemIds.ToCommaSeparatedValues())
+            .AppendQueryParam("ids", string.Join(',', workItemIds))
             .AppendQueryParam("api-version", "6.0");
 
     private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();

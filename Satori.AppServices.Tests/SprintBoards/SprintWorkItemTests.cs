@@ -1,4 +1,4 @@
-﻿using Pscl.Linq;
+﻿using CodeMonkeyProjectiles.Linq;
 using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles.Builders;
 using Satori.AppServices.Tests.TestDoubles;
