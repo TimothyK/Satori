@@ -8,6 +8,20 @@
     text-align: left;
     margin-right: 8px;
 }
+.avatar-cell img {
+    width: 24px;
+    height: 24px;
+}
+
+.team-selector .avatar-cell {
+    border: 5px solid white;
+}
+.team-selector .avatar-cell.selected {
+    border: 5px outset green;
+}
+.team-selector .avatar-cell:hover {
+    transform: scale(1.1);
+}
 
 .work-item-row {
     border-left: solid 5px;
