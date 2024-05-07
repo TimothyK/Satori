@@ -5,7 +5,9 @@
 @using Satori.Utilities
 @using System.Web
 @using CodeMonkeyProjectiles.Linq
+@using Flurl
 @attribute [StreamRendering]
+@inject NavigationManager NavigationManager
 
 <PageTitle>Sprint Boards - Satori</PageTitle>
 
@@ -173,12 +175,32 @@ else
         }
 
         ResetWorkItemCounts();
+        ResetUrl();
     }
+
+    private void ResetUrl()
+    {
+        var selectedTeamNames = _sprints
+            ?.Where(sprint => sprint.TeamId.IsIn(SelectedTeamIds))
+            .Select(sprint => sprint.TeamName) 
+                                ?? [];
+
+        var url = NavigationManager.Uri
+            .RemoveQueryParam("team")
+            .AppendQueryParam("team", selectedTeamNames);
+
+        NavigationManager.NavigateTo(url, forceLoad: false);
+    }
+
+    private Guid[] SelectedTeamIds => 
+        _selectedClassForTeam
+            .Where(kvp => kvp.Value == _teamSelected)
+            .Select(kvp => kvp.Key)
+            .ToArray();
 
     private void ResetWorkItemCounts()
     {
-        var selectedTeamIds = _selectedClassForTeam.Where(kvp => kvp.Value == _teamSelected).Select(kvp => kvp.Key).ToArray();
-        var teamWorkItems = _workItems?.Where(wi => wi.Sprint?.TeamId.IsIn(selectedTeamIds) ?? false).ToArray() ?? [];
+        var teamWorkItems = _workItems?.Where(wi => wi.Sprint?.TeamId.IsIn(SelectedTeamIds) ?? false).ToArray() ?? [];
         WorkItemActiveCount = teamWorkItems.Count(wi => wi.State != ScrumState.Done);
         WorkItemDoneCount = teamWorkItems.Length - WorkItemActiveCount;
     }
