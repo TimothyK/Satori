@@ -16,7 +16,7 @@
 .team-selector .avatar-cell {
     border: 5px solid white;
 }
-.team-selector .avatar-cell.selected {
+.team-selector .avatar-cell.team-selected {
     border: 5px outset green;
 }
 .team-selector .avatar-cell:hover {
