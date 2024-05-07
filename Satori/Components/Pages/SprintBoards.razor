@@ -2,6 +2,7 @@
 @using Satori.AppServices.Services
 @using Satori.AppServices.ViewModels.Sprints
 @using Satori.AppServices.ViewModels.WorkItems
+@using Satori.Utilities
 @using System.Web
 @attribute [StreamRendering]
 
@@ -16,7 +17,7 @@
                 <span class="team-selector avatar-row">
                     @foreach (var sprint in _sprints.OrderBy(x => x.TeamName))
                     {
-                        <button id="@sprint.TeamId" class='avatar-cell @_teamSelected[sprint.TeamId]' @onclick='() => SelectTeam(sprint.TeamId)'>
+                        <button id="@sprint.TeamId" class='avatar-cell @_selectedClassForTeam[sprint.TeamId]' @onclick='() => SelectTeam(sprint.TeamId)'>
                             <img src="@sprint.TeamAvatarUrl"
                                  alt="@sprint.TeamName"
                                  title="@sprint.TeamName @HttpUtility.HtmlEncode("\r") @sprint.Name @HttpUtility.HtmlEncode("\r") Finishes: @sprint.FinishTime.ToString("yyyy-MM-dd")" />
@@ -142,23 +143,25 @@ else
          var srv = Program.Services.GetRequiredService<SprintBoardService>();
          
          var sprints = (await srv.GetActiveSprintsAsync()).ToArray();
-         _teamSelected = sprints.ToDictionary(sprint => sprint.TeamId, _ => "selected");
+         _selectedClassForTeam = sprints.ToDictionary(sprint => sprint.TeamId, _ => _teamSelected);
          _sprints = sprints;
 
          _workItems = (await srv.GetWorkItemsAsync(sprints)).ToArray();
     }
 
-    private Dictionary<Guid, string> _teamSelected = new();
+    private Dictionary<Guid, CssClass> _selectedClassForTeam = new();
+
+    private readonly CssClass _teamSelected = new("selected");
 
     private void SelectTeam(Guid teamId)
     {
-        if (_teamSelected.TryGetValue(teamId, out var value))
+        if (_selectedClassForTeam.TryGetValue(teamId, out var value))
         {
-            _teamSelected[teamId] = string.IsNullOrWhiteSpace(value) ? "selected" : string.Empty;
+            _selectedClassForTeam[teamId] = value == CssClass.None ? _teamSelected : CssClass.None;
         }
         else
         {
-            _teamSelected[teamId] = "selected";
+            _selectedClassForTeam[teamId] = _teamSelected;
         }
         
 
