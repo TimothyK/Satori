@@ -46,6 +46,10 @@
     font-size: 0.7em;
 }
 
+.work-item-row.team-hidden {
+    display: none;
+}
+
 .priority-block {
     display: flex;
     border: 1px solid black;

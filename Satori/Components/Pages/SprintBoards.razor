@@ -54,7 +54,7 @@ else
             <tbody>
                 @foreach (var workItem in _workItems.OrderBy(wi => wi.AbsolutePriority))
                 {
-                    <tr class="work-item-row @workItem.Type.CssClass @workItem.StatusCssClass">
+                    <tr class="work-item-row @workItem.Type.CssClass @workItem.StatusCssClass @(workItem.Sprint == null ? string.Empty : _selectedClassForTeam[workItem.Sprint.TeamId])">
                         <td>
                             <div style="display: flex;">
                                 @if (@workItem.Sprint != null)
@@ -152,12 +152,14 @@ else
     private Dictionary<Guid, CssClass> _selectedClassForTeam = new();
 
     private readonly CssClass _teamSelected = new("team-selected");
+    private readonly CssClass _teamHidden = new("team-hidden");
+
 
     private void SelectTeam(Guid teamId)
     {
         if (_selectedClassForTeam.TryGetValue(teamId, out var value))
         {
-            _selectedClassForTeam[teamId] = value == CssClass.None ? _teamSelected : CssClass.None;
+            _selectedClassForTeam[teamId] = value == _teamHidden ? _teamSelected : _teamHidden;
         }
         else
         {
