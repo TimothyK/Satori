@@ -24,7 +24,7 @@
 <h3>Integrations</h3>
 
 <div style="display: flex">
-    <a href="@azureDevOpsUrl" target="_blank">
+    <a href="@_azureDevOpsUrl" target="_blank">
         <div class="card" style="width: 100px;">
             <img src="images/AzureDevOps-Logo.png" alt="Azure DevOps Logo"/>
             <div class="card-body">
@@ -49,12 +49,12 @@
 
 @code
 {
-    private Uri azureDevOpsUrl;
+    private Uri? _azureDevOpsUrl;
 
     protected override void OnInitialized()
     {
         var srv = Program.Services.GetRequiredService<ConnectionSettings>();
-        azureDevOpsUrl = srv.AzureDevOps.Url;
+        _azureDevOpsUrl = srv.AzureDevOps.Url;
     }
 
 }

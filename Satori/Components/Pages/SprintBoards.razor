@@ -10,10 +10,10 @@
 <div>
     
     <h3>Sprint Boards
-        <div style="float: right;">
+        <span style="float: right;">
             @if(_sprints != null)
             {
-                <div class="team-selector avatar-row">
+                <span class="team-selector avatar-row">
                     @foreach (var sprint in _sprints.OrderBy(x => x.TeamName))
                     {
                         <button id="@sprint.TeamId" class='avatar-cell @_teamSelected[sprint.TeamId]' @onclick='() => SelectTeam(sprint.TeamId)'>
@@ -22,9 +22,9 @@
                                  title="@sprint.TeamName @HttpUtility.HtmlEncode("\r") @sprint.Name @HttpUtility.HtmlEncode("\r") Finishes: @sprint.FinishTime.ToString("yyyy-MM-dd")" />
                         </button>
                     }
-                </div>
+                </span>
             }
-        </div>
+        </span>
     </h3>
     
 </div>
@@ -43,10 +43,12 @@ else
     {
         <table class="table">
             <thead>
-                <th></th>
-                <th>D#</th>
-                <th>Title</th>
-                <th>Tasks</th>
+                <tr>
+                    <th></th>
+                    <th>D#</th>
+                    <th>Title</th>
+                    <th>Tasks</th>
+                </tr>
             </thead>
             <tbody>
                 @foreach (var workItem in _workItems.OrderBy(wi => wi.AbsolutePriority))
