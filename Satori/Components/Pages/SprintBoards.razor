@@ -146,6 +146,9 @@ else
     private Sprint[]? _sprints;
     private WorkItem[]? _workItems;
 
+    private int WorkItemActiveCount { get; set; }
+    private int WorkItemDoneCount { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
          var srv = Program.Services.GetRequiredService<SprintBoardService>();
@@ -166,7 +169,7 @@ else
     {
         var teamIds = new Url(NavigationManager.Uri)
             .QueryParams
-            .Where(qp => qp.Name == "team")
+            .Where(qp => qp.Name == TeamsQueryParameter)
             .Select(qp => qp.Value.ToString())
             .Join(sprints, x => x, sprint => sprint.TeamName, (_, sprint) => sprint.TeamId)
             .ToArray();
@@ -207,8 +210,8 @@ else
                                 ?? [];
 
         var url = NavigationManager.Uri
-            .RemoveQueryParam("team")
-            .AppendQueryParam("team", selectedTeamNames);
+            .RemoveQueryParam(TeamsQueryParameter)
+            .AppendQueryParam(TeamsQueryParameter, selectedTeamNames);
 
         NavigationManager.NavigateTo(url, forceLoad: false);
     }
@@ -225,7 +228,4 @@ else
         WorkItemActiveCount = teamWorkItems.Count(wi => wi.State != ScrumState.Done);
         WorkItemDoneCount = teamWorkItems.Length - WorkItemActiveCount;
     }
-
-    private int WorkItemActiveCount { get; set; }
-    private int WorkItemDoneCount { get; set; }
 }
