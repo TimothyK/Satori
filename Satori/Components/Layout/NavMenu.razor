@@ -1,4 +1,5 @@
 ﻿@rendermode InteractiveServer
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
@@ -68,7 +69,6 @@
     </div>
 </div>
 
-@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @code {
     //bool to send to MainLayout for shrinking sidebar and showing/hide menu text
     private bool IconMenuActive { get; set; } = false;
@@ -86,7 +86,7 @@
         _collapseNavMenu = !_collapseNavMenu;
     }
 
-    private const string IconMenuActiveStorageKey = $"{nameof(NavMenu)}.{nameof(IconMenuActive)}";
+    private const string IconMenuActiveStorageKey = "NavMenu.IconMenuActive";
     //Method to toggle IconMenuActive bool and send bool via EventCallback
     private async Task ToggleIconMenu()
     {
