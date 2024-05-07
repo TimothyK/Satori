@@ -151,11 +151,32 @@ else
          var srv = Program.Services.GetRequiredService<SprintBoardService>();
          
          var sprints = (await srv.GetActiveSprintsAsync()).ToArray();
-         _selectedClassForTeam = sprints.ToDictionary(sprint => sprint.TeamId, _ => _teamSelected);
+         var teamIds = GetTeamIdsFromUrl(sprints);
+
+         _selectedClassForTeam = sprints.ToDictionary(
+             sprint => sprint.TeamId, 
+             sprint => sprint.TeamId.IsIn(teamIds) ? _teamSelected : _teamHidden);
          _sprints = sprints;
 
          _workItems = (await srv.GetWorkItemsAsync(sprints)).ToArray();
          ResetWorkItemCounts();
+    }
+
+    private Guid[] GetTeamIdsFromUrl(Sprint[] sprints)
+    {
+        var teamIds = new Url(NavigationManager.Uri)
+            .QueryParams
+            .Where(qp => qp.Name == "team")
+            .Select(qp => qp.Value.ToString())
+            .Join(sprints, x => x, sprint => sprint.TeamName, (_, sprint) => sprint.TeamId)
+            .ToArray();
+
+        if (teamIds.None())
+        {
+            teamIds = sprints.Select(sprint => sprint.TeamId).ToArray();
+        }
+
+        return teamIds;
     }
 
     private Dictionary<Guid, CssClass> _selectedClassForTeam = new();
