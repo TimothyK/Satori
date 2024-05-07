@@ -4,6 +4,7 @@
 @using Satori.AppServices.ViewModels.WorkItems
 @using Satori.Utilities
 @using System.Web
+@using CodeMonkeyProjectiles.Linq
 @attribute [StreamRendering]
 
 <PageTitle>Sprint Boards - Satori</PageTitle>
@@ -11,6 +12,11 @@
 <div>
     
     <h3>Sprint Boards
+        @if (_workItems != null)
+        {
+            <span class="badge bg-primary">@WorkItemActiveCount</span>
+            <span class="badge bg-success">@WorkItemDoneCount</span>
+        }
         <span style="float: right;">
             @if(_sprints != null)
             {
@@ -147,13 +153,13 @@ else
          _sprints = sprints;
 
          _workItems = (await srv.GetWorkItemsAsync(sprints)).ToArray();
+         ResetWorkItemCounts();
     }
 
     private Dictionary<Guid, CssClass> _selectedClassForTeam = new();
 
     private readonly CssClass _teamSelected = new("team-selected");
     private readonly CssClass _teamHidden = new("team-hidden");
-
 
     private void SelectTeam(Guid teamId)
     {
@@ -165,7 +171,18 @@ else
         {
             _selectedClassForTeam[teamId] = _teamSelected;
         }
-        
 
+        ResetWorkItemCounts();
     }
+
+    private void ResetWorkItemCounts()
+    {
+        var selectedTeamIds = _selectedClassForTeam.Where(kvp => kvp.Value == _teamSelected).Select(kvp => kvp.Key).ToArray();
+        var teamWorkItems = _workItems?.Where(wi => wi.Sprint?.TeamId.IsIn(selectedTeamIds) ?? false).ToArray() ?? [];
+        WorkItemActiveCount = teamWorkItems.Count(wi => wi.State != ScrumState.Done);
+        WorkItemDoneCount = teamWorkItems.Length - WorkItemActiveCount;
+    }
+
+    private int WorkItemActiveCount { get; set; }
+    private int WorkItemDoneCount { get; set; }
 }
