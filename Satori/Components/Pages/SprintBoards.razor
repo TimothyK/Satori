@@ -8,6 +8,7 @@
 @using Flurl
 @attribute [StreamRendering]
 @inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 
 <PageTitle>Sprint Boards - Satori</PageTitle>
 
@@ -156,7 +157,8 @@ else
          var sprints = (await srv.GetActiveSprintsAsync()).ToArray();
          var teamIds = GetTeamIdsFromUrl(sprints);
 
-         _selectedClassForTeam = sprints.ToDictionary(
+         _selectedClassForTeam =
+             sprints.ToDictionary(
              sprint => sprint.TeamId, 
              sprint => sprint.TeamId.IsIn(teamIds) ? _teamSelected : _teamHidden);
          _sprints = sprints;
@@ -164,6 +166,8 @@ else
          _workItems = (await srv.GetWorkItemsAsync(sprints)).ToArray();
          ResetWorkItemCounts();
     }
+
+    private const string TeamsQueryParameter = "team";
 
     private Guid[] GetTeamIdsFromUrl(Sprint[] sprints)
     {
@@ -176,10 +180,30 @@ else
 
         if (teamIds.None())
         {
-            teamIds = sprints.Select(sprint => sprint.TeamId).ToArray();
+            teamIds = _defaultTeamIds ?? sprints.Select(sprint => sprint.TeamId).ToArray();
         }
 
         return teamIds;
+    }
+
+    private const string DefaultTeamIdsStorageKey = "SprintBoard.DefaultTeamIds";
+
+    private bool _isInitialized = false;
+    private Guid[]? _defaultTeamIds;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_isInitialized)
+        {
+            return;
+        }
+
+        var hasTeamsOnUrl = new Url(NavigationManager.Uri).QueryParams.Any(qp => qp.Name == TeamsQueryParameter);
+        if (!hasTeamsOnUrl)
+        {
+            _defaultTeamIds = await LocalStorage.GetItemAsync<Guid[]>(DefaultTeamIdsStorageKey);
+        }
+
+        _isInitialized = true;
     }
 
     private Dictionary<Guid, CssClass> _selectedClassForTeam = new();
@@ -199,7 +223,13 @@ else
         }
 
         ResetWorkItemCounts();
+        StoreDefaultTeamIds();
         ResetUrl();
+    }
+
+    private void StoreDefaultTeamIds()
+    {
+        LocalStorage.SetItemAsync(DefaultTeamIdsStorageKey, SelectedTeamIds);
     }
 
     private void ResetUrl()
