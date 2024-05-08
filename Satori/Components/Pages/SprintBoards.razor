@@ -54,7 +54,9 @@ else
         <table class="table">
             <thead>
                 <tr>
-                    <th></th>
+                    <th>
+                        <button type="button" class="btn btn-outline-primary btn-priority @ShowAdjustPriority" @onclick="TogglePriority" title="Enter Adjust Priority Mode">Adjust Priority...</button>
+                    </th>
                     <th>D#</th>
                     <th>Title</th>
                     <th>Tasks</th>
@@ -63,7 +65,16 @@ else
             <tbody>
                 @foreach (var workItem in _workItems.OrderBy(wi => wi.AbsolutePriority))
                 {
-                    <tr class="work-item-row @workItem.Type.CssClass @workItem.StatusCssClass @(workItem.Sprint == null ? string.Empty : _selectedClassForTeam[workItem.Sprint.TeamId])">
+                    <tr 
+                        class="
+                            work-item-row 
+                            @workItem.Type.CssClass 
+                            @workItem.StatusCssClass 
+                            @(workItem.Sprint == null ? string.Empty : _selectedClassForTeam[workItem.Sprint.TeamId])
+                            @(_rowSelectedForPriorityAdjust[workItem.Id])
+                        "
+                        @onclick="() => SetMoveTo(workItem)"
+                    >
                         <td>
                             <div style="display: flex;">
                                 @if (workItem.Sprint != null)
@@ -97,6 +108,10 @@ else
                                     <span class="badge bg-secondary work-item-status">@tag</span>
                                 </div>
                             }
+                            <div>
+                                <button type="button" class="btn btn-outline-success btn-priority btn-priority-select @_showSelectWorkItemForPriorityAdjust[workItem.Id]" @onclick="() => SelectForPriorityAdjustment(workItem)" title="Select this item to adjust its priority">✔️</button>
+                                <button type="button" class="btn btn-outline-danger btn-priority btn-priority-deselect @_showDeselectWorkItemForPriorityAdjust[workItem.Id]" @onclick="() => DeselectForPriorityAdjustment(workItem)" title="Deselect this item so its priority is not adjusted">❌</button>
+                            </div>
                         </td>
                         <td class="@workItem.StatusCssClass">
                             <a href="@workItem.Url">@workItem.Id</a>
@@ -142,6 +157,83 @@ else
     }
 }
 
+<!-- Dialogs -->
+<div class="dialog dialog-adjust-priority @ShowCancelPriority">
+    <div class="dialog-title">
+        <span class="dialog-close" @onclick="TogglePriority">&times;</span>
+        Adjust Priority
+    </div>
+    <div class="dialog-body">
+        <div>Selected Items:
+            <span class="badge bg-primary">@_selectedCountForPriorityAdjustment</span>
+            <ul style="font-size: 0.9em;">
+                @foreach (var workItem in _selectedWorkItemIdsForPriorityAdjustment.OrderBy(wi => wi.AbsolutePriority).Take(3))
+                {
+                    <li>
+                        <div style="display: flex;">
+                            <div class="priority-block">
+                                <div class="avatar-cell">
+                                    <img src="@workItem.Sprint?.TeamAvatarUrl"
+                                         alt="@workItem.Sprint?.TeamName" />
+                                </div>
+                                <div class="priority-number">
+                                    @workItem.SprintPriority
+                                </div>
+                            </div>
+                            <div>&nbsp;D#@workItem.Id @workItem.Title</div>
+                        </div>
+                    </li>
+                }
+            @if (_selectedWorkItemIdsForPriorityAdjustment.Count > 3)
+            {
+                <li>...and @(_selectedWorkItemIdsForPriorityAdjustment.Count - 3) more.</li>
+            }
+            </ul>
+            <p style="font-size: 0.8em; font-style: italic;">Use the check box on the left of each work item to select it to be moved.</p>
+        </div>
+        <div>
+            <div style="display: flex;">
+                <span>Move To:</span>
+                <label class="switch" style="margin: 0px 5px 0px;">
+                    <input type="checkbox" checked="@MoveBelow" @oninput="MoveBelowChanged">
+                    <span class="slider round"></span>
+                </label>                
+                <span style="font-weight: bold">@MoveToLabel</span>
+            </div>
+            @if (MovePriorityBelowWorkItem != null)
+            {
+                <ul style="font-size: 0.9em;">
+                    <li>
+                        <div style="display: flex;">
+                            <div class="priority-block">
+                                <div class="avatar-cell">
+                                    <img src="@MovePriorityBelowWorkItem.Sprint?.TeamAvatarUrl"
+                                         alt="@MovePriorityBelowWorkItem.Sprint?.TeamName" />
+                                </div>
+                                <div class="priority-number">
+                                    @MovePriorityBelowWorkItem.SprintPriority
+                                </div>
+                            </div>
+                            <div>&nbsp;D#@MovePriorityBelowWorkItem.Id @MovePriorityBelowWorkItem.Title</div>
+                            <div>
+                                <button type="button" class="btn btn-outline-danger" style="font-size: 0.75em; margin-left: 5px; padding: 2px;" @onclick="ClearMoveTo">❌</button>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            }
+            <p style="font-size: 0.8em; font-style: italic;">
+                Click a row to set target position, or remove the selected row to move to the top or bottom.
+            </p>
+        </div>
+    </div>
+    <div class="dialog-buttonbar">
+        <button type="button" class="btn btn-outline-primary btn-priority" @onclick="MovePriority" title="Move selected items to the new position">Move</button>
+        <button type="button" class="btn btn-outline-secondary btn-priority" @onclick="TogglePriority" title="Exit Adjust Priority Mode with no changes">Cancel</button>
+    </div>
+</div>
+
+
 
 @code {
     private Sprint[]? _sprints;
@@ -149,15 +241,16 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-         var srv = Program.Services.GetRequiredService<SprintBoardService>();
-         
-         var sprints = (await srv.GetActiveSprintsAsync()).ToArray();
-         InitializeTeamSelection(sprints);
-         _sprints = sprints;
+        var srv = Program.Services.GetRequiredService<SprintBoardService>();
 
-         var workItems = (await srv.GetWorkItemsAsync(sprints)).ToArray();
-         _workItems = workItems;
-         ResetWorkItemCounts();
+        var sprints = (await srv.GetActiveSprintsAsync()).ToArray();
+        InitializeTeamSelection(sprints);
+        _sprints = sprints;
+
+        var workItems = (await srv.GetWorkItemsAsync(sprints)).ToArray();
+        InitializePrioritySelection(workItems);
+        _workItems = workItems;
+        ResetWorkItemCounts();
     }
 
     private bool _isInitialized;
@@ -180,9 +273,9 @@ else
     private void InitializeTeamSelection(Sprint[] sprints)
     {
         var teamIds = GetTeamIdsFromUrl(sprints);
-         _selectedClassForTeam =
-             sprints.ToDictionary(
-             sprint => sprint.TeamId, 
+        _selectedClassForTeam =
+            sprints.ToDictionary(
+                sprint => sprint.TeamId, 
                 sprint => sprint.TeamId.IsIn(teamIds) ? TeamSelectionCssClass.Selected : TeamSelectionCssClass.Hidden);
     }
 
@@ -247,9 +340,9 @@ else
     {
         var selectedTeamNames = 
             _sprints
-            ?.Where(sprint => sprint.TeamId.IsIn(SelectedTeamIds))
-            .Select(sprint => sprint.TeamName)
-                                ?? [];
+                ?.Where(sprint => sprint.TeamId.IsIn(SelectedTeamIds))
+                .Select(sprint => sprint.TeamName)
+                ?? [];
 
         var url = NavigationManager.Uri
             .RemoveQueryParam(TeamsQueryParameter)
@@ -286,8 +379,100 @@ else
 
     #endregion Team Selection
 
+    #region Adjust Priority
+
+    private VisibleCssClass ShowAdjustPriority { get; set; } = VisibleCssClass.Visible;
+    private VisibleCssClass ShowCancelPriority { get; set; } = VisibleCssClass.Hidden;
+    private WorkItem? MovePriorityBelowWorkItem { get; set; }
+
+    private Dictionary<int, VisibleCssClass> _showSelectWorkItemForPriorityAdjust = new();
+    private Dictionary<int, VisibleCssClass> _showDeselectWorkItemForPriorityAdjust = new();
+
+    private static readonly CssClass SelectedForPriorityAdjust = new("selected-for-priority-adjust");
+    private Dictionary<int, CssClass> _rowSelectedForPriorityAdjust = new();
+
+    private List<WorkItem> _selectedWorkItemIdsForPriorityAdjustment = new();
+    private int _selectedCountForPriorityAdjustment;
+
+    private bool MoveBelow { get; set; } = true;
+    private void MoveBelowChanged()
     {
-        _selectedWorkItemIdsForPriorityAdjustment.Remove(workItemId);
+        MoveBelow = !MoveBelow;
+        SetMoveToLabel();
+    }
+
+    private void SetMoveToLabel() {
+        MoveToLabel = MovePriorityBelowWorkItem == null            
+            ? (MoveBelow ? "Bottom" : "Top")
+            : (MoveBelow ? "Below" : "Above");
+    }
+
+    private string MoveToLabel { get; set; } = "Below";
+
+
+    private void InitializePrioritySelection(WorkItem[] workItems)
+    {
+        _showSelectWorkItemForPriorityAdjust = workItems.ToDictionary(wi => wi.Id, _ => VisibleCssClass.Hidden);
+        _showDeselectWorkItemForPriorityAdjust = workItems.ToDictionary(wi => wi.Id, _ => VisibleCssClass.Hidden);
+        _rowSelectedForPriorityAdjust = workItems.ToDictionary(wi => wi.Id, _ => CssClass.None);
+    }
+
+    private void TogglePriority()
+    {
+        ShowAdjustPriority = !ShowAdjustPriority;
+        ShowCancelPriority = !ShowCancelPriority;
+
+        _selectedWorkItemIdsForPriorityAdjustment = [];
+        _selectedCountForPriorityAdjustment = _selectedWorkItemIdsForPriorityAdjustment.Count;
+        _showSelectWorkItemForPriorityAdjust = _workItems?.ToDictionary(wi => wi.Id, _ => ShowCancelPriority) ?? [];
+        _showDeselectWorkItemForPriorityAdjust = _workItems?.ToDictionary(wi => wi.Id, _ => VisibleCssClass.Hidden) ?? [];
+        _rowSelectedForPriorityAdjust = _workItems?.ToDictionary(wi => wi.Id, _ => CssClass.None) ?? [];
+
+        MovePriorityBelowWorkItem = null;
+        SetMoveToLabel();
+    }
+
+    private void SelectForPriorityAdjustment(WorkItem workItem)
+    {
+        _selectedWorkItemIdsForPriorityAdjustment.Add(workItem);
+        _selectedCountForPriorityAdjustment = _selectedWorkItemIdsForPriorityAdjustment.Count;
+
+        _showSelectWorkItemForPriorityAdjust[workItem.Id] = VisibleCssClass.Hidden;
+        _showDeselectWorkItemForPriorityAdjust[workItem.Id] = VisibleCssClass.Visible;
+        _rowSelectedForPriorityAdjust[workItem.Id] = SelectedForPriorityAdjust;
+    }
+
+    private void DeselectForPriorityAdjustment(WorkItem workItem)
+    {
+        _selectedWorkItemIdsForPriorityAdjustment.Remove(workItem);
+        _selectedCountForPriorityAdjustment = _selectedWorkItemIdsForPriorityAdjustment.Count;
+
+        _showSelectWorkItemForPriorityAdjust[workItem.Id] = VisibleCssClass.Visible;
+        _showDeselectWorkItemForPriorityAdjust[workItem.Id] = VisibleCssClass.Hidden;
+        _rowSelectedForPriorityAdjust[workItem.Id] = CssClass.None;
+    }
+
+    private void SetMoveTo(WorkItem workItem)
+    {
+        if (workItem.IsNotIn(_selectedWorkItemIdsForPriorityAdjustment))
+        {
+            MovePriorityBelowWorkItem = workItem;
+            SetMoveToLabel();
+        }        
+    }
+    private void ClearMoveTo()
+    {
+        MovePriorityBelowWorkItem = null;
+        SetMoveToLabel();
+    }
+
+    private void MovePriority()
+    {
+        //TODO: Implement
         TogglePriority();
     }
+
+
+    #endregion Adjust Priority
+
 }
