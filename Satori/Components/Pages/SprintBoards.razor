@@ -237,8 +237,6 @@ else
         var selectedTeamNames = _sprints
             ?.Where(sprint => sprint.TeamId.IsIn(SelectedTeamIds))
             .Select(sprint => sprint.TeamName)
-
-
                                 ?? [];
 
         var url = NavigationManager.Uri
