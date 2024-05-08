@@ -66,7 +66,7 @@ else
                     <tr class="work-item-row @workItem.Type.CssClass @workItem.StatusCssClass @(workItem.Sprint == null ? string.Empty : _selectedClassForTeam[workItem.Sprint.TeamId])">
                         <td>
                             <div style="display: flex;">
-                                @if (@workItem.Sprint != null)
+                                @if (workItem.Sprint != null)
                                 {
                                     <div class="priority-block">
                                         <div class="avatar-cell">
@@ -78,7 +78,7 @@ else
                                         </div>
                                     </div>
                                 }
-                                @if (@workItem.AssignedTo != null)
+                                @if (workItem.AssignedTo != null)
                                 {
                                     <div class="avatar-cell">
                                         <img src="@workItem.AssignedTo.AvatarUrl"
@@ -87,11 +87,11 @@ else
                                 }
                             </div>
                             <div class="work-item-status">@workItem.StatusLabel</div>
-                            @if (@workItem.Blocked)
+                            @if (workItem.Blocked)
                             {
                                 <div class="blocked">🧱 Blocked</div>
                             }
-                            @foreach (var tag in @workItem.Tags)
+                            @foreach (var tag in workItem.Tags)
                             {
                                 <div>
                                     <span class="badge bg-secondary work-item-status">@tag</span>
@@ -105,10 +105,10 @@ else
                             <a href="@workItem.Url">@workItem.Title</a>
                         </td>
                         <td>
-                            @foreach (var @task in workItem.Children.OrderByDescending(wi => wi.State).ThenBy(wi => wi.Id))
+                            @foreach (var task in workItem.Children.OrderByDescending(wi => wi.State).ThenBy(wi => wi.Id))
                             {
                                 <div class="task-status @task.StatusCssClass" style="display: flex;">
-                                    @if (@task.AssignedTo != null)
+                                    @if (task.AssignedTo != null)
                                     {
                                         <div class="avatar-cell">
                                             <img src="@task.AssignedTo.AvatarUrl"
@@ -122,11 +122,11 @@ else
                                     <div>
                                         @task.StatusLabel
                                     </div>
-                                    @if (@task.Blocked)
+                                    @if (task.Blocked)
                                     {
                                         <div class="blocked">🧱 Blocked</div>
                                     }
-                                    @foreach (var tag in @task.Tags)
+                                    @foreach (var tag in task.Tags)
                                     {
                                         <div>
                                             <span class="badge bg-secondary" style="font-size:0.5rem;">@tag</span>
@@ -188,7 +188,7 @@ else
 
     private const string DefaultTeamIdsStorageKey = "SprintBoard.DefaultTeamIds";
 
-    private bool _isInitialized = false;
+    private bool _isInitialized;
     private Guid[]? _defaultTeamIds;
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -236,7 +236,9 @@ else
     {
         var selectedTeamNames = _sprints
             ?.Where(sprint => sprint.TeamId.IsIn(SelectedTeamIds))
-            .Select(sprint => sprint.TeamName) 
+            .Select(sprint => sprint.TeamName)
+
+
                                 ?? [];
 
         var url = NavigationManager.Uri

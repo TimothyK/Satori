@@ -19,11 +19,11 @@
 </div>
 
 @code {
-    private bool _iconMenuActive { get; set; }
-    private string? IconMenuCssClass => _iconMenuActive ? "width: 95px;" : null;
+    private bool IconMenuActive { get; set; }
+    private string? IconMenuCssClass => IconMenuActive ? "width: 95px;" : null;
 
     protected void ToggleIconMenu(bool iconMenuActive)
     {
-        _iconMenuActive = iconMenuActive;
+        IconMenuActive = iconMenuActive;
     }
 }

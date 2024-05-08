@@ -76,7 +76,7 @@ else
                                         @pullRequest.CreationDate.LocalDateTime.ToString("yyyy-MM-dd")
                                     </span>
                                 </div>
-                                @if (@pullRequest.Status == Status.Draft)
+                                @if (pullRequest.Status == Status.Draft)
                                 {
                                     <div style="margin-top: -10px;">
                                         <span class="badge bg-warning" style="font-size:0.5rem;">Draft</span>
@@ -88,7 +88,7 @@ else
 
                     <td>
                         <div class="avatar-row">
-                            @foreach (var review in @pullRequest.Reviews.OrderByDescending(r => r.IsRequired))
+                            @foreach (var review in pullRequest.Reviews.OrderByDescending(r => r.IsRequired))
                             {
                                 <div class="avatar-cell @(review.IsRequired ? "" : "review-optional")">
                                     <img src="@review.Reviewer.AvatarUrl"
