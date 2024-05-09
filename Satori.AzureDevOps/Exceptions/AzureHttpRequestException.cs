@@ -23,9 +23,20 @@ internal class AzureHttpRequestException : HttpRequestException
             return new AzureHttpRequestException($"Unexpected error {(int)response.StatusCode} {fromUriMsg}. {Environment.NewLine}{responseBody}", response.StatusCode, "");
         }
 
-        var error = JsonSerializer.Deserialize<Error>(responseBody)
-                        ?? throw new ApplicationException("Server did not respond");
-        return new AzureHttpRequestException(error.Message + fromUriMsg, response.StatusCode, error.TypeKey);
+        try
+        {
+            var error = JsonSerializer.Deserialize<Error>(responseBody)
+                            ?? throw new ApplicationException("Server did not respond");
+            return new AzureHttpRequestException(error.Message + fromUriMsg, response.StatusCode, error.TypeKey);
+        }
+        catch (JsonException ex)
+        {
+
+            throw new ApplicationException("Could not deserialize error response."
+                + Environment.NewLine + "Request:" + fromUriMsg
+                + Environment.NewLine + "Response:" + responseBody
+                , ex);
+        }
     }
 
     private AzureHttpRequestException(string message, HttpStatusCode statusCode, string typeKey, Exception? inner = null) 

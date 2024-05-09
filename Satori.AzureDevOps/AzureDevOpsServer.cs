@@ -45,6 +45,10 @@ public class AzureDevOpsServer(
     public async Task<WorkItem[]> GetWorkItemsAsync(params int[] workItemIds)
     {
         const int bucketSize = 200;
+        if (workItemIds.Length == 0)
+        {
+            return [];
+        }
         if (workItemIds.Length > bucketSize)
         {
             var batches = workItemIds.Batch(bucketSize);
