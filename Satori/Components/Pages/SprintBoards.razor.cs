@@ -1,9 +1,168 @@
-﻿using CodeMonkeyProjectiles.Linq;
+﻿using Blazored.LocalStorage;
+using CodeMonkeyProjectiles.Linq;
+using Flurl;
+using Microsoft.AspNetCore.Components;
+using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.Utilities;
 
 namespace Satori.Components.Pages
 {
+    /// <summary>
+    /// Backing model for the team selection on the sprint board view/razor page.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// If the URL explicitly has team names on it, then always select those values.
+    /// This allows users to create bookmark for their team(s).
+    /// </para>
+    /// <para>
+    /// If no teams are on the URL (i.e. http://satori/Sprints) then the page should default to the team(s) the user selected on their last visit.
+    /// Those are stored in Local Storage on the client's web browser.
+    /// Note that local storage is only available after the page has loaded.  Only then can we have access to the LocalStorage service.
+    /// </para>
+    /// <para>
+    /// If neither are selected, then the page should default to all teams.
+    /// </para>
+    /// </remarks>
+    internal class TeamSelectionViewModel
+    {
+        public event EventHandler<EventArgs>? SelectedTeamChanged;
+
+        private readonly Sprint[] _sprints;
+        private NavigationManager NavigationManager { get; }
+        private ILocalStorageService? LocalStorage { get; set; }
+
+        public TeamSelectionViewModel(Sprint[] sprints, NavigationManager navigationManager)
+        {
+            _sprints = sprints;
+            NavigationManager = navigationManager;
+
+            var teamIds = GetTeamIdsFromUrl(sprints) ?? sprints.Select(sprint => sprint.TeamId).ToArray();
+            TeamSelectedClassName =
+                sprints.ToDictionary(
+                    sprint => sprint.TeamId,
+                    sprint => sprint.TeamId.IsIn(teamIds) ? TeamSelectionCssClass.Selected : TeamSelectionCssClass.Hidden);
+        }
+
+        #region Selected Teams
+
+        public Dictionary<Guid, TeamSelectionCssClass> TeamSelectedClassName { get; }
+
+        public void SelectTeam(Guid teamId)
+        {
+            if (TeamSelectedClassName.TryGetValue(teamId, out var value))
+            {
+                TeamSelectedClassName[teamId] = value == TeamSelectionCssClass.Hidden ? TeamSelectionCssClass.Selected : TeamSelectionCssClass.Hidden;
+            }
+            else
+            {
+                TeamSelectedClassName[teamId] = TeamSelectionCssClass.Selected;
+            }
+
+            StoreDefaultTeamIds();
+            ResetUrl();
+            OnSelectedTeamChanged();
+        }
+
+        private void OnSelectedTeamChanged()
+        {
+            SelectedTeamChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        public Guid[] SelectedTeamIds =>
+            TeamSelectedClassName
+                .Where(kvp => kvp.Value == TeamSelectionCssClass.Selected)
+                .Select(kvp => kvp.Key)
+                .ToArray();
+
+        internal class TeamSelectionCssClass : CssClass
+        {
+            private TeamSelectionCssClass(string className) : base(className)
+            {
+            }
+
+            public static readonly TeamSelectionCssClass Selected = new("team-selected");
+            public static readonly TeamSelectionCssClass Hidden = new("team-hidden");
+        }
+
+        #endregion Selected Teams
+
+        #region Url
+
+        private const string TeamsQueryParameter = "team";
+
+        private Guid[]? GetTeamIdsFromUrl(Sprint[] sprints)
+        {
+            var teamIds = new Url(NavigationManager.Uri)
+                .QueryParams
+                .Where(qp => qp.Name == TeamsQueryParameter)
+                .Select(qp => qp.Value.ToString())
+                .Join(sprints, x => x, sprint => sprint.TeamName, (_, sprint) => sprint.TeamId)
+                .ToArray();
+
+            return teamIds.None() ? null : teamIds;
+        }
+
+        private bool HasTeamsOnUrl()
+        {
+            return new Url(NavigationManager.Uri).QueryParams.Any(qp => qp.Name == TeamsQueryParameter);
+        }
+
+        private void ResetUrl()
+        {
+            var selectedTeamNames =
+                _sprints.Where(sprint => sprint.TeamId.IsIn(SelectedTeamIds))
+                    .Select(sprint => sprint.TeamName);
+
+            var url = NavigationManager.Uri
+                .RemoveQueryParam(TeamsQueryParameter)
+                .AppendQueryParam(TeamsQueryParameter, selectedTeamNames);
+
+            NavigationManager.NavigateTo(url, forceLoad: false);
+        }
+
+        #endregion Url
+
+        #region Local Storage
+
+        private const string DefaultTeamIdsStorageKey = "SprintBoard.DefaultTeamIds";
+
+        public async Task SetDefaultTeamsAsync(ILocalStorageService localStorage)
+        {
+            LocalStorage = localStorage;
+            if (!HasTeamsOnUrl())
+            {
+                var teamIds = await LocalStorage.GetItemAsync<Guid[]>(DefaultTeamIdsStorageKey) ?? [];
+                if (teamIds.Length > 0)
+                {
+                    foreach (var teamId in TeamSelectedClassName.Keys)
+                    {
+                        TeamSelectedClassName[teamId] = teamId.IsIn(teamIds)
+                            ? TeamSelectionCssClass.Selected
+                            : TeamSelectionCssClass.Hidden;
+                    }
+                    OnSelectedTeamChanged();
+                }
+            }
+        }
+
+        private void StoreDefaultTeamIds()
+        {
+            LocalStorage?.SetItemAsync(DefaultTeamIdsStorageKey, SelectedTeamIds);
+        }
+
+        #endregion Local Storage
+    }
+
+    /// <summary>
+    /// Backing model for the priority adjustment on the sprint board view/razor page.
+    /// </summary>
+    /// <para>
+    /// Stores whether the page is in "Adjust Priority" mode <see cref="ShowEnterModeClassName"/>.
+    /// Stores the <see cref="SelectedWorkItems"/> that will be moved to a new position.
+    /// Stores the <see cref="Target"/> work item for the new position and whether it is above or below (<see cref="TargetRelation"/>).
+    /// </para>
     internal class PriorityAdjustmentViewModel
     {
         private readonly WorkItem[] _workItems;
