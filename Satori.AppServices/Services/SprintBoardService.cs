@@ -74,10 +74,12 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServe
         {
             var parentWorkItemId = relation.Source?.Id ?? throw new InvalidOperationException();
             var parent = iterationBoardItems[parentWorkItemId];
-            var task = iterationTasks[relation.Target.Id];
 
-            task.Parent = parent;
-            parent.Children.Add(task);
+            if (iterationTasks.TryGetValue(relation.Target.Id, out var task))
+            {
+                task.Parent = parent;
+                parent.Children.Add(task);
+            }
         }
         foreach (var (sprintPriority, workItem) in iterationBoardItems.Values
                      .Where(wi => wi.State != ScrumState.Done)

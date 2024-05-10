@@ -108,7 +108,6 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
         var workItems = _workItems
             .Where(wi => wi.Fields.IterationPath == iteration.IterationPath && wi.Fields.ProjectName == iteration.ProjectName).ToArray();
         var parents = workItems
-            .Where(wi => wi.Fields.WorkItemType == WorkItemType.Task.ToApiValue())
             .Select(t => _parentWorkItemId.TryGetValue(t.Id, out var parentId) ? _workItems.FirstOrDefault(wi => wi.Id == parentId) : null);
 
         return workItems.Union(parents)
@@ -122,10 +121,6 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
 
         WorkItemId? GetParentSource(WorkItem childWorkItem)
         {
-            if (childWorkItem.Fields.WorkItemType != WorkItemType.Task.ToApiValue())
-            {
-                return null;
-            }
             if (_parentWorkItemId.TryGetValue(childWorkItem.Id, out var parentId))
             {
                 return new WorkItemId() { Id = parentId };

@@ -44,7 +44,11 @@ internal class WorkItemBuilder
 
         child.Fields.ProjectName = WorkItem.Fields.ProjectName;
         child.Fields.IterationPath = WorkItem.Fields.IterationPath;
-        
+
+        return AddChild(child);
+    }
+    public WorkItemBuilder AddChild(WorkItem child)
+    {
         _database.AddWorkItem(child);
         _database.AddWorkItemLink(WorkItem, LinkType.IsParentOf, child);
 

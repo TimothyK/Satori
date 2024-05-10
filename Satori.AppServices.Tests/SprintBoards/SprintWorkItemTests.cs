@@ -1,11 +1,13 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Satori.AppServices.Services;
-using Satori.AppServices.Tests.TestDoubles.Builders;
 using Satori.AppServices.Tests.TestDoubles;
-using Satori.AppServices.ViewModels.WorkItems;
+using Satori.AppServices.Tests.TestDoubles.Builders;
 using Satori.AppServices.Tests.TestDoubles.Services;
 using Satori.AppServices.ViewModels.Sprints;
+using Satori.AppServices.ViewModels.WorkItems;
+using Satori.AzureDevOps.Models;
 using Shouldly;
+using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.Tests.SprintBoards;
 
@@ -158,6 +160,73 @@ public class SprintWorkItemTests
         workItem.Id.ShouldBe(parentWorkItem.Id);
         workItem.Children.Count.ShouldBe(1);
         workItem.Children.Single().Id.ShouldBe(task.Id);
+    }
+
+    /// <summary>
+    /// Support where a Bug has a parent of Product Backlog Item, not a Feature.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// It is possible to set the parent of a Bug to be a PBI in AzDO.
+    /// AzDO should prevent this.  It even has problems with this.
+    /// When work items are linked like this, you are no longer allowed to reorder priority on the sprint.
+    /// https://learn.microsoft.com/en-us/azure/devops/boards/backlogs/resolve-backlog-reorder-issues?view=azure-devops
+    /// </para>
+    /// </remarks>
+    [TestMethod]
+    public void ParentBoardItemIsBoardItem_AzureDevOpsMockDatabaseReportsBadLink()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        var bug = _builder.BuildWorkItem().WithSprint(sprint).WorkItem
+            .With(wi => wi.Fields.WorkItemType = WorkItemType.Bug.ToApiValue());
+        _builder.BuildWorkItem(out var pbi).WithSprint(sprint)
+            .With(builder => builder.WorkItem.Fields.WorkItemType = WorkItemType.ProductBacklogItem.ToApiValue())
+            .AddChild(bug);
+
+        //Act
+        var srv = _azureDevOpsServer.AsInterface();
+        var iterationId = new IterationId
+        {
+            IterationPath = sprint.IterationPath,
+            TeamName = sprint.TeamName,
+            ProjectName = sprint.ProjectName
+        };
+        var relations = srv.GetIterationWorkItemsAsync(iterationId).Result;
+        
+        //Assert
+        relations.Any(r => r.Source?.Id == pbi.Id && r.Target.Id == bug.Id).ShouldBeTrue();
+    }
+
+    /// <summary>
+    /// Support where a Bug has a parent of Product Backlog Item, not a Feature.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// It is possible to set the parent of a Bug to be a PBI in AzDO.
+    /// AzDO should prevent this.  It even has problems with this.
+    /// When work items are linked like this, you are no longer allowed to reorder priority on the sprint.
+    /// https://learn.microsoft.com/en-us/azure/devops/boards/backlogs/resolve-backlog-reorder-issues?view=azure-devops
+    /// </para>
+    /// </remarks>
+    [TestMethod]
+    public void ParentBoardItemIsBoardItem_ReportedOnCurrentSprint()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        var bug = _builder.BuildWorkItem().WithSprint(sprint).WorkItem
+            .With(wi => wi.Fields.WorkItemType = WorkItemType.Bug.ToApiValue());
+        _builder.BuildWorkItem(out var pbi).WithSprint(sprint)
+            .With(builder => builder.WorkItem.Fields.WorkItemType = WorkItemType.ProductBacklogItem.ToApiValue())
+            .AddChild(bug);
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Length.ShouldBe(2);
+        workItems.ShouldContain(wi => wi.Id == bug.Id);
+        workItems.ShouldContain(wi => wi.Id == pbi.Id);
     }
 
     #endregion Child Tasks
