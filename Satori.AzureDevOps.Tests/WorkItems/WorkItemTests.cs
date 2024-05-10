@@ -77,6 +77,20 @@ public class WorkItemTests
     public void ASmokeTest() => SingleWorkItem().Id.ShouldBe(SingleWorkItemId);
 
     [TestMethod]
+    public void NoWorkItems_DoesNotCallWebApi()
+    {
+        //Arrange
+        _mockHttp.Fallback.Throw(new Exception("Should not call the web API"));
+
+        //Act
+        var srv = Globals.Services.Scope.Resolve<IAzureDevOpsServer>();
+        var workItems = srv.GetWorkItemsAsync([]).Result;
+
+        //Assert
+        workItems.ShouldBeEmpty();
+    }
+
+    [TestMethod]
     public void Title() => SingleWorkItem().Fields.Title.ShouldBe("Program no longer crashes on startup");
 
     [TestMethod]
