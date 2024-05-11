@@ -4,6 +4,7 @@ using MoreLinq;
 using Satori.AzureDevOps.Exceptions;
 using Satori.AzureDevOps.Models;
 using System.Collections.Concurrent;
+using System.Text;
 using System.Text.Json;
 
 namespace Satori.AzureDevOps;
@@ -130,6 +131,29 @@ public class AzureDevOpsServer(
 
         var root = await GetAsync<WorkItemRelationRoot>(url);
         return root.WorkItemRelations;
+    }
+
+    public ReorderResult[] ReorderBacklogWorkItems(TeamId team, ReorderOperation operation)
+    {
+        var url = ConnectionSettings.Url
+            .AppendPathSegments(team.ProjectName, team.Id)
+            .AppendPathSegment("_apis/work/workItemsOrder")
+            .AppendQueryParam("api-version", "6.0-preview.1");
+
+        Logger.LogInformation("PATCH {Url}", url);
+        var request = new HttpRequestMessage(HttpMethod.Patch, url);
+        AddAuthHeader(request);
+
+        request.Content = new StringContent(JsonSerializer.Serialize(operation), Encoding.UTF8, "application/json");
+
+        var response = httpClient.Send(request);
+        VerifySuccessfulResponseAsync(response).Wait();
+
+        using var responseStream = response.Content.ReadAsStream();
+        var root = JsonSerializer.Deserialize<RootObject<ReorderResult>>(responseStream)
+            ?? throw new ApplicationException("Server did not respond");
+
+        return root.Value;
     }
 
     private async Task<T[]> GetRootValueAsync<T>(Url url)
