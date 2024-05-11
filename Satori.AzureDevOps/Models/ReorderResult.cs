@@ -15,8 +15,15 @@ namespace Satori.AzureDevOps.Models;
 /// </remarks>
 public class ReorderResult
 {
+    /// <summary>
+    /// Work Item ID of the Work Item that was reordered
+    /// </summary>
     [JsonPropertyName("id")]
     public int Id { get; set; }
+
+    /// <summary>
+    /// New value for the <see cref="WorkItemFields.BacklogPriority"/>
+    /// </summary>
     [JsonPropertyName("order")]
     public double Order { get; set; }
 }

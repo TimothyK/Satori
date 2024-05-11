@@ -1,5 +1,6 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Flurl;
+using MoreLinq;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
@@ -143,16 +144,81 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServe
                 parent.Children.Add(task);
             }
         }
-        foreach (var (sprintPriority, workItem) in iterationBoardItems.Values
+        SetSprintPriority(iterationBoardItems.Values);
+
+        return iterationBoardItems.Values.ToList();
+    }
+
+    private static void SetSprintPriority(IEnumerable<WorkItem> workItems)
+    {
+        foreach (var (sprintPriority, workItem) in workItems
                      .Where(wi => wi.State != ScrumState.Done)
                      .OrderBy(wi => wi.AbsolutePriority).ThenBy(wi => wi.Id)
                      .Select((wi, i) => (i, wi)))
         {
             workItem.SprintPriority = sprintPriority + 1;
         }
-
-        return iterationBoardItems.Values.ToList();
     }
 
     #endregion GetWorkItemsAsync
+
+    #region ReorderWorkItems
+
+    public void ReorderWorkItems(ReorderRequest request)
+    {
+        var orderByDirection = request.TargetBelow ? OrderByDirection.Ascending : OrderByDirection.Descending;
+        var allWorkItems = request.AllWorkItems.OrderBy(wi => wi.AbsolutePriority, orderByDirection).ToArray();
+
+        var operation = new ReorderOperation
+        {
+            PreviousId = (request.Target ?? allWorkItems.Last()).Id,
+            NextId = allWorkItems.SkipUntil(wi => wi == request.Target).Take(1).FirstOrDefault()?.Id ?? 0,
+            Ids = request.WorkItemIdsToMove
+        };
+
+        if (!request.TargetBelow)
+        {
+            (operation.PreviousId, operation.NextId) = (operation.NextId, operation.PreviousId);
+        }
+
+        var movingItems = request.AllWorkItems.Where(wi => wi.Id.IsIn(request.WorkItemIdsToMove)).OrderBy(wi => wi.AbsolutePriority).ToArray();
+
+        do
+        {
+            var sprint = movingItems.First().Sprint!;
+            var team = new TeamId
+            {
+                Id = sprint.TeamId,
+                TeamName = sprint.TeamName,
+                ProjectName = sprint.ProjectName
+            };
+
+            var items = movingItems.TakeWhile(wi => wi.Sprint == sprint).ToArray();
+            operation.Ids = items.Select(wi => wi.Id).ToArray();
+
+            var reorderResults = azureDevOpsServer.ReorderBacklogWorkItems(team, operation);
+
+            foreach (var map in reorderResults.Join(movingItems,
+                         reorderResult => reorderResult.Id,
+                         movingItem => movingItem.Id,
+                         (reorderResult, movingItem) => new { WorkItem = movingItem, reorderResult.Order }))
+            {
+                map.WorkItem.AbsolutePriority = map.Order;
+            }
+
+            operation.PreviousId = items.Last().Id;
+            movingItems = movingItems.Except(items).OrderBy(wi => wi.AbsolutePriority).ToArray();
+        } while (movingItems.Length > 0);
+
+        var sprintGroups = request.AllWorkItems
+            .GroupBy(wi => wi.Sprint!)
+            .Where(g => g.Any(wi => wi.Id.IsIn(request.WorkItemIdsToMove)));
+        foreach (var sprintWorkItems in sprintGroups)
+        {
+            SetSprintPriority(sprintWorkItems);
+        }
+    }
+
+    #endregion ReorderWorkItems
+
 }

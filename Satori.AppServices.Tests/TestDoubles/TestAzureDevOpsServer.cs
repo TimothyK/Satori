@@ -1,7 +1,6 @@
 ﻿using Moq;
 using Satori.AppServices.Tests.TestDoubles.Builders;
 using Satori.AppServices.Tests.TestDoubles.Database;
-using Satori.AppServices.ViewModels.Sprints;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 

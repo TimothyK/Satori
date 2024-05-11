@@ -25,7 +25,7 @@ public class WorkItem
     public List<WorkItem> Children { get; } = [];
     public Sprint? Sprint { get; set; }
     public int? SprintPriority { get; set; }
-    public double AbsolutePriority { get; init; }
+    public double AbsolutePriority { get; internal set; }
 
     public string? StatusLabel
     {
