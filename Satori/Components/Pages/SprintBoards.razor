@@ -4,11 +4,13 @@
 @using Satori.AppServices.ViewModels.WorkItems
 @using System.Web
 @using CodeMonkeyProjectiles.Linq
+@using Toolbelt.Blazor.HotKeys2
 @attribute [StreamRendering]
 @inject NavigationManager NavigationManager
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject SprintBoardService SprintBoardService
 @inject ILoggerFactory LoggerFactory
+@inject HotKeys HotKeys
 
 <PageTitle>Sprint Boards - Satori</PageTitle>
 
@@ -55,7 +57,7 @@ else
             <thead>
                 <tr>
                     <th>
-                        <button type="button" class="btn btn-outline-primary btn-priority @PriorityAdjustment.ShowEnterModeClassName" @onclick="PriorityAdjustment.ToggleMode" title="Enter Adjust Priority Mode">Adjust Priority...</button>
+                        <button type="button" class="btn btn-outline-primary btn-priority @PriorityAdjustment.ShowEnterModeClassName" @onclick="PriorityAdjustment.ToggleMode" title="Enter Adjust Priority Mode">Adjust <u>P</u>riority...</button>
                     </th>
                     <th>D#</th>
                     <th>Title</th>
@@ -255,9 +257,18 @@ else
         ResetWorkItemCounts();
     }
 
+    private HotKeysContext? _hotKeysContext;
+
     private bool _isInitialized;
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (firstRender) {
+            _hotKeysContext = this.HotKeys.CreateContext()
+                .Add(ModCode.Alt, Code.P, EnterAdjustPriorityMode, new() { Description = "Adjust Priorities" })
+                .Add(ModCode.None, Code.Escape, ExitAdjustPriorityMode, new() { Description = "Exit Adjust Priorities" })
+                .Add(ModCode.None, Code.Enter, MovePriority, new() { Description = "Adjust Priorities" });
+        }
+
         if (_isInitialized)
         {
             return;
@@ -269,6 +280,11 @@ else
             StateHasChanged();
             _isInitialized = true;
         }
+    }
+
+    public void Dispose()
+    {
+        _hotKeysContext?.Dispose();
     }
 
     #region Team Selection
@@ -298,6 +314,22 @@ else
     #region Adjust Priority
 
     private PriorityAdjustmentViewModel PriorityAdjustment { get; set; } = new([]);
+
+    private void EnterAdjustPriorityMode()
+    {
+        if (PriorityAdjustment.ShowEnterModeClassName)
+        {
+            PriorityAdjustment.ToggleMode();
+        }
+    }
+
+    private void ExitAdjustPriorityMode()
+    {
+        if (PriorityAdjustment.ShowExitModeClassName)
+        {
+            PriorityAdjustment.ToggleMode();
+        }
+    }
 
     private void MovePriority()
     {

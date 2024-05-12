@@ -2,6 +2,7 @@ using Blazored.LocalStorage;
 using Satori.Components;
 using Satori.Utilities;
 using Serilog;
+using Toolbelt.Blazor.Extensions.DependencyInjection;
 
 namespace Satori;
 
@@ -23,6 +24,7 @@ internal class Program
         builder.Logging.AddSerilog();
 
         builder.Services.AddBlazoredLocalStorage();
+        builder.Services.AddHotKeys2();
         
         builder.AddAppServices();
         
