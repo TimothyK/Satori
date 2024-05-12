@@ -8,4 +8,13 @@ public class ReorderRequest(WorkItem[] allWorkItems, int[] workItemIdsToMove, bo
 
     public bool TargetBelow { get; } = targetBelow;
     public WorkItem? Target { get; } = target;
+
+    public override string ToString()
+    {
+        var relativeToMsg = Target == null
+            ? TargetBelow ? "Bottom" : "Top"
+            : (TargetBelow ? "Below" : "Above") + " " + Target.Id;
+
+        return $"ReorderRequest to move {string.Join(",", WorkItemIdsToMove)} to {relativeToMsg}";
+    }
 }

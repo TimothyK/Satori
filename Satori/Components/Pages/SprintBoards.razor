@@ -7,6 +7,8 @@
 @attribute [StreamRendering]
 @inject NavigationManager NavigationManager
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject SprintBoardService SprintBoardService
+@inject ILoggerFactory LoggerFactory
 
 <PageTitle>Sprint Boards - Satori</PageTitle>
 
@@ -161,6 +163,9 @@ else
         Adjust Priority
     </div>
     <div class="dialog-body">
+        <div class="alert @PriorityAdjustment.AlertTypeClassName alert-dismissible fade show @PriorityAdjustment.HideAlertClassName" role="alert">
+            @PriorityAdjustment.AlertContent
+        </div>  
         <div>Selected Items:
             <span class="badge bg-primary">@PriorityAdjustment.SelectedWorkItemsCount</span>
             <ul style="font-size: 0.9em;">
@@ -171,7 +176,7 @@ else
                             <div class="priority-block">
                                 <div class="avatar-cell">
                                     <img src="@workItem.Sprint?.TeamAvatarUrl"
-                                         alt="@workItem.Sprint?.TeamName" />
+                                         alt="@workItem.Sprint?.TeamName"/>
                                 </div>
                                 <div class="priority-number">
                                     @workItem.SprintPriority
@@ -182,9 +187,9 @@ else
                     </li>
                 }
                 @if (PriorityAdjustment.SelectedWorkItems.Count > 3)
-            {
+                {
                     <li>...and @(PriorityAdjustment.SelectedWorkItems.Count - 3) more.</li>
-            }
+                }
             </ul>
             <p style="font-size: 0.8em; font-style: italic;">Use the check button on the left of each work item to select it to be moved.</p>
         </div>
@@ -194,7 +199,7 @@ else
                 <label class="switch" style="margin: 0px 5px 0px;">
                     <input type="checkbox" checked="@(PriorityAdjustment.TargetRelation == PriorityAdjustmentViewModel.RelativePosition.Below)" @oninput="PriorityAdjustment.ToggleMoveBelow">
                     <span class="slider round"></span>
-                </label>                
+                </label>
                 <span style="font-weight: bold">@PriorityAdjustment.MoveToLabel</span>
             </div>
             @if (PriorityAdjustment.Target != null)
@@ -205,7 +210,7 @@ else
                             <div class="priority-block">
                                 <div class="avatar-cell">
                                     <img src="@PriorityAdjustment.Target.Sprint?.TeamAvatarUrl"
-                                         alt="@PriorityAdjustment.Target.Sprint?.TeamName" />
+                                         alt="@PriorityAdjustment.Target.Sprint?.TeamName"/>
                                 </div>
                                 <div class="priority-number">
                                     @PriorityAdjustment.Target.SprintPriority
@@ -238,15 +243,13 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var srv = Program.Services.GetRequiredService<SprintBoardService>();
-
-        var sprints = (await srv.GetActiveSprintsAsync()).ToArray();
+        var sprints = (await SprintBoardService.GetActiveSprintsAsync()).ToArray();
         TeamSelection = new TeamSelectionViewModel(sprints, NavigationManager);
         TeamSelection.SelectedTeamChanged += ResetWorkItemCounts;
         _sprints = sprints;
         StateHasChanged();
 
-        var workItems = (await srv.GetWorkItemsAsync(sprints)).ToArray();
+        var workItems = (await SprintBoardService.GetWorkItemsAsync(sprints)).ToArray();
         PriorityAdjustment = new PriorityAdjustmentViewModel(workItems);
         _workItems = workItems;
         ResetWorkItemCounts();
@@ -298,8 +301,31 @@ else
 
     private void MovePriority()
     {
-        //TODO: Implement
-        PriorityAdjustment.ToggleMode();
+        if (PriorityAdjustment.ShowEnterModeClassName)
+        {
+            return;
+        }
+
+        PriorityAdjustment.ClearAlert();
+
+        if (PriorityAdjustment.SelectedWorkItemsCount == 0)
+        {
+            PriorityAdjustment.ShowAlert("No work items selected.  Select work items to move (have their priority changed).", PriorityAdjustmentViewModel.AlertTypeCssClass.Warning);;
+            return;
+        }
+
+        try
+        {
+            SprintBoardService.ReorderWorkItems(PriorityAdjustment.Request);
+            PriorityAdjustment.ToggleMode();
+        }
+        catch (Exception ex)
+        {
+            var logger = LoggerFactory.CreateLogger<SprintBoards>();
+            logger.LogError(ex, "Error moving work items priority.  {Request}", PriorityAdjustment.Request);
+
+            PriorityAdjustment.ShowAlert(ex.Message, PriorityAdjustmentViewModel.AlertTypeCssClass.Error);
+        }
     }
 
     #endregion Adjust Priority

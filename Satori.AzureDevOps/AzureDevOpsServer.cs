@@ -140,7 +140,10 @@ public class AzureDevOpsServer(
             .AppendPathSegment("_apis/work/workItemsOrder")
             .AppendQueryParam("api-version", "6.0-preview.1");
 
-        Logger.LogInformation("PATCH {Url}", url);
+        using (Logger.BeginScope("{Team}", JsonSerializer.Serialize(team)))
+        using (Logger.BeginScope("{ReorderOperation}", JsonSerializer.Serialize(operation)))
+            Logger.LogInformation("PATCH {Url}", url);
+
         var request = new HttpRequestMessage(HttpMethod.Patch, url);
         AddAuthHeader(request);
 

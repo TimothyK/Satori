@@ -64,10 +64,7 @@ public class ReorderTests
 
     private static void LogRequest(ReorderRequest request)
     {
-        var relativeToMsg = request.Target == null
-            ? request.TargetBelow ? "Bottom" : "Top"
-            : (request.TargetBelow ? "Below" : "Above") + " " + request.Target.Id;
-        Console.WriteLine($"Arrange: Request: move {{{string.Join(", ", request.WorkItemIdsToMove)}}} {relativeToMsg}");
+        Console.WriteLine($"Arrange: {request}");
 
         Console.WriteLine("Arrange: Work Items (before):");
         LogWorkItems(request.AllWorkItems);
