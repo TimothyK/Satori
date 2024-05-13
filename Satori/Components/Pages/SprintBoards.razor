@@ -11,6 +11,7 @@
 @inject SprintBoardService SprintBoardService
 @inject ILoggerFactory LoggerFactory
 @inject HotKeys HotKeys
+@inject IJSRuntime JsRuntime
 
 <PageTitle>Sprint Boards - Satori</PageTitle>
 
@@ -57,101 +58,116 @@ else
             <thead>
                 <tr>
                     <th>
+                        Work Item
                         <button type="button" class="btn btn-outline-primary btn-priority @PriorityAdjustment.ShowEnterModeClassName" @onclick="PriorityAdjustment.ToggleMode" title="Enter Adjust Priority Mode">Adjust <u>P</u>riority...</button>
                     </th>
-                    <th>D#</th>
-                    <th>Title</th>
                     <th>Tasks</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var workItem in _workItems.OrderBy(wi => wi.AbsolutePriority))
                 {
-                    <tr 
-                        class="
-                            work-item-row 
-                            @workItem.Type.CssClass 
-                            @workItem.StatusCssClass 
+                <tr class="
+                            work-item-row
+                            @workItem.Type.CssClass
+                            @workItem.StatusCssClass
                             @(workItem.Sprint == null ? string.Empty : TeamSelection.TeamSelectedClassName[workItem.Sprint.TeamId])
                             @(PriorityAdjustment.WorkItemSelectedClassName[workItem.Id])
                         "
-                        @onclick="() => PriorityAdjustment.SetMoveTo(workItem)">
-                        <td>
-                            <div style="display: flex;">
-                                @if (workItem.Sprint != null)
-                                {
-                                    <div class="priority-block">
+                    @onclick="() => PriorityAdjustment.SetMoveTo(workItem)">
+                    <td class="cell-link" @onclick="() => OpenWorkItem(workItem)" title="Open D#@(workItem.Id)">
+                        <div style="display: flex;">
+                            <div class="workitem-id @workItem.StatusCssClass">
+                                <div>@workItem.Id</div> 
+                                <div>
+                                    <button type="button" class="btn btn-outline-success btn-priority btn-priority-select @PriorityAdjustment.ShowSelectWorkItemClassName[workItem.Id]" @onclick="() => PriorityAdjustment.AddSelectedWorkItem(workItem)" title="Select this item to adjust its priority">✔️</button>
+                                    <button type="button" class="btn btn-outline-danger btn-priority btn-priority-deselect @PriorityAdjustment.ShowDeselectWorkItemClassName[workItem.Id]" @onclick="() => PriorityAdjustment.RemoveSelectedWorkItem(workItem)" title="Deselect this item so its priority is not adjusted">❌</button>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="display: flex;">
+                                    @if (workItem.Sprint != null)
+                                    {
+                                        <div class="priority-block">
+                                            <div class="avatar-cell">
+                                                <img src="@workItem.Sprint.TeamAvatarUrl"
+                                                     alt="@workItem.Sprint.TeamName"/>
+                                            </div>
+                                            <div class="priority-number">
+                                                @workItem.SprintPriority
+                                            </div>
+                                        </div>
+                                    }
+                                    @if (workItem.AssignedTo != null)
+                                    {
                                         <div class="avatar-cell">
-                                            <img src="@workItem.Sprint.TeamAvatarUrl"
-                                                 alt="@workItem.Sprint.TeamName"/>
+                                            <img src="@workItem.AssignedTo.AvatarUrl"
+                                                 alt="@workItem.AssignedTo.DisplayName"/>
                                         </div>
-                                        <div class="priority-number">
-                                            @workItem.SprintPriority
+                                    }
+                                    else 
+                                    {
+                                        <div class="avatar-cell">
+                                            <div class="unassigned">?</div>
                                         </div>
-                                    </div>
-                                }
-                                @if (workItem.AssignedTo != null)
+                                    }
+                                </div>
+                                <div class="work-item-status">@workItem.StatusLabel</div>
+                                @if (workItem.Blocked)
                                 {
-                                    <div class="avatar-cell">
-                                        <img src="@workItem.AssignedTo.AvatarUrl"
-                                             alt="@workItem.AssignedTo.DisplayName" />
+                                    <div class="blocked">🧱 Blocked</div>
+                                }
+                                @foreach (var tag in workItem.Tags)
+                                {
+                                    <div>
+                                        <span class="badge bg-secondary work-item-status">@tag</span>
                                     </div>
                                 }
                             </div>
-                            <div class="work-item-status">@workItem.StatusLabel</div>
-                            @if (workItem.Blocked)
+                            <div class="workitem-title @workItem.StatusCssClass">
+                                @workItem.Title
+                            </div>
+                        </div>
+                    </td>
+      
+                    <td>
+                        @foreach (var task in workItem.Children.OrderByDescending(wi => wi.State).ThenBy(wi => wi.Id))
+                        {
+                        <div class="task-status @task.StatusCssClass cell-link" style="display: flex;" @onclick="() => OpenWorkItem(task)" title="Open D#@(task.Id)">
+                            @if (task.AssignedTo != null)
                             {
-                                <div class="blocked">🧱 Blocked</div>
+                                <div class="avatar-cell">
+                                    <img src="@task.AssignedTo.AvatarUrl"
+                                         alt="@task.AssignedTo.DisplayName"
+                                         title="@task.AssignedTo.DisplayName" />
+                                </div>
                             }
-                            @foreach (var tag in workItem.Tags)
+                            else 
                             {
-                                <div>
-                                    <span class="badge bg-secondary work-item-status">@tag</span>
+                                <div class="avatar-cell">
+                                    <div class="unassigned">?</div>
                                 </div>
                             }
                             <div>
-                                <button type="button" class="btn btn-outline-success btn-priority btn-priority-select @PriorityAdjustment.ShowSelectWorkItemClassName[workItem.Id]" @onclick="() => PriorityAdjustment.AddSelectedWorkItem(workItem)" title="Select this item to adjust its priority">✔️</button>
-                                <button type="button" class="btn btn-outline-danger btn-priority btn-priority-deselect @PriorityAdjustment.ShowDeselectWorkItemClassName[workItem.Id]" @onclick="() => PriorityAdjustment.RemoveSelectedWorkItem(workItem)" title="Deselect this item so its priority is not adjusted">❌</button>
+                                @task.Title
                             </div>
-                        </td>
-                        <td class="@workItem.StatusCssClass">
-                            <a href="@workItem.Url">@workItem.Id</a>
-                        </td>
-                        <td class="@workItem.StatusCssClass">
-                            <a href="@workItem.Url">@workItem.Title</a>
-                        </td>
-                        <td>
-                            @foreach (var task in workItem.Children.OrderByDescending(wi => wi.State).ThenBy(wi => wi.Id))
+                            <div>
+                                @task.StatusLabel
+                            </div>
+                            @if (task.Blocked)
                             {
-                                <div class="task-status @task.StatusCssClass" style="display: flex;">
-                                    @if (task.AssignedTo != null)
-                                    {
-                                        <div class="avatar-cell">
-                                            <img src="@task.AssignedTo.AvatarUrl"
-                                                 alt="@task.AssignedTo.DisplayName"
-                                                 title="@task.AssignedTo.DisplayName" />
-                                        </div>
-                                    }
-                                    <div>
-                                        <a href="@task.Url">@task.Title</a>
-                                    </div>
-                                    <div>
-                                        @task.StatusLabel
-                                    </div>
-                                    @if (task.Blocked)
-                                    {
-                                        <div class="blocked">🧱 Blocked</div>
-                                    }
-                                    @foreach (var tag in task.Tags)
-                                    {
-                                        <div>
-                                            <span class="badge bg-secondary" style="font-size:0.5rem;">@tag</span>
-                                        </div>
-                                    }
-                                </div>
+                            <div class="blocked">🧱 Blocked</div>
                             }
-                        </td>
-                    </tr>
+                            @foreach (var tag in task.Tags)
+                            {
+                            <div>
+                                <span class="badge bg-secondary" style="font-size:0.5rem;">@tag</span>
+                            </div>
+                            }
+                        </div>
+                        }
+                    </td>
+                </tr>
                 }
             </tbody>
         </table>
@@ -288,6 +304,16 @@ else
     public void Dispose()
     {
         _hotKeysContext?.Dispose();
+    }
+
+    private void OpenWorkItem(WorkItem workItem)
+    {
+        if (PriorityAdjustment.ShowExitModeClassName)
+        {
+            return;
+        }
+
+        JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
     }
 
     #region Team Selection
