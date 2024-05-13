@@ -213,6 +213,17 @@ public class ReorderTests
     }
 
     [TestMethod]
+    public void Reorder_NoneSelected_ThrowsInvalidOp()
+    {
+        //Arrange
+        var workItems = BuildWorkItems(3);
+        var request = new ReorderRequest(workItems.ToArray(), [], targetBelow: false, target: null);
+
+        //Act
+        Should.Throw<InvalidOperationException>(() => ReorderWorkItems(request)).Message.ShouldBe("Work Items must be selected to be moved");
+    }
+
+    [TestMethod]
     public void BuildWorkItems_ReturnsNewSprintOnEachCall()
     {
         //Act

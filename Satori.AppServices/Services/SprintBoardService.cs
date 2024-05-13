@@ -166,6 +166,11 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServe
 
     public void ReorderWorkItems(ReorderRequest request)
     {
+        if (request.WorkItemIdsToMove.Length == 0)
+        {
+            throw new InvalidOperationException("Work Items must be selected to be moved");
+        }
+
         var orderByDirection = request.TargetBelow ? OrderByDirection.Ascending : OrderByDirection.Descending;
         var allWorkItems = request.AllWorkItems.OrderBy(wi => wi.AbsolutePriority, orderByDirection).ToArray();
 

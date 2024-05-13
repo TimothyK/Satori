@@ -19,5 +19,5 @@ public class ReorderOperation
     [JsonPropertyName("nextId")]
     public int NextId { get; set; }
     [JsonPropertyName("ids")]
-    public int[] Ids { get; set; }
+    public required int[] Ids { get; set; }
 }
