@@ -1,4 +1,5 @@
-﻿using Satori.AppServices.ViewModels.WorkItems;
+﻿using Satori.AzureDevOps.Models;
+using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.ViewModels.PullRequests;
 
@@ -22,4 +23,14 @@ public class PullRequest
     public required List<string> Labels { get; init; }
 
     //TODO: Add Comments
+
+
+
+    public static implicit operator PullRequestId(PullRequest pr) =>
+        new()
+        {
+            Id = pr.Id,
+            RepositoryName = pr.RepositoryName,
+            ProjectName = pr.Project,
+        };
 }

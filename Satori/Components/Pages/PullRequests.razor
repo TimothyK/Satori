@@ -3,6 +3,7 @@
 @using Satori.AppServices.ViewModels.PullRequests
 @using Satori.AppServices.Services
 @using CodeMonkeyProjectiles.Linq
+@inject PullRequestService PullRequestService;
 
 <PageTitle>Pull Requests - Satori</PageTitle>
 
@@ -124,7 +125,14 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var srv = Program.Services.GetRequiredService<PullRequestService>();
-        _pullRequests = (await srv.GetPullRequestsAsync()).ToArray();
+        _pullRequests = (await PullRequestService.GetPullRequestsAsync()).ToArray();
+        StateHasChanged();  //Quickly show the PR list to the user.
+
+        const int pageSize = 20;
+        var topPrs = _pullRequests.Take(pageSize).ToArray();
+        await PullRequestService.AddWorkItemsToPullRequestsAsync(topPrs);
+        StateHasChanged();
+
+        await PullRequestService.AddWorkItemsToPullRequestsAsync(_pullRequests.Skip(pageSize).ToArray());
     }
 }

@@ -35,23 +35,35 @@ public class PullRequestTests
 
     #region Act
 
-    private Satori.AppServices.ViewModels.PullRequests.PullRequest[] GetPullRequests()
+    private ViewModels.PullRequests.PullRequest[] GetPullRequests(WithChildren children = WithChildren.None)
     {
         //Act
         var srv = new PullRequestService(_azureDevOpsServer.AsInterface(), NullLoggerFactory.Instance);
-        return srv.GetPullRequestsAsync().Result.ToArray();
+        var pullRequests = srv.GetPullRequestsAsync().Result.ToArray();
+        if (children.HasFlag(WithChildren.WorkItems))
+        {
+            srv.AddWorkItemsToPullRequestsAsync(pullRequests).GetAwaiter().GetResult();
+        }
+        return pullRequests;
     }
 
-    private Satori.AppServices.ViewModels.PullRequests.PullRequest GetSinglePullRequests()
+    private ViewModels.PullRequests.PullRequest GetSinglePullRequests(WithChildren children = WithChildren.None)
     {
         //Arrange
 
         //Act
-        var pullRequests = GetPullRequests();
+        var pullRequests = GetPullRequests(children);
 
         //Assert
         pullRequests.Length.ShouldBe(1);
         return pullRequests.Single();
+    }
+
+    [Flags]
+    private enum WithChildren : byte
+    {
+        None = 0,
+        WorkItems = 1,
     }
 
     #endregion Act
@@ -324,7 +336,7 @@ public class PullRequestTests
             .WithWorkItem(out var expected);
 
         //Act
-        var pullRequest = GetSinglePullRequests();
+        var pullRequest = GetSinglePullRequests(WithChildren.WorkItems);
 
         //Assert
         pullRequest.WorkItems.Count.ShouldBe(1);
@@ -341,7 +353,7 @@ public class PullRequestTests
         _builder.BuildPullRequest(out var pr3).WithWorkItem(workItem1).WithWorkItem(out var workItem2);
         
         //Act
-        var prs = GetPullRequests();
+        var prs = GetPullRequests(WithChildren.WorkItems);
 
         //Assert
         prs.Length.ShouldBe(3);

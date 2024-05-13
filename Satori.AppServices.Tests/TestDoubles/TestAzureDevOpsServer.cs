@@ -40,8 +40,8 @@ internal class TestAzureDevOpsServer
         _mock.Setup(srv => srv.GetPullRequestsAsync())
             .ReturnsAsync(() => _database.GetPullRequests());
 
-        _mock.Setup(srv => srv.GetPullRequestWorkItemIdsAsync(It.IsAny<PullRequest>()))
-            .ReturnsAsync((PullRequest pr) => GetWorkItemMap(pr));
+        _mock.Setup(srv => srv.GetPullRequestWorkItemIdsAsync(It.IsAny<PullRequestId>()))
+            .ReturnsAsync((PullRequestId pr) => GetWorkItemMap(pr));
 
         _mock.Setup(srv => srv.GetWorkItemsAsync(It.IsAny<IEnumerable<int>>()))
             .ReturnsAsync((IEnumerable<int> workItemIds) => GetWorkItems(workItemIds));
@@ -56,9 +56,9 @@ internal class TestAzureDevOpsServer
             .ReturnsAsync((IterationId iteration) => _database.GetWorkItemsForIteration(iteration));
 
         return;
-        IdMap[] GetWorkItemMap(PullRequest pullRequest)
+        IdMap[] GetWorkItemMap(PullRequestId pullRequest)
         {
-            return _database.GetWorkItemIdsForPullRequestId(pullRequest.PullRequestId)
+            return _database.GetWorkItemIdsForPullRequestId(pullRequest.Id)
                 .Select(workItemId => Builder.Builder<IdMap>.New().Build(idMap => idMap.Id = workItemId))
                 .ToArray();
         }

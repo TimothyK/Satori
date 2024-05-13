@@ -28,14 +28,14 @@ public class AzureDevOpsServer(
         return await GetRootValueAsync<PullRequest>(url);
     }
 
-    public async Task<IdMap[]> GetPullRequestWorkItemIdsAsync(PullRequest pr)
+    public async Task<IdMap[]> GetPullRequestWorkItemIdsAsync(PullRequestId pr)
     {
         var url = ConnectionSettings.Url
-            .AppendPathSegment(pr.Repository.Project.Name)
+            .AppendPathSegment(pr.ProjectName)
             .AppendPathSegment("_apis/git/repositories")
-            .AppendPathSegment(pr.Repository.Name)
+            .AppendPathSegment(pr.RepositoryName)
             .AppendPathSegment("pullRequests")
-            .AppendPathSegment(pr.PullRequestId)
+            .AppendPathSegment(pr.Id)
             .AppendPathSegment("workItems")
             .AppendQueryParam("api-version", "6.0");
 

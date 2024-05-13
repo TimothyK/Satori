@@ -55,4 +55,13 @@ public class PullRequest
     public User? AutoCompleteSetBy { get; set; }
     [JsonPropertyName("labels")]
     public Label[]? Labels { get; set; }
+
+
+    public static implicit operator PullRequestId(PullRequest pr) =>
+        new()
+        {
+            Id = pr.PullRequestId,
+            RepositoryName = pr.Repository.Name,
+            ProjectName = pr.Repository.Project.Name,
+        };
 }

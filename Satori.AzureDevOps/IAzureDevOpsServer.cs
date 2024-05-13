@@ -7,7 +7,7 @@ public interface IAzureDevOpsServer
     ConnectionSettings ConnectionSettings { get; }
 
     Task<PullRequest[]> GetPullRequestsAsync();
-    Task<IdMap[]> GetPullRequestWorkItemIdsAsync(PullRequest pr);
+    Task<IdMap[]> GetPullRequestWorkItemIdsAsync(PullRequestId pr);
     Task<WorkItem[]> GetWorkItemsAsync(IEnumerable<int> workItemIds);
     Task<WorkItem[]> GetWorkItemsAsync(params int[] workItemIds);
     Task<Team[]> GetTeamsAsync();

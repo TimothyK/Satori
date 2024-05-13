@@ -26,8 +26,20 @@ public class PullRequestService(IAzureDevOpsServer azureDevOpsServer, ILoggerFac
         var pullRequests = await AzureDevOpsServer.GetPullRequestsAsync();
         Logger.LogDebug("Got {PullRequestCount} pull requests in {ElapsedMilliseconds}ms", pullRequests.Length, stopWatch.ElapsedMilliseconds);
 
-        stopWatch = Stopwatch.StartNew();
-        var workItemMap = await GetWorkItemMap(pullRequests);
+        var viewModels = pullRequests.Select(ToViewModel).ToArray();
+
+        return viewModels;
+    }
+
+    public async Task<PullRequest[]> AddWorkItemsToPullRequestsAsync(PullRequest[] pullRequests)
+    {
+        if (pullRequests.Length == 0)
+        {
+            return pullRequests;
+        }
+
+        var stopWatch = Stopwatch.StartNew();
+        var workItemMap = await GetWorkItemMap(pullRequests.Select(x => (PullRequestId)x));
         Logger.LogDebug("WorkItem Map loaded in {ElapsedMilliseconds}ms", stopWatch.ElapsedMilliseconds);
 
         stopWatch = Stopwatch.StartNew();
@@ -36,8 +48,7 @@ public class PullRequestService(IAzureDevOpsServer azureDevOpsServer, ILoggerFac
             .ToDictionary(wi => wi.Id, wi => wi.ToViewModel());
         Logger.LogDebug("Got {WorkItemCount} work items in {ElapsedMilliseconds}ms", workItems.Count, stopWatch.ElapsedMilliseconds);
 
-        var viewModels = pullRequests.Select(ToViewModel).ToArray();
-        foreach (var pr in viewModels)
+        foreach (var pr in pullRequests)
         {
             if (workItemMap.TryGetValue(pr.Id, out var ids))
             {
@@ -45,24 +56,24 @@ public class PullRequestService(IAzureDevOpsServer azureDevOpsServer, ILoggerFac
             }
         }
 
-        return viewModels;
+        return pullRequests;
     }
 
-    private async Task<Dictionary<int, List<int>>> GetWorkItemMap(PullRequestDto[] pullRequests)
+    private async Task<Dictionary<int, List<int>>> GetWorkItemMap(IEnumerable<PullRequestId> pullRequestIds)
     {
         var pullRequestWorkItemMappings = new ConcurrentBag<(int pullRequestId, int workItemId)>();
         var options = new ParallelOptions() { MaxDegreeOfParallelism = 8 };
-        await Parallel.ForEachAsync(pullRequests, options, async (pr, token) =>
+        await Parallel.ForEachAsync(pullRequestIds, options, async (prId, token) =>
         {
             if (token.IsCancellationRequested)
             {
                 return;
             }
 
-            var idMap = await AzureDevOpsServer.GetPullRequestWorkItemIdsAsync(pr);
+            var idMap = await AzureDevOpsServer.GetPullRequestWorkItemIdsAsync(prId);
             foreach (var workItemId in idMap.Select(map => map.Id))
             {
-                pullRequestWorkItemMappings.Add((pr.PullRequestId, workItemId));
+                pullRequestWorkItemMappings.Add((prId.Id, workItemId));
             }
         });
 
