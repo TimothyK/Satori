@@ -185,6 +185,9 @@ else
                                 </div>
                             </div>
                             <div>&nbsp;D#@workItem.Id @workItem.Title</div>
+                            <div>
+                                <button type="button" class="btn btn-outline-danger" style="font-size: 0.75em; margin-left: 5px; padding: 2px;" @onclick="() => PriorityAdjustment.RemoveSelectedWorkItem(workItem)">❌</button>
+                            </div>
                         </div>
                     </li>
                 }
