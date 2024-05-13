@@ -82,3 +82,10 @@
     padding-left: 3px;
     font-size: 0.8em;
 }
+
+.cell-link {
+    background-color: #f5f5f5;
+    text-decoration: none;
+    cursor: pointer;
+}
+
