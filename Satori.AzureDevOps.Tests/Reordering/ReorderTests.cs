@@ -21,7 +21,7 @@ public class ReorderTests
         _connectionSettings.Url
             .AppendPathSegments(iteration.ProjectName, iteration.TeamName)
             .AppendPathSegment("_apis/work/iterations")
-            .AppendPathSegment(iteration.IterationPath)
+            .AppendPathSegment(iteration.Id)
             .AppendPathSegment("workItemsOrder")
             .AppendQueryParam("api-version", "6.0-preview.1");
 
