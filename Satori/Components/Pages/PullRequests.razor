@@ -26,9 +26,7 @@ else
     <table class="table">
         <thead>
             <tr>
-                <th>PR#</th>
-                <th>Repo</th>
-                <th>Title</th>
+                <th>Pull Request</th>
                 <th>Work Items</th>
                 <th>Created By</th>
                 <th>Reviews</th>
@@ -38,16 +36,15 @@ else
             @foreach (var pullRequest in _pullRequests)
             {
                 <tr style="vertical-align:middle;">
-                    <td class="@ShowCellLinkClassName[pullRequest]" @onclick="() => OpenPullRequest(pullRequest)" @onmouseenter="() => EnableCellLink(pullRequest)" @onmouseleave="() => DisableCellLink(pullRequest)">
-                        @pullRequest.Id
-                    </td>
-                    <td class="@ShowCellLinkClassName[pullRequest]" @onclick="() => OpenPullRequest(pullRequest)" @onmouseenter="() => EnableCellLink(pullRequest)" @onmouseleave="() => DisableCellLink(pullRequest)">
-                        <span class="project">@pullRequest.Project/</span>
-                        <br/>
-                        @pullRequest.RepositoryName
-                    </td>
-                    <td class="@ShowCellLinkClassName[pullRequest]" @onclick="() => OpenPullRequest(pullRequest)" @onmouseenter="() => EnableCellLink(pullRequest)" @onmouseleave="() => DisableCellLink(pullRequest)">
-                        @pullRequest.Title
+                    <td class="cell-link" @onclick="() => OpenPullRequest(pullRequest)" title="Open PR#@(pullRequest.Id)">
+                        <div class="pullrequest-cell">
+                            <div class="pullrequest-id">@pullRequest.Id</div>
+                            <div>
+                                <span class="pullrequest-repositoryname">@pullRequest.Project/@pullRequest.RepositoryName</span>
+                                <br />
+                                <span class="pullrequest-title">@pullRequest.Title</span>
+                            </div>
+                        </div>
                     </td>
                     <td>
                         @foreach (var workItem in pullRequest.WorkItems)
@@ -133,7 +130,6 @@ else
     protected override async Task OnInitializedAsync()
     {
         _pullRequests = (await PullRequestService.GetPullRequestsAsync()).ToArray();
-        InitializeCellLinks(_pullRequests);
         StateHasChanged();  //Quickly show the PR list to the user.
 
         const int pageSize = 20;
@@ -146,36 +142,9 @@ else
 
     #region Cell Links
 
-    private Dictionary<PullRequest, CellLinkCssClass> ShowCellLinkClassName { get; set; } = [];
-
-    private void InitializeCellLinks(PullRequest[] pullRequests)
-    {
-        ShowCellLinkClassName = pullRequests.ToDictionary(pr => pr, _ => CellLinkCssClass.Disabled);
-    }
-
-    private void EnableCellLink(PullRequest pullRequest)
-    {
-        ShowCellLinkClassName[pullRequest] = CellLinkCssClass.Enabled;
-    }
-
-    private void DisableCellLink(PullRequest pullRequest)
-    {
-        ShowCellLinkClassName[pullRequest] = CellLinkCssClass.Disabled;
-    }
-
     private void OpenPullRequest(PullRequest pullRequest)
     {
         JsRuntime.InvokeVoidAsync("open", pullRequest.Url, "_blank");
-    }
-
-    internal class CellLinkCssClass : CssClass
-    {
-        private CellLinkCssClass(string className) : base(className)
-        {
-        }
-
-        public static readonly CellLinkCssClass Enabled = new("cell-link");
-        public static readonly CellLinkCssClass Disabled = new(string.Empty);
     }
 
     #endregion Cell Links
