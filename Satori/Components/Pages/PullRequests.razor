@@ -3,10 +3,9 @@
 @using Satori.AppServices.ViewModels.PullRequests
 @using Satori.AppServices.Services
 @using CodeMonkeyProjectiles.Linq
-@using Satori.Utilities
-@inject PullRequestService PullRequestService;
-@inject NavigationManager NavigationManager;
-@inject IJSRuntime JsRuntime;
+@using Satori.AppServices.ViewModels.WorkItems
+@inject PullRequestService PullRequestService
+@inject IJSRuntime JsRuntime
 
 <PageTitle>Pull Requests - Satori</PageTitle>
 
@@ -49,8 +48,8 @@ else
                     <td>
                         @foreach (var workItem in pullRequest.WorkItems)
                         {
-                            <div class="work-item @workItem.Type.CssClass">
-                                <a href="@workItem.Url">D#@workItem.Id</a> @workItem.Title
+                            <div class="work-item @workItem.Type.CssClass cell-link" @onclick="() => OpenWorkItem(workItem)" title="Open D#@(workItem.Id)">
+                                D#@workItem.Id @workItem.Title
                             </div>
                         }
                         @foreach (var projectCode in pullRequest.WorkItems.SelectWhereHasValue(wi => wi.ProjectCode).Distinct())
@@ -145,6 +144,10 @@ else
     private void OpenPullRequest(PullRequest pullRequest)
     {
         JsRuntime.InvokeVoidAsync("open", pullRequest.Url, "_blank");
+    }
+    private void OpenWorkItem(WorkItem workItem)
+    {
+        JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
     }
 
     #endregion Cell Links

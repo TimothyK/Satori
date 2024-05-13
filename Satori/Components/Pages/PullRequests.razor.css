@@ -17,12 +17,10 @@
     font-weight: bold;
 }
 .pullrequest-title {
-    font-weight: 400;
 }
 
 .pullrequest-repositoryname {
     font-size: 0.8em;
-    font-weight: normal;
     opacity: 0.6; /* text-muted */
 }
 
