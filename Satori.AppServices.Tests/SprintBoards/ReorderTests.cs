@@ -247,12 +247,7 @@ public class ReorderTests
         var azureDevOps = new ReorderAzureDevOpsServer(allWorkItems);
 
         var firstSprint = sprintGroups[0].Key;
-        var team = new TeamId
-        {
-            Id = firstSprint.TeamId,
-            TeamName = firstSprint.TeamName,
-            ProjectName = firstSprint.ProjectName
-        };
+        var iteration = (IterationId)firstSprint;
 
         var operation = new ReorderOperation
         {
@@ -262,7 +257,7 @@ public class ReorderTests
         };
 
         //Act
-        Should.Throw<ShouldAssertException>(() => azureDevOps.AsInterface().ReorderBacklogWorkItems(team, operation));
+        Should.Throw<ShouldAssertException>(() => azureDevOps.AsInterface().ReorderBacklogWorkItems(iteration, operation));
     }
     
     [TestMethod]
@@ -273,7 +268,7 @@ public class ReorderTests
 
         var azureDevOps = new ReorderAzureDevOpsServer(allWorkItems);
 
-        var team = Builder<TeamId>.New().Build();
+        var iteration = Builder<IterationId>.New().Build();
 
         var operation = new ReorderOperation
         {
@@ -283,7 +278,7 @@ public class ReorderTests
         };
 
         //Act
-        Should.Throw<ShouldAssertException>(() => azureDevOps.AsInterface().ReorderBacklogWorkItems(team, operation));
+        Should.Throw<ShouldAssertException>(() => azureDevOps.AsInterface().ReorderBacklogWorkItems(iteration, operation));
     }
 
     [TestMethod]

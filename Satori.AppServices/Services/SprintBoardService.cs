@@ -112,13 +112,7 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServe
 
     private async Task<List<WorkItem>> GetWorkItemsAsync(Sprint sprint)
     {
-        var iteration = new IterationId()
-        {
-            Id = sprint.Id,
-            IterationPath = sprint.IterationPath,
-            TeamName = sprint.TeamName,
-            ProjectName = sprint.ProjectName
-        };
+        var iteration = (IterationId)sprint;
 
         var relations = await azureDevOpsServer.GetIterationWorkItemsAsync(iteration);
         var workItemIds = relations.Select(x => x.Target.Id);
@@ -191,17 +185,12 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServe
         do
         {
             var sprint = movingItems.First().Sprint!;
-            var team = new TeamId
-            {
-                Id = sprint.TeamId,
-                TeamName = sprint.TeamName,
-                ProjectName = sprint.ProjectName
-            };
+            var iteration = (IterationId)sprint;
 
             var items = movingItems.TakeWhile(wi => wi.Sprint == sprint).ToArray();
             operation.Ids = items.Select(wi => wi.Id).ToArray();
 
-            var reorderResults = azureDevOpsServer.ReorderBacklogWorkItems(team, operation);
+            var reorderResults = azureDevOpsServer.ReorderBacklogWorkItems(iteration, operation);
 
             foreach (var map in reorderResults.Join(movingItems,
                          reorderResult => reorderResult.Id,

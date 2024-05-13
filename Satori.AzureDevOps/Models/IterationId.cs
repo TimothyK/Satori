@@ -7,6 +7,7 @@ public class IterationId
     /// </summary>
     public Guid Id { get; init; }
     public required string IterationPath { get; init; }
+    public required Guid TeamId { get; init; }
     public required string TeamName { get; init; }
     public required string ProjectName { get; init; }
 }

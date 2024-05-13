@@ -133,14 +133,16 @@ public class AzureDevOpsServer(
         return root.WorkItemRelations;
     }
 
-    public ReorderResult[] ReorderBacklogWorkItems(TeamId team, ReorderOperation operation)
+    public ReorderResult[] ReorderBacklogWorkItems(IterationId iteration, ReorderOperation operation)
     {
         var url = ConnectionSettings.Url
-            .AppendPathSegments(team.ProjectName, team.Id)
-            .AppendPathSegment("_apis/work/workItemsOrder")
+            .AppendPathSegments(iteration.ProjectName, iteration.TeamName)
+            .AppendPathSegment("_apis/work/iterations")
+            .AppendPathSegment(iteration.Id)
+            .AppendPathSegment("workItemsOrder")
             .AppendQueryParam("api-version", "6.0-preview.1");
+        operation.IterationPath = iteration.IterationPath;
 
-        using (Logger.BeginScope("{Team}", JsonSerializer.Serialize(team)))
         using (Logger.BeginScope("{ReorderOperation}", JsonSerializer.Serialize(operation)))
             Logger.LogInformation("PATCH {Url}", url);
 

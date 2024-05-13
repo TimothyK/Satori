@@ -1,7 +1,12 @@
-﻿namespace Satori.AppServices.ViewModels.Sprints;
+﻿using Satori.AzureDevOps.Models;
+
+namespace Satori.AppServices.ViewModels.Sprints;
 
 public class Sprint
 {
+    /// <summary>
+    /// IterationId
+    /// </summary>
     public Guid Id { get; init; }
     public required string Name { get; init; }  
     public required string IterationPath { get; init; }  
@@ -15,4 +20,14 @@ public class Sprint
     public required string TeamAvatarUrl { get; init; }
     public required string SprintBoardUrl { get; init; }
     public required string ProjectName { get; init; }
+
+    public static implicit operator IterationId(Sprint sprint) =>
+        new()
+        {
+            Id = sprint.Id , 
+            IterationPath = sprint.IterationPath, 
+            TeamId = sprint.TeamId,
+            TeamName = sprint.TeamName,
+            ProjectName = sprint.ProjectName,
+        };
 }

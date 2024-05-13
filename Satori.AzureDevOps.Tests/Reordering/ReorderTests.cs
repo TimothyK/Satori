@@ -17,10 +17,12 @@ public class ReorderTests
 
     private readonly ConnectionSettings _connectionSettings = Globals.Services.Scope.Resolve<ConnectionSettings>();
 
-    private Url GetUrl(TeamId team) =>
+    private Url GetUrl(IterationId iteration) =>
         _connectionSettings.Url
-            .AppendPathSegments(team.ProjectName, team.Id)
-            .AppendPathSegment("_apis/work/workItemsOrder")
+            .AppendPathSegments(iteration.ProjectName, iteration.TeamName)
+            .AppendPathSegment("_apis/work/iterations")
+            .AppendPathSegment(iteration.IterationPath)
+            .AppendPathSegment("workItemsOrder")
             .AppendQueryParam("api-version", "6.0-preview.1");
 
     private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
@@ -29,16 +31,17 @@ public class ReorderTests
 
     #region Act
 
-    private ReorderResult[] Reorder(TeamId team, ReorderOperation operation, RootObject<ReorderResult> expected)
+    private ReorderResult[] Reorder(IterationId iteration, ReorderOperation operation, RootObject<ReorderResult> expected)
     {
         //Arrange
-        _mockHttp.Expect(HttpMethod.Patch, GetUrl(team))
+        operation.IterationPath = iteration.IterationPath;
+        _mockHttp.Expect(HttpMethod.Patch, GetUrl(iteration))
             .WithContent(JsonSerializer.Serialize(operation))
             .Respond("application/json",  JsonSerializer.Serialize(expected));
         
         var srv = Globals.Services.Scope.Resolve<IAzureDevOpsServer>();
         //Act
-        return srv.ReorderBacklogWorkItems(team, operation);
+        return srv.ReorderBacklogWorkItems(iteration, operation);
     }
 
     #endregion Act
@@ -49,7 +52,7 @@ public class ReorderTests
     public void ASmokeTest()
     {
         //Arrange
-        var team = Builder<TeamId>.New().Build();
+        var iteration = Builder<IterationId>.New().Build();
         var operation = Builder<ReorderOperation>.New().Build();
         var expected = new RootObject<ReorderResult>
         {
@@ -58,7 +61,7 @@ public class ReorderTests
         };
 
         //Act
-        var actual = Reorder(team, operation, expected);
+        var actual = Reorder(iteration, operation, expected);
 
         //Assert
         actual.Length.ShouldBe(1);

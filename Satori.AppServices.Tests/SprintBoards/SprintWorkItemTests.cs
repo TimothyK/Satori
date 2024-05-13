@@ -186,12 +186,7 @@ public class SprintWorkItemTests
 
         //Act
         var srv = _azureDevOpsServer.AsInterface();
-        var iterationId = new IterationId
-        {
-            IterationPath = sprint.IterationPath,
-            TeamName = sprint.TeamName,
-            ProjectName = sprint.ProjectName
-        };
+        var iterationId = (IterationId)sprint;
         var relations = srv.GetIterationWorkItemsAsync(iterationId).Result;
         
         //Assert

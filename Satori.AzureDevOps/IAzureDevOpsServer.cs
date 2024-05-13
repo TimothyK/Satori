@@ -17,7 +17,7 @@ public interface IAzureDevOpsServer
     /// <summary>
     /// Reorder priority of work items
     /// </summary>
-    /// <param name="team"></param>
+    /// <param name="iteration"></param>
     /// <param name="operation"></param>
     /// <returns></returns>
     /// <remarks>
@@ -25,5 +25,5 @@ public interface IAzureDevOpsServer
     /// https://learn.microsoft.com/en-us/rest/api/azure/devops/work/workitemsorder/reorder-backlog-work-items?view=azure-devops-rest-6.0&tabs=HTTP
     /// </para>
     /// </remarks>
-    ReorderResult[] ReorderBacklogWorkItems(TeamId team, ReorderOperation operation);
+    ReorderResult[] ReorderBacklogWorkItems(IterationId iteration, ReorderOperation operation);
 }

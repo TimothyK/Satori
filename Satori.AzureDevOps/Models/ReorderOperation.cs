@@ -14,6 +14,8 @@ public class ReorderOperation
 {
     [JsonPropertyName("parentId")]
     public int ParentId { get; set; }
+    [JsonPropertyName("iterationPath")]
+    public string? IterationPath { get; set; }
     [JsonPropertyName("previousId")]
     public int PreviousId { get; set; }
     [JsonPropertyName("nextId")]

@@ -17,17 +17,17 @@ internal class ReorderAzureDevOpsServer
         _workItems = workItems as WorkItem[] ?? workItems.ToArray();
         _mock = new Mock<IAzureDevOpsServer>(MockBehavior.Strict);
 
-        _mock.Setup(srv => srv.ReorderBacklogWorkItems(It.IsAny<TeamId>(), It.IsAny<ReorderOperation>()))
-            .Returns((TeamId team, ReorderOperation operation) => ReorderBacklogWorkItems(team, operation));
+        _mock.Setup(srv => srv.ReorderBacklogWorkItems(It.IsAny<IterationId>(), It.IsAny<ReorderOperation>()))
+            .Returns((IterationId iteration, ReorderOperation operation) => ReorderBacklogWorkItems(iteration, operation));
     }
 
     public IAzureDevOpsServer AsInterface() => _mock.Object;
 
-    private ReorderResult[] ReorderBacklogWorkItems(TeamId team, ReorderOperation operation)
+    private ReorderResult[] ReorderBacklogWorkItems(IterationId iteration, ReorderOperation operation)
     {
-        Console.WriteLine($"Act: AzDO.ReorderBacklogWorkItems: For {team.TeamName} moving {string.Join(", ", operation.Ids)} between {operation.PreviousId} & {operation.NextId}");
+        Console.WriteLine($"Act: AzDO.ReorderBacklogWorkItems: For {iteration.TeamName} moving {string.Join(", ", operation.Ids)} between {operation.PreviousId} & {operation.NextId}");
 
-        AssertTeams(team, operation);
+        AssertIteration(iteration, operation);
 
         var previousPosition = _workItems.SingleOrDefault(wi => wi.Id == operation.PreviousId)?.AbsolutePriority ?? 0.0;
         var nextPosition = _workItems.SingleOrDefault(wi => wi.Id == operation.NextId)?.AbsolutePriority 
@@ -48,20 +48,20 @@ internal class ReorderAzureDevOpsServer
             results.Add(new ReorderResult() { Id = workItemId, Order = position });
         }
 
-        Console.WriteLine($"Act: AzDO.ReorderBacklogWorkItems: For {team.TeamName} moved  {string.Join(", ", results.Select(r => $"{r.Id}({r.Order:N2})"))}");
+        Console.WriteLine($"Act: AzDO.ReorderBacklogWorkItems: For {iteration.TeamName} moved  {string.Join(", ", results.Select(r => $"{r.Id}({r.Order:N2})"))}");
 
         return results.ToArray();
     }
 
-    private void AssertTeams(TeamId team, ReorderOperation operation)
+    private void AssertIteration(IterationId iteration, ReorderOperation operation)
     {
-        var teams = _workItems
+        var iterations = _workItems
             .Where(wi => wi.Id.IsIn(operation.Ids))
-            .SelectWhereHasValue(wi => wi.Sprint?.TeamId)
+            .SelectWhereHasValue(wi => wi.Sprint?.Id)
             .Distinct()
             .ToArray();
 
-        teams.Length.ShouldBe(1, "All WorkItems being moved must belong to the same team");
-        teams.Single().ShouldBe(team.Id, "All WorkItems being moved must belong to the given team");
+        iterations.Length.ShouldBe(1, "All WorkItems being moved must belong to the same iteration");
+        iterations.Single().ShouldBe(iteration.Id, "All WorkItems being moved must belong to the given iteration");
     }
 }
