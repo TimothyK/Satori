@@ -149,7 +149,14 @@ namespace Satori.Components.Pages
 
         private void StoreDefaultTeamIds()
         {
-            LocalStorage?.SetItemAsync(DefaultTeamIdsStorageKey, SelectedTeamIds);
+            if (LocalStorage == null)
+            {
+                return;
+            }
+
+#pragma warning disable CA2012
+            Task.Run(() => LocalStorage.SetItemAsync(DefaultTeamIdsStorageKey, SelectedTeamIds)).GetAwaiter().GetResult();
+#pragma warning restore CA2012
         }
 
         #endregion Local Storage
