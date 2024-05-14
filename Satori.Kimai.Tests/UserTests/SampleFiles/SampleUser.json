@@ -1,0 +1,42 @@
+{
+    "preferences": [
+        {
+            "name": "__wizards__",
+            "value": "intro,profile"
+        },
+        {
+            "name": "favorite_routes",
+            "value": ""
+        },
+        {
+            "name": "first_weekday",
+            "value": "monday"
+        },
+        {
+            "name": "hourly_rate",
+            "value": "0"
+        },
+        {
+            "name": "internal_rate",
+            "value": null
+        }
+    ],
+    "language": "en_CA",
+    "timezone": "America/Edmonton",
+    "teams": [],
+    "initials": "TK",
+    "id": 42,
+    "alias": "Timothy Klenke",
+    "title": "Code Monkey",
+    "avatar": "https://codemonkeyprojectiles.com/img/TimothyKlenke-2022.avatar.jpg",
+    "memberships": [],
+    "username": "TimothyK",
+    "accountNumber": "Domain\\TimothyK",
+    "enabled": true,
+    "roles": [
+        "ROLE_ADMIN",
+        "ROLE_TEAMLEAD",
+        "ROLE_SUPER_ADMIN"
+    ],
+    "color": "#ff0000"
+}
