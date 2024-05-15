@@ -1,5 +1,4 @@
 ﻿using Flurl;
-using Satori.AzureDevOps.Models;
 
 namespace Satori.AppServices.ViewModels;
 
@@ -11,13 +10,12 @@ public class Person
 
     #region Properties
 
-    public Guid AzureDevOpsId { get; init; }
+    public Guid AzureDevOpsId { get; private init; }
     public required string DisplayName { get; init; }
     public required Uri AvatarUrl { get; init; }
-    public string? JobTitle { get; set; }
-    public string? EmailAddress { get; set; }
-    public string? DomainLogin { get; set; }
-    public int? KimaiId { get; set; }
+    public string? EmailAddress { get; private init; }
+    public string? DomainLogin { get; private init; }
+    public int? KimaiId { get; private init; }
 
     #endregion Properties
 
@@ -59,7 +57,7 @@ public class Person
 
     #region Casting
 
-    public static implicit operator Person(User? user)
+    public static implicit operator Person(AzureDevOps.Models.User? user)
     {
         return user == null ? Null 
             : FromAzureDevOpsId(user.Id, CreatePerson);
@@ -72,6 +70,36 @@ public class Person
                 DisplayName = user.DisplayName,
                 AvatarUrl = new Uri(user.ImageUrl),
                 DomainLogin = user.UniqueName,
+            };
+        }
+    }
+
+    public static Person From(AzureDevOps.Models.Identity azDoIdentity, Kimai.Models.User kimaiUser, AzureDevOps.ConnectionSettings azDoSettings)
+    {
+        lock (PeopleLock)
+        {
+            var cache = People.GetValueOrDefault(azDoIdentity.Id);
+            if (cache != null && cache.KimaiId == kimaiUser.Id)
+            {
+                return cache;
+            }
+            if (cache != null)
+            {
+                People.Remove(cache.AzureDevOpsId);
+            }
+            return FromAzureDevOpsId(azDoIdentity.Id, CreatePerson);
+        }
+
+        Person CreatePerson()
+        {
+            return new Person()
+            {
+                AzureDevOpsId = azDoIdentity.Id,
+                DisplayName = azDoIdentity.ProviderDisplayName,
+                AvatarUrl = kimaiUser.Avatar ?? azDoSettings.Url.AppendPathSegment("_api/_common/identityImage").AppendQueryParam("id", azDoIdentity.Id).ToUri(),
+                EmailAddress = azDoIdentity.Properties.Mail?.Value,
+                KimaiId = kimaiUser.Id,
+                DomainLogin = $@"{azDoIdentity.Properties.Domain?.Value}\{azDoIdentity.Properties.Account?.Value}",
             };
         }
     }
