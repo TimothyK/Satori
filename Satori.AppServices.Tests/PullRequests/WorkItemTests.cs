@@ -98,7 +98,7 @@ public class WorkItemTests
         actual.ShouldNotBeNull();
         actual.Id.ShouldBe(expected.Id);
         actual.DisplayName.ShouldBe(expected.DisplayName);
-        actual.AvatarUrl.ShouldBe(expected.ImageUrl);
+        actual.AvatarUrl.ToString().ShouldBe(expected.ImageUrl);
     }
     
     [TestMethod] 
@@ -111,7 +111,7 @@ public class WorkItemTests
         actual.ShouldNotBeNull();
         actual.Id.ShouldBe(expected.Id);
         actual.DisplayName.ShouldBe(expected.DisplayName);
-        actual.AvatarUrl.ShouldBe(expected.ImageUrl);
+        actual.AvatarUrl.ToString().ShouldBe(expected.ImageUrl);
     }
 
     [TestMethod] public void CreatedDate() => GetSingleWorkItem().CreatedDate.ShouldBe(Expected.Fields.SystemCreatedDate);

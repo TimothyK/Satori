@@ -128,7 +128,7 @@ public class PullRequestService(IAzureDevOpsServer azureDevOpsServer, ILoggerFac
             {
                 Id = reviewer.Id,
                 DisplayName = reviewer.DisplayName,
-                AvatarUrl = reviewer.ImageUrl,
+                AvatarUrl = new Uri(reviewer.ImageUrl),
             },
         };
     }

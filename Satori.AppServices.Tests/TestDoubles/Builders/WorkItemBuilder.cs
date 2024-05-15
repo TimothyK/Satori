@@ -26,6 +26,11 @@ internal class WorkItemBuilder
         workItem.Fields.State = ScrumState.Committed.ToApiValue();
         workItem.Fields.Triage = null;
         workItem.Url = $"http://devops.test/Org/{workItem.Fields.ProjectName}/_apis/wit/workItems/{workItem.Id}";
+        if (workItem.Fields.AssignedTo != null)
+        {
+            workItem.Fields.AssignedTo.ImageUrl = $"http://devops.test/Org/_api/_common/identityImage?id={workItem.Fields.AssignedTo.Id}";
+        }
+        workItem.Fields.CreatedBy.ImageUrl = $"http://devops.test/Org/_api/_common/identityImage?id={workItem.Fields.CreatedBy.Id}";
         return workItem;
     }
 

@@ -259,7 +259,7 @@ public class SprintWorkItemTests
         vm.AssignedTo.ShouldNotBeNull();
         vm.AssignedTo.Id.ShouldBe(workItem.Fields.AssignedTo.Id);
         vm.AssignedTo.DisplayName.ShouldBe(workItem.Fields.AssignedTo.DisplayName);
-        vm.AssignedTo.AvatarUrl.ShouldBe(workItem.Fields.AssignedTo.ImageUrl);
+        vm.AssignedTo.AvatarUrl.ToString().ShouldBe(workItem.Fields.AssignedTo.ImageUrl);
     }
     
     [TestMethod]
@@ -293,7 +293,7 @@ public class SprintWorkItemTests
         vm.AssignedTo.ShouldNotBeNull();
         vm.CreatedBy.Id.ShouldBe(workItem.Fields.CreatedBy.Id);
         vm.CreatedBy.DisplayName.ShouldBe(workItem.Fields.CreatedBy.DisplayName);
-        vm.CreatedBy.AvatarUrl.ShouldBe(workItem.Fields.CreatedBy.ImageUrl);
+        vm.CreatedBy.AvatarUrl.ToString().ShouldBe(workItem.Fields.CreatedBy.ImageUrl);
     }
 
     [TestMethod]

@@ -31,6 +31,13 @@ public class PullRequestTests
         return _builder.BuildPullRequest().PullRequest;
     }
 
+    private static Reviewer BuildReviewerWithVote(int vote)
+    {
+        var reviewer = Builder.Builder<Reviewer>.New().Build(x => x.Vote = vote);
+        reviewer.ImageUrl = $"http://devops.test/Org/_api/_common/identityImage?id={reviewer.Id}";
+        return reviewer;
+    }
+
     #endregion Arrange
 
     #region Act
@@ -210,7 +217,7 @@ public class PullRequestTests
         //Assert
         actual.Id.ShouldBe(expected.Id);
         actual.DisplayName.ShouldBe(expected.DisplayName);
-        actual.AvatarUrl.ShouldBe(expected.ImageUrl);
+        actual.AvatarUrl.ToString().ShouldBe(expected.ImageUrl);
     }
         
     [TestMethod]
@@ -218,7 +225,7 @@ public class PullRequestTests
     {
         //Arrange
         var pr = BuildPullRequest();
-        var expected = Builder.Builder<Reviewer>.New().Build(x => x.Vote = 0);
+        var expected = BuildReviewerWithVote(0);
         pr.Reviewers = [expected];
 
         //Act
@@ -228,7 +235,7 @@ public class PullRequestTests
         //Assert
         actual.Reviewer.Id.ShouldBe(expected.Id);
         actual.Reviewer.DisplayName.ShouldBe(expected.DisplayName);
-        actual.Reviewer.AvatarUrl.ShouldBe(expected.ImageUrl);
+        actual.Reviewer.AvatarUrl.ToString().ShouldBe(expected.ImageUrl);
         actual.IsRequired.ShouldBe(expected.IsRequired);
         actual.Vote.ShouldBe(ReviewVote.NoVote);
     }
@@ -243,7 +250,7 @@ public class PullRequestTests
     {
         //Arrange
         var pr = BuildPullRequest();
-        var reviewer = Builder.Builder<Reviewer>.New().Build(x => x.Vote = (int)expected);
+        var reviewer = BuildReviewerWithVote((int)expected);
         pr.Reviewers = [reviewer];
 
         //Act

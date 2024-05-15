@@ -13,7 +13,7 @@ internal static class UserExtensions
         {
             Id = user.Id,
             DisplayName = user.DisplayName,
-            AvatarUrl = user.ImageUrl,
+            AvatarUrl = new Uri(user.ImageUrl),
         };
     }
 
