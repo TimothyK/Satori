@@ -215,7 +215,7 @@ public class PullRequestTests
             .CreatedBy;
 
         //Assert
-        actual.Id.ShouldBe(expected.Id);
+        actual.AzureDevOpsId.ShouldBe(expected.Id);
         actual.DisplayName.ShouldBe(expected.DisplayName);
         actual.AvatarUrl.ToString().ShouldBe(expected.ImageUrl);
     }
@@ -233,7 +233,7 @@ public class PullRequestTests
             .Reviews.Single();
 
         //Assert
-        actual.Reviewer.Id.ShouldBe(expected.Id);
+        actual.Reviewer.AzureDevOpsId.ShouldBe(expected.Id);
         actual.Reviewer.DisplayName.ShouldBe(expected.DisplayName);
         actual.Reviewer.AvatarUrl.ToString().ShouldBe(expected.ImageUrl);
         actual.IsRequired.ShouldBe(expected.IsRequired);

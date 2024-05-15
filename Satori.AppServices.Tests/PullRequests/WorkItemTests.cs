@@ -96,7 +96,7 @@ public class WorkItemTests
         var actual = GetSingleWorkItem().AssignedTo;
 
         actual.ShouldNotBeNull();
-        actual.Id.ShouldBe(expected.Id);
+        actual.AzureDevOpsId.ShouldBe(expected.Id);
         actual.DisplayName.ShouldBe(expected.DisplayName);
         actual.AvatarUrl.ToString().ShouldBe(expected.ImageUrl);
     }
@@ -109,7 +109,7 @@ public class WorkItemTests
         var actual = GetSingleWorkItem().CreatedBy;
 
         actual.ShouldNotBeNull();
-        actual.Id.ShouldBe(expected.Id);
+        actual.AzureDevOpsId.ShouldBe(expected.Id);
         actual.DisplayName.ShouldBe(expected.DisplayName);
         actual.AvatarUrl.ToString().ShouldBe(expected.ImageUrl);
     }

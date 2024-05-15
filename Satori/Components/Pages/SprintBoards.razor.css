@@ -12,12 +12,6 @@
     width: 24px;
     height: 24px;
 }
-.unassigned {
-    width: 24px;
-    height: 24px;
-    text-align: center;  
-    vertical-align: middle;
-}
 
 .team-selector .avatar-cell {
     border: 5px solid white;

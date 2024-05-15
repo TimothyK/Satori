@@ -26,8 +26,8 @@ namespace Satori.AppServices.Services.Converters
             {
                 Id = id,
                 Title = wi.Fields.Title,
-                AssignedTo = wi.Fields.AssignedTo.ToNullableViewModel(),
-                CreatedBy = wi.Fields.CreatedBy.ToViewModel(),
+                AssignedTo = wi.Fields.AssignedTo,
+                CreatedBy = wi.Fields.CreatedBy,
                 CreatedDate = wi.Fields.SystemCreatedDate,
                 IterationPath = wi.Fields.IterationPath ?? string.Empty,
                 AbsolutePriority = wi.Fields.BacklogPriority > 0.0 ? wi.Fields.BacklogPriority : double.MaxValue,

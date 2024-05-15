@@ -98,19 +98,10 @@ else
                                             </div>
                                         </div>
                                     }
-                                    @if (workItem.AssignedTo != null)
-                                    {
-                                        <div class="avatar-cell">
-                                            <img src="@workItem.AssignedTo.AvatarUrl"
-                                                 alt="@workItem.AssignedTo.DisplayName"/>
-                                        </div>
-                                    }
-                                    else 
-                                    {
-                                        <div class="avatar-cell">
-                                            <div class="unassigned">?</div>
-                                        </div>
-                                    }
+                                    <div class="avatar-cell">
+                                        <img src="@workItem.AssignedTo.AvatarUrl"
+                                             alt="@workItem.AssignedTo.DisplayName"/>
+                                    </div>
                                 </div>
                                 <div class="work-item-status">@workItem.StatusLabel</div>
                                 @if (workItem.Blocked)
@@ -134,20 +125,11 @@ else
                         @foreach (var task in workItem.Children.OrderByDescending(wi => wi.State).ThenBy(wi => wi.Id))
                         {
                         <div class="task-status @task.StatusCssClass cell-link" style="display: flex;" @onclick="() => OpenWorkItem(task)" title="Open D#@(task.Id)">
-                            @if (task.AssignedTo != null)
-                            {
-                                <div class="avatar-cell">
-                                    <img src="@task.AssignedTo.AvatarUrl"
-                                         alt="@task.AssignedTo.DisplayName"
-                                         title="@task.AssignedTo.DisplayName" />
-                                </div>
-                            }
-                            else 
-                            {
-                                <div class="avatar-cell">
-                                    <div class="unassigned">?</div>
-                                </div>
-                            }
+                            <div class="avatar-cell">
+                                <img src="@task.AssignedTo.AvatarUrl"
+                                     alt="@task.AssignedTo.DisplayName"
+                                     title="@task.AssignedTo.DisplayName" />
+                            </div>
                             <div>
                                 @task.Title
                             </div>

@@ -3,6 +3,7 @@ using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.Builders;
 using Satori.AppServices.Tests.TestDoubles.Services;
+using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps.Models;
@@ -257,7 +258,7 @@ public class SprintWorkItemTests
         //Assert
         var vm = workItems.Single();
         vm.AssignedTo.ShouldNotBeNull();
-        vm.AssignedTo.Id.ShouldBe(workItem.Fields.AssignedTo.Id);
+        vm.AssignedTo.AzureDevOpsId.ShouldBe(workItem.Fields.AssignedTo.Id);
         vm.AssignedTo.DisplayName.ShouldBe(workItem.Fields.AssignedTo.DisplayName);
         vm.AssignedTo.AvatarUrl.ToString().ShouldBe(workItem.Fields.AssignedTo.ImageUrl);
     }
@@ -275,7 +276,15 @@ public class SprintWorkItemTests
 
         //Assert
         var vm = workItems.Single();
-        vm.AssignedTo.ShouldBeNull();
+        vm.AssignedTo.ShouldBe(Person.Null);
+    }
+
+    [TestMethod]
+    public void NullPerson()
+    {
+        Person.Null.AzureDevOpsId.ShouldBe(Guid.Empty);
+        Person.Null.DisplayName.ShouldBe("Unknown/Unassigned");
+        Person.Null.AvatarUrl.ToString().ShouldBe("/images/NullAvatar.png");
     }
 
     [TestMethod]
@@ -291,7 +300,7 @@ public class SprintWorkItemTests
         //Assert
         var vm = workItems.Single();
         vm.AssignedTo.ShouldNotBeNull();
-        vm.CreatedBy.Id.ShouldBe(workItem.Fields.CreatedBy.Id);
+        vm.CreatedBy.AzureDevOpsId.ShouldBe(workItem.Fields.CreatedBy.Id);
         vm.CreatedBy.DisplayName.ShouldBe(workItem.Fields.CreatedBy.DisplayName);
         vm.CreatedBy.AvatarUrl.ToString().ShouldBe(workItem.Fields.CreatedBy.ImageUrl);
     }

@@ -103,7 +103,7 @@ public class PullRequestService(IAzureDevOpsServer azureDevOpsServer, ILoggerFac
             Status = pr.IsDraft ? Status.Draft : Status.Open,
             AutoComplete = !string.IsNullOrEmpty(pr.CompletionOptions?.MergeCommitMessage),
             CreationDate = pr.CreationDate,
-            CreatedBy = pr.CreatedBy.ToViewModel(),
+            CreatedBy = pr.CreatedBy,
             Reviews = reviews,
             Labels = pr.Labels?.Where(label => label.Active).Select(label => label.Name).ToList() ?? [],
             WorkItems = [],
@@ -124,12 +124,7 @@ public class PullRequestService(IAzureDevOpsServer azureDevOpsServer, ILoggerFac
         {
             IsRequired = reviewer.IsRequired,
             Vote = (ReviewVote)reviewer.Vote,
-            Reviewer = new Person()
-            {
-                Id = reviewer.Id,
-                DisplayName = reviewer.DisplayName,
-                AvatarUrl = new Uri(reviewer.ImageUrl),
-            },
+            Reviewer = reviewer,
         };
     }
 

@@ -7,7 +7,7 @@ public class WorkItem
     public int Id { get; init; }
     public string? Title { get; init; }
     public required string Url { get; init; }
-    public Person? AssignedTo { get; init; }
+    public required Person AssignedTo { get; init; }
     public required Person CreatedBy { get; init; }
     public DateTimeOffset CreatedDate { get; init; }
     public string? IterationPath { get; init; }
