@@ -1,0 +1,51 @@
+{
+  "id": "c00ef764-dc77-4b32-9a19-590db59f039b",
+  "descriptor": "System.Security.Principal.WindowsIdentity;S-1-5-21-1234567890-123456789-012345678-9012",
+  "subjectDescriptor": "win.MDA0NzBlMzQtZGE2MS03YTY5LWJkOTYtNDg3YTg0OWVjNTU4",
+  "providerDisplayName": "Timothy Klenke",
+  "isActive": true,
+  "members": [],
+  "memberOf": [],
+  "memberIds": [],
+  "masterId": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+  "properties": {
+    "SchemaClassName": {
+      "$type": "System.String",
+      "$value": "User"
+    },
+    "Description": {
+      "$type": "System.String",
+      "$value": "Code Monkey"
+    },
+    "Domain": {
+      "$type": "System.String",
+      "$value": "Domain"
+    },
+    "Account": {
+      "$type": "System.String",
+      "$value": "TimothyK"
+    },
+    "DN": {
+      "$type": "System.String",
+      "$value": "CN=Timothy Klenke,CN=Users,DC=domain,DC=klenkeverse,DC=com"
+    },
+    "Mail": {
+      "$type": "System.String",
+      "$value": "timothy@klenkeverse.com"
+    },
+    "SpecialType": {
+      "$type": "System.String",
+      "$value": "Generic"
+    },
+    "ComplianceValidated": {
+      "$type": "System.DateTime",
+      "$value": "2024-05-14T00:00:00Z"
+    },
+    "DirectoryAlias": {
+      "$type": "System.String",
+      "$value": "Timothyk"
+    }
+  },
+  "resourceVersion": 2,
+  "metaTypeId": 255
+}

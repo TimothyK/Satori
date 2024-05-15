@@ -69,5 +69,15 @@ namespace Satori.AzureDevOps.Tests.Users.SampleFiles {
                 return ((byte[])(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Identity {
+            get {
+                object obj = ResourceManager.GetObject("Identity", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }

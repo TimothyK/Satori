@@ -171,6 +171,16 @@ public class AzureDevOpsServer(
         return connectionData.AuthenticatedUser.Id;
     }
 
+    public async Task<Identity> GetIdentityAsync(Guid id)
+    {
+        var url = ConnectionSettings.Url
+            .AppendPathSegment("_apis/Identities")
+            .AppendPathSegment(id)
+            .AppendQueryParam("api-version", "6.0-preview.1");
+
+        return await GetAsync<Identity>(url);
+    }
+
     private async Task<T[]> GetRootValueAsync<T>(Url url)
     {
         var root = await GetAsync<RootObject<T>>(url);
@@ -206,7 +216,7 @@ public class AzureDevOpsServer(
     private void AddAuthHeader(HttpRequestMessage request)
     {
         var userNamePasswordPair = $":{ConnectionSettings.PersonalAccessToken}";
-        var cred = Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes(userNamePasswordPair));
+        var cred = Convert.ToBase64String(Encoding.ASCII.GetBytes(userNamePasswordPair));
         request.Headers.Add("Authorization", $"Basic {cred}");
     }
 }
