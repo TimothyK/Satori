@@ -161,6 +161,16 @@ public class AzureDevOpsServer(
         return root.Value;
     }
 
+    public async Task<Guid> GetCurrentUserIdAsync()
+    {
+        var url = ConnectionSettings.Url
+            .AppendPathSegment("_apis/ConnectionData")
+            .AppendQueryParam("api-version", "6.0-preview.1");
+
+        var connectionData = await GetAsync<ConnectionData>(url);
+        return connectionData.AuthenticatedUser.Id;
+    }
+
     private async Task<T[]> GetRootValueAsync<T>(Url url)
     {
         var root = await GetAsync<RootObject<T>>(url);

@@ -26,4 +26,7 @@ public interface IAzureDevOpsServer
     /// </para>
     /// </remarks>
     ReorderResult[] ReorderBacklogWorkItems(IterationId iteration, ReorderOperation operation);
+
+    Task<Guid> GetCurrentUserIdAsync();
+    
 }
