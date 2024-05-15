@@ -1,0 +1,186 @@
+[
+    {
+        "tags": [],
+        "id": 3323,
+        "begin": "2024-05-13T21:49:00-0600",
+        "end": "2024-05-13T23:18:00-0600",
+        "duration": 5340,
+        "user": {
+            "initials": "TK",
+            "id": 2,
+            "alias": "Timothy Klenke",
+            "title": "Dev",
+            "username": "Timothy Klenke",
+            "accountNumber": "Domain\\TimothyK",
+            "enabled": true,
+            "color": "#ff0000"
+        },
+        "activity": {
+            "id": 9696,
+            "project": null,
+            "name": "TBD",
+            "comment": "To Be Determined.  This activity must be changed before the time can be successfully exported",
+            "visible": true,
+            "billable": false,
+            "color": "#ff0000"
+        },
+        "project": {
+            "id": 347,
+            "customer": {
+                "id": 1,
+                "name": "Code Monkey Projectiles",
+                "number": "0",
+                "comment": null,
+                "visible": true,
+                "billable": true,
+                "color": "#c0c0c0"
+            },
+            "name": "TBD",
+            "comment": "To Be Determined.  Time against this project must be moved to a new project before it can be successfully exported.",
+            "visible": true,
+            "billable": false,
+            "globalActivities": true,
+            "color": "#ff0000"
+        },
+        "description": "D#12345 Fix bug » D#12346 Testing \r\n🏆 I fixed the bug",
+        "rate": 0.0,
+        "internalRate": 0.0,
+        "exported": false,
+        "billable": false,
+        "metaFields": []
+    },
+    {
+        "tags": [],
+        "id": 3322,
+        "begin": "2024-05-09T10:04:00-0600",
+        "end": "2024-05-09T10:58:00-0600",
+        "duration": 3240,
+        "user": {
+            "initials": "TK",
+            "id": 2,
+            "alias": "Timothy Klenke",
+            "title": "Dev",
+            "username": "Timothy Klenke",
+            "accountNumber": "Domain\\TimothyK",
+            "enabled": true,
+            "color": "#ff0000"
+        },
+        "activity": {
+            "id": 9453,
+            "project": {
+                "id": 337,
+                "customer": {
+                    "id": 2,
+                    "name": "Acme Inc",
+                    "number": "AcmeFsk",
+                    "comment": null,
+                    "visible": true,
+                    "billable": true,
+                    "color": "#800000"
+                },
+                "name": "1234 Acme Web App Enhancements",
+                "comment": "PO#1234",
+                "visible": true,
+                "billable": true,
+                "globalActivities": false,
+                "color": "#00bfff"
+            },
+            "name": "1.2.3 Custom Software Development » March 2024",
+            "comment": "Development for March [TaskKey=123]",
+            "visible": true,
+            "billable": false,
+            "color": "#c0c0c0"
+        },
+        "project": {
+            "id": 337,
+            "customer": {
+                "id": 2,
+                "name": "Acme Inc",
+                "number": "AcmeFsk",
+                "comment": null,
+                "visible": true,
+                "billable": true,
+                "color": "#800000"
+            },
+            "name": "1234 Acme Web App Enhancements",
+            "comment": "PO#1234",
+            "visible": true,
+            "billable": true,
+            "globalActivities": false,
+            "color": "#00bfff"
+        },
+        "description": "D#12340 Login Bug » D#12341 Coding",
+        "rate": 0.0,
+        "internalRate": 0.0,
+        "exported": false,
+        "billable": false,
+        "metaFields": []
+    },
+    {
+        "tags": [],
+        "id": 3321,
+        "begin": "2024-05-08T10:58:00-0600",
+        "end": "2024-05-08T11:36:00-0600",
+        "duration": 2280,
+        "user": {
+            "initials": "TK",
+            "id": 2,
+            "alias": "Timothy Klenke",
+            "title": "Dev",
+            "username": "Timothy Klenke",
+            "accountNumber": "Domain\\TimothyK",
+            "enabled": true,
+            "color": "#ff0000"
+        },
+        "activity": {
+            "id": 9653,
+            "project": {
+                "id": 345,
+                "customer": {
+                    "id": 7,
+                    "name": "Vandalay Industries",
+                    "number": "FSK-VAN",
+                    "comment": "Headquarters",
+                    "visible": true,
+                    "billable": true,
+                    "color": "#800000"
+                },
+                "name": "1235 B2B Interface Enhancements",
+                "comment": "Interface to SAP",
+                "visible": true,
+                "billable": true,
+                "globalActivities": false,
+                "color": "#808080"
+            },
+            "name": "1.3.6 Custom Software Development » April 2024",
+            "comment": "Development for April [TaskKey=124]",
+            "visible": true,
+            "billable": false,
+            "color": "#c0c0c0"
+        },
+        "project": {
+            "id": 345,
+            "customer": {
+                "id": 7,
+                "name": "Vandalay Industries",
+                "number": "FSK-VAN",
+                "comment": "Headquarters",
+                "visible": true,
+                "billable": true,
+                "color": "#800000"
+            },
+            "name": "1235 B2B Interface Enhancements",
+            "comment": "Interface to SAP",
+            "visible": true,
+            "billable": true,
+            "globalActivities": false,
+            "color": "#808080"
+        },
+        "description": "Internal meeting",
+        "rate": 0.0,
+        "internalRate": 0.0,
+        "exported": false,
+        "billable": false,
+        "metaFields": []
+    }
+]

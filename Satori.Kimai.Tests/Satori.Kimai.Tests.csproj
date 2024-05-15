@@ -11,6 +11,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.3.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.3.1" />
+    <PackageReference Include="Object.Builder" Version="1.2.0" />
     <PackageReference Include="RichardSzalay.MockHttp" Version="7.0.0" />
     <PackageReference Include="Shouldly" Version="4.2.1" />
   </ItemGroup>
@@ -20,6 +21,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="TimeSheetTests\SampleFiles\SampleResponses.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SampleResponses.resx</DependentUpon>
+    </Compile>
     <Compile Update="UserTests\SampleFiles\SampleUsers.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -28,6 +34,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="TimeSheetTests\SampleFiles\SampleResponses.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>SampleResponses.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Update="UserTests\SampleFiles\SampleUsers.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>SampleUsers.Designer.cs</LastGenOutput>

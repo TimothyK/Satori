@@ -14,23 +14,37 @@ public class KimaiServer(
 
     private ILogger<KimaiServer> Logger => loggerFactory.CreateLogger<KimaiServer>();
 
+    public async Task<TimeEntry[]> GetTimeSheetAsync(TimeSheetFilter filter)
+    {
+        var url = connectionSettings.Url
+            .AppendPathSegment("api/timesheets")
+            .AppendQueryParams(filter);
+
+        return (await GetAsync<TimeEntry[]>(url));
+    }
+
     public async Task<User> GetMyUserAsync()
     {
         var url = connectionSettings.Url
             .AppendPathSegment("api/users/me");
 
+        return await GetAsync<User>(url);
+    }
+
+    private async Task<T> GetAsync<T>(Url url)
+    {
         var request = new HttpRequestMessage(HttpMethod.Get, url);
         AddAuthHeader(request);
         Logger.LogInformation("{Method} {Url}", request.Method.ToString().ToUpper(), request.RequestUri);
-        
+
         var response = await httpClient.SendAsync(request);
         await VerifySuccessfulResponseAsync(response);
 
         await using var responseStream = await response.Content.ReadAsStreamAsync();
-        var user = await JsonSerializer.DeserializeAsync<User>(responseStream)
+        var result = await JsonSerializer.DeserializeAsync<T>(responseStream)
                    ?? throw new ApplicationException("Server did not respond");
 
-        return user;
+        return result;
     }
 
     private void AddAuthHeader(HttpRequestMessage request)

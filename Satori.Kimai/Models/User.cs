@@ -1,13 +1,13 @@
 ﻿using System.Text.Json.Serialization;
+// ReSharper disable UnusedAutoPropertyAccessor.Global
+// ReSharper disable ClassNeverInstantiated.Global
 
 namespace Satori.Kimai.Models;
 
-// ReSharper disable ClassNeverInstantiated.Global
-// ReSharper disable UnusedAutoPropertyAccessor.Global
 public class User
 {
     [JsonPropertyName("preferences")] 
-    public required Preference[] Preferences { get; set; }
+    public Preference[]? Preferences { get; set; }
 
     [JsonPropertyName("timezone")]
     public string? TimeZone { get; set; }
@@ -31,7 +31,6 @@ public class User
     public bool Enabled { get; set; }
 }
 
-// ReSharper disable once ClassNeverInstantiated.Global
 public class Preference
 {
     [JsonPropertyName("name")]

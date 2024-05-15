@@ -53,5 +53,11 @@ public class UserTests
     [TestMethod] public void AccountNumber() => GetMyUser().AccountNumber.ShouldBe(@"Domain\TimothyK");
     [TestMethod] public void Avatar() => GetMyUser().Avatar.ShouldBe(new Uri("https://codemonkeyprojectiles.com/img/TimothyKlenke-2022.avatar.jpg"));
     [TestMethod] public void Enabled() => GetMyUser().Enabled.ShouldBeTrue();
-    [TestMethod] public void PreferenceFirstWeekday() => GetMyUser().Preferences.Single(p => p.Name == "first_weekday").Value.ShouldBe("monday");
+
+    [TestMethod] public void PreferenceFirstWeekday()
+    {
+        var user = GetMyUser();
+        user.Preferences.ShouldNotBeNull();
+        user.Preferences.Single(p => p.Name == "first_weekday").Value.ShouldBe("monday");
+    }
 }
