@@ -1,6 +1,8 @@
-﻿@rendermode InteractiveServer
+﻿@using Satori.AppServices.Services
+@using Satori.AppServices.ViewModels
+@rendermode InteractiveServer
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
-
+@inject UserService UserService
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         
@@ -24,6 +26,13 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
+        @if (CurrentUser != null)
+        {
+            <div style="width=100%; margin: 5px; text-align:center;">
+                <img src="@CurrentUser.AvatarUrl" class="avatar" alt="Logged in as @CurrentUser.DisplayName"/>
+            </div>
+        }
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span>
@@ -43,7 +52,7 @@
                 }
             </NavLink>
         </div>
-        
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="PullRequests">
                 <span class="bi bi-bucket-fill-nav-menu" aria-hidden="true"></span>
@@ -70,6 +79,14 @@
 </div>
 
 @code {
+
+    private Person? CurrentUser { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentUser = await UserService.GetCurrentUserAsync();
+    }
+
     //bool to send to MainLayout for shrinking sidebar and showing/hide menu text
     private bool IconMenuActive { get; set; } = false;
 
