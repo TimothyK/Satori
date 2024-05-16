@@ -69,7 +69,15 @@ namespace Satori.Components.Pages
                     ChangePeriod(Period.LastTwoDays);
                     break;
                 case Period.LastTwoDays:
-                    ChangePeriod(Period.WorkWeek);
+                    if (BeginDate < GetStartOfWeek(DateTime.Today))
+                    {
+                        SetPeriod(Period.WorkWeek);
+                        SetBeginDate(GetStartOfWeek(BeginDate));
+                    }
+                    else
+                    {
+                        ChangePeriod(Period.WorkWeek);
+                    }
                     break;
                 case Period.WorkWeek:
                     if (DateTime.Today.AddDays(-6) < BeginDate)
@@ -115,7 +123,14 @@ namespace Satori.Components.Pages
                     }
                     break;
                 case Period.LastSevenDays:
-                    ChangePeriod(Period.WorkWeek);
+                    if (GetStartOfWeek(DateTime.Today) == DateTime.Today)
+                    {
+                        ChangePeriod(Period.LastTwoDays);
+                    }
+                    else
+                    {
+                        ChangePeriod(Period.WorkWeek);
+                    }
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(Period), Period, "Unknown enum value");
