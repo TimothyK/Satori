@@ -1,0 +1,44 @@
+﻿@page "/DailyStandUps"
+@using Satori.AppServices.ViewModels.DailyStandUps
+@attribute [StreamRendering]
+
+<h3>Daily Stand-Ups</h3>
+
+
+<div class="filter-row">
+    <div class="filter-label">Date Range:</div>
+    <div class="dropdown">
+        <button class="dropbtn">@PeriodText 🔽</button>
+        <div class="dropdown-content">
+            <div class="dropdown-content-menu" @onclick="() => ChangePeriod(Period.Today)">Today</div>
+            <div class="dropdown-content-menu" @onclick="() => ChangePeriod(Period.LastTwoDays)">Last 2 Days</div>
+            <div class="dropdown-content-menu" @onclick="() => ChangePeriod(Period.WorkWeek)">Work Week</div>
+            <div class="dropdown-content-menu" @onclick="() => ChangePeriod(Period.LastSevenDays)">Last 7 Days</div>
+            <div class="dropdown-content-menu" @onclick="() => ChangePeriod(Period.FirstUnexported)">First Unexported</div>
+        </div>
+    </div>
+
+</div>
+
+@code {
+
+    private Period Period { get; set; } = Period.LastSevenDays;
+
+    private string PeriodText { get; set; } = "Last 7 Days";
+    private DateTime BeginDate { get; set; }
+
+    private void ChangePeriod(Period period)
+    {
+        Period = period;
+        PeriodText = period switch
+        {
+            Period.Today => "Today",
+            Period.LastTwoDays => "Last 2 Days",
+            Period.WorkWeek => "Work Week",
+            Period.LastSevenDays => "Last 7 Days",
+            Period.FirstUnexported => "First Unexported",
+            _ => PeriodText
+        };
+    }
+
+}
