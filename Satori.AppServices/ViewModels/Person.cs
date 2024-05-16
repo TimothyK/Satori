@@ -1,4 +1,7 @@
 ﻿using Flurl;
+using KimaiUser = Satori.Kimai.Models.User;
+using AzDoUser = Satori.AzureDevOps.Models.User;
+using ConnectionSettings = Satori.AzureDevOps.ConnectionSettings;
 
 namespace Satori.AppServices.ViewModels;
 
@@ -16,6 +19,7 @@ public class Person
     public string? EmailAddress { get; private init; }
     public string? DomainLogin { get; private init; }
     public int? KimaiId { get; private init; }
+    public DayOfWeek FirstDayOfWeek { get; private init; } = DayOfWeek.Monday;
 
     #endregion Properties
 
@@ -27,8 +31,6 @@ public class Person
         DisplayName = "Unknown/Unassigned",
         AvatarUrl = new Url("/images/NullAvatar.png").ToUri(),
     };
-
-    public bool IsNull => AzureDevOpsId == Guid.Empty;
 
     #endregion Null Object
 
@@ -57,7 +59,7 @@ public class Person
 
     #region Casting
 
-    public static implicit operator Person(AzureDevOps.Models.User? user)
+    public static implicit operator Person(AzDoUser? user)
     {
         return user == null ? Null 
             : FromAzureDevOpsId(user.Id, CreatePerson);
@@ -74,7 +76,7 @@ public class Person
         }
     }
 
-    public static Person From(AzureDevOps.Models.Identity azDoIdentity, Kimai.Models.User kimaiUser, AzureDevOps.ConnectionSettings azDoSettings)
+    public static Person From(AzureDevOps.Models.Identity azDoIdentity, KimaiUser kimaiUser, ConnectionSettings azDoSettings)
     {
         lock (PeopleLock)
         {
@@ -100,8 +102,19 @@ public class Person
                 EmailAddress = azDoIdentity.Properties.Mail?.Value,
                 KimaiId = kimaiUser.Id,
                 DomainLogin = $@"{azDoIdentity.Properties.Domain?.Value}\{azDoIdentity.Properties.Account?.Value}",
+                FirstDayOfWeek = GetFirstDayOfWeek(kimaiUser),
             };
         }
+    }
+
+    private static DayOfWeek GetFirstDayOfWeek(KimaiUser kimaiUser)
+    {
+        var firstDayOfWeekSetting = kimaiUser.Preferences?.SingleOrDefault(p => p.Name == "firstDayOfWeek")?.Value;
+        if (!Enum.TryParse(firstDayOfWeekSetting, ignoreCase: true, out DayOfWeek firstDayOfWeek))
+        {
+            firstDayOfWeek = DayOfWeek.Monday;
+        }
+        return firstDayOfWeek;
     }
 
     #endregion Casting

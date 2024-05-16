@@ -4,6 +4,7 @@ using Satori.AppServices.ViewModels;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 using Satori.Kimai;
+using Satori.Kimai.Models;
 using Shouldly;
 using ConnectionSettings = Satori.AzureDevOps.ConnectionSettings;
 using User = Satori.Kimai.Models.User;
@@ -165,5 +166,50 @@ public class UserTests
         //Assert
         user.ShouldNotBeSameAs(person);
         user.KimaiId.ShouldBe(_testData.KimaiUser.Id);
+    }
+
+    [TestMethod]
+    public void FirstDayOfWeek_Undefined_DefaultsToMonday()
+    {
+        //Arrange
+        _testData.KimaiUser.Preferences = [];
+
+        //Act
+        var user = GetCurrentUser();
+
+        //Assert
+        user.FirstDayOfWeek.ShouldBe(DayOfWeek.Monday);
+    }
+
+    [TestMethod]
+    public void FirstDayOfWeek_Monday()
+    {
+        //Arrange
+        _testData.KimaiUser.Preferences =
+        [
+            new Preference() { Name = "firstDayOfWeek", Value = "monday" }
+        ];
+
+        //Act
+        var user = GetCurrentUser();
+
+        //Assert
+        user.FirstDayOfWeek.ShouldBe(DayOfWeek.Monday);
+    }
+
+    [TestMethod]
+    public void FirstDayOfWeek_Sunday()
+    {
+        //Arrange
+        _testData.KimaiUser.Preferences =
+        [
+            new Preference() { Name = "firstDayOfWeek", Value = "sunday" }
+        ];
+
+        //Act
+        var user = GetCurrentUser();
+
+        //Assert
+        user.FirstDayOfWeek.ShouldBe(DayOfWeek.Sunday);
     }
 }
