@@ -4,9 +4,11 @@ namespace Satori.Components.Pages
 {
     public class DateSelectorViewModel(DayOfWeek firstDayOfWeek)
     {
+        public event EventHandler<EventArgs>? DateChanged;
+
         private DayOfWeek FirstDayOfWeek { get; } = firstDayOfWeek;
 
-        private Period Period { get; set; } = Period.Today;
+        public Period Period { get; set; } = Period.Today;
 
         public string PeriodText { get; private set; } = "Today";
         private DateTime BeginDate { get; set; } = DateTime.Today;
@@ -49,7 +51,15 @@ namespace Satori.Components.Pages
 
             DateRangeText = beginDate == endDate ? BeginDate.ToString("D")
                 : $"{BeginDate:D} - {endDate:D}";
+
+            OnDateChanged();
         }
+
+        private void OnDateChanged()
+        {
+            DateChanged?.Invoke(this, EventArgs.Empty);
+        }
+
 
         private DateTime GetStartOfWeek(DateTime date)
         {

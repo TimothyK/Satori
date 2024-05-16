@@ -2,8 +2,11 @@
 @using Satori.AppServices.ViewModels.DailyStandUps
 @using Satori.AppServices.Services
 @using Satori.AppServices.ViewModels
+@using Flurl
 @attribute [StreamRendering]
 @inject UserService UserService
+@inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 
 <h3>Daily Stand-Ups</h3>
 
@@ -34,7 +37,43 @@
     protected override async Task OnInitializedAsync()
     {
         CurrentUser = await UserService.GetCurrentUserAsync();
+        var period = DateSelector.Period;
         DateSelector = new DateSelectorViewModel(CurrentUser.FirstDayOfWeek);
+        DateSelector.DateChanged += DateChanged;
+        DateSelector.ChangePeriod(period);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var period = await LocalStorage.GetItemAsync<Period>("DatePeriod");
+            CurrentPeriod = period;
+            DateSelector.ChangePeriod(period);
+            StateHasChanged();
+        }
+    }
+
+    private Period CurrentPeriod { get; set; }
+    private void DateChanged(object? sender, EventArgs eventArgs)
+    {
+        if (CurrentPeriod != DateSelector.Period)
+        {
+            var url = NavigationManager.Uri
+                .AppendQueryParam("DatePeriod", null)
+                .AppendQueryParam("DatePeriod", DateSelector.Period);
+            NavigationManager.NavigateTo(url, forceLoad: false);
+        
+            LocalStorage.SetItemAsync("DatePeriod", DateSelector.Period);
+            CurrentPeriod = DateSelector.Period;
+        }
+        
+        RunReport();
+    }
+
+    private void RunReport()
+    {
+
     }
 
 }
