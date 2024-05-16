@@ -6,5 +6,4 @@ public enum Period
     LastTwoDays,
     WorkWeek,
     LastSevenDays,
-    FirstUnexported,
 }

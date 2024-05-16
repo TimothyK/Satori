@@ -1,6 +1,9 @@
 ﻿@page "/DailyStandUps"
 @using Satori.AppServices.ViewModels.DailyStandUps
+@using Satori.AppServices.Services
+@using Satori.AppServices.ViewModels
 @attribute [StreamRendering]
+@inject UserService UserService
 
 <h3>Daily Stand-Ups</h3>
 
@@ -8,37 +11,30 @@
 <div class="filter-row">
     <div class="filter-label">Date Range:</div>
     <div class="dropdown">
-        <button class="dropbtn">@PeriodText 🔽</button>
+        <button class="dropbtn">@DateSelector.PeriodText 🔽</button>
         <div class="dropdown-content">
-            <div class="dropdown-content-menu" @onclick="() => ChangePeriod(Period.Today)">Today</div>
-            <div class="dropdown-content-menu" @onclick="() => ChangePeriod(Period.LastTwoDays)">Last 2 Days</div>
-            <div class="dropdown-content-menu" @onclick="() => ChangePeriod(Period.WorkWeek)">Work Week</div>
-            <div class="dropdown-content-menu" @onclick="() => ChangePeriod(Period.LastSevenDays)">Last 7 Days</div>
-            <div class="dropdown-content-menu" @onclick="() => ChangePeriod(Period.FirstUnexported)">First Unexported</div>
+            <div class="dropdown-content-menu" @onclick="() => DateSelector.ChangePeriod(Period.Today)">Today</div>
+            <div class="dropdown-content-menu" @onclick="() => DateSelector.ChangePeriod(Period.LastTwoDays)">Last 2 Days</div>
+            <div class="dropdown-content-menu" @onclick="() => DateSelector.ChangePeriod(Period.WorkWeek)">Work Week</div>
+            <div class="dropdown-content-menu" @onclick="() => DateSelector.ChangePeriod(Period.LastSevenDays)">Last 7 Days</div>
         </div>
     </div>
-
+    <div class="date-range">
+        <div><button class="btn-date-range btn-date-range-decrement" @onclick="DateSelector.DecrementPeriod">«</button></div>
+        <div><span>@DateSelector.DateRangeText</span></div>
+        <div><button class="btn-date-range btn-date-range-increment" @onclick="DateSelector.IncrementPeriod">»</button></div>
+    </div>
 </div>
 
 @code {
 
-    private Period Period { get; set; } = Period.LastSevenDays;
+    private Person CurrentUser { get; set; } = Person.Null;
+    private DateSelectorViewModel DateSelector { get; set; } = new(Person.Null.FirstDayOfWeek);
 
-    private string PeriodText { get; set; } = "Last 7 Days";
-    private DateTime BeginDate { get; set; }
-
-    private void ChangePeriod(Period period)
+    protected override async Task OnInitializedAsync()
     {
-        Period = period;
-        PeriodText = period switch
-        {
-            Period.Today => "Today",
-            Period.LastTwoDays => "Last 2 Days",
-            Period.WorkWeek => "Work Week",
-            Period.LastSevenDays => "Last 7 Days",
-            Period.FirstUnexported => "First Unexported",
-            _ => PeriodText
-        };
+        CurrentUser = await UserService.GetCurrentUserAsync();
+        DateSelector = new DateSelectorViewModel(CurrentUser.FirstDayOfWeek);
     }
 
 }
