@@ -42,20 +42,48 @@ public class RandomGenerator
     /// <param name="lowerBound">Inclusive lower bound</param>
     /// <param name="upperBound">Inclusive upper bound</param>
     /// <returns></returns>
-    public int Integer(int lowerBound, int upperBound) => Random.Next(lowerBound, upperBound + 1);
+    public static int Integer(int lowerBound, int upperBound) => Random.Next(lowerBound, upperBound + 1);
 
+    /// <summary>
+    /// Generates a random number with a normal distribution
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Taken from https://stackoverflow.com/a/218600/902742
+    /// </para>
+    /// </remarks>
+    /// <param name="target"></param>
+    /// <param name="standardDeviation">distribution of the returned value</param>
+    /// <returns></returns>
+    private static double Number(double target, double? standardDeviation = null)
+    {
+        var u1 = 1.0 - Random.NextDouble(); //uniform(0,1] random doubles
+        var u2 = 1.0 - Random.NextDouble();
+        var randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) *
+                            Math.Sin(2.0 * Math.PI * u2); //random normal(0,1)
+
+        return target + (standardDeviation ?? target * 0.1) * randStdNormal; //random normal(mean,stdDev^2)
+    }
+
+    public static TimeSpan TimeSpan(TimeSpan target, TimeSpan? standardDeviation = null)
+    {
+        return System.TimeSpan.FromSeconds(Number(target.TotalSeconds, standardDeviation?.TotalSeconds));
+    }
 }
 
 public static class RandomSelectionExtensions
 {
-    private static readonly RandomGenerator _random = new();
-
     public static T SingleRandom<T>(this IEnumerable<T> values) => values.ToArray().SingleRandom();
 
     public static T SingleRandom<T>(this T[] values)
     {
-        var index = _random.Integer(0, values.Length - 1);
+        var index = RandomGenerator.Integer(0, values.Length - 1);
         return values[index];
+    }
+
+    public static TimeSpan Randomize(this TimeSpan originalValue, TimeSpan? standardDeviation = null)
+    {
+        return RandomGenerator.TimeSpan(originalValue, standardDeviation);
     }
 }
 

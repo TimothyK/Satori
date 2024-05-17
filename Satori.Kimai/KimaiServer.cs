@@ -18,6 +18,7 @@ public class KimaiServer(
     {
         var url = connectionSettings.Url
             .AppendPathSegment("api/timesheets")
+            .AppendQueryParam("full")
             .AppendQueryParams(filter);
 
         return (await GetAsync<TimeEntry[]>(url));
@@ -66,7 +67,7 @@ public class KimaiServer(
             using var reader = new StreamReader(responseStream);
             var responseBody = await reader.ReadToEndAsync();
 
-            throw new ApplicationException("Bad Response: " + response.StatusCode + Environment.NewLine + responseBody);
+            throw new HttpRequestException("Bad Response: " + response.StatusCode + Environment.NewLine + responseBody, inner: null, response.StatusCode);
         }
     }
 

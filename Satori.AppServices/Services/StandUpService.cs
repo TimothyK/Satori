@@ -2,6 +2,7 @@
 using Satori.Kimai;
 using Satori.Kimai.Models;
 using CodeMonkeyProjectiles.Linq;
+using System.Net;
 
 namespace Satori.AppServices.Services;
 
@@ -9,48 +10,43 @@ public class StandUpService(IKimaiServer kimai)
 {
     public async Task<StandUpDay[]> GetStandUpDaysAsync(DateOnly begin, DateOnly end)
     {
-        return (await BuildDaysAsync(begin, end)).Where(day => day.Date <= DateTime.Today).ToArray();
+        if (end < begin)
+        {
+            throw new ArgumentException("start date must be before or equal to end date");
+        }
+
+        //return (await BuildDaysAsync(begin, end)).Where(day => day.Date.ToDateTime(TimeOnly.MinValue) <= DateTime.Today).ToArray();
         //return [new StandUpDay() { Date = end, AllExported = true}];
 
         var filter = new TimeSheetFilter()
         {
             Begin = begin.ToDateTime(TimeOnly.MinValue),
             End = end.ToDateTime(TimeOnly.MaxValue),
-            Active = true,
+            Active = false,
             Page = 1,
             Size = 250,
         };
 
-        var timeSheet = await kimai.GetTimeSheetAsync(filter);
+        var timeSheet = new List<TimeEntry>();
+        bool done;
+        do
+        {
+            try
+            {
+                var page = await kimai.GetTimeSheetAsync(filter);
+                timeSheet.AddRange(page);
+                done = page.Length < filter.Size;
+                filter.Page++;
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                done = true;
+            }
+        } while (!done);
 
         var days = timeSheet.GroupBy(GetDateOnly);
         return days.Select(ToViewModel).ToArray();
     }
-
-    private static async Task<StandUpDay[]> BuildDaysAsync(DateOnly begin, DateOnly end)
-    {
-        StandUpDay[] result = [];
-        await Task.Run(() => result = BuildDays(begin, end));
-        return result;
-    }
-
-    private static StandUpDay[] BuildDays(DateOnly begin, DateOnly end)
-    {
-        var result = new List<StandUpDay>();
-        while (begin <= end)
-        {
-            var day = end.ToDateTime(TimeOnly.MinValue);
-            result.Add(new StandUpDay()
-            {
-                Date = end,
-                AllExported = day <= DateTime.Today.AddDays(-2) || DateTime.Today < day, CanExport = day == DateTime.Today
-            });
-
-            end = end.AddDays(-1);
-        };
-        return result.ToArray();
-    }
-
 
     private static StandUpDay ToViewModel(IGrouping<DateOnly, TimeEntry> day)
     {

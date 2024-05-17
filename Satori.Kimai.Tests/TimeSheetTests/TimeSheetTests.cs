@@ -3,6 +3,7 @@ using Flurl;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RichardSzalay.MockHttp;
 using Satori.Kimai.Models;
+using Satori.Kimai.Tests.Extensions;
 using Shouldly;
 
 namespace Satori.Kimai.Tests.TimeSheetTests;
@@ -19,13 +20,15 @@ public class TimeSheetTests
     private Url GetUrl(TimeSheetFilter filter) =>
         _connectionSettings.Url
             .AppendPathSegment("api/timesheets")
+            .AppendQueryParam("full")
             .AppendQueryParams(filter);
 
     private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
 
     private void SetResponse(Url url, byte[] response)
     {
-        _mockHttp.When(url).Respond("application/json", System.Text.Encoding.Default.GetString(response));
+         _mockHttp.WhenIsFullUrl(url)
+            .Respond("application/json", System.Text.Encoding.Default.GetString(response));
     }
 
     #endregion Arrange
