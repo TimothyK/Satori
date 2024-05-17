@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using Satori.AppServices.Models
+@inject ConnectionSettings ConnectionSettings
 
 <PageTitle>Satori</PageTitle>
 
@@ -23,12 +24,20 @@
 
 <h3>Integrations</h3>
 
-<div style="display: flex">
+<div style="display: flex;">
     <a href="@_azureDevOpsUrl" target="_blank">
-        <div class="card" style="width: 100px;">
+        <div class="card" style="width: 150px;">
             <img src="images/AzureDevOps-Logo.png" alt="Azure DevOps Logo"/>
             <div class="card-body">
                 <p class="card-text" style="text-align: center;">Azure DevOps</p>
+            </div>
+        </div>
+    </a>
+    <a href="@_kimaiUrl" target="_blank">
+        <div class="card" style="width: 150px;">
+            <img src="images/kimai_Logo.png" alt="Kimai Logo"/>
+            <div class="card-body">
+                <p class="card-text" style="text-align: center;">Kimai</p>
             </div>
         </div>
     </a>
@@ -36,7 +45,7 @@
 
 <h4 style="margin-top: 30px;">Coming Soon</h4>
 <ul>
-    <li><a target="_blank" href="http://kimai:8001/">Kimai</a></li>
+    <li>Rabbit MQ</li>
     <li><a target="_blank" href="https://outlook.office.com/mail/">Outlook</a></li>
     <li>and more to come</li>
 </ul>
@@ -50,11 +59,12 @@
 @code
 {
     private Uri? _azureDevOpsUrl;
+    private Uri? _kimaiUrl;
 
     protected override void OnInitialized()
     {
-        var srv = Program.Services.GetRequiredService<ConnectionSettings>();
-        _azureDevOpsUrl = srv.AzureDevOps.Url;
+        _azureDevOpsUrl = ConnectionSettings.AzureDevOps.Url;
+        _kimaiUrl = ConnectionSettings.Kimai.Url;
     }
 
 }
