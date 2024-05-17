@@ -16,7 +16,7 @@ public class TimeSheetFilter
     /// <summary>
     /// Set to True to get the time entry record currently being timed.  False to get time entries that have stopped.  Null for both.
     /// </summary>
-    public bool? Active { get; set; }
+    public bool? IsRunning { get; set; }
 
     /// <summary>
     /// Free text search on the description (e.g "D#12345")
@@ -41,7 +41,7 @@ public static class TimeSheetFilterExtensions
         return url
             .AppendQueryParam("begin", filter.Begin?.ToString("s"))
             .AppendQueryParam("end", filter.End?.ToString("s"))
-            .AppendQueryParam("active", BoolParameter(filter.Active))
+            .AppendQueryParam("active", BoolParameter(filter.IsRunning))
             .AppendQueryParam("term", filter.Term)
             .AppendQueryParam("page", filter.Page == 1 ? null : filter.Page)
             .AppendQueryParam("size", filter.Size == 50 ? null : filter.Size);

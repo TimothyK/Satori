@@ -22,7 +22,7 @@ public class StandUpService(IKimaiServer kimai)
         {
             Begin = begin.ToDateTime(TimeOnly.MinValue),
             End = end.ToDateTime(TimeOnly.MaxValue),
-            Active = false,
+            IsRunning = false,
             Page = 1,
             Size = 250,
         };

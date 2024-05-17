@@ -45,8 +45,8 @@ public class TimeSheetFilterTests
             .Query.ShouldBe("end=2024-05-14T13%3A34%3A56");
 
 
-    [TestMethod] public void Active() => BuildUrlWith(filter => filter.Active = true).Query.ShouldBe("active=1");
-    [TestMethod] public void Stopped() => BuildUrlWith(filter => filter.Active = false).Query.ShouldBe("active=0");
+    [TestMethod] public void Active() => BuildUrlWith(filter => filter.IsRunning = true).Query.ShouldBe("active=1");
+    [TestMethod] public void Stopped() => BuildUrlWith(filter => filter.IsRunning = false).Query.ShouldBe("active=0");
     [TestMethod] public void Term() => BuildUrlWith(filter => filter.Term = "D#12345").Query.ShouldBe("term=D%2312345");
     [TestMethod] public void Page() => BuildUrlWith(filter => filter.Page = 2).Query.ShouldBe("page=2");
     [TestMethod] public void Size() => BuildUrlWith(filter => filter.Size = 1).Query.ShouldBe("size=1");

@@ -36,7 +36,7 @@ internal class TestKimaiServer
         var entries = TimeSheet
             .Where(x => filter.Begin == null || filter.Begin <= x.Begin)
             .Where(x => filter.End == null || x.Begin <= filter.End)
-            .Where(x => filter.Active == null || (filter.Active.Value && x.End == null) || (!filter.Active.Value && x.End != null))
+            .Where(x => filter.IsRunning == null || (filter.IsRunning.Value && x.End == null) || (!filter.IsRunning.Value && x.End != null))
             .Where(x => filter.Term == null || (x.Description?.Contains(filter.Term) ?? false))
             .OrderByDescending(x => x.Begin)
             .Skip((filter.Page-1) * filter.Size)
