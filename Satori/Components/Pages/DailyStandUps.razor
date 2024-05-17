@@ -37,10 +37,19 @@
     protected override async Task OnInitializedAsync()
     {
         CurrentUser = await UserService.GetCurrentUserAsync();
-        var period = DateSelector.Period;
+        var period = GetPeriodFromUrl();
         DateSelector = new DateSelectorViewModel(CurrentUser.FirstDayOfWeek);
         DateSelector.DateChanged += DateChanged;
         DateSelector.ChangePeriod(period);
+    }
+
+    private Period GetPeriodFromUrl()
+    {
+        var periodString = new Url(NavigationManager.Uri).QueryParams
+            .Where(qp => qp.Name == "DatePeriod")
+            .Select(qp => qp.Value.ToString())
+            .FirstOrDefault();
+        return Enum.TryParse(periodString, out Period period) ? period : DateSelector.Period;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
