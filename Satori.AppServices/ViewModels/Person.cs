@@ -25,7 +25,7 @@ public class Person
 
     #region Null Object
 
-    public static readonly Person Null = new()
+    public static readonly Person Empty = new()
     {
         AzureDevOpsId = Guid.Empty,
         DisplayName = "Unknown/Unassigned",
@@ -61,7 +61,7 @@ public class Person
 
     public static implicit operator Person(AzDoUser? user)
     {
-        return user == null ? Null 
+        return user == null ? Empty 
             : FromAzureDevOpsId(user.Id, CreatePerson);
 
         Person CreatePerson()

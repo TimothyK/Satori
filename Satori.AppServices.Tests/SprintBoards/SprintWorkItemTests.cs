@@ -276,15 +276,15 @@ public class SprintWorkItemTests
 
         //Assert
         var vm = workItems.Single();
-        vm.AssignedTo.ShouldBe(Person.Null);
+        vm.AssignedTo.ShouldBe(Person.Empty);
     }
 
     [TestMethod]
     public void NullPerson()
     {
-        Person.Null.AzureDevOpsId.ShouldBe(Guid.Empty);
-        Person.Null.DisplayName.ShouldBe("Unknown/Unassigned");
-        Person.Null.AvatarUrl.ToString().ShouldBe("/images/NullAvatar.png");
+        Person.Empty.AzureDevOpsId.ShouldBe(Guid.Empty);
+        Person.Empty.DisplayName.ShouldBe("Unknown/Unassigned");
+        Person.Empty.AvatarUrl.ToString().ShouldBe("/images/NullAvatar.png");
     }
 
     [TestMethod]

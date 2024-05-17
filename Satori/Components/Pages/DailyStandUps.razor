@@ -31,8 +31,8 @@
 
 @code {
 
-    private Person CurrentUser { get; set; } = Person.Null;
-    private DateSelectorViewModel DateSelector { get; set; } = new(Person.Null.FirstDayOfWeek);
+    private Person CurrentUser { get; set; } = Person.Empty;
+    private DateSelectorViewModel DateSelector { get; set; } = new(Person.Empty.FirstDayOfWeek);
 
     protected override async Task OnInitializedAsync()
     {

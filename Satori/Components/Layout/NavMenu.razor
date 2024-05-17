@@ -26,12 +26,9 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
-        @if (CurrentUser != null)
-        {
-            <div style="width=100%; margin: 5px; text-align:center;">
-                <img src="@CurrentUser.AvatarUrl" class="avatar" alt="Logged in as @CurrentUser.DisplayName"/>
-            </div>
-        }
+        <div style="width=100%; margin: 5px; text-align:center;">
+            <img src="@CurrentUser.AvatarUrl" class="avatar" alt="Logged in as @CurrentUser.DisplayName"/>
+        </div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
@@ -90,7 +87,7 @@
 
 @code {
 
-    private Person? CurrentUser { get; set; }
+    private Person CurrentUser { get; set; } = Person.Empty;
 
     protected override async Task OnInitializedAsync()
     {
