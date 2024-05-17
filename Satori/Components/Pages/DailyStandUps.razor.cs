@@ -11,20 +11,23 @@ namespace Satori.Components.Pages
         public Period Period { get; set; } = Period.Today;
 
         public string PeriodText { get; private set; } = "Today";
-        public DateTime BeginDate { get; set; } = DateTime.Today;
-        public DateTime EndDate { get; set; } = DateTime.Today;
+        public DateOnly BeginDate { get; set; } = Today;
+        public DateOnly EndDate { get; set; } = Today;
         public string DateRangeText { get; private set; } = DateTime.Today.ToString("D");
+
+        private static DateOnly Today => DateOnly.FromDateTime(DateTime.Today);
 
         public void ChangePeriod(Period period)
         {
             SetPeriod(period);
 
+            var today = Today;
             var beginDate = period switch
             {
-                Period.Today => DateTime.Today,
-                Period.LastTwoDays => DateTime.Today.AddDays(-1),
-                Period.WorkWeek => GetStartOfWeek(DateTime.Today),
-                Period.LastSevenDays => DateTime.Today.AddDays(-6),
+                Period.Today => today,
+                Period.LastTwoDays => today.AddDays(-1),
+                Period.WorkWeek => GetStartOfWeek(today),
+                Period.LastSevenDays => today.AddDays(-6),
                 _ => throw new ArgumentOutOfRangeException(nameof(period), period, "Unknown enum value")
             };
             SetBeginDate(beginDate);
@@ -43,12 +46,12 @@ namespace Satori.Components.Pages
             };
         }
 
-        private void SetBeginDate(DateTime beginDate)
+        private void SetBeginDate(DateOnly beginDate)
         {
             BeginDate = beginDate;
 
             EndDate = Period == Period.WorkWeek ? BeginDate.AddDays(6)
-                : DateTime.Today;
+                : Today;
 
             DateRangeText = beginDate == EndDate ? BeginDate.ToString("D")
                 : $"{BeginDate:D} - {EndDate:D}";
@@ -62,9 +65,8 @@ namespace Satori.Components.Pages
         }
 
 
-        private DateTime GetStartOfWeek(DateTime date)
+        private DateOnly GetStartOfWeek(DateOnly date)
         {
-            date = date.Date;
             while (date.DayOfWeek != FirstDayOfWeek)
             {
                 date = date.AddDays(-1);
@@ -80,7 +82,7 @@ namespace Satori.Components.Pages
                     ChangePeriod(Period.LastTwoDays);
                     break;
                 case Period.LastTwoDays:
-                    if (BeginDate < GetStartOfWeek(DateTime.Today))
+                    if (BeginDate < GetStartOfWeek(Today))
                     {
                         SetPeriod(Period.WorkWeek);
                         SetBeginDate(GetStartOfWeek(BeginDate));
@@ -91,7 +93,7 @@ namespace Satori.Components.Pages
                     }
                     break;
                 case Period.WorkWeek:
-                    if (DateTime.Today.AddDays(-6) < BeginDate)
+                    if (Today.AddDays(-6) < BeginDate)
                     {
                         ChangePeriod(Period.LastSevenDays);
                     }
@@ -120,11 +122,11 @@ namespace Satori.Components.Pages
                     ChangePeriod(Period.Today);
                     break;
                 case Period.WorkWeek:
-                    if (DateTime.Today < BeginDate.AddDays(7))
+                    if (Today < BeginDate.AddDays(7))
                     {
                         ChangePeriod(Period.LastTwoDays);
                     }
-                    else if (GetStartOfWeek(DateTime.Today) == BeginDate.AddDays(7))
+                    else if (GetStartOfWeek(Today) == BeginDate.AddDays(7))
                     {
                         ChangePeriod(Period.LastSevenDays);
                     }
@@ -134,7 +136,7 @@ namespace Satori.Components.Pages
                     }
                     break;
                 case Period.LastSevenDays:
-                    if (GetStartOfWeek(DateTime.Today) == DateTime.Today)
+                    if (GetStartOfWeek(Today) == Today)
                     {
                         ChangePeriod(Period.LastTwoDays);
                     }

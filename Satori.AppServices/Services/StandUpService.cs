@@ -7,15 +7,15 @@ namespace Satori.AppServices.Services;
 
 public class StandUpService(IKimaiServer kimai)
 {
-    public async Task<StandUpDay[]> GetStandUpDaysAsync(DateTime begin, DateTime end)
+    public async Task<StandUpDay[]> GetStandUpDaysAsync(DateOnly begin, DateOnly end)
     {
         return (await BuildDaysAsync(begin, end)).Where(day => day.Date <= DateTime.Today).ToArray();
         //return [new StandUpDay() { Date = end, AllExported = true}];
 
         var filter = new TimeSheetFilter()
         {
-            Begin = begin,
-            End = end,
+            Begin = begin.ToDateTime(TimeOnly.MinValue),
+            End = end.ToDateTime(TimeOnly.MaxValue),
             Active = true,
             Page = 1,
             Size = 250,
@@ -23,23 +23,28 @@ public class StandUpService(IKimaiServer kimai)
 
         var timeSheet = await kimai.GetTimeSheetAsync(filter);
 
-        var days = timeSheet.GroupBy(entry => entry.Begin.Date);
+        var days = timeSheet.GroupBy(GetDateOnly);
         return days.Select(ToViewModel).ToArray();
     }
 
-    private static async Task<StandUpDay[]> BuildDaysAsync(DateTime begin, DateTime end)
+    private static async Task<StandUpDay[]> BuildDaysAsync(DateOnly begin, DateOnly end)
     {
         StandUpDay[] result = [];
         await Task.Run(() => result = BuildDays(begin, end));
         return result;
     }
 
-    private static StandUpDay[] BuildDays(DateTime begin, DateTime end)
+    private static StandUpDay[] BuildDays(DateOnly begin, DateOnly end)
     {
         var result = new List<StandUpDay>();
         while (begin <= end)
         {
-            result.Add(new StandUpDay(){Date = end, AllExported = end <= DateTime.Today.AddDays(-2) || DateTime.Today < end, CanExport = end == DateTime.Today});
+            var day = end.ToDateTime(TimeOnly.MinValue);
+            result.Add(new StandUpDay()
+            {
+                Date = end,
+                AllExported = day <= DateTime.Today.AddDays(-2) || DateTime.Today < day, CanExport = day == DateTime.Today
+            });
 
             end = end.AddDays(-1);
         };
@@ -47,7 +52,7 @@ public class StandUpService(IKimaiServer kimai)
     }
 
 
-    private static StandUpDay ToViewModel(IGrouping<DateTime, TimeEntry> day)
+    private static StandUpDay ToViewModel(IGrouping<DateOnly, TimeEntry> day)
     {
         return new StandUpDay()
         {
@@ -74,4 +79,6 @@ public class StandUpService(IKimaiServer kimai)
     {
         return entry.End != null ? (entry.End.Value - entry.Begin) : TimeSpan.Zero;
     }
+
+    private static DateOnly GetDateOnly(TimeEntry entry) => DateOnly.FromDateTime(entry.Begin.Date);
 }

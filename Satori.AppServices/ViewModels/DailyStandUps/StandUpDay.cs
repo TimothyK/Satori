@@ -2,7 +2,7 @@
 
 public class StandUpDay
 {
-    public DateTime Date { get; internal init; }
+    public DateOnly Date { get; internal init; }
     public TimeSpan TotalTime { get; internal init; }
     public Uri Url { get; internal init; }
     public bool AllExported { get; internal init; }
