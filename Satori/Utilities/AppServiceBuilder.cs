@@ -16,6 +16,7 @@ internal static class AppServiceBuilder
         builder.Services.AddSingleton<SprintBoardService>();
         builder.Services.AddSingleton<PullRequestService>();
         builder.Services.AddSingleton<UserService>();
+        builder.Services.AddSingleton<StandUpService>();
         builder.Services.AddSingleton(settings.AzureDevOps);
         builder.Services.AddSingleton<IAzureDevOpsServer, AzureDevOpsServer>();
         builder.Services.AddSingleton(settings.Kimai);

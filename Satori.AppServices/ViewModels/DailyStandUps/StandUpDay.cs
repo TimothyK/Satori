@@ -1,0 +1,12 @@
+﻿namespace Satori.AppServices.ViewModels.DailyStandUps;
+
+public class StandUpDay
+{
+    public DateTime Date { get; internal init; }
+    public TimeSpan TotalTime { get; internal init; }
+    public Uri Url { get; internal init; }
+    public bool AllExported { get; internal init; }
+    public bool CanExport { get; internal init; }
+
+
+}

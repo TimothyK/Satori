@@ -3,18 +3,19 @@
 @using Satori.AppServices.Services
 @using Satori.AppServices.ViewModels
 @using Flurl
+@using Satori.AppServices.Extensions
 @attribute [StreamRendering]
 @inject UserService UserService
+@inject StandUpService StandUpService
 @inject NavigationManager NavigationManager
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 
 <h3>Daily Stand-Ups</h3>
 
-
 <div class="filter-row">
     <div class="filter-label">Date Range:</div>
     <div class="dropdown">
-        <button class="dropbtn">@DateSelector.PeriodText 🔽</button>
+        <button class="dropbtn">@DateSelector.PeriodText ▾</button>
         <div class="dropdown-content">
             <div class="dropdown-content-menu" @onclick="() => DateSelector.ChangePeriod(Period.Today)">Today</div>
             <div class="dropdown-content-menu" @onclick="() => DateSelector.ChangePeriod(Period.LastTwoDays)">Last 2 Days</div>
@@ -29,10 +30,33 @@
     </div>
 </div>
 
+@foreach (var day in StandUpDays)
+{
+    <div class="day-header">
+        <div class="duration"><span class="duration-minutes">@day.TotalTime.ToString(@"hh\:mm")</span> <span class="duration-decimal">(@day.TotalTime.TotalHours.ToNearest(0.05) h)</span></div>
+        <div class="export @(day.AllExported ? "export-done" : "") @(day.CanExport ? "export-enabled" : "")">
+            @if (day.AllExported)
+            {
+                <span class="badge bg-secondary">Exported</span>
+            }
+            else if (day.CanExport)
+            {
+                <button class="btn btn-outline-success">Export</button>
+            }
+            else
+            {
+                <span class="badge bg-danger">Cannot Export</span>
+            }
+        </div>
+        <div class="day-header-day">@day.Date.ToString("D")</div>
+    </div>
+}
+
 @code {
 
     private Person CurrentUser { get; set; } = Person.Empty;
     private DateSelectorViewModel DateSelector { get; set; } = new(Person.Empty.FirstDayOfWeek);
+    private StandUpDay[] StandUpDays { get; set; } = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -82,7 +106,9 @@
 
     private void RunReport()
     {
-
+        StandUpDays = Task.Run(async () => 
+            await StandUpService.GetStandUpDaysAsync(DateSelector.BeginDate, DateSelector.EndDate)
+        ).Result;
     }
 
 }

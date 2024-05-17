@@ -11,7 +11,8 @@ namespace Satori.Components.Pages
         public Period Period { get; set; } = Period.Today;
 
         public string PeriodText { get; private set; } = "Today";
-        private DateTime BeginDate { get; set; } = DateTime.Today;
+        public DateTime BeginDate { get; set; } = DateTime.Today;
+        public DateTime EndDate { get; set; } = DateTime.Today;
         public string DateRangeText { get; private set; } = DateTime.Today.ToString("D");
 
         public void ChangePeriod(Period period)
@@ -46,11 +47,11 @@ namespace Satori.Components.Pages
         {
             BeginDate = beginDate;
 
-            var endDate = Period == Period.WorkWeek ? BeginDate.AddDays(6)
+            EndDate = Period == Period.WorkWeek ? BeginDate.AddDays(6)
                 : DateTime.Today;
 
-            DateRangeText = beginDate == endDate ? BeginDate.ToString("D")
-                : $"{BeginDate:D} - {endDate:D}";
+            DateRangeText = beginDate == EndDate ? BeginDate.ToString("D")
+                : $"{BeginDate:D} - {EndDate:D}";
 
             OnDateChanged();
         }

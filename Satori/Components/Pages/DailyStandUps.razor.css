@@ -73,3 +73,32 @@
 .dropdown:hover .dropbtn {
     background-color: #0096D6;
 }
+
+.day-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    width: 100%;
+}
+.day-header {
+    margin-top: 10px;
+}
+
+.export {
+    margin-left: 5px;
+    margin-right: 5px;
+    font-size: 0.9em;
+}
+.export button {
+    font-size: 0.9em;
+}
+
+.duration-minutes {
+    font-family: "Roboto", sans-serif;
+    font-weight: bold;
+}
+
+.day-header-day {
+    font-size: 32px;
+    font-weight: bold;
+}
