@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
-using Satori.AppServices.Tests.TestDoubles;
-using Satori.AppServices.Tests.TestDoubles.Builders;
+using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
+using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.ViewModels.WorkItems;
 using Shouldly;
 using WorkItem = Satori.AzureDevOps.Models.WorkItem;

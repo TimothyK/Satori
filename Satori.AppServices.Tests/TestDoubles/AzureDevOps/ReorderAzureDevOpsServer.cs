@@ -5,7 +5,7 @@ using Satori.AzureDevOps.Models;
 using Shouldly;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
-namespace Satori.AppServices.Tests.TestDoubles;
+namespace Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 
 internal class ReorderAzureDevOpsServer
 {
@@ -30,7 +30,7 @@ internal class ReorderAzureDevOpsServer
         AssertIteration(iteration, operation);
 
         var previousPosition = _workItems.SingleOrDefault(wi => wi.Id == operation.PreviousId)?.AbsolutePriority ?? 0.0;
-        var nextPosition = _workItems.SingleOrDefault(wi => wi.Id == operation.NextId)?.AbsolutePriority 
+        var nextPosition = _workItems.SingleOrDefault(wi => wi.Id == operation.NextId)?.AbsolutePriority
                            ?? _workItems.Select(wi => wi.AbsolutePriority).Max() + 100.0;
 
         if (previousPosition >= nextPosition)

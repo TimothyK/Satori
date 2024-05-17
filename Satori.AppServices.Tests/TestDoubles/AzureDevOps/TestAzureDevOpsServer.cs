@@ -1,10 +1,10 @@
 ﻿using Moq;
-using Satori.AppServices.Tests.TestDoubles.Builders;
-using Satori.AppServices.Tests.TestDoubles.Database;
+using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
+using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Database;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 
-namespace Satori.AppServices.Tests.TestDoubles;
+namespace Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 
 /// <summary>
 /// Mock implementation of <see cref="IAzureDevOpsServer"/>
@@ -71,5 +71,5 @@ internal class TestAzureDevOpsServer
 
     public IAzureDevOpsServer AsInterface() => _mock.Object;
 
- 
+
 }

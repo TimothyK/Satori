@@ -1,6 +1,6 @@
 ﻿using Satori.TimeServices;
 
-namespace Satori.AppServices.Tests.TestDoubles.Services;
+namespace Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
 
 internal class TestTimeServer : ITimeServer
 {

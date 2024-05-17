@@ -2,7 +2,7 @@
 using Satori.AzureDevOps.Models;
 using WorkItem = Satori.AzureDevOps.Models.WorkItem;
 
-namespace Satori.AppServices.Tests.TestDoubles.Database;
+namespace Satori.AppServices.Tests.TestDoubles.AzureDevOps.Database;
 
 internal interface IAzureDevOpsDatabaseWriter
 {

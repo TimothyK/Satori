@@ -1,10 +1,10 @@
 ﻿using CodeMonkeyProjectiles.Linq;
-using Satori.AppServices.Tests.TestDoubles.Database;
+using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Database;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
 using WorkItem = Satori.AzureDevOps.Models.WorkItem;
 
-namespace Satori.AppServices.Tests.TestDoubles.Builders;
+namespace Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 
 internal class WorkItemBuilder
 {

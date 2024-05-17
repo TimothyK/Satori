@@ -4,7 +4,7 @@ using Satori.AzureDevOps.Models;
 using NotSupportedException = System.NotSupportedException;
 using WorkItem = Satori.AzureDevOps.Models.WorkItem;
 
-namespace Satori.AppServices.Tests.TestDoubles.Database;
+namespace Satori.AppServices.Tests.TestDoubles.AzureDevOps.Database;
 
 /// <summary>
 /// An in-memory database of objects to be used by a TestAzureDevOpsServer

@@ -1,4 +1,4 @@
-﻿namespace Satori.AppServices.Tests.TestDoubles.Builders;
+﻿namespace Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 
 public class RandomGenerator
 {

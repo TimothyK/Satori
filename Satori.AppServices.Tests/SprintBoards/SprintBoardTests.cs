@@ -1,10 +1,10 @@
 ﻿using Satori.AppServices.Services;
-using Satori.AppServices.Tests.TestDoubles.Builders;
-using Satori.AppServices.Tests.TestDoubles;
-using Satori.AppServices.Tests.TestDoubles.Services;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AzureDevOps.Models;
 using Shouldly;
+using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
+using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
+using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
 
 namespace Satori.AppServices.Tests.SprintBoards;
 

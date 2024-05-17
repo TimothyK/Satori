@@ -1,7 +1,7 @@
-﻿using Satori.AppServices.Tests.TestDoubles.Database;
+﻿using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Database;
 using Satori.AzureDevOps.Models;
 
-namespace Satori.AppServices.Tests.TestDoubles.Builders;
+namespace Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 
 internal class PullRequestBuilder
 {
