@@ -73,7 +73,8 @@ public class DailyStandUpTests
     private static DateOnly Today => DateOnly.FromDateTime(DateTime.Today);
 
     private TimeEntry BuildTimeEntry(DateOnly day) => BuildTimeEntry(day, TimeSpan.FromMinutes(30).Randomize());
-    private TimeEntry BuildTimeEntry(DateOnly day, TimeSpan duration)
+    private TimeEntry BuildTimeEntry(DateOnly day, TimeSpan duration) => BuildTimeEntry(TestActivities.SingleRandom(), day, duration);
+    private TimeEntry BuildTimeEntry(Activity activity, DateOnly day, TimeSpan duration)
     {
         var lastEntry = Kimai.GetLastEntry(day);
         if (lastEntry != null && lastEntry.End == null)
@@ -83,8 +84,6 @@ public class DailyStandUpTests
         var defaultStartOfDay = new DateTimeOffset(day.ToDateTime(new TimeOnly(8, 0), DateTimeKind.Local)) //8:00 AM, local time zone
             .Add(TimeSpan.FromMinutes(5).Randomize());  //ish
         var begin = lastEntry?.End ?? defaultStartOfDay;
-
-        var activity = TestActivities.SingleRandom();
 
         var entry = new TimeEntry()
         {
@@ -453,6 +452,8 @@ public class DailyStandUpTests
         day.Url.ShouldBe(expected);
     }
 
+    #region Multiple Days
+
     [TestMethod]
     public async Task MultipleDays()
     {
@@ -542,4 +543,141 @@ public class DailyStandUpTests
         days.Length.ShouldBe(1);
         days.Single(day => day.Date == today).TotalTime.ShouldBe(TimeSpan.FromMinutes(20));
     }
+
+    #endregion Multiple Days
+
+    #region Projects
+
+    [TestMethod]
+    public async Task EmptyTime_ProjectsEmpty()
+    {
+        //Arrange
+        var today = Today;
+
+        //Act
+        var days = await GetStandUpDaysAsync(today, today);
+
+        //Assert
+        days[0].Projects.ShouldBeEmpty();
+    }
+
+    [TestMethod]
+    public async Task ProjectIdProperties()
+    {
+        //Arrange
+        var today = Today;
+        var entry = BuildTimeEntry(today, TimeSpan.FromMinutes(24));
+
+        //Act
+        var days = await GetStandUpDaysAsync(today, today);
+
+        //Assert
+        days[0].Projects.Length.ShouldBe(1);
+        var project = days[0].Projects.Single();
+        project.ProjectId.ShouldBe(entry.Project.Id);
+        project.ProjectName.ShouldBe(entry.Project.Name);
+        project.CustomerId.ShouldBe(entry.Project.Customer.Id);
+        project.CustomerName.ShouldBe(entry.Project.Customer.Name);
+    }
+    
+    [TestMethod]
+    public async Task MultipleProjects()
+    {
+        //Arrange
+        var today = Today;
+        var project1Activity = TestActivities.SingleRandom();
+        var project2Activity1 = TestActivities.Where(a => a.Project.Id != project1Activity.Project.Id).SingleRandom();
+        var project2Activity2 = TestActivities.Where(a => a.Project.Id == project2Activity1.Project.Id && a != project2Activity1).SingleRandom();
+        BuildTimeEntry(project1Activity, today, TimeSpan.FromMinutes(10));
+        BuildTimeEntry(project2Activity1, today, TimeSpan.FromMinutes(20));
+        BuildTimeEntry(project2Activity2, today, TimeSpan.FromMinutes(15));
+
+        //Act
+        var days = await GetStandUpDaysAsync(today, today);
+
+        //Assert
+        days.Length.ShouldBe(1);
+        days[0].Projects.Length.ShouldBe(2);
+        days[0].Projects[0].ProjectId.ShouldBe(project2Activity1.Project.Id);
+        days[0].Projects[0].TotalTime.ShouldBe(TimeSpan.FromMinutes(35));
+        days[0].Projects[1].ProjectId.ShouldBe(project1Activity.Project.Id);
+        days[0].Projects[1].TotalTime.ShouldBe(TimeSpan.FromMinutes(10));
+    }
+    
+    [TestMethod]
+    public async Task MultipleProjectsOrdered()
+    {
+        //Arrange
+        var today = Today;
+        var project1Activity = TestActivities.SingleRandom();
+        var project2Activity1 = TestActivities.Where(a => a.Project.Id != project1Activity.Project.Id).SingleRandom();
+        var project2Activity2 = TestActivities.Where(a => a.Project.Id == project2Activity1.Project.Id && a != project2Activity1).SingleRandom();
+        BuildTimeEntry(project1Activity, today, TimeSpan.FromMinutes(60));
+        BuildTimeEntry(project2Activity1, today, TimeSpan.FromMinutes(20));
+        BuildTimeEntry(project2Activity2, today, TimeSpan.FromMinutes(15));
+
+        //Act
+        var days = await GetStandUpDaysAsync(today, today);
+
+        //Assert
+        days.Length.ShouldBe(1);
+        days[0].Projects.Length.ShouldBe(2);
+        days[0].Projects[0].ProjectId.ShouldBe(project1Activity.Project.Id);
+        days[0].Projects[0].TotalTime.ShouldBe(TimeSpan.FromMinutes(60));
+        days[0].Projects[1].ProjectId.ShouldBe(project2Activity1.Project.Id);
+        days[0].Projects[1].TotalTime.ShouldBe(TimeSpan.FromMinutes(35));
+    }
+    
+    [TestMethod]
+    public async Task ProjectExported()
+    {
+        //Arrange
+        var today = Today;
+        var project1Activity = TestActivities.SingleRandom();
+        var project2Activity1 = TestActivities.Where(a => a.Project.Id != project1Activity.Project.Id).SingleRandom();
+        var project2Activity2 = TestActivities.Where(a => a.Project.Id == project2Activity1.Project.Id && a != project2Activity1).SingleRandom();
+        BuildTimeEntry(project1Activity, today, TimeSpan.FromMinutes(60)).Exported = true;
+        BuildTimeEntry(project2Activity1, today, TimeSpan.FromMinutes(20)).Exported = true;
+        BuildTimeEntry(project2Activity2, today, TimeSpan.FromMinutes(15)).Exported = false;
+
+        //Act
+        var days = await GetStandUpDaysAsync(today, today);
+
+        //Assert
+        days.Length.ShouldBe(1);
+        days[0].Projects.Length.ShouldBe(2);
+        days[0].Projects[0].AllExported.ShouldBeTrue();
+        days[0].Projects[0].CanExport.ShouldBeFalse();
+        days[0].Projects[1].AllExported.ShouldBeFalse();
+        days[0].Projects[1].CanExport.ShouldBeTrue();
+    }
+    
+    [TestMethod]
+    public async Task ProjectUrl()
+    {
+        //Arrange
+        var today = Today;
+        var entry = BuildTimeEntry(today);
+
+        //Act
+        var days = await GetStandUpDaysAsync(today, today);
+
+        //Assert
+        var expected = Kimai.BaseUrl
+            .AppendPathSegments(DefaultUser.Language, "timesheet")
+            .AppendQueryParam("daterange", $"{today:O} - {today:O}")
+            .AppendQueryParam("state", 3)  // stopped
+            .AppendQueryParam("billable", 0)
+            .AppendQueryParam("exported", 1)
+            .AppendQueryParam("orderBy", "begin")
+            .AppendQueryParam("order", "DESC")
+            .AppendQueryParam("searchTerm", string.Empty)
+            .AppendQueryParam("performSearch", "performSearch")
+            .AppendQueryParam("projects[]", entry.Project.Id)
+            .ToUri();
+        days[0].Projects[0].Url.ShouldBe(expected);
+    }
+
+    
+    #endregion Projects
 }

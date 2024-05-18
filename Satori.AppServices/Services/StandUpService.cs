@@ -37,7 +37,7 @@ public class StandUpService(IKimaiServer kimai)
 
         var timeSheet = getTimeSheetTask.Result;
         var days = timeSheet.GroupBy(GetDateOnly);
-        var standUpDays = days.Select(entries => ToViewModel(entries, url)).ToList();
+        var standUpDays = days.Select(entries => ToDayViewModel(entries, url)).ToList();
 
         var allDays = Enumerable.Range(0, daysInRange).Select(begin.AddDays);
         AddMissingDays(standUpDays, allDays, url);
@@ -82,11 +82,11 @@ public class StandUpService(IKimaiServer kimai)
             allDays
                 .Where(d => d.IsNotIn(standUpDays.Select(x => x.Date)))
                 .Select(d => new NullGroup<DateOnly, TimeEntry>(d))
-                .Select(g => ToViewModel(g, url))
+                .Select(g => ToDayViewModel(g, url))
         );
     }
 
-    private static StandUpDay ToViewModel(IGrouping<DateOnly, TimeEntry> day, Url url)
+    private static StandUpDay ToDayViewModel(IGrouping<DateOnly, TimeEntry> day, Url url)
     {
         var uri = url
             .AppendQueryParam("daterange", $"{day.Key:O} - {day.Key:O}")
@@ -102,12 +102,42 @@ public class StandUpService(IKimaiServer kimai)
         return new StandUpDay()
         {
             Date = day.Key,
-            TotalTime = day.Select(GetDuration).Sum(),
-            AllExported = day.All(entry => entry.Exported),
-            CanExport = day.Any(GetCanExport),
-            Url = uri
+            TotalTime = GetDuration(day),
+            AllExported = GetAllExported(day),
+            CanExport = GetCanExport(day),
+            Url = uri,
+            Projects = ToProjectsViewModel(day, uri),
         };
     }
+
+    private static ProjectSummary[] ToProjectsViewModel(IEnumerable<TimeEntry> entries, Url url)
+    {
+        var groups = entries.GroupBy(entry => new
+        {
+            ProjectID = entry.Project.Id,
+            ProjectName = entry.Project.Name,
+            CustomerID = entry.Project.Customer.Id,
+            CustomerName = entry.Project.Customer.Name,
+        });
+
+        return groups.Select(g => new ProjectSummary() 
+            {
+                ProjectId = g.Key.ProjectID,
+                ProjectName = g.Key.ProjectName,
+                CustomerId = g.Key.CustomerID,
+                CustomerName = g.Key.CustomerName,
+                TotalTime = GetDuration(g),
+                AllExported = GetAllExported(g),
+                CanExport = GetCanExport(g),
+                Url = url.AppendQueryParam("projects[]", g.Key.ProjectID).ToUri(),
+            })
+            .OrderByDescending(p => p.TotalTime).ThenBy(p => p.ProjectName)
+            .ToArray();
+    }
+
+    private static bool GetAllExported(IEnumerable<TimeEntry> entries) => entries.All(entry => entry.Exported);
+
+    private static bool GetCanExport(IEnumerable<TimeEntry> entries) => entries.Any(GetCanExport);
 
     private static bool GetCanExport(TimeEntry entry)
     {
@@ -121,10 +151,9 @@ public class StandUpService(IKimaiServer kimai)
         return true;
     }
 
-    private static TimeSpan GetDuration(TimeEntry entry)
-    {
-        return entry.End != null ? (entry.End.Value - entry.Begin) : TimeSpan.Zero;
-    }
+    private static TimeSpan GetDuration(IEnumerable<TimeEntry> entries) => entries.Select(GetDuration).Sum();
+
+    private static TimeSpan GetDuration(TimeEntry entry) => entry.End != null ? (entry.End.Value - entry.Begin) : TimeSpan.Zero;
 
     private static DateOnly GetDateOnly(TimeEntry entry) => DateOnly.FromDateTime(entry.Begin.Date);
 }
