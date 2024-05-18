@@ -17,10 +17,10 @@
     <div class="dropdown">
         <button class="dropbtn">@DateSelector.PeriodText ▾</button>
         <div class="dropdown-content">
-            <div class="dropdown-content-menu" @onclick="() => DateSelector.ChangePeriod(Period.Today)">Today</div>
-            <div class="dropdown-content-menu" @onclick="() => DateSelector.ChangePeriod(Period.LastTwoDays)">Last 2 Days</div>
-            <div class="dropdown-content-menu" @onclick="() => DateSelector.ChangePeriod(Period.WorkWeek)">Work Week</div>
-            <div class="dropdown-content-menu" @onclick="() => DateSelector.ChangePeriod(Period.LastSevenDays)">Last 7 Days</div>
+            <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriod(Period.Today)">Today</div>
+            <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriod(Period.LastTwoDays)">Last 2 Days</div>
+            <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriod(Period.WorkWeek)">Work Week</div>
+            <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriod(Period.LastSevenDays)">Last 7 Days</div>
         </div>
     </div>
     <div class="date-range">
@@ -65,7 +65,7 @@
 @code {
 
     private Person CurrentUser { get; set; } = Person.Empty;
-    private DateSelectorViewModel DateSelector { get; set; } = new(Person.Empty.FirstDayOfWeek);
+    private DateSelectorViewModel DateSelector { get; set; } = new(Person.Empty.FirstDayOfWeek, standUpService: null);
     private StandUpDay[] StandUpDays { get; set; } = [];
     private string InLoading { get; set; } = string.Empty;
 
@@ -73,9 +73,10 @@
     {
         CurrentUser = await UserService.GetCurrentUserAsync();
         var period = GetPeriodFromUrl();
-        DateSelector = new DateSelectorViewModel(CurrentUser.FirstDayOfWeek);
+        DateSelector = new DateSelectorViewModel(CurrentUser.FirstDayOfWeek, StandUpService);
+        DateSelector.DateChanging += DateChanging;
         DateSelector.DateChanged += DateChanged;
-        DateSelector.ChangePeriod(period);
+        await DateSelector.ChangePeriod(period);
     }
 
     private Period GetPeriodFromUrl()
@@ -93,36 +94,34 @@
         {
             var period = await LocalStorage.GetItemAsync<Period>("DatePeriod");
             CurrentPeriod = period;
-            DateSelector.ChangePeriod(period);
+            await DateSelector.ChangePeriod(period);
             StateHasChanged();
         }
     }
 
     private Period CurrentPeriod { get; set; }
-    private void DateChanged(object? sender, EventArgs eventArgs)
-    {
-        if (CurrentPeriod != DateSelector.Period)
-        {
-            var url = NavigationManager.Uri
-                .AppendQueryParam("DatePeriod", null)
-                .AppendQueryParam("DatePeriod", DateSelector.Period);
-            NavigationManager.NavigateTo(url, forceLoad: false);
-        
-            LocalStorage.SetItemAsync("DatePeriod", DateSelector.Period);
-            CurrentPeriod = DateSelector.Period;
-        }
-        
-        RunReport();
-    }
-
-    private void RunReport()
+    private void DateChanging(object? sender, EventArgs eventArgs)
     {
         InLoading = "Loading: ";
         StandUpDays = [];
-        StateHasChanged();
-        StandUpDays = Task.Run(async () => 
-            await StandUpService.GetStandUpDaysAsync(DateSelector.BeginDate, DateSelector.EndDate)
-        ).Result;
+
+        if (CurrentPeriod == DateSelector.Period)
+        {
+            return;
+        }
+
+        var url = NavigationManager.Uri
+            .AppendQueryParam("DatePeriod", null)
+            .AppendQueryParam("DatePeriod", DateSelector.Period);
+        NavigationManager.NavigateTo(url, forceLoad: false);
+        
+        LocalStorage.SetItemAsync("DatePeriod", DateSelector.Period);
+        CurrentPeriod = DateSelector.Period;
+    }
+
+    private void DateChanged(object? sender, DateChangedEventArgs eventArgs)
+    {
+        StandUpDays = eventArgs.StandUpDays;
         InLoading = string.Empty;
     }
 
