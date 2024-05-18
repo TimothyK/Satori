@@ -1,6 +1,9 @@
 ﻿@page "/"
 @using Satori.AppServices.Models
+@using Satori.AppServices.Services
+@using Flurl
 @inject ConnectionSettings ConnectionSettings
+@inject UserService UserService
 
 <PageTitle>Satori</PageTitle>
 
@@ -24,33 +27,33 @@
 
 <h3>Integrations</h3>
 
-<div style="display: flex;">
+<div class="card-stack">
     <a href="@_azureDevOpsUrl" target="_blank">
-        <div class="card" style="width: 150px;">
+        <div class="card">
             <img src="images/AzureDevOps-Logo.png" alt="Azure DevOps Logo"/>
             <div class="card-body">
-                <p class="card-text" style="text-align: center;">Azure DevOps</p>
+                <p class="card-text">Azure DevOps</p>
             </div>
         </div>
     </a>
     <a href="@_kimaiUrl" target="_blank">
-        <div class="card" style="width: 150px;">
+        <div class="card">
             <img src="images/kimai_Logo.png" alt="Kimai Logo"/>
             <div class="card-body">
-                <p class="card-text" style="text-align: center;">Kimai</p>
+                <p class="card-text">Kimai</p>
             </div>
         </div>
     </a>
 </div>
 
-<h4 style="margin-top: 30px;">Coming Soon</h4>
+<h4>Coming Soon</h4>
 <ul>
     <li>Rabbit MQ</li>
     <li><a target="_blank" href="https://outlook.office.com/mail/">Outlook</a></li>
     <li>and more to come</li>
 </ul>
 
-<h4 style="margin-top: 30px;">Contributions</h4>
+<h4>Contributions</h4>
 <ul>
     <li><a target="_blank" href="https://github.com/TimothyK/Satori">Source Code</a></li>
     <li>by <a target="_blank" href="http://codemonkeyprojectiles.com">Timothy Klenke</a></li>
@@ -61,10 +64,14 @@
     private Uri? _azureDevOpsUrl;
     private Uri? _kimaiUrl;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         _azureDevOpsUrl = ConnectionSettings.AzureDevOps.Url;
-        _kimaiUrl = ConnectionSettings.Kimai.Url;
+        var person = await UserService.GetCurrentUserAsync();
+        _kimaiUrl = ConnectionSettings.Kimai.Url
+            .AppendPathSegment(person.Language.Replace("-", "_"))
+            .AppendPathSegment("timesheet")
+            .ToUri();
     }
 
 }
