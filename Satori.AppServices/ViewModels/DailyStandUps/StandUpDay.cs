@@ -4,7 +4,7 @@ public class StandUpDay
 {
     public DateOnly Date { get; internal init; }
     public TimeSpan TotalTime { get; internal init; }
-    public Uri Url { get; internal init; }
+    public required Uri Url { get; init; }
     public bool AllExported { get; internal init; }
     public bool CanExport { get; internal init; }
 
