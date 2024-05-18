@@ -58,6 +58,7 @@ public class UserTests
             UserName = "kimai login",
             Alias = "Test User (Kimai)",
             Avatar = null,
+            Language = "en_CA",
         };
 
     }
@@ -141,6 +142,7 @@ public class UserTests
 
     [TestMethod] public void Email() => GetCurrentUser().EmailAddress.ShouldBe(_testData.Identity.Properties.Mail?.Value);
     [TestMethod] public void KimaiId() => GetCurrentUser().KimaiId.ShouldBe(_testData.KimaiUser.Id);
+    [TestMethod] public void Language() => GetCurrentUser().Language.ShouldBe("en-CA");
     [TestMethod] public void DomainUser() => 
         GetCurrentUser().DomainLogin
             .ShouldBe($@"{_testData.Identity.Properties.Domain?.Value}\{_testData.Identity.Properties.Account?.Value}");

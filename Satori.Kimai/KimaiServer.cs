@@ -14,6 +14,8 @@ public class KimaiServer(
 
     private ILogger<KimaiServer> Logger => loggerFactory.CreateLogger<KimaiServer>();
 
+    public Uri BaseUrl => connectionSettings.Url;
+
     public async Task<TimeEntry[]> GetTimeSheetAsync(TimeSheetFilter filter)
     {
         var url = connectionSettings.Url

@@ -33,7 +33,17 @@
 @foreach (var day in StandUpDays)
 {
     <div class="day-header">
-        <div class="duration"><span class="duration-minutes">@day.TotalTime.ToString(@"hh\:mm")</span> <span class="duration-decimal">(@day.TotalTime.TotalHours.ToNearest(0.05) h)</span></div>
+        <div class="duration">
+            <div class="duration-link"><a href="@day.Url" target="_blank">
+                <span class="bi bi-box-arrow-up-right"></span>
+            </a></div>
+            <div class="duration-minutes">
+                <span class="">@day.TotalTime.ToString(@"hh\:mm")</span> 
+            </div>
+            <div class="duration-decimal">
+                <span class="">@day.TotalTime.TotalHours.ToNearest(0.05) h</span>
+            </div>
+        </div>
         <div class="export @(day.AllExported ? "export-done" : "") @(day.CanExport ? "export-enabled" : "")">
             @if (day.AllExported)
             {

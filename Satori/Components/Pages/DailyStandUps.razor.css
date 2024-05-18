@@ -93,9 +93,46 @@
     font-size: 0.9em;
 }
 
+.duration {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    border: 1px solid darkgray;
+    border-radius: 5px;
+}
+
+.duration-link {
+    background-color: lightgray;
+    padding: 5px 0px 5px 5px;
+    text-align: center;
+}
+.duration-link:hover {
+    background-color: #157347;
+}
+
 .duration-minutes {
     font-family: "Roboto", sans-serif;
     font-weight: bold;
+    padding: 5px;
+}
+
+.duration-decimal {
+    background-color: lightgray;
+    padding: 5px;
+}
+
+.bi {
+    display: inline-block;
+    position: relative;
+    width: 1.0rem;
+    height: 1.0rem;
+    margin-right: 0.75rem;
+    background-size: cover;
+}
+
+.bi-box-arrow-up-right {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-up-right" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg>');
+}
 }
 
 .day-header-day {

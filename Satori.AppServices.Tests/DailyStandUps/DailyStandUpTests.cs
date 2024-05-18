@@ -1,5 +1,6 @@
 ﻿using Builder;
 using CodeMonkeyProjectiles.Linq;
+using Flurl;
 using Satori.AppServices.Extensions;
 using Satori.AppServices.Services;
 using Satori.AppServices.Tests.Extensions;
@@ -442,4 +443,31 @@ public class DailyStandUpTests
     }
 
     #endregion Exported
+
+    [TestMethod]
+    public void Url()
+    {
+        //Arrange
+        var today = Today;
+        BuildTimeEntry(today);
+
+        //Act
+        var days = GetStandUpDays(today, today);
+
+        //Assert
+        days.Length.ShouldBe(1);
+        var day = days.Single();
+        var expected = Kimai.BaseUrl
+                .AppendPathSegments(DefaultUser.Language, "timesheet")
+                .AppendQueryParam("daterange", $"{today:O} - {today:O}")
+                .AppendQueryParam("state", 3)  // stopped
+                .AppendQueryParam("billable", 0)
+                .AppendQueryParam("exported", 1)
+                .AppendQueryParam("orderBy", "begin")
+                .AppendQueryParam("order", "DESC")
+                .AppendQueryParam("searchTerm", string.Empty)
+                .AppendQueryParam("performSearch", "performSearch")
+                .ToUri();
+        day.Url.ShouldBe(expected);
+    }
 }

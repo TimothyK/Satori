@@ -15,11 +15,17 @@ internal class TestKimaiServer
         _mock = new Mock<IKimaiServer>(MockBehavior.Strict);
         _mock.Setup(srv => srv.GetTimeSheetAsync(It.IsAny<TimeSheetFilter>()))
             .ReturnsAsync((TimeSheetFilter filter) => GetTimeSheet(filter));
+
+        _mock.Setup(srv => srv.BaseUrl)
+            .Returns(BaseUrl);
+
         _mock.Setup(srv => srv.GetMyUserAsync())
             .ReturnsAsync(() => CurrentUser!);
     }
 
+    public Uri BaseUrl { get; } = new("https://kimai.test/");
     public required User CurrentUser { get; init; }
+
     public IKimaiServer AsInterface() => _mock.Object;
 
     private List<TimeEntry> TimeSheet { get; } = [];
