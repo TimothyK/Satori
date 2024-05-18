@@ -20,6 +20,7 @@ public class Person
     public string? DomainLogin { get; private init; }
     public int? KimaiId { get; private init; }
     public DayOfWeek FirstDayOfWeek { get; private init; } = DayOfWeek.Monday;
+    public string Language { get; private init; } = "en";
 
     #endregion Properties
 
@@ -103,6 +104,7 @@ public class Person
                 KimaiId = kimaiUser.Id,
                 DomainLogin = $@"{azDoIdentity.Properties.Domain?.Value}\{azDoIdentity.Properties.Account?.Value}",
                 FirstDayOfWeek = GetFirstDayOfWeek(kimaiUser),
+                Language = kimaiUser.Language?.Replace("_", "-") ?? "en",
             };
         }
     }

@@ -9,6 +9,8 @@ public class User
     [JsonPropertyName("preferences")] 
     public Preference[]? Preferences { get; set; }
 
+    [JsonPropertyName("language")]
+    public string? Language { get; set; }
     [JsonPropertyName("timezone")]
     public string? TimeZone { get; set; }
 

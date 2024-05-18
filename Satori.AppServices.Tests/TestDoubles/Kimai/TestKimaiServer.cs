@@ -15,8 +15,11 @@ internal class TestKimaiServer
         _mock = new Mock<IKimaiServer>(MockBehavior.Strict);
         _mock.Setup(srv => srv.GetTimeSheetAsync(It.IsAny<TimeSheetFilter>()))
             .ReturnsAsync((TimeSheetFilter filter) => GetTimeSheet(filter));
+        _mock.Setup(srv => srv.GetMyUserAsync())
+            .ReturnsAsync(() => CurrentUser!);
     }
 
+    public required User CurrentUser { get; init; }
     public IKimaiServer AsInterface() => _mock.Object;
 
     private List<TimeEntry> TimeSheet { get; } = [];

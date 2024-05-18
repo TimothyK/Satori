@@ -49,6 +49,7 @@ public class UserTests
     [TestMethod] public void ASmokeTest() => GetMyUser().UserName.ShouldBe("TimothyK");
     [TestMethod] public void Id() => GetMyUser().Id.ShouldBe(42);
     [TestMethod] public void TimeZone() => GetMyUser().TimeZone.ShouldBe("America/Edmonton");
+    [TestMethod] public void Language() => GetMyUser().Language.ShouldBe("en_CA");
     [TestMethod] public void Alias() => GetMyUser().Alias.ShouldBe("Timothy Klenke");
     [TestMethod] public void AccountNumber() => GetMyUser().AccountNumber.ShouldBe(@"Domain\TimothyK");
     [TestMethod] public void Avatar() => GetMyUser().Avatar.ShouldBe(new Uri("https://codemonkeyprojectiles.com/img/TimothyKlenke-2022.avatar.jpg"));

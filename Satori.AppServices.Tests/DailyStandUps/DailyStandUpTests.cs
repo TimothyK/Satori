@@ -18,11 +18,12 @@ public class DailyStandUpTests
 
     #region Arrange
 
-    private TestKimaiServer Kimai { get; } = new();
+    private TestKimaiServer Kimai { get; } = new() {CurrentUser = DefaultUser};
 
     private static readonly User DefaultUser = Builder<User>.New().Build(user =>
     {
         user.Enabled = true;
+        user.Language = "en_CA";
     });
 
     private Activity[] TestActivities { get; } = BuildActivities();
