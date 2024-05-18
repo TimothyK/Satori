@@ -25,7 +25,7 @@
     </div>
     <div class="date-range">
         <div><button class="btn-date-range btn-date-range-decrement" @onclick="DateSelector.DecrementPeriod">«</button></div>
-        <div><span>@DateSelector.DateRangeText</span></div>
+        <div><span>@InLoading @DateSelector.DateRangeText</span></div>
         <div><button class="btn-date-range btn-date-range-increment" @onclick="DateSelector.IncrementPeriod">»</button></div>
     </div>
 </div>
@@ -67,6 +67,7 @@
     private Person CurrentUser { get; set; } = Person.Empty;
     private DateSelectorViewModel DateSelector { get; set; } = new(Person.Empty.FirstDayOfWeek);
     private StandUpDay[] StandUpDays { get; set; } = [];
+    private string InLoading { get; set; } = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -116,9 +117,13 @@
 
     private void RunReport()
     {
+        InLoading = "Loading: ";
+        StandUpDays = [];
+        StateHasChanged();
         StandUpDays = Task.Run(async () => 
             await StandUpService.GetStandUpDaysAsync(DateSelector.BeginDate, DateSelector.EndDate)
         ).Result;
+        InLoading = string.Empty;
     }
 
 }
