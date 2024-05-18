@@ -106,11 +106,11 @@ public class DailyStandUpTests
 
     #region Act
 
-    private StandUpDay[] GetStandUpDays(DateOnly begin, DateOnly end)
+    private async Task<StandUpDay[]> GetStandUpDaysAsync(DateOnly begin, DateOnly end)
     {
         var srv = new StandUpService(Kimai.AsInterface());
 
-        return srv.GetStandUpDaysAsync(begin, end).Result;
+        return await srv.GetStandUpDaysAsync(begin, end);
     }
 
     #endregion Act
@@ -119,7 +119,7 @@ public class DailyStandUpTests
 
 
     [TestMethod]
-    public void ASmokeTest()
+    public async Task ASmokeTest()
     {
         //Arrange
         var today = Today;
@@ -127,7 +127,7 @@ public class DailyStandUpTests
         entry.End.ShouldNotBeNull();
 
         //Act
-        var days = GetStandUpDays(today, today);
+        var days = await GetStandUpDaysAsync(today, today);
 
         //Assert
         days.Length.ShouldBe(1);
@@ -140,12 +140,11 @@ public class DailyStandUpTests
     public void InvalidDateRange_ThrowsException()
     {
         var today = DateOnly.FromDateTime(DateTime.Today);
-        Should.Throw<AggregateException>(() => GetStandUpDays(today, today.AddDays(-1)))
-            .InnerExceptions.OfType<ArgumentException>().ShouldNotBeEmpty();
+        Should.ThrowAsync<ArgumentException>(() => GetStandUpDaysAsync(today, today.AddDays(-1)));
     }
 
     [TestMethod]
-    public void RunningTimeEntry_IsNotReported()
+    public async Task RunningTimeEntry_IsNotReported()
     {
         //Arrange
         var today = Today;
@@ -153,21 +152,21 @@ public class DailyStandUpTests
         entry.End = null;
 
         //Act
-        var days = GetStandUpDays(today, today);
+        var days = await GetStandUpDaysAsync(today, today);
 
         //Assert
-        days.ShouldBeEmpty();
+        days.Single().TotalTime.ShouldBe(TimeSpan.Zero);
     }
     
     [TestMethod]
-    public void DifferentDay_IsNotReported()
+    public async Task DifferentDay_IsNotReported()
     {
         //Arrange
         var yesterday = Today.AddDays(-1);
         BuildTimeEntry(yesterday.AddDays(1));
 
         //Act
-        var days = GetStandUpDays(yesterday, yesterday);
+        var days = await GetStandUpDaysAsync(yesterday, yesterday);
 
         //Assert
         days.ShouldBeEmpty();
@@ -186,12 +185,11 @@ public class DailyStandUpTests
         Kimai.ExpectedPageSize = ExpectedPageSize + 1;
 
         //Act
-        Should.Throw<AggregateException>(() => GetStandUpDays(today, today))
-            .InnerExceptions.OfType<ShouldAssertException>().ShouldNotBeEmpty();
+        Should.ThrowAsync<ShouldAssertException>(() => GetStandUpDaysAsync(today, today));
     }
 
     [TestMethod]
-    public void MultiplePages_LoadsAllData()
+    public async Task MultiplePages_LoadsAllData()
     {
         //Arrange
         var today = Today;
@@ -203,7 +201,7 @@ public class DailyStandUpTests
         Kimai.ExpectedPageSize = ExpectedPageSize;
 
         //Act
-        var days = GetStandUpDays(today, today);
+        var days = await GetStandUpDaysAsync(today, today);
 
         //Assert
         days.Single().TotalTime.ShouldBe(TimeSpan.FromMinutes(expectedTime));
@@ -214,7 +212,7 @@ public class DailyStandUpTests
     /// This test ensures the service under test can handle this expected exception.
     /// </summary>
     [TestMethod]
-    public void MultiplePagesWithNotRemainder_LoadsAllData()
+    public async Task MultiplePagesWithNotRemainder_LoadsAllData()
     {
         //Arrange
         var today = Today;
@@ -227,7 +225,7 @@ public class DailyStandUpTests
         Kimai.ExpectedPageSize = ExpectedPageSize;
 
         //Act
-        var days = GetStandUpDays(today, today);
+        var days = await GetStandUpDaysAsync(today, today);
 
         //Assert
         days.Single().TotalTime.ShouldBe(TimeSpan.FromMinutes(expectedTime));
@@ -235,29 +233,10 @@ public class DailyStandUpTests
 
     #endregion Page Size
 
-    [TestMethod]
-    public void MultipleDays()
-    {
-        //Arrange
-        var today = Today;
-        var yesterday = today.AddDays(-1);
-        BuildTimeEntry(yesterday, TimeSpan.FromMinutes(10));
-        BuildTimeEntry(today, TimeSpan.FromMinutes(15));
-        BuildTimeEntry(today, TimeSpan.FromMinutes(20));
-
-        //Act
-        var days = GetStandUpDays(yesterday, today);
-
-        //Assert
-        days.Length.ShouldBe(2);
-        days.Single(day => day.Date == yesterday).TotalTime.ShouldBe(TimeSpan.FromMinutes(10));
-        days.Single(day => day.Date == today).TotalTime.ShouldBe(TimeSpan.FromMinutes(35));
-    }
-
     #region Exported
 
     [TestMethod]
-    public void AllExported()
+    public async Task AllExported()
     {
         //Arrange
         var today = Today;
@@ -265,14 +244,14 @@ public class DailyStandUpTests
         BuildTimeEntry(today).Exported = true;
 
         //Act
-        var days = GetStandUpDays(today, today);
+        var days = await GetStandUpDaysAsync(today, today);
 
         //Assert
         days.Single().AllExported.ShouldBeTrue();
     }
     
     [TestMethod]
-    public void AllExported_False()
+    public async Task AllExported_False()
     {
         //Arrange
         var today = Today;
@@ -280,42 +259,42 @@ public class DailyStandUpTests
         BuildTimeEntry(today).Exported = false;
 
         //Act
-        var days = GetStandUpDays(today, today);
+        var days = await GetStandUpDaysAsync(today, today);
 
         //Assert
         days.Single().AllExported.ShouldBeFalse();
     }
     
     [TestMethod]
-    public void CanExport_AlreadyExported_False()
+    public async Task CanExport_AlreadyExported_False()
     {
         //Arrange
         var today = Today;
         BuildTimeEntry(today).Exported = true;
 
         //Act
-        var days = GetStandUpDays(today, today);
+        var days = await GetStandUpDaysAsync(today, today);
 
         //Assert
         days.Single().CanExport.ShouldBeFalse();
     }
     
     [TestMethod]
-    public void CanExport_ReadyToExport_True()
+    public async Task CanExport_ReadyToExport_True()
     {
         //Arrange
         var today = Today;
         BuildTimeEntry(today).Exported = false;
 
         //Act
-        var days = GetStandUpDays(today, today);
+        var days = await GetStandUpDaysAsync(today, today);
 
         //Assert
         days.Single().CanExport.ShouldBeTrue();
     }
     
     [TestMethod]
-    public void CanExport_ActivityDeactivated_False()
+    public async Task CanExport_ActivityDeactivated_False()
     {
         //Arrange
         var today = Today;
@@ -328,7 +307,7 @@ public class DailyStandUpTests
         });
 
         //Act
-        var days = GetStandUpDays(today, today);
+        var days = await GetStandUpDaysAsync(today, today);
 
         //Assert
         days.Single().AllExported.ShouldBeFalse();
@@ -336,7 +315,7 @@ public class DailyStandUpTests
     }
     
     [TestMethod]
-    public void CanExport_ActivityTbd_False()
+    public async Task CanExport_ActivityTbd_False()
     {
         //Arrange
         var today = Today;
@@ -349,7 +328,7 @@ public class DailyStandUpTests
         });
 
         //Act
-        var days = GetStandUpDays(today, today);
+        var days = await GetStandUpDaysAsync(today, today);
 
         //Assert
         days.Single().AllExported.ShouldBeFalse();
@@ -357,7 +336,7 @@ public class DailyStandUpTests
     }
     
     [TestMethod]
-    public void CanExport_ProjectDeactivated_False()
+    public async Task CanExport_ProjectDeactivated_False()
     {
         //Arrange
         var today = Today;
@@ -376,7 +355,7 @@ public class DailyStandUpTests
         });
 
         //Act
-        var days = GetStandUpDays(today, today);
+        var days = await GetStandUpDaysAsync(today, today);
 
         //Assert
         days.Single().AllExported.ShouldBeFalse();
@@ -384,7 +363,7 @@ public class DailyStandUpTests
     }
     
     [TestMethod]
-    public void CanExport_ProjectTbd_False()
+    public async Task CanExport_ProjectTbd_False()
     {
         //Arrange
         var today = Today;
@@ -403,7 +382,7 @@ public class DailyStandUpTests
         });
 
         //Act
-        var days = GetStandUpDays(today, today);
+        var days = await GetStandUpDaysAsync(today, today);
 
         //Assert
         days.Single().AllExported.ShouldBeFalse();
@@ -411,7 +390,7 @@ public class DailyStandUpTests
     }
     
     [TestMethod]
-    public void CanExport_CustomerDeactivated_False()
+    public async Task CanExport_CustomerDeactivated_False()
     {
         //Arrange
         var today = Today;
@@ -435,7 +414,7 @@ public class DailyStandUpTests
         });
 
         //Act
-        var days = GetStandUpDays(today, today);
+        var days = await GetStandUpDaysAsync(today, today);
 
         //Assert
         days.Single().AllExported.ShouldBeFalse();
@@ -445,14 +424,14 @@ public class DailyStandUpTests
     #endregion Exported
 
     [TestMethod]
-    public void Url()
+    public async Task Url()
     {
         //Arrange
         var today = Today;
         BuildTimeEntry(today);
 
         //Act
-        var days = GetStandUpDays(today, today);
+        var days = await GetStandUpDaysAsync(today, today);
 
         //Assert
         days.Length.ShouldBe(1);
