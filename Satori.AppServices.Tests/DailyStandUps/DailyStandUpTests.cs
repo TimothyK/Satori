@@ -162,14 +162,17 @@ public class DailyStandUpTests
     public async Task DifferentDay_IsNotReported()
     {
         //Arrange
-        var yesterday = Today.AddDays(-1);
-        BuildTimeEntry(yesterday.AddDays(1));
+        var today = Today;
+        var yesterday = today.AddDays(-1);
+        BuildTimeEntry(today);
 
         //Act
         var days = await GetStandUpDaysAsync(yesterday, yesterday);
 
         //Assert
-        days.ShouldBeEmpty();
+        days.Length.ShouldBe(1);
+        days.Single().Date.ShouldBe(yesterday);
+        days.Single().TotalTime.ShouldBe(TimeSpan.Zero);
     }
 
 
@@ -448,5 +451,95 @@ public class DailyStandUpTests
                 .AppendQueryParam("performSearch", "performSearch")
                 .ToUri();
         day.Url.ShouldBe(expected);
+    }
+
+    [TestMethod]
+    public async Task MultipleDays()
+    {
+        //Arrange
+        var today = Today;
+        var yesterday = today.AddDays(-1);
+        BuildTimeEntry(yesterday, TimeSpan.FromMinutes(10));
+        BuildTimeEntry(today, TimeSpan.FromMinutes(15));
+        BuildTimeEntry(today, TimeSpan.FromMinutes(20));
+
+        //Act
+        var days = await GetStandUpDaysAsync(yesterday, today);
+
+        //Assert
+        days.Length.ShouldBe(2);
+        days.Single(day => day.Date == yesterday).TotalTime.ShouldBe(TimeSpan.FromMinutes(10));
+        days.Single(day => day.Date == today).TotalTime.ShouldBe(TimeSpan.FromMinutes(35));
+    }
+
+    [TestMethod]
+    public async Task ReturnEmptyDays()
+    {
+        //Arrange
+        var today = Today;
+        var yesterday = today.AddDays(-1);
+        var yesterdayEve = today.AddDays(-2);
+        BuildTimeEntry(yesterdayEve, TimeSpan.FromMinutes(10));
+        BuildTimeEntry(today, TimeSpan.FromMinutes(20));
+
+        //Act
+        var days = await GetStandUpDaysAsync(yesterdayEve, today);
+
+        //Assert
+        days.Length.ShouldBe(3);
+        days.Single(day => day.Date == yesterdayEve).TotalTime.ShouldBe(TimeSpan.FromMinutes(10));
+        days.Single(day => day.Date == yesterday).TotalTime.ShouldBe(TimeSpan.Zero);
+        days.Single(day => day.Date == today).TotalTime.ShouldBe(TimeSpan.FromMinutes(20));
+    }
+
+    [TestMethod]
+    public async Task DaysAreOrderedDescending()
+    {
+        //Arrange
+        var today = Today;
+        var yesterday = today.AddDays(-1);
+        var yesterdayEve = today.AddDays(-2);
+        BuildTimeEntry(yesterdayEve, TimeSpan.FromMinutes(10));
+        BuildTimeEntry(today, TimeSpan.FromMinutes(20));
+
+        //Act
+        var days = await GetStandUpDaysAsync(yesterdayEve, today);
+
+        //Assert
+        days.Length.ShouldBe(3);
+        days[0].Date.ShouldBe(today);
+        days[1].Date.ShouldBe(yesterday);
+        days[2].Date.ShouldBe(yesterdayEve);
+    }
+
+    [TestMethod]
+    public void LimitDateRange()
+    {
+        var today = Today;
+        Should.ThrowAsync<ArgumentException>(() => GetStandUpDaysAsync(today.AddDays(-7), today));
+    }
+    
+    [TestMethod]
+    public void AllowMaxOneWeek()
+    {
+        var today = Today;
+        Should.NotThrowAsync(() => GetStandUpDaysAsync(today.AddDays(-6), today));
+    }
+
+    [TestMethod]
+    public async Task FutureDays_DoNotReported()
+    {
+        //Arrange
+        var today = Today;
+        var tomorrow = today.AddDays(1);
+        BuildTimeEntry(today, TimeSpan.FromMinutes(20));
+        BuildTimeEntry(tomorrow, TimeSpan.FromMinutes(10));
+
+        //Act
+        var days = await GetStandUpDaysAsync(today, tomorrow);
+
+        //Assert
+        days.Length.ShouldBe(1);
+        days.Single(day => day.Date == today).TotalTime.ShouldBe(TimeSpan.FromMinutes(20));
     }
 }

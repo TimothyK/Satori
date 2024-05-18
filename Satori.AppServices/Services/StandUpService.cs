@@ -3,6 +3,7 @@ using Satori.Kimai;
 using Satori.Kimai.Models;
 using CodeMonkeyProjectiles.Linq;
 using Flurl;
+using Satori.AppServices.Services.Converters;
 using System.Net;
 
 namespace Satori.AppServices.Services;
@@ -11,24 +12,37 @@ public class StandUpService(IKimaiServer kimai)
 {
     public async Task<StandUpDay[]> GetStandUpDaysAsync(DateOnly begin, DateOnly end)
     {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        if (today < end)
+        {
+            end = today;
+        }
         if (end < begin)
         {
-            throw new ArgumentException("start date must be before or equal to end date");
+            throw new ArgumentException($"Start date {begin:O} must be before or equal to end date {end:O}");
         }
-
-        //return (await BuildDaysAsync(begin, end)).Where(day => day.Date.ToDateTime(TimeOnly.MinValue) <= DateTime.Today).ToArray();
-        //return [new StandUpDay() { Date = end, AllExported = true}];
+        var daysInRange = (end.ToDateTime(TimeOnly.MinValue) - begin.ToDateTime(TimeOnly.MinValue)).Days + 1;
+        if (daysInRange > 7)
+        {
+            throw new ArgumentException("There are too many days requested in this report.  Please use a smaller date range");
+        }
 
         var getUserTask = kimai.GetMyUserAsync();
         var getTimeSheetTask = GetTimeSheetAsync(begin, end);
 
         await Task.WhenAll(getUserTask, getTimeSheetTask);
 
-        var timeSheet = getTimeSheetTask.Result;
-        var url = kimai.BaseUrl.AppendPathSegments(getUserTask.Result.Language, "timesheet");
+        var language = getUserTask.Result.Language;
+        var url = kimai.BaseUrl.AppendPathSegments(language, "timesheet");
 
+        var timeSheet = getTimeSheetTask.Result;
         var days = timeSheet.GroupBy(GetDateOnly);
-        return days.Select(entries => ToViewModel(entries, url)).ToArray();
+        var standUpDays = days.Select(entries => ToViewModel(entries, url)).ToList();
+
+        var allDays = Enumerable.Range(0, daysInRange).Select(begin.AddDays);
+        AddMissingDays(standUpDays, allDays, url);
+
+        return standUpDays.OrderByDescending(day => day.Date).ToArray();
     }
 
     private async Task<List<TimeEntry>> GetTimeSheetAsync(DateOnly begin, DateOnly end)
@@ -60,6 +74,16 @@ public class StandUpService(IKimaiServer kimai)
         } while (!done);
 
         return timeSheet;
+    }
+
+    private static void AddMissingDays(List<StandUpDay> standUpDays, IEnumerable<DateOnly> allDays, Url url)
+    {
+        standUpDays.AddRange( 
+            allDays
+                .Where(d => d.IsNotIn(standUpDays.Select(x => x.Date)))
+                .Select(d => new NullGroup<DateOnly, TimeEntry>(d))
+                .Select(g => ToViewModel(g, url))
+        );
     }
 
     private static StandUpDay ToViewModel(IGrouping<DateOnly, TimeEntry> day, Url url)
