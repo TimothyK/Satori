@@ -4,13 +4,17 @@ using Satori.Kimai.Models;
 using CodeMonkeyProjectiles.Linq;
 using Flurl;
 using Satori.AppServices.Services.Converters;
+using Satori.AppServices.ViewModels;
+using Satori.AppServices.ViewModels.WorkItems;
+using Satori.AzureDevOps;
 using System.Net;
+using System.Text.RegularExpressions;
 using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
 using TimeEntry = Satori.AppServices.ViewModels.DailyStandUps.TimeEntry;
 
 namespace Satori.AppServices.Services;
 
-public class StandUpService(IKimaiServer kimai)
+public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azureDevOps)
 {
     public async Task<StandUpDay[]> GetStandUpDaysAsync(DateOnly begin, DateOnly end)
     {
@@ -78,7 +82,7 @@ public class StandUpService(IKimaiServer kimai)
         return timeSheet;
     }
 
-    private static void AddMissingDays(List<StandUpDay> standUpDays, IEnumerable<DateOnly> allDays, Url url)
+    private void AddMissingDays(List<StandUpDay> standUpDays, IEnumerable<DateOnly> allDays, Url url)
     {
         standUpDays.AddRange( 
             allDays
@@ -88,7 +92,7 @@ public class StandUpService(IKimaiServer kimai)
         );
     }
 
-    private static StandUpDay ToDayViewModel(IGrouping<DateOnly, KimaiTimeEntry> day, Url url)
+    private StandUpDay ToDayViewModel(IGrouping<DateOnly, KimaiTimeEntry> day, Url url)
     {
         var uri = url.ToUri()
             .AppendQueryParam("daterange", $"{day.Key:O} - {day.Key:O}")
@@ -112,7 +116,7 @@ public class StandUpService(IKimaiServer kimai)
         };
     }
 
-    private static ProjectSummary[] ToProjectsViewModel(IEnumerable<KimaiTimeEntry> entries, Url url)
+    private ProjectSummary[] ToProjectsViewModel(IEnumerable<KimaiTimeEntry> entries, Url url)
     {
         var groups = entries.GroupBy(entry => new
         {
@@ -142,7 +146,7 @@ public class StandUpService(IKimaiServer kimai)
             .ToArray();
     }
 
-    private static ActivitySummary[] ToActivitiesViewModel(IEnumerable<KimaiTimeEntry> entries, Url url)
+    private ActivitySummary[] ToActivitiesViewModel(IEnumerable<KimaiTimeEntry> entries, Url url)
     {
         var groups = entries.GroupBy(entry => new
         {
@@ -171,7 +175,12 @@ public class StandUpService(IKimaiServer kimai)
             .ToArray();
     }
 
-    private static TimeEntry ToViewModel(KimaiTimeEntry kimaiEntry)
+    [GeneratedRegex(@"^D#?(?'id'\d+)[\s-]*(?'title'.*)$", RegexOptions.IgnoreCase)]
+    private static partial Regex WorkItemCommentRegex();
+    [GeneratedRegex(@"^D#?(?'parentId'\d+)[\s-]*(?'parentTitle'.*)»\s+D#?(?'id'\d+)[\s-]*(?'title'.*)$", RegexOptions.IgnoreCase)]
+    private static partial Regex ParentedWorkItemCommentRegex();
+
+    private TimeEntry ToViewModel(KimaiTimeEntry kimaiEntry)
     {
         var lines = kimaiEntry.Description?.Split('\n')
             .SelectWhereHasValue(x => string.IsNullOrWhiteSpace(x) ? null : x.Trim())
@@ -185,11 +194,45 @@ public class StandUpService(IKimaiServer kimai)
             TotalTime = GetDuration(kimaiEntry),
             Exported = kimaiEntry.Exported,
             CanExport = GetCanExport(kimaiEntry),
+            Task = ExtractWorkItem(),
             Accomplishments = ExtractLinesWithPrefix("🏆"),
             Impediments = ExtractLinesWithPrefix("🧱"),
             Learnings = ExtractLinesWithPrefix("🧠"),
             OtherComments = RejoinLines(lines),
         };
+
+        WorkItem? ExtractWorkItem()
+        {
+            var parentedWorkItemRegex = ParentedWorkItemCommentRegex();
+            var match = lines.Select(x => parentedWorkItemRegex.Match(x)).FirstOrDefault(m => m.Success);
+            WorkItem? parentWorkItem = null;
+            if (match != null)
+            {
+                var parentId = int.Parse(match.Groups["parentId"].Value);
+                var parentTitle = match.Groups["parentTitle"].Value;
+                parentWorkItem = CreateWorkItem(parentId, parentTitle);
+            }
+            else
+            {
+                var workItemRegex = WorkItemCommentRegex();
+                match = lines.Select(x => workItemRegex.Match(x)).FirstOrDefault(m => m.Success);
+            }
+            if (match == null)
+            {
+                return null;
+            }
+
+            lines.Remove(match.Value);
+            
+            var id = int.Parse(match.Groups["id"].Value);
+            var title = match.Groups["title"].Value;
+            var task = CreateWorkItem(id, title);
+            
+            task.Parent = parentWorkItem;
+
+            return task;
+
+        }
 
         string? ExtractLinesWithPrefix(string prefix)
         {
@@ -198,6 +241,21 @@ public class StandUpService(IKimaiServer kimai)
 
             return RejoinLines(foundLines.Select(x => x[prefix.Length..].Trim()));
         }
+    }
+
+    private WorkItem CreateWorkItem(int id, string title)
+    {
+        return new WorkItem
+        {
+            Id = id,
+            Title = title?.Trim(),
+            Url = azureDevOps.ConnectionSettings.Url.AppendPathSegments("_workItems", "edit", id),
+            AssignedTo = Person.Empty,
+            CreatedBy = Person.Empty,
+            Type = WorkItemType.Unknown,
+            State = ScrumState.InProgress,
+            Tags = [],
+        };
     }
 
     private static string? RejoinLines(IEnumerable<string> lines) => RejoinLines(lines.ToArray());
@@ -227,4 +285,5 @@ public class StandUpService(IKimaiServer kimai)
     private static TimeSpan GetDuration(KimaiTimeEntry entry) => entry.End != null ? (entry.End.Value - entry.Begin) : TimeSpan.Zero;
 
     private static DateOnly GetDateOnly(KimaiTimeEntry entry) => DateOnly.FromDateTime(entry.Begin.Date);
+    
 }

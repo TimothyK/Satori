@@ -2,6 +2,7 @@
 using Satori.AppServices.Extensions;
 using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
+using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.Kimai.Models;
@@ -14,6 +15,8 @@ public abstract class DailyStandUpTests
     #region Helpers
 
     #region Arrange
+
+    private protected TestAzureDevOpsServer AzureDevOps { get; } = new();
 
     private protected TestKimaiServer Kimai { get; } = new() {CurrentUser = DefaultUser};
 
@@ -122,7 +125,7 @@ public abstract class DailyStandUpTests
 
     protected async Task<StandUpDay[]> GetStandUpDaysAsync(DateOnly begin, DateOnly end)
     {
-        var srv = new StandUpService(Kimai.AsInterface());
+        var srv = new StandUpService(Kimai.AsInterface(), AzureDevOps.AsInterface());
 
         return await srv.GetStandUpDaysAsync(begin, end);
     }

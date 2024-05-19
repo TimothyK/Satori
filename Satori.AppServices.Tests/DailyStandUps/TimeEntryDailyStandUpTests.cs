@@ -1,7 +1,8 @@
 ﻿using CodeMonkeyProjectiles.Linq;
+using Flurl;
 using Satori.AppServices.Tests.Extensions;
 using Satori.AppServices.Tests.TestDoubles;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
+using Satori.AppServices.ViewModels.WorkItems;
 using Satori.Kimai.Models;
 using Shouldly;
 using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
@@ -335,5 +336,93 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
     }
 
     #endregion Comments
+
+    #region WorkItems
+
+    [TestMethod]
+    public async Task WorkItem()
+    {
+        //Arrange
+        BuildTimeEntry().Description = "D#12345 Program should start without crash";
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.Accomplishments.ShouldBeNull();
+        entry.Impediments.ShouldBeNull();
+        entry.Learnings.ShouldBeNull();
+        entry.OtherComments.ShouldBeNull();
+
+        entry.Task.ShouldNotBeNull();
+        entry.Task.Id.ShouldBe(12345);
+        entry.Task.Title.ShouldBe("Program should start without crash");
+        entry.Task.Type.ShouldBe(WorkItemType.Unknown);
+        entry.Task.Parent.ShouldBeNull();
+    }
+    
+    [TestMethod]
+    public async Task WorkItemRobustness()
+    {
+        //Arrange
+        BuildTimeEntry().Description = "d12345 - Program should start without crash";
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.Accomplishments.ShouldBeNull();
+        entry.Impediments.ShouldBeNull();
+        entry.Learnings.ShouldBeNull();
+        entry.OtherComments.ShouldBeNull();
+
+        entry.Task.ShouldNotBeNull();
+        entry.Task.Id.ShouldBe(12345);
+        entry.Task.Title.ShouldBe("Program should start without crash");
+        entry.Task.Type.ShouldBe(WorkItemType.Unknown);
+        entry.Task.Parent.ShouldBeNull();
+    }
+    
+    [TestMethod]
+    public async Task WorkItemUrl()
+    {
+        //Arrange
+        BuildTimeEntry().Description = "D#12345 Program should start without crash";
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.Task.ShouldNotBeNull();
+        var expectedUrl = AzureDevOps.AsInterface().ConnectionSettings.Url.AppendPathSegments("_workItems", "edit", "12345");
+        entry.Task.Url.ShouldBe(expectedUrl);
+    }
+    
+    [TestMethod]
+    public async Task WorkItemWithParent()
+    {
+        //Arrange
+        BuildTimeEntry().Description = "D#12345 Program should start without crash » D#12346 Coding";
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+
+        entry.Task.ShouldNotBeNull();
+        entry.Task.Id.ShouldBe(12346);
+        entry.Task.Title.ShouldBe("Coding");
+        entry.Task.Type.ShouldBe(WorkItemType.Unknown);
+
+        entry.Task.Parent.ShouldNotBeNull();
+        entry.Task.Parent.Id.ShouldBe(12345);
+        entry.Task.Parent.Title.ShouldBe("Program should start without crash");
+    }
+
+    #endregion WorkItems
 
 }
