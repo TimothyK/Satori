@@ -173,6 +173,10 @@ public class StandUpService(IKimaiServer kimai)
 
     private static TimeEntry ToViewModel(KimaiTimeEntry kimaiEntry)
     {
+        var lines = kimaiEntry.Description?.Split('\n')
+            .SelectWhereHasValue(x => string.IsNullOrWhiteSpace(x) ? null : x.Trim())
+            .ToList() ?? [];
+
         return new TimeEntry()
         {
             Id = kimaiEntry.Id,
@@ -181,8 +185,25 @@ public class StandUpService(IKimaiServer kimai)
             TotalTime = GetDuration(kimaiEntry),
             Exported = kimaiEntry.Exported,
             CanExport = GetCanExport(kimaiEntry),
-            OtherComments = kimaiEntry.Description,
+            Accomplishments = ExtractLinesWithPrefix("🏆"),
+            Impediments = ExtractLinesWithPrefix("🧱"),
+            Learnings = ExtractLinesWithPrefix("🧠"),
+            OtherComments = RejoinLines(lines),
         };
+
+        string? ExtractLinesWithPrefix(string prefix)
+        {
+            var foundLines = lines.Where(x => x.StartsWith(prefix)).ToArray();
+            lines.RemoveAll(x => x.IsIn(foundLines));
+
+            return RejoinLines(foundLines.Select(x => x[prefix.Length..].Trim()));
+        }
+    }
+
+    private static string? RejoinLines(IEnumerable<string> lines) => RejoinLines(lines.ToArray());
+    private static string? RejoinLines(string[] lines)
+    {
+        return lines.None() ? null : string.Join(Environment.NewLine, lines);
     }
 
     private static bool GetAllExported(IEnumerable<KimaiTimeEntry> entries) => entries.All(entry => entry.Exported);

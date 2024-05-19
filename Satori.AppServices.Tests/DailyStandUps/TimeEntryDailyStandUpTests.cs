@@ -1,5 +1,6 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Satori.AppServices.Tests.Extensions;
+using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.Kimai.Models;
 using Shouldly;
@@ -244,8 +245,7 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
     }
 
     #endregion Export
-
-
+    
     #region Comments
 
     [TestMethod]
@@ -264,6 +264,74 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
         entry.Impediments.ShouldBeNull();
         entry.Learnings.ShouldBeNull();
         entry.OtherComments.ShouldBe("Drank coffee");
+    }
+    
+    [TestMethod]
+    public async Task Accomplishment()
+    {
+        //Arrange
+        BuildTimeEntry().Description = "🏆 Drank coffee";
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.Task.ShouldBeNull();
+        entry.Accomplishments.ShouldBe("Drank coffee");
+        entry.Impediments.ShouldBeNull();
+        entry.Learnings.ShouldBeNull();
+        entry.OtherComments.ShouldBeNull();
+    }
+    
+    [TestMethod]
+    public async Task MixedComments()
+    {
+        //Arrange
+        BuildTimeEntry().Description = """
+                                       🏆 Drank coffee
+                                       🧱Bathroom queues
+                                       🧠 Bladder control
+                                       """;
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.Task.ShouldBeNull();
+        entry.Accomplishments.ShouldBe("Drank coffee");
+        entry.Impediments.ShouldBe("Bathroom queues");
+        entry.Learnings.ShouldBe("Bladder control");
+        entry.OtherComments.ShouldBeNull();
+    }
+    
+    [TestMethod]
+    public async Task MultipleComments()
+    {
+        //Arrange
+        BuildTimeEntry().Description = """
+                                       🏆 Drank coffee
+                                       🧱Bathroom queues
+                                       🧠 Bladder control
+                                       Ticket#1234
+                                       🏆 Also, fixed a bug
+                                       """;
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.Task.ShouldBeNull();
+        entry.Accomplishments.ShouldBe("""
+                                       Drank coffee
+                                       Also, fixed a bug
+                                       """
+        );
+        entry.Impediments.ShouldBe("Bathroom queues");
+        entry.Learnings.ShouldBe("Bladder control");
+        entry.OtherComments.ShouldBe("Ticket#1234");
     }
 
     #endregion Comments
