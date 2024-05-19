@@ -1,10 +1,10 @@
-﻿namespace Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
+﻿namespace Satori.AppServices.Tests.TestDoubles;
 
-public class RandomGenerator
+public static class RandomGenerator
 {
     private static readonly Random Random = new();
 
-    public string String(int length = 10, CharType type = CharType.AlphaNumeric)
+    public static string String(int length = 10, CharType type = CharType.AlphaNumeric)
     {
         const string upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         const string lowerChars = "abcdefghijklmnopqrstuvwxyz";
@@ -34,7 +34,7 @@ public class RandomGenerator
     /// </summary>
     /// <param name="upperBound">Inclusive upper bound.  The return value may be the same as this.</param>
     /// <returns></returns>
-    public int Integer(int upperBound) => Integer(1, upperBound);
+    public static int Integer(int upperBound) => Integer(1, upperBound);
 
     public static bool Boolean() => Integer(0, 1) == 1;
 

@@ -1,7 +1,7 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Flurl;
 using Satori.AppServices.Tests.Extensions;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
+using Satori.AppServices.Tests.TestDoubles;
 using Shouldly;
 
 namespace Satori.AppServices.Tests.DailyStandUps;

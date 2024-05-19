@@ -1,7 +1,7 @@
 ﻿using Builder;
 using Satori.AppServices.Extensions;
 using Satori.AppServices.Services;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
+using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.Kimai.Models;
