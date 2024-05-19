@@ -5,6 +5,8 @@ using CodeMonkeyProjectiles.Linq;
 using Flurl;
 using Satori.AppServices.Services.Converters;
 using System.Net;
+using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
+using TimeEntry = Satori.AppServices.ViewModels.DailyStandUps.TimeEntry;
 
 namespace Satori.AppServices.Services;
 
@@ -45,7 +47,7 @@ public class StandUpService(IKimaiServer kimai)
         return standUpDays.OrderByDescending(day => day.Date).ToArray();
     }
 
-    private async Task<List<TimeEntry>> GetTimeSheetAsync(DateOnly begin, DateOnly end)
+    private async Task<List<KimaiTimeEntry>> GetTimeSheetAsync(DateOnly begin, DateOnly end)
     {
         var filter = new TimeSheetFilter()
         {
@@ -56,7 +58,7 @@ public class StandUpService(IKimaiServer kimai)
             Size = 250,
         };
 
-        var timeSheet = new List<TimeEntry>();
+        var timeSheet = new List<KimaiTimeEntry>();
         bool done;
         do
         {
@@ -81,12 +83,12 @@ public class StandUpService(IKimaiServer kimai)
         standUpDays.AddRange( 
             allDays
                 .Where(d => d.IsNotIn(standUpDays.Select(x => x.Date)))
-                .Select(d => new NullGroup<DateOnly, TimeEntry>(d))
+                .Select(d => new NullGroup<DateOnly, KimaiTimeEntry>(d))
                 .Select(g => ToDayViewModel(g, url))
         );
     }
 
-    private static StandUpDay ToDayViewModel(IGrouping<DateOnly, TimeEntry> day, Url url)
+    private static StandUpDay ToDayViewModel(IGrouping<DateOnly, KimaiTimeEntry> day, Url url)
     {
         var uri = url.ToUri()
             .AppendQueryParam("daterange", $"{day.Key:O} - {day.Key:O}")
@@ -110,7 +112,7 @@ public class StandUpService(IKimaiServer kimai)
         };
     }
 
-    private static ProjectSummary[] ToProjectsViewModel(IEnumerable<TimeEntry> entries, Url url)
+    private static ProjectSummary[] ToProjectsViewModel(IEnumerable<KimaiTimeEntry> entries, Url url)
     {
         var groups = entries.GroupBy(entry => new
         {
@@ -140,7 +142,7 @@ public class StandUpService(IKimaiServer kimai)
             .ToArray();
     }
 
-    private static ActivitySummary[] ToActivitiesViewModel(IEnumerable<TimeEntry> entries, Url url)
+    private static ActivitySummary[] ToActivitiesViewModel(IEnumerable<KimaiTimeEntry> entries, Url url)
     {
         var groups = entries.GroupBy(entry => new
         {
@@ -162,17 +164,32 @@ public class StandUpService(IKimaiServer kimai)
                     AllExported = GetAllExported(g),
                     CanExport = GetCanExport(g),
                     Url = uri,
+                    TimeEntries = g.Select(ToViewModel).ToArray(),
                 };
             })
             .OrderByDescending(a => a.TotalTime).ThenBy(a => a.ActivityName)
             .ToArray();
     }
 
-    private static bool GetAllExported(IEnumerable<TimeEntry> entries) => entries.All(entry => entry.Exported);
+    private static TimeEntry ToViewModel(KimaiTimeEntry kimaiEntry)
+    {
+        return new TimeEntry()
+        {
+            Id = kimaiEntry.Id,
+            Begin = kimaiEntry.Begin,
+            End = kimaiEntry.End,
+            TotalTime = GetDuration(kimaiEntry),
+            Exported = kimaiEntry.Exported,
+            CanExport = GetCanExport(kimaiEntry),
+            OtherComments = kimaiEntry.Description,
+        };
+    }
 
-    private static bool GetCanExport(IEnumerable<TimeEntry> entries) => entries.Any(GetCanExport);
+    private static bool GetAllExported(IEnumerable<KimaiTimeEntry> entries) => entries.All(entry => entry.Exported);
 
-    private static bool GetCanExport(TimeEntry entry)
+    private static bool GetCanExport(IEnumerable<KimaiTimeEntry> entries) => entries.Any(GetCanExport);
+
+    private static bool GetCanExport(KimaiTimeEntry entry)
     {
         if (entry.Exported) return false;
         if (!entry.Activity.Visible) return false;
@@ -184,9 +201,9 @@ public class StandUpService(IKimaiServer kimai)
         return true;
     }
 
-    private static TimeSpan GetDuration(IEnumerable<TimeEntry> entries) => entries.Select(GetDuration).Sum();
+    private static TimeSpan GetDuration(IEnumerable<KimaiTimeEntry> entries) => entries.Select(GetDuration).Sum();
 
-    private static TimeSpan GetDuration(TimeEntry entry) => entry.End != null ? (entry.End.Value - entry.Begin) : TimeSpan.Zero;
+    private static TimeSpan GetDuration(KimaiTimeEntry entry) => entry.End != null ? (entry.End.Value - entry.Begin) : TimeSpan.Zero;
 
-    private static DateOnly GetDateOnly(TimeEntry entry) => DateOnly.FromDateTime(entry.Begin.Date);
+    private static DateOnly GetDateOnly(KimaiTimeEntry entry) => DateOnly.FromDateTime(entry.Begin.Date);
 }

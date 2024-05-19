@@ -36,6 +36,8 @@ public class RandomGenerator
     /// <returns></returns>
     public int Integer(int upperBound) => Integer(1, upperBound);
 
+    public static bool Boolean() => Integer(0, 1) == 1;
+
     /// <summary>
     /// Random integer in the range [lowerBound, upperBound], inclusive
     /// </summary>

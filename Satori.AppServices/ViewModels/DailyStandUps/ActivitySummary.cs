@@ -6,7 +6,7 @@ public class ActivitySummary
     public required string ActivityName { get; init; }
     public string? Comment { get; init; }
 
-    //public TimeEntry[] TimeEntries { get; set; }
+    public required TimeEntry[] TimeEntries { get; init; }
 
     public TimeSpan TotalTime { get; internal init; }
     public required Uri Url { get; init; }

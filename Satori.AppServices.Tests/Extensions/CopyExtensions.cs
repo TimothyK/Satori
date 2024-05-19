@@ -18,9 +18,4 @@ internal static class CopyExtensions
 
         return (T)target;
     }
-
-    public static int GetNextId<T>(this IEnumerable<T> source, Func<T, int> idSelector)
-    {
-        return source.Select(idSelector).DefaultIfEmpty().Max() + 1;
-    }
 }
