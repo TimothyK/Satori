@@ -678,6 +678,61 @@ public class DailyStandUpTests
         days[0].Projects[0].Url.ShouldBe(expected);
     }
 
-    
     #endregion Projects
+
+    #region Activities
+
+    [TestMethod]
+    public async Task MultipleActivities()
+    {
+        //Arrange
+        var today = Today;
+        var project = TestActivities.SingleRandom().Project;
+        var activities = TestActivities.Where(a => a.Project.Id == project.Id).ToArray();
+        BuildTimeEntry(activities[0], today, TimeSpan.FromMinutes(20)).Exported = true;
+        BuildTimeEntry(activities[1], today, TimeSpan.FromMinutes(10)).Exported = false;
+        BuildTimeEntry(activities[2], today, TimeSpan.FromMinutes(15)).Exported = true;
+        BuildTimeEntry(activities[2], today, TimeSpan.FromMinutes(35)).Exported = false;
+
+        //Act
+        var days = await GetStandUpDaysAsync(today, today);
+
+        //Assert
+        days.Length.ShouldBe(1);
+        days[0].Projects[0].Activities.Length.ShouldBe(3);
+        days[0].Projects[0].Activities[0].ActivityId.ShouldBe(activities[2].Id);
+        days[0].Projects[0].Activities[0].ActivityName.ShouldBe(activities[2].Name);
+        days[0].Projects[0].Activities[0].Comment.ShouldBe(activities[2].Comment);
+        days[0].Projects[0].Activities[0].TotalTime.ShouldBe(TimeSpan.FromMinutes(50));
+        days[0].Projects[0].Activities[0].AllExported.ShouldBeFalse();
+        days[0].Projects[0].Activities[0].CanExport.ShouldBeTrue();
+
+        days[0].Projects[0].Activities[1].ActivityId.ShouldBe(activities[0].Id);
+        days[0].Projects[0].Activities[1].TotalTime.ShouldBe(TimeSpan.FromMinutes(20));
+        days[0].Projects[0].Activities[1].AllExported.ShouldBeTrue();
+        days[0].Projects[0].Activities[1].CanExport.ShouldBeFalse();
+
+        days[0].Projects[0].Activities[2].ActivityId.ShouldBe(activities[1].Id);
+        days[0].Projects[0].Activities[2].TotalTime.ShouldBe(TimeSpan.FromMinutes(10));
+        days[0].Projects[0].Activities[2].AllExported.ShouldBeFalse();
+        days[0].Projects[0].Activities[2].CanExport.ShouldBeTrue();
+
+
+        var expected = Kimai.BaseUrl
+            .AppendPathSegments(DefaultUser.Language, "timesheet")
+            .AppendQueryParam("daterange", $"{today:O} - {today:O}")
+            .AppendQueryParam("state", 3)  // stopped
+            .AppendQueryParam("billable", 0)
+            .AppendQueryParam("exported", 1)
+            .AppendQueryParam("orderBy", "begin")
+            .AppendQueryParam("order", "DESC")
+            .AppendQueryParam("searchTerm", string.Empty)
+            .AppendQueryParam("performSearch", "performSearch")
+            .AppendQueryParam("projects[]", activities[1].Project.Id)
+            .AppendQueryParam("activities[]", activities[1].Id)
+            .ToUri(); 
+        days[0].Projects[0].Activities[2].Url.ShouldBe(expected);
+    }
+
+    #endregion Activities
 }

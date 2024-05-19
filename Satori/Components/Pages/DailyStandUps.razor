@@ -60,6 +60,70 @@
         </div>
         <div class="day-header-day">@day.Date.ToString("D")</div>
     </div>
+    @foreach (var project in day.Projects)
+    {
+        <div class="project-header">
+            <div class="duration">
+                <div class="duration-link"><a href="@project.Url" target="_blank">
+                    <span class="bi bi-box-arrow-up-right"></span>
+                </a></div>
+                <div class="duration-minutes">
+                    <span class="">@project.TotalTime.ToString(@"hh\:mm")</span>
+                </div>
+                <div class="duration-decimal">
+                    <span class="">@project.TotalTime.TotalHours.ToNearest(0.05) h</span>
+                </div>
+            </div>
+            <div class="export @(project.AllExported ? "export-done" : "") @(project.CanExport ? "export-enabled" : "")">
+                @if (project.AllExported)
+                {
+                    <span class="badge bg-secondary">Exported</span>
+                }
+                else if (project.CanExport)
+                {
+                    <button class="btn btn-outline-success">Export</button>
+                }
+                else
+                {
+                    <span class="badge bg-danger">Cannot Export</span>
+                }
+            </div>
+            <div class="project-header-project">@project.CustomerName @project.ProjectName</div>
+        </div>
+
+
+        @foreach (var activity in project.Activities)
+        {
+            <div class="activity-header">
+                <div class="duration">
+                    <div class="duration-link"><a href="@activity.Url" target="_blank">
+                        <span class="bi bi-box-arrow-up-right"></span>
+                    </a></div>
+                    <div class="duration-minutes">
+                        <span class="">@activity.TotalTime.ToString(@"hh\:mm")</span>
+                    </div>
+                    <div class="duration-decimal">
+                        <span class="">@activity.TotalTime.TotalHours.ToNearest(0.05) h</span>
+                    </div>
+                </div>
+                <div class="export @(activity.AllExported ? "export-done" : "") @(activity.CanExport ? "export-enabled" : "")">
+                    @if (activity.AllExported)
+                    {
+                        <span class="badge bg-secondary">Exported</span>
+                    }
+                    else if (activity.CanExport)
+                    {
+                        <button class="btn btn-outline-success">Export</button>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Cannot Export</span>
+                    }
+                </div>
+                <div class="activity-header-activity">@activity.ActivityName</div>
+            </div>
+        }
+    }
 }
 
 @code {

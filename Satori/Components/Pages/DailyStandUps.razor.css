@@ -87,6 +87,30 @@
     margin-top: 10px;
 }
 
+.project-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    width: 100%;
+    font-size: 0.8em;
+}
+
+.project-header {
+    margin-left: 50px;
+}
+
+.activity-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    width: 100%;
+    font-size: 0.8em;
+}
+
+.activity-header {
+    margin-left: 100px;
+}
+
 .export {
     margin-left: 5px;
     margin-right: 5px;
@@ -127,8 +151,8 @@
 .bi {
     display: inline-block;
     position: relative;
-    width: 1.0rem;
-    height: 1.0rem;
+    width: 1.0em;
+    height: 1.0em;
     margin-right: 0.75rem;
     background-size: cover;
 }

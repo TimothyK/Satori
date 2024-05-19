@@ -88,7 +88,7 @@ public class StandUpService(IKimaiServer kimai)
 
     private static StandUpDay ToDayViewModel(IGrouping<DateOnly, TimeEntry> day, Url url)
     {
-        var uri = url
+        var uri = url.ToUri()
             .AppendQueryParam("daterange", $"{day.Key:O} - {day.Key:O}")
             .AppendQueryParam("state", 3)  // stopped
             .AppendQueryParam("billable", 0)
@@ -120,18 +120,51 @@ public class StandUpService(IKimaiServer kimai)
             CustomerName = entry.Project.Customer.Name,
         });
 
-        return groups.Select(g => new ProjectSummary() 
+        return groups.Select(g =>
             {
-                ProjectId = g.Key.ProjectID,
-                ProjectName = g.Key.ProjectName,
-                CustomerId = g.Key.CustomerID,
-                CustomerName = g.Key.CustomerName,
-                TotalTime = GetDuration(g),
-                AllExported = GetAllExported(g),
-                CanExport = GetCanExport(g),
-                Url = url.AppendQueryParam("projects[]", g.Key.ProjectID).ToUri(),
+                var uri = url.ToUri().AppendQueryParam("projects[]", g.Key.ProjectID).ToUri();
+                return new ProjectSummary()
+                {
+                    ProjectId = g.Key.ProjectID,
+                    ProjectName = g.Key.ProjectName,
+                    CustomerId = g.Key.CustomerID,
+                    CustomerName = g.Key.CustomerName,
+                    TotalTime = GetDuration(g),
+                    AllExported = GetAllExported(g),
+                    CanExport = GetCanExport(g),
+                    Url = uri,
+                    Activities = ToActivitiesViewModel(g, uri),
+                };
             })
             .OrderByDescending(p => p.TotalTime).ThenBy(p => p.ProjectName)
+            .ToArray();
+    }
+
+    private static ActivitySummary[] ToActivitiesViewModel(IEnumerable<TimeEntry> entries, Url url)
+    {
+        var groups = entries.GroupBy(entry => new
+        {
+            entry.Activity.Id,
+            entry.Activity.Name,
+            entry.Activity.Comment,
+            ProjectId = entry.Project.Id,
+        });
+
+        return groups.Select(g =>
+            {
+                var uri = url.ToUri().AppendQueryParam("activities[]", g.Key.Id).ToUri();
+                return new ActivitySummary()
+                {
+                    ActivityId = g.Key.Id,
+                    ActivityName = g.Key.Name,
+                    Comment = g.Key.Comment,
+                    TotalTime = GetDuration(g),
+                    AllExported = GetAllExported(g),
+                    CanExport = GetCanExport(g),
+                    Url = uri,
+                };
+            })
+            .OrderByDescending(a => a.TotalTime).ThenBy(a => a.ActivityName)
             .ToArray();
     }
 

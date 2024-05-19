@@ -7,7 +7,7 @@ public class ProjectSummary
     public int CustomerId { get; init; }
     public required string CustomerName { get; init; }
     
-    //public ActivitySummary[] Activities { get; set; }
+    public required ActivitySummary[] Activities { get; init; }
     
     public TimeSpan TotalTime { get; internal init; }
     public required Uri Url { get; init; }
