@@ -102,8 +102,17 @@
                     <span class="badge bg-danger">Cannot Export</span>
                 }
             </div>
-            <div class="project-header-customer">@project.CustomerName</div>
             <div class="project-header-project">@project.ProjectName</div>
+            <div class="project-header-customer">
+                @if (project.CustomerUrl != null)
+                {
+                    <img src="@project.CustomerUrl" alt="@project.CustomerName" title="@project.CustomerName"/>
+                }
+                else
+                {
+                    @project.CustomerName
+                }
+            </div>
         </div>
 
 

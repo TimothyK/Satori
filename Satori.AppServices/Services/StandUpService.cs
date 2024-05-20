@@ -11,6 +11,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
 using TimeEntry = Satori.AppServices.ViewModels.DailyStandUps.TimeEntry;
+using UriFormatException = System.UriFormatException;
 
 namespace Satori.AppServices.Services;
 
@@ -124,6 +125,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
             ProjectName = entry.Project.Name,
             CustomerID = entry.Project.Customer.Id,
             CustomerName = entry.Project.Customer.Name,
+            CustomerComment = entry.Project.Customer.Comment,
         });
 
         return groups.Select(g =>
@@ -135,6 +137,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
                     ProjectName = g.Key.ProjectName,
                     CustomerId = g.Key.CustomerID,
                     CustomerName = g.Key.CustomerName,
+                    CustomerUrl = GetCustomerLogo(g.Key.CustomerComment),
                     TotalTime = GetDuration(g),
                     AllExported = GetAllExported(g),
                     CanExport = GetCanExport(g),
@@ -144,6 +147,32 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
             })
             .OrderByDescending(p => p.TotalTime).ThenBy(p => p.ProjectName)
             .ToArray();
+    }
+
+    [GeneratedRegex(@"\[Logo\]\((?'url'.*)\)", RegexOptions.IgnoreCase)]
+    private static partial Regex CustomerLogoRegex();
+
+    private static Uri? GetCustomerLogo(string? comment)
+    {
+        if (comment == null)
+        {
+            return null;
+        }
+        
+        var match = CustomerLogoRegex().Match(comment);
+        if (!match.Success)
+        {
+            return null;
+        }
+
+        try
+        {
+            return new Uri(match.Groups["url"].Value);
+        }
+        catch (UriFormatException)
+        {
+            return null;
+        }
     }
 
     private ActivitySummary[] ToActivitiesViewModel(IEnumerable<KimaiTimeEntry> entries, Url url)

@@ -473,6 +473,58 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
     }
 
     [TestMethod]
+    public async Task CustomerLogo()
+    {
+        //Arrange
+        var today = Today;
+        BuildTimeEntry(today, TimeSpan.FromMinutes(24))
+            .Project.Customer.Comment = "Parent Company is Acme Inc.   [Logo](https://example.test/img)";
+
+        //Act
+        var days = await GetStandUpDaysAsync(today, today);
+
+        //Assert
+        days[0].Projects.Length.ShouldBe(1);
+        var project = days[0].Projects.Single();
+        project.CustomerUrl.ShouldNotBeNull();
+        project.CustomerUrl.ToString().ShouldBe("https://example.test/img");
+    }
+    
+    [TestMethod]
+    public async Task CustomerLogo_None()
+    {
+        //Arrange
+        var today = Today;
+        BuildTimeEntry(today, TimeSpan.FromMinutes(24))
+            .Project.Customer.Comment = "Parent Company is Acme Inc.";
+
+        //Act
+        var days = await GetStandUpDaysAsync(today, today);
+
+        //Assert
+        days[0].Projects.Length.ShouldBe(1);
+        var project = days[0].Projects.Single();
+        project.CustomerUrl.ShouldBeNull();
+    }
+    
+    [TestMethod]
+    public async Task CustomerLogo_Invalid()
+    {
+        //Arrange
+        var today = Today;
+        BuildTimeEntry(today, TimeSpan.FromMinutes(24))
+            .Project.Customer.Comment = "[Logo](ftp:/missingSlashInvalid/)";
+
+        //Act
+        var days = await GetStandUpDaysAsync(today, today);
+
+        //Assert
+        days[0].Projects.Length.ShouldBe(1);
+        var project = days[0].Projects.Single();
+        project.CustomerUrl.ShouldBeNull();
+    }
+
+    [TestMethod]
     public async Task MultipleProjects()
     {
         //Arrange

@@ -6,7 +6,8 @@ public class ProjectSummary
     public required string ProjectName { get; init; }
     public int CustomerId { get; init; }
     public required string CustomerName { get; init; }
-    
+    public Uri? CustomerUrl { get; init; }
+
     public required ActivitySummary[] Activities { get; init; }
     
     public TimeSpan TotalTime { get; internal init; }
@@ -18,5 +19,4 @@ public class ProjectSummary
     /// For the UI to control if the section is collapsed or expanded
     /// </summary>
     public bool IsCollapsed { get; set; }
-
 }

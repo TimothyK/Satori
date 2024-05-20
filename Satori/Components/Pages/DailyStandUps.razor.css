@@ -106,12 +106,17 @@
 .project-header-customer {
     font-weight: bold;
     font-size: 1.1rem;
-    margin-left: auto;
-    margin-right: 50px;
+    margin-left: 50px;
 }
+.project-header-customer img {
+    width: 24px;
+    height: 24px;
+}
+
 .project-header-project {
     font-weight: bold;
-    font-size: 1.1rem;    
+    font-size: 1.1rem;
+    margin-left: auto;
 }
 
 .activity-header {
