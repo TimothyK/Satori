@@ -30,17 +30,28 @@
         <div><span>@InLoading @DateSelector.DateRangeText</span></div>
         <div><button class="btn-date-range btn-date-range-increment" @onclick="DateSelector.IncrementPeriod">»</button></div>
     </div>
+    <div class="dropdown" id="collapse-button">
+        <button class="dropbtn">Collapse ▾</button>
+        <div class="dropdown-content">
+            <div class="dropdown-content-menu" @onclick="() => CollapseAll()">All</div>
+            <div class="dropdown-content-menu" @onclick="() => CollapseProjects()">Projects</div>
+            <div class="dropdown-content-menu" @onclick="() => CollapseActivities()">Activities</div>
+            <div class="dropdown-content-menu" @onclick="() => CollapseNone()">None</div>
+        </div>
+    </div>
 </div>
 
 @foreach (var day in StandUpDays)
 {
     <div class="day-header">
         <div class="duration">
-            <div class="duration-link"><a href="@day.Url" target="_blank">
-                <span class="bi bi-box-arrow-up-right"></span>
-            </a></div>
+            <div class="duration-caret"><span class="caret @(day.IsCollapsed ? "" : "caret-down")" @onclick="() => ToggleCollapsed(day)"></span></div>
+            <div class="duration-link">
+                <a href="@day.Url" target="_blank">
+                    <span class="bi bi-box-arrow-up-right"></span>
+                </a></div>
             <div class="duration-minutes">
-                <span class="">@day.TotalTime.ToString(@"hh\:mm")</span> 
+                <span class="">@day.TotalTime.ToString(@"hh\:mm")</span>
             </div>
             <div class="duration-decimal">
                 <span class="">@day.TotalTime.TotalHours.ToNearest(0.05) h</span>
@@ -64,8 +75,9 @@
     </div>
     @foreach (var project in day.Projects)
     {
-        <div class="project-header">
+        <div class="project-header @(day.IsCollapsed ? "hidden" : "")">
             <div class="duration">
+                <div class="duration-caret"><span class="caret @(project.IsCollapsed ? "" : "caret-down")" @onclick="() => ToggleCollapsed(project)"></span></div>
                 <div class="duration-link"><a href="@project.Url" target="_blank">
                     <span class="bi bi-box-arrow-up-right"></span>
                 </a></div>
@@ -97,8 +109,9 @@
 
         @foreach (var activity in project.Activities)
         {
-            <div class="activity-header">
+            <div class="activity-header @(day.IsCollapsed || project.IsCollapsed ? "hidden" : "")">
                 <div class="duration">
+                    <div class="duration-caret"><span class="caret @(activity.IsCollapsed ? "" : "caret-down")" @onclick="() => ToggleCollapsed(activity)"></span></div>
                     <div class="duration-link"><a href="@activity.Url" target="_blank">
                         <span class="bi bi-box-arrow-up-right"></span>
                     </a></div>
@@ -126,7 +139,7 @@
                 <div class="activity-header-activity">@activity.ActivityName</div>
             </div>
 
-            <table class="time-table">
+            <table class="time-table @(day.IsCollapsed || project.IsCollapsed || activity.IsCollapsed ? "hidden" : "")">
             @foreach (var entry in activity.TimeEntries)
             {
                 <tr class="time-entry">
@@ -270,4 +283,71 @@
     {
         JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
     }
+
+    private static void ToggleCollapsed(StandUpDay day)
+    {
+        day.IsCollapsed = !day.IsCollapsed;
+    }
+    private static void ToggleCollapsed(ProjectSummary project)
+    {
+        project.IsCollapsed = !project.IsCollapsed;
+    }
+    private static void ToggleCollapsed(ActivitySummary activity)
+    {
+        activity.IsCollapsed = !activity.IsCollapsed;
+    }   
+    
+    private void CollapseAll()
+    {
+        foreach (var node in StandUpDays)
+        {
+            node.IsCollapsed = true;
+        }
+    }
+
+    private void CollapseProjects()
+    {
+        foreach (var day in StandUpDays)
+        {
+            day.IsCollapsed = false;
+            foreach (var project in day.Projects)
+            {
+                project.IsCollapsed = true;
+            }
+        }
+    }
+
+    private void CollapseActivities()
+    {
+        foreach (var day in StandUpDays)
+        {
+            day.IsCollapsed = false;
+            foreach (var project in day.Projects)
+            {
+                project.IsCollapsed = false;
+                foreach (var activity in project.Activities)
+                {
+                    activity.IsCollapsed = true;
+                }
+            }
+        }
+    }
+
+    private void CollapseNone()
+    {
+        foreach (var day in StandUpDays)
+        {
+            day.IsCollapsed = false;
+            foreach(var project in day.Projects)
+            {
+                project.IsCollapsed = false;
+                foreach (var activity in project.Activities)
+                {
+                    activity.IsCollapsed = false;
+                }
+            }
+        }
+    }
+
+
 }

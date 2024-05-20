@@ -48,6 +48,10 @@
     min-width: 130px;
 }
 
+#collapse-button {
+    margin-left: auto;
+}
+
 .dropdown-content {
     display: none;
     position: absolute;
@@ -94,6 +98,10 @@
     margin-left: 50px;
     margin-top: 5px;
     border-top: 1px dotted black;
+    background-color: #f5f5f5;
+}
+.project-header.hidden {
+    display: none;
 }
 .project-header-customer {
     font-weight: bold;
@@ -112,6 +120,9 @@
     align-items: center;
     font-size: 0.8em;
     margin-left: 100px;
+}
+.activity-header.hidden {
+    display: none;
 }
 .activity-header-activity {
     font-weight: bold;
@@ -159,6 +170,31 @@
     align-items: center;
     border: 1px solid darkgray;
     border-radius: 5px;
+}
+
+.duration-caret {
+    background-color: lightgray;
+    padding: 5px;
+    border-right: 1px solid darkgray;
+}
+
+.caret {
+    cursor: pointer;
+    user-select: none; /* Prevent text selection */
+}
+
+/* Create the caret/arrow with a unicode, and style it */
+.caret::before {
+    content: "\25B6";
+    color: black;
+    display: inline-block;
+    margin-left: 6px;
+    margin-right: 6px;
+}
+
+/* Rotate the caret/arrow icon when clicked on (using JavaScript) */
+.caret-down::before {
+    transform: rotate(90deg);
 }
 
 .duration-link {

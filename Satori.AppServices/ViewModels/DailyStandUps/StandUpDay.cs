@@ -11,5 +11,9 @@ public class StandUpDay
     public bool AllExported { get; internal init; }
     public bool CanExport { get; internal init; }
 
+    /// <summary>
+    /// For the UI to control if the section is collapsed or expanded
+    /// </summary>
+    public bool IsCollapsed { get; set; }
 
 }
