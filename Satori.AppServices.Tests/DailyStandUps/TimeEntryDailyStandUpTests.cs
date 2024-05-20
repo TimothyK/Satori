@@ -1,5 +1,6 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Flurl;
+using Satori.AppServices.Extensions;
 using Satori.AppServices.Tests.Extensions;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.ViewModels.WorkItems;
@@ -100,6 +101,29 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
 
         //Assert
         entries.Single().TotalTime.ShouldBe(kimaiEntry.End.Value - kimaiEntry.Begin);
+    }
+    
+    [TestMethod]
+    public async Task OrderedChronologically()
+    {
+        //Arrange
+        var today = Today;
+        var kimaiEntry1 = BuildTimeEntry();
+        var kimaiEntry2 = BuildTimeEntry();
+        var kimaiEntry3 = BuildTimeEntry();
+        kimaiEntry1.Begin.ShouldBeLessThan(kimaiEntry3.Begin);
+        kimaiEntry3.End.ShouldNotBeNull();
+        kimaiEntry2.Begin = kimaiEntry3.End.Value.AddMinutes(5).TruncateSeconds();
+        kimaiEntry2.End = kimaiEntry2.Begin.Add(TimeSpan.FromMinutes(30));
+
+        //Act
+        var days = await GetStandUpDaysAsync(today, today);
+
+        //Assert
+        var entries = days.Single().Projects.Single().Activities.Single().TimeEntries;
+        entries[0].Id.ShouldBe(kimaiEntry2.Id);
+        entries[1].Id.ShouldBe(kimaiEntry3.Id);
+        entries[2].Id.ShouldBe(kimaiEntry1.Id);
     }
     
     #endregion Time

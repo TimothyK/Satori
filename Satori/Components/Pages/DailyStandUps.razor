@@ -4,11 +4,13 @@
 @using Satori.AppServices.ViewModels
 @using Flurl
 @using Satori.AppServices.Extensions
+@using Satori.AppServices.ViewModels.WorkItems
 @attribute [StreamRendering]
 @inject UserService UserService
 @inject StandUpService StandUpService
 @inject NavigationManager NavigationManager
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject IJSRuntime JsRuntime
 
 <h3>Daily Stand-Ups</h3>
 
@@ -88,7 +90,8 @@
                     <span class="badge bg-danger">Cannot Export</span>
                 }
             </div>
-            <div class="project-header-project">@project.CustomerName @project.ProjectName</div>
+            <div class="project-header-customer">@project.CustomerName</div>
+            <div class="project-header-project">@project.ProjectName</div>
         </div>
 
 
@@ -122,6 +125,79 @@
                 </div>
                 <div class="activity-header-activity">@activity.ActivityName</div>
             </div>
+
+            <table class="time-table">
+            @foreach (var entry in activity.TimeEntries)
+            {
+                <tr class="time-entry">
+                    <td class="time-entry-time">@entry.Begin.ToString("HH:mm") to @entry.End?.ToString("HH:mm")</td>
+                    <td>
+                        <div class="duration">
+                            <div class="duration-minutes">
+                                <span class="">@entry.TotalTime.ToString(@"hh\:mm")</span>
+                            </div>
+                            <div class="duration-decimal">
+                                <span class="">@entry.TotalTime.TotalHours.ToNearest(0.05) h</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="export @(entry.Exported ? "export-done" : "") @(entry.CanExport ? "export-enabled" : "")">
+                            @if (entry.Exported)
+                            {
+                                <span class="badge bg-secondary">Exported</span>
+                            }
+                            else if (entry.CanExport)
+                            {
+                                <button class="btn btn-outline-success">Export</button>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Cannot Export</span>
+                            }
+                        </div>
+                    </td>
+                    <td class="time-entry-comments">
+                        @if (entry.Task != null)
+                        {
+                            <p>
+                                @if (entry.Task.Parent != null)
+                                {
+                                    <span class="work-item @entry.Task.Parent.Type.CssClass cell-link" @onclick="() => OpenWorkItem(entry.Task.Parent)" title="Open D#@(entry.Task.Parent.Id)">
+                                        D#@entry.Task.Parent.Id 
+                                        @entry.Task.Parent.Title
+                                    </span>
+                                    <span> » </span>
+                                }
+                                    <span class="work-item @entry.Task.Type.CssClass cell-link" @onclick="() => OpenWorkItem(entry.Task)" title="Open D#@(entry.Task.Id)">
+                                    @if (@entry.Task.Parent == null)
+                                    {
+                                        <label>D#@entry.Task.Id&nbsp;</label>
+                                    }
+                                    @entry.Task.Title
+                                </span>
+                            </p>
+                        }
+                        @if (entry.Accomplishments != null)
+                        {
+                            <p><span title="Accomplishments">🏆</span> @entry.Accomplishments</p>
+                        }
+                        @if (entry.Impediments != null)
+                        {
+                            <p><span title="Impediments">🧱</span> @entry.Impediments</p>
+                        }
+                        @if (entry.Learnings != null)
+                        {
+                            <p><span title="Today I Learned">🧠</span> @entry.Learnings</p>
+                        }
+                        @if (entry.OtherComments != null)
+                        {
+                            <p>@entry.OtherComments</p>
+                        }
+                        </td>
+                </tr>
+            }
+            </table>
         }
     }
 }
@@ -189,4 +265,9 @@
         InLoading = string.Empty;
     }
 
+
+    private void OpenWorkItem(WorkItem workItem)
+    {
+        JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
+    }
 }
