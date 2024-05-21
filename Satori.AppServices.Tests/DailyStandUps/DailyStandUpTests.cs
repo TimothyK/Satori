@@ -28,19 +28,6 @@ public abstract class DailyStandUpTests
 
     protected Activity[] TestActivities { get; } = BuildActivities();
 
-    protected class Sequence
-    {
-        private int _value;
-
-        public int Next() => Interlocked.Increment(ref _value);
-
-        public static readonly Sequence ActivityId = new();
-        public static readonly Sequence ProjectId = new();
-        public static readonly Sequence CustomerId = new();
-        public static readonly Sequence TimeEntryId = new();
-
-    }
-
     private static Activity[] BuildActivities()
     {
         var customers = Enumerable.Range(1, 3).Select(_ => Sequence.CustomerId.Next())

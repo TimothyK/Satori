@@ -4,7 +4,7 @@ namespace Satori.AppServices.ViewModels.WorkItems;
 
 public class WorkItem
 {
-    public int Id { get; init; }
+    public int Id { get; set; }
     public string? Title { get; init; }
     public required string Url { get; init; }
     public required Person AssignedTo { get; init; }

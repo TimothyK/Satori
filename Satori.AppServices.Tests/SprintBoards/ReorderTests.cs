@@ -1,6 +1,7 @@
 ﻿using Builder;
 using CodeMonkeyProjectiles.Linq;
 using Satori.AppServices.Services;
+using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
@@ -29,6 +30,7 @@ public class ReorderTests
         
         var workItems = Builder<WorkItem>.New().BuildMany(count, (wi, _) =>
         {
+            wi.Id = Sequence.WorkItemId.Next();
             wi.Sprint = sprint;
         });
 
