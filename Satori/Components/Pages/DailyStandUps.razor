@@ -233,7 +233,8 @@
     private Person CurrentUser { get; set; } = Person.Empty;
     private DateSelectorViewModel DateSelector { get; set; } = new(Person.Empty.FirstDayOfWeek, standUpService: null);
     private StandUpDay[] StandUpDays { get; set; } = [];
-    private string InLoading { get; set; } = string.Empty;
+    
+    private LoadingStatusLabel InLoading { get; set; } = LoadingStatusLabel.InLoading;
 
     protected override async Task OnInitializedAsync()
     {
@@ -268,7 +269,7 @@
     private Period CurrentPeriod { get; set; }
     private void DateChanging(object? sender, EventArgs eventArgs)
     {
-        InLoading = "Loading: ";
+        InLoading = LoadingStatusLabel.InLoading;
         StandUpDays = [];
 
         if (CurrentPeriod == DateSelector.Period)
@@ -288,14 +289,15 @@
     private void DateChanged(object? sender, DateChangedEventArgs eventArgs)
     {
         StandUpDays = eventArgs.StandUpDays;
-        InLoading = string.Empty;
+        InLoading = LoadingStatusLabel.FinishedLoading;
     }
-
-
+    
     private void OpenWorkItem(WorkItem workItem)
     {
         JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
     }
+
+    #region Collapse
 
     private static void ToggleCollapsed(StandUpDay day)
     {
@@ -362,5 +364,20 @@
         }
     }
 
+    #endregion Collapse
 
+    private class LoadingStatusLabel
+    {
+        private readonly string _label;
+
+        private LoadingStatusLabel(string label)
+        {
+            _label = label;
+        }
+
+        public override string ToString() => _label;
+
+        public static readonly LoadingStatusLabel InLoading = new("Loading: ");
+        public static readonly LoadingStatusLabel FinishedLoading = new(string.Empty);
+    }
 }
