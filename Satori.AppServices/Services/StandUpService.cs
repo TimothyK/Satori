@@ -137,6 +137,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
                     ProjectName = g.Key.ProjectName,
                     CustomerId = g.Key.CustomerID,
                     CustomerName = g.Key.CustomerName,
+                    CustomerAcronym = GetCustomerAcronym(g.Key.CustomerName),
                     CustomerUrl = GetCustomerLogo(g.Key.CustomerComment),
                     TotalTime = GetDuration(g),
                     AllExported = GetAllExported(g),
@@ -147,6 +148,15 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
             })
             .OrderByDescending(p => p.TotalTime).ThenBy(p => p.ProjectName)
             .ToArray();
+    }
+
+    [GeneratedRegex(@"\((?'acronym'.*)\)", RegexOptions.IgnoreCase)]
+    private static partial Regex CustomerAcronymRegex();
+
+    private static string? GetCustomerAcronym(string customerName)
+    {
+        var match = CustomerAcronymRegex().Match(customerName);
+        return match.Success ? match.Groups["acronym"].Value : null;
     }
 
     [GeneratedRegex(@"\[Logo\]\((?'url'.*)\)", RegexOptions.IgnoreCase)]

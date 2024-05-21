@@ -477,7 +477,7 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         var today = Today;
-        BuildTimeEntry(today, TimeSpan.FromMinutes(24))
+        BuildTimeEntry(today)
             .Project.Customer.Comment = "Parent Company is Acme Inc.   [Logo](https://example.test/img)";
 
         //Act
@@ -495,7 +495,7 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         var today = Today;
-        BuildTimeEntry(today, TimeSpan.FromMinutes(24))
+        BuildTimeEntry(today)
             .Project.Customer.Comment = "Parent Company is Acme Inc.";
 
         //Act
@@ -512,7 +512,7 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         var today = Today;
-        BuildTimeEntry(today, TimeSpan.FromMinutes(24))
+        BuildTimeEntry(today)
             .Project.Customer.Comment = "[Logo](ftp:/missingSlashInvalid/)";
 
         //Act
@@ -522,6 +522,36 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         days[0].Projects.Length.ShouldBe(1);
         var project = days[0].Projects.Single();
         project.CustomerUrl.ShouldBeNull();
+    }
+    
+    [TestMethod]
+    public async Task CustomerAcronym_Defined()
+    {
+        //Arrange
+        var today = Today;
+        BuildTimeEntry(today)
+            .Project.Customer.Name = "Code Monkey Projectiles (CMP)";
+
+        //Act
+        var days = await GetStandUpDaysAsync(today, today);
+
+        //Assert
+        days[0].Projects.Single().CustomerAcronym.ShouldBe("CMP");
+    }
+    
+    [TestMethod]
+    public async Task CustomerAcronym_Undefined()
+    {
+        //Arrange
+        var today = Today;
+        BuildTimeEntry(today)
+            .Project.Customer.Name = "Code Monkey Projectiles";
+
+        //Act
+        var days = await GetStandUpDaysAsync(today, today);
+
+        //Assert
+        days[0].Projects.Single().CustomerAcronym.ShouldBeNull();
     }
 
     [TestMethod]

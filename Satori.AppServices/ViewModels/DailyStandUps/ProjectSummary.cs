@@ -6,6 +6,7 @@ public class ProjectSummary
     public required string ProjectName { get; init; }
     public int CustomerId { get; init; }
     public required string CustomerName { get; init; }
+    public string? CustomerAcronym { get; init; }
     public Uri? CustomerUrl { get; init; }
 
     public required ActivitySummary[] Activities { get; init; }

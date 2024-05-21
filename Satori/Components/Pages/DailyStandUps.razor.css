@@ -111,6 +111,7 @@
 .project-header-customer img {
     width: 24px;
     height: 24px;
+    margin-left: 5px;
 }
 
 .project-header-project {
