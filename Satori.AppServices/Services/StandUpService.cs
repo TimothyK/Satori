@@ -52,6 +52,25 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
         return standUpDays.OrderByDescending(day => day.Date).ToArray();
     }
 
+    public async Task<StandUpDay[]> GetWorkItemsAsync(StandUpDay[] days)
+    {
+        var timeEntries = days.SelectMany(day => day.Projects.SelectMany(project => project.Activities.SelectMany(activity => activity.TimeEntries)))
+            .Where(entry => entry.Task != null)
+            .ToArray();
+
+        var workItemIds = timeEntries.Select(entry => entry.Task!.Id).Distinct();
+
+        var workItems = (await azureDevOps.GetWorkItemsAsync(workItemIds))
+            .Select(wi => wi.ToViewModel());
+
+        foreach (var (entry, workItem) in timeEntries.Join(workItems, entry => entry.Task?.Id, wi => wi.Id, (entry, wi) => (entry, wi)))
+        {
+            entry.Task = workItem;
+        }
+
+        return days;
+    }
+
     private async Task<List<KimaiTimeEntry>> GetTimeSheetAsync(DateOnly begin, DateOnly end)
     {
         var filter = new TimeSheetFilter()
