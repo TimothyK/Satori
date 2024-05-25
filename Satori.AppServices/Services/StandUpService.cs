@@ -216,7 +216,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
 
     [GeneratedRegex(@"^D#?(?'id'\d+)[\s-]*(?'title'.*)$", RegexOptions.IgnoreCase)]
     private static partial Regex WorkItemCommentRegex();
-    [GeneratedRegex(@"^D#?(?'parentId'\d+)[\s-]*(?'parentTitle'.*)»\s+D#?(?'id'\d+)[\s-]*(?'title'.*)$", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"^D#?(?'parentId'\d+)[\s-]*(?'parentTitle'.*)\s+D#?(?'id'\d+)[\s-]*(?'title'.*)$", RegexOptions.IgnoreCase)]
     private static partial Regex ParentedWorkItemCommentRegex();
 
     private TimeEntry ToViewModel(KimaiTimeEntry kimaiEntry)

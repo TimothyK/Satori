@@ -27,8 +27,6 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
 
     private KimaiTimeEntry BuildTimeEntry() => BuildTimeEntry(DefaultActivity);
 
-    //private KimaiTimeEntry BuildTimeEntry(TimeSpan duration) => BuildTimeEntry(DefaultActivity, Today, duration);
-
     #endregion Arrange
 
     #region Act
@@ -429,7 +427,7 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
     public async Task WorkItemWithParent()
     {
         //Arrange
-        BuildTimeEntry().Description = "D#12345 Program should start without crash » D#12346 Coding";
+        BuildTimeEntry().Description = "D#12345 Program should start without crash D#12346 Coding";
 
         //Act
         var entries = await GetTimesAsync();
