@@ -52,7 +52,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
         return standUpDays.OrderByDescending(day => day.Date).ToArray();
     }
 
-    public async Task<StandUpDay[]> GetWorkItemsAsync(StandUpDay[] days)
+    public async Task GetWorkItemsAsync(StandUpDay[] days)
     {
         var timeEntries = days.SelectMany(day => day.Projects.SelectMany(project => project.Activities.SelectMany(activity => activity.TimeEntries)))
             .Where(entry => entry.Task != null)
@@ -67,8 +67,6 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
         {
             entry.Task = workItem;
         }
-
-        return days;
     }
 
     private async Task<List<KimaiTimeEntry>> GetTimeSheetAsync(DateOnly begin, DateOnly end)
@@ -115,6 +113,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
     private StandUpDay ToDayViewModel(IGrouping<DateOnly, KimaiTimeEntry> day, Url url)
     {
         var uri = url.ToUri()
+            // ReSharper disable once StringLiteralTypo
             .AppendQueryParam("daterange", $"{day.Key:O} - {day.Key:O}")
             .AppendQueryParam("state", 3)  // stopped
             .AppendQueryParam("billable", 0)
@@ -306,7 +305,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
         return new WorkItem
         {
             Id = id,
-            Title = title?.Trim(),
+            Title = title.Trim(),
             Url = azureDevOps.ConnectionSettings.Url.AppendPathSegments("_workItems", "edit", id),
             AssignedTo = Person.Empty,
             CreatedBy = Person.Empty,
@@ -340,7 +339,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
 
     private static TimeSpan GetDuration(IEnumerable<KimaiTimeEntry> entries) => entries.Select(GetDuration).Sum();
 
-    private static TimeSpan GetDuration(KimaiTimeEntry entry) => entry.End != null ? (entry.End.Value - entry.Begin) : TimeSpan.Zero;
+    private static TimeSpan GetDuration(KimaiTimeEntry entry) => entry.End != null ? entry.End.Value - entry.Begin : TimeSpan.Zero;
 
     private static DateOnly GetDateOnly(KimaiTimeEntry entry) => DateOnly.FromDateTime(entry.Begin.Date);
     

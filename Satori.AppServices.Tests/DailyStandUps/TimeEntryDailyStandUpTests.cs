@@ -362,7 +362,30 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
     #region WorkItems
 
     [TestMethod]
-    public async Task WorkItem()
+    public async Task WorkItem_IdOnly()
+    {
+        //Arrange
+        BuildTimeEntry().Description = "D#12345";
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.Accomplishments.ShouldBeNull();
+        entry.Impediments.ShouldBeNull();
+        entry.Learnings.ShouldBeNull();
+        entry.OtherComments.ShouldBeNull();
+
+        entry.Task.ShouldNotBeNull();
+        entry.Task.Id.ShouldBe(12345);
+        entry.Task.Title.ShouldBeNullOrEmpty();
+        entry.Task.Type.ShouldBe(WorkItemType.Unknown);
+        entry.Task.Parent.ShouldBeNull();
+    }
+    
+    [TestMethod]
+    public async Task WorkItemTitle()
     {
         //Arrange
         BuildTimeEntry().Description = "D#12345 Program should start without crash";
