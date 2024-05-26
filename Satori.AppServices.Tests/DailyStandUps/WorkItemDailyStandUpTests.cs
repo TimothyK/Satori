@@ -170,15 +170,15 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
     public async Task TimeRemaining_KimaiAllExported_ReportsSameAsAzureDevOps()
     {
         //Arrange
-        var kimaiEntry = BuildTimeEntry();
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
-        kimaiEntry.AddWorkItems(task);
-
-        kimaiEntry.Exported = true;
-        task.Fields.State = ScrumState.InProgress.ToApiValue();
         var estimate = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
         task.Fields.OriginalEstimate = estimate.TotalHours + 2.0;
         task.Fields.RemainingWork = estimate.TotalHours;
+
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.AddWorkItems(task);
+        kimaiEntry.Exported = true;
+        task.Fields.State = ScrumState.InProgress.ToApiValue();
 
         //Act
         var entries = await GetTimesAsync();
@@ -192,15 +192,15 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
     public async Task TimeRemaining_TimeRemainingMissing_ReportsOriginalEstimate()
     {
         //Arrange
-        var kimaiEntry = BuildTimeEntry();
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
-        kimaiEntry.AddWorkItems(task);
-
-        kimaiEntry.Exported = true;
-        task.Fields.State = ScrumState.InProgress.ToApiValue();
         var estimate = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
         task.Fields.OriginalEstimate = estimate.TotalHours;
         task.Fields.RemainingWork = null;
+
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.AddWorkItems(task);
+        kimaiEntry.Exported = true;
+        task.Fields.State = ScrumState.InProgress.ToApiValue();
 
         //Act
         var entries = await GetTimesAsync();
@@ -214,15 +214,15 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
     public async Task TimeRemaining_SubtractsUnexported()
     {
         //Arrange
-        var kimaiEntry = BuildTimeEntry();
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
-        kimaiEntry.AddWorkItems(task);
-        kimaiEntry.End.ShouldNotBeNull();
-
-        kimaiEntry.Exported = false;
         task.Fields.State = ScrumState.InProgress.ToApiValue();
         var estimate = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
         task.Fields.RemainingWork = estimate.TotalHours;
+
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.AddWorkItems(task);
+        kimaiEntry.End.ShouldNotBeNull();
+        kimaiEntry.Exported = false;
 
         //Act
         var entries = await GetTimesAsync();
@@ -262,7 +262,59 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         entries.Length.ShouldBe(2);
         entries.ShouldAllBe(x => x.TimeRemaining == expected);
     }
+    
+    [TestMethod]
+    public async Task TimeRemaining_DifferentTasks()
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task1);
+        task1.Fields.State = ScrumState.InProgress.ToApiValue();
+        var estimate1 = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
+        task1.Fields.RemainingWork = estimate1.TotalHours;
 
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task2);
+        task2.Fields.State = ScrumState.InProgress.ToApiValue();
+        var estimate2 = TimeSpan.FromHours(8).Randomize().ToNearest(TimeSpan.FromMinutes(3));
+        task2.Fields.RemainingWork = estimate2.TotalHours;
+
+        var entry1 = BuildTimeEntry();
+        entry1.AddWorkItems(task1);
+        entry1.End.ShouldNotBeNull();
+        entry1.Exported = false;
+
+        var entry2 = BuildTimeEntry();
+        entry2.AddWorkItems(task2);
+        entry2.End.ShouldNotBeNull();
+        entry2.Exported = false;
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        entries.Length.ShouldBe(2);
+        entries.Single(x => x.Id == entry1.Id).TimeRemaining.ShouldBe(estimate1 - (entry1.End.Value - entry1.Begin));
+        entries.Single(x => x.Id == entry2.Id).TimeRemaining.ShouldBe(estimate2 - (entry2.End.Value - entry2.Begin));
+    }
+
+    [TestMethod]
+    public async Task TimeRemaining_TaskDone_Null()
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        task.Fields.State = ScrumState.Done.ToApiValue();
+        var estimate = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
+        task.Fields.RemainingWork = estimate.TotalHours;
+
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.AddWorkItems(task);
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.TimeRemaining.ShouldBeNull();
+    }
     #endregion Time Remaining
 
 }

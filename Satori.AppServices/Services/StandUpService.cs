@@ -407,9 +407,10 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
 
     private static void ResetTimeRemaining(TimeEntry[] timeEntries)
     {
-        foreach (var entry in timeEntries)
+        foreach (var entry in timeEntries.Where(x => x.Task?.State != ScrumState.Done))
         {
             var unexported = timeEntries
+                .Where(x => x.Task?.Id == entry.Task?.Id)
                 .Where(x => !x.Exported)
                 .SelectWhereHasValue(x => x.End - x.Begin)
                 .Sum();
