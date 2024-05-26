@@ -35,10 +35,10 @@
     <div class="dropdown" id="collapse-button">
         <button class="dropbtn">Collapse ▾</button>
         <div class="dropdown-content">
-            <div class="dropdown-content-menu" @onclick="() => CollapseAll()">All</div>
-            <div class="dropdown-content-menu" @onclick="() => CollapseProjects()">Projects</div>
-            <div class="dropdown-content-menu" @onclick="() => CollapseActivities()">Activities</div>
-            <div class="dropdown-content-menu" @onclick="() => CollapseNone()">None</div>
+            <div class="dropdown-content-menu" @onclick="CollapseAll">All</div>
+            <div class="dropdown-content-menu" @onclick="CollapseProjects">Projects</div>
+            <div class="dropdown-content-menu" @onclick="CollapseActivities">Activities</div>
+            <div class="dropdown-content-menu" @onclick="CollapseNone">None</div>
         </div>
     </div>
 </div>
@@ -198,7 +198,7 @@
                                     <span> » </span>
                                 }
                                     <span class="work-item @entry.Task.Type.CssClass cell-link" @onclick="() => OpenWorkItem(entry.Task)" title="Open D#@(entry.Task.Id)">
-                                    @if (@entry.Task.Parent == null)
+                                    @if (entry.Task.Parent == null)
                                     {
                                         <label>D#@entry.Task.Id&nbsp;</label>
                                     }
