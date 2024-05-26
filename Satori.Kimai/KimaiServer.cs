@@ -1,6 +1,7 @@
 ﻿using Flurl;
 using Microsoft.Extensions.Logging;
 using Satori.Kimai.Models;
+using System.Text;
 using System.Text.Json;
 
 namespace Satori.Kimai;
@@ -23,7 +24,7 @@ public class KimaiServer(
             .AppendQueryParam("full")
             .AppendQueryParams(filter);
 
-        return (await GetAsync<TimeEntry[]>(url));
+        return await GetAsync<TimeEntry[]>(url);
     }
 
     public async Task<User> GetMyUserAsync()
@@ -32,6 +33,26 @@ public class KimaiServer(
             .AppendPathSegment("api/users/me");
 
         return await GetAsync<User>(url);
+    }
+
+    public async Task ExportTimeSheetAsync(int id)
+    {
+        var url = connectionSettings.Url
+            .AppendPathSegment("api/timesheets")
+            .AppendPathSegment(id);
+
+        var request = new HttpRequestMessage(HttpMethod.Patch, url);
+        AddAuthHeader(request);
+        Logger.LogInformation("{Method} {Url} - marking as exported", request.Method.ToString().ToUpper(), request.RequestUri);
+
+        var payload = new Dictionary<string, object>()
+        {
+            { "export", true }
+        };
+        request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+
+        var response = await httpClient.SendAsync(request);
+        await VerifySuccessfulResponseAsync(response);
     }
 
     private async Task<T> GetAsync<T>(Url url)
