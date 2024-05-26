@@ -339,7 +339,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
             .Where(entry => entry.Task != null)
             .ToArray();
 
-        var workItemIds = timeEntries.Select(entry => entry.Task!.Id).Distinct();
+        var workItemIds = timeEntries.SelectMany(GetAllWorkItemIds).Distinct();
 
         var workItems = (await GetWorkItemsAsync(workItemIds)).ToList();
 
@@ -350,13 +350,36 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
 
         workItems.AddRange(await GetWorkItemsAsync(parentIds));
 
-        foreach (var (entry, workItem) in timeEntries.Join(workItems, entry => entry.Task?.Id, wi => wi.Id, (entry, wi) => (entry, wi)))
+        foreach (var task in workItems.Where(wi => wi.Type == WorkItemType.Task))
         {
-            entry.Task = workItem;
-            if (workItem.Parent != null)
-            {
-                workItem.Parent = workItems.SingleOrDefault(wi => wi.Id == workItem.Parent!.Id);
-            }
+            task.Parent = workItems.SingleOrDefault(wi => wi.Id == task.Parent?.Id);
+        }
+
+        foreach (var entry in timeEntries)
+        {
+            var matchingWorkItems = GetAllWorkItemIds(entry)
+                .Join(workItems, id => id, wi => wi.Id, (_, wi) => wi)
+                .OrderBy(wi => wi.Id)
+                .ToArray();
+            
+            entry.Task = matchingWorkItems.SingleOrDefault(wi => wi.Type == WorkItemType.Task)
+                ?? matchingWorkItems.SingleOrDefault();
+        }
+    }
+
+    private static IEnumerable<int> GetAllWorkItemIds(TimeEntry entry)
+    {
+        if (entry.Task == null)
+        {
+            yield break;
+        }
+        yield return entry.Task.Id;
+
+        var workItem = entry.Task.Parent;
+        while (workItem != null)
+        {
+            yield return workItem.Id;
+            workItem = workItem.Parent;
         }
     }
 

@@ -22,6 +22,7 @@ internal class WorkItemBuilder
     private static WorkItem BuildWorkItem()
     {
         var workItem = Builder.Builder<WorkItem>.New().Build(wi => wi.Id = Sequence.WorkItemId.Next(), int.MaxValue);
+        workItem.Fields.Parent = null;
         workItem.Fields.WorkItemType = WorkItemType.BoardTypes.SingleRandom().ToApiValue();
         workItem.Fields.State = ScrumState.Committed.ToApiValue();
         workItem.Fields.Triage = null;

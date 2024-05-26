@@ -27,6 +27,8 @@ public class WorkItem
     public int? SprintPriority { get; set; }
     public double AbsolutePriority { get; internal set; }
 
+    public override string ToString() => $"D#{Id} {Title}";
+
     public string? StatusLabel
     {
         get
