@@ -20,6 +20,7 @@ public class WorkItemTests
         _connectionSettings.Url
             .AppendPathSegment("_apis/wit/workItems")
             .AppendQueryParam("ids", string.Join(',', workItemIds))
+            .AppendQueryParam("$expand", "all")
             .AppendQueryParam("api-version", "6.0");
 
     private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
@@ -53,6 +54,7 @@ public class WorkItemTests
 
     private const int SingleWorkItemId = 2;
     private const int BlockedWorkItemId = 3;
+    private const int ExpandedWorkItemId = 12345;
     private static readonly int[] SixTypesWorkItemIds = [28655, 29924, 29922, 29923, 27850, 30343];
 
     private static byte[] GetPayload(int workItemId)
@@ -60,6 +62,10 @@ public class WorkItemTests
         if (workItemId == BlockedWorkItemId)
         {
             return WorkItemResponses.BlockedWorkItem;
+        }    
+        if (workItemId == ExpandedWorkItemId)
+        {
+            return WorkItemResponses.ExpandedRelations;
         }
 
         if (SixTypesWorkItemIds.Contains(workItemId))
@@ -186,4 +192,7 @@ public class WorkItemTests
     
     [TestMethod]
     public void Triage() => SingleWorkItem(27850).Fields.Triage.ShouldBe("Pending");
+
+    [TestMethod]
+    public void Parent() => SingleWorkItem(ExpandedWorkItemId).Fields.Parent.ShouldBe(12344);
 }

@@ -1,0 +1,245 @@
+{
+    "count": 1,
+    "value": [
+        {
+            "fields": {
+                "Custom.Enhancement": "<div>Enhance the start up logic to not divide by the number of successfully deployments.  This might cause a division by zero error. </div>",
+                "Custom.ProjectCode": "1.2.3 - Skunk Works",
+                "Microsoft.VSTS.CMMI.Blocked": "No",
+                "Microsoft.VSTS.CMMI.ImpactAssessmentHtml": "<div>If not fixed we will all be fired and die hungry and alone. </div>",
+                "Microsoft.VSTS.Common.AcceptanceCriteria": "<span style=\"\">The program should be able to:</span><span style=\"\">&nbsp;</span><br><ul><li>not crash on start up</li></ul>",
+                "Microsoft.VSTS.Common.BacklogPriority": 27103990.0,
+                "Microsoft.VSTS.Common.Priority": 2,
+                "Microsoft.VSTS.Common.StateChangeDate": "2024-01-13T20:16:53.407Z",
+                "Microsoft.VSTS.Common.ValueArea": "Business",
+                "System.AreaPath": "Product\\AppArea",
+                "System.AssignedTo": {
+                    "_links": {
+                        "avatar": {
+                            "href": "http://devops.test/Org/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc"
+                        }
+                    },
+                    "descriptor": "win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc",
+                    "displayName": "Timothy Klenke",
+                    "id": "c00ef764-dc77-4b32-9a19-590db59f039b",
+                    "imageUrl": "http://devops.test/Org/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc",
+                    "uniqueName": "MAYFIELD\\Timothyk",
+                    "url": "http://devops.test/Org/_apis/Identities/c00ef764-dc77-4b32-9a19-590db59f039b"
+                },
+                "System.BoardColumn": "New",
+                "System.BoardColumnDone": false,
+                "System.ChangedBy": {
+                    "_links": {
+                        "avatar": {
+                            "href": "http://devops.test/Org/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc"
+                        }
+                    },
+                    "descriptor": "win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc",
+                    "displayName": "Timothy Klenke",
+                    "id": "c00ef764-dc77-4b32-9a19-590db59f039b",
+                    "imageUrl": "http://devops.test/Org/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc",
+                    "uniqueName": "MAYFIELD\\Timothyk",
+                    "url": "http://devops.test/Org/_apis/Identities/c00ef764-dc77-4b32-9a19-590db59f039b"
+                },
+                "System.ChangedDate": "2024-02-09T18:09:39.26Z",
+                "System.CommentCount": 0,
+                "System.CreatedBy": {
+                    "_links": {
+                        "avatar": {
+                            "href": "http://devops.test/Org/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc"
+                        }
+                    },
+                    "descriptor": "win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc",
+                    "displayName": "Timothy Klenke",
+                    "id": "c00ef764-dc77-4b32-9a19-590db59f039b",
+                    "imageUrl": "http://devops.test/Org/_apis/GraphProfile/MemberAvatars/win.Uy0xLTUtMjEtMTUyNzAwNjgzMS04OTQzOTEwNDQtNjIyNjExMjE2LTExNjc",
+                    "uniqueName": "MAYFIELD\\Timothyk",
+                    "url": "http://devops.test/Org/_apis/Identities/c00ef764-dc77-4b32-9a19-590db59f039b"
+                },
+                "System.CreatedDate": "2024-01-13T20:16:53.407Z",
+                "System.Description": "<div>By <a href=\"http://devops.test/Org/a460ebaf-28f0-4353-96a5-1f9694c5626a/_workitems/edit/1\" data-vss-mention=\"version:1.0\">Task 1: Create Program</a>&nbsp;there is now a program that we can ship.  The problem is it crashes on start up.</div>",
+                "System.IterationPath": "CD\\Skunk\\Sprint 2024-02",
+                "System.Parent": 12344,
+                "System.Reason": "New backlog item",
+                "System.State": "New",
+                "System.Tags": "Needs_Design_Review; Waiting_For_Client",
+                "System.TeamProject": "MyProject",
+                "System.Title": "Program no longer crashes on startup",
+                "System.WorkItemType": "Product Backlog Item",
+                "WEF_9C125D321B9B4525BE75E33CE4ACA209_Kanban.Column": "New",
+                "WEF_9C125D321B9B4525BE75E33CE4ACA209_Kanban.Column.Done": false
+            },
+            "id": 12345,
+            "relations": [
+                {
+                    "attributes": {
+                        "isLocked": false,
+                        "name": "Successor"
+                    },
+                    "rel": "System.LinkTypes.Dependency-Forward",
+                    "url": "http://devops.test/Org/a460ebaf-28f0-4353-96a5-1f9694c5626a/_apis/wit/workItems/29027"
+                },
+                {
+                    "attributes": {
+                        "isLocked": false,
+                        "name": "Child"
+                    },
+                    "rel": "System.LinkTypes.Hierarchy-Forward",
+                    "url": "http://devops.test/Org/a460ebaf-28f0-4353-96a5-1f9694c5626a/_apis/wit/workItems/30399"
+                },
+                {
+                    "attributes": {
+                        "isLocked": false,
+                        "name": "Parent"
+                    },
+                    "rel": "System.LinkTypes.Hierarchy-Reverse",
+                    "url": "http://devops.test/Org/a460ebaf-28f0-4353-96a5-1f9694c5626a/_apis/wit/workItems/29924"
+                },
+                {
+                    "attributes": {
+                        "isLocked": false,
+                        "name": "Child"
+                    },
+                    "rel": "System.LinkTypes.Hierarchy-Forward",
+                    "url": "http://devops.test/Org/a460ebaf-28f0-4353-96a5-1f9694c5626a/_apis/wit/workItems/31731"
+                },
+                {
+                    "attributes": {
+                        "isLocked": false,
+                        "name": "Child"
+                    },
+                    "rel": "System.LinkTypes.Hierarchy-Forward",
+                    "url": "http://devops.test/Org/a460ebaf-28f0-4353-96a5-1f9694c5626a/_apis/wit/workItems/30785"
+                },
+                {
+                    "attributes": {
+                        "isLocked": false,
+                        "name": "Child"
+                    },
+                    "rel": "System.LinkTypes.Hierarchy-Forward",
+                    "url": "http://devops.test/Org/a460ebaf-28f0-4353-96a5-1f9694c5626a/_apis/wit/workItems/31807"
+                },
+                {
+                    "attributes": {
+                        "isLocked": false,
+                        "name": "Child"
+                    },
+                    "rel": "System.LinkTypes.Hierarchy-Forward",
+                    "url": "http://devops.test/Org/a460ebaf-28f0-4353-96a5-1f9694c5626a/_apis/wit/workItems/30394"
+                },
+                {
+                    "attributes": {
+                        "isLocked": false,
+                        "name": "Child"
+                    },
+                    "rel": "System.LinkTypes.Hierarchy-Forward",
+                    "url": "http://devops.test/Org/a460ebaf-28f0-4353-96a5-1f9694c5626a/_apis/wit/workItems/30389"
+                },
+                {
+                    "attributes": {
+                        "isLocked": false,
+                        "name": "Child"
+                    },
+                    "rel": "System.LinkTypes.Hierarchy-Forward",
+                    "url": "http://devops.test/Org/a460ebaf-28f0-4353-96a5-1f9694c5626a/_apis/wit/workItems/30397"
+                },
+                {
+                    "attributes": {
+                        "isLocked": false,
+                        "name": "Child"
+                    },
+                    "rel": "System.LinkTypes.Hierarchy-Forward",
+                    "url": "http://devops.test/Org/a460ebaf-28f0-4353-96a5-1f9694c5626a/_apis/wit/workItems/30419"
+                },
+                {
+                    "attributes": {
+                        "authorizedDate": "2024-03-26T21:15:47.643Z",
+                        "id": 15485,
+                        "name": "Pull Request",
+                        "resourceCreatedDate": "2024-03-26T21:15:47.643Z",
+                        "resourceModifiedDate": "2024-03-26T21:15:47.643Z",
+                        "revisedDate": "9999-01-01T00:00:00Z"
+                    },
+                    "rel": "ArtifactLink",
+                    "url": "vstfs:///Git/PullRequestId/a460ebaf-28f0-4353-96a5-1f9694c5626a%2F330654e5-bf2a-4d41-be4c-7a515527608c%2F1187"
+                },
+                {
+                    "attributes": {
+                        "authorizedDate": "2024-05-03T15:27:27.79Z",
+                        "id": 16322,
+                        "name": "Pull Request",
+                        "resourceCreatedDate": "2024-05-03T15:27:27.79Z",
+                        "resourceModifiedDate": "2024-05-03T15:27:27.79Z",
+                        "revisedDate": "9999-01-01T00:00:00Z"
+                    },
+                    "rel": "ArtifactLink",
+                    "url": "vstfs:///Git/PullRequestId/a460ebaf-28f0-4353-96a5-1f9694c5626a%2F330654e5-bf2a-4d41-be4c-7a515527608c%2F1318"
+                },
+                {
+                    "attributes": {
+                        "authorizedDate": "2024-04-05T04:14:39.313Z",
+                        "id": 15650,
+                        "name": "Pull Request",
+                        "resourceCreatedDate": "2024-04-05T04:14:39.313Z",
+                        "resourceModifiedDate": "2024-04-05T04:14:39.313Z",
+                        "revisedDate": "9999-01-01T00:00:00Z"
+                    },
+                    "rel": "ArtifactLink",
+                    "url": "vstfs:///Git/PullRequestId/a460ebaf-28f0-4353-96a5-1f9694c5626a%2Fdc8da164-c263-4cd1-8c68-cd39ed902dcf%2F1204"
+                },
+                {
+                    "attributes": {
+                        "authorizedDate": "2024-03-27T22:55:16.16Z",
+                        "comment": "CdmDb 1100.180 - ReplicationSubscriptions.InstanceName",
+                        "id": 15528,
+                        "name": "Fixed in Changeset",
+                        "resourceCreatedDate": "2024-03-27T22:55:16.16Z",
+                        "resourceModifiedDate": "2024-03-27T22:55:16.16Z",
+                        "revisedDate": "9999-01-01T00:00:00Z"
+                    },
+                    "rel": "ArtifactLink",
+                    "url": "vstfs:///VersionControl/Changeset/7784"
+                },
+                {
+                    "attributes": {
+                        "authorizedDate": "2024-04-02T20:21:16.58Z",
+                        "comment": "This build was automatically linked to this work item based on this work item's linked commits",
+                        "id": 15575,
+                        "name": "Integrated in build",
+                        "resourceCreatedDate": "2024-04-02T20:21:16.58Z",
+                        "resourceModifiedDate": "2024-04-02T20:21:16.58Z",
+                        "revisedDate": "9999-01-01T00:00:00Z"
+                    },
+                    "rel": "ArtifactLink",
+                    "url": "vstfs:///Build/Build/5528"
+                },
+                {
+                    "attributes": {
+                        "authorizedDate": "2024-05-03T20:38:53.857Z",
+                        "id": 16335,
+                        "name": "Fixed in Commit",
+                        "resourceCreatedDate": "2024-05-03T20:38:53.857Z",
+                        "resourceModifiedDate": "2024-05-03T20:38:53.857Z",
+                        "revisedDate": "9999-01-01T00:00:00Z"
+                    },
+                    "rel": "ArtifactLink",
+                    "url": "vstfs:///Git/Commit/a460ebaf-28f0-4353-96a5-1f9694c5626a%2f330654e5-bf2a-4d41-be4c-7a515527608c%2fe9116af81660df1229503783e42601fc598345a3"
+                },
+                {
+                    "attributes": {
+                        "authorizedDate": "2024-05-03T13:39:14.14Z",
+                        "id": 16316,
+                        "name": "Fixed in Commit",
+                        "resourceCreatedDate": "2024-05-03T13:39:14.14Z",
+                        "resourceModifiedDate": "2024-05-03T13:39:14.14Z",
+                        "revisedDate": "9999-01-01T00:00:00Z"
+                    },
+                    "rel": "ArtifactLink",
+                    "url": "vstfs:///Git/Commit/a460ebaf-28f0-4353-96a5-1f9694c5626a%2f330654e5-bf2a-4d41-be4c-7a515527608c%2fcfdd5f5b343c3502f05808eae060b50a6f784d5f"
+                }
+            ],
+            "rev": 16,
+            "url": "http://devops.test/Org/a460ebaf-28f0-4353-96a5-1f9694c5626a/_apis/wit/workItems/12345"
+        }
+    ]
+}

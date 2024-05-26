@@ -43,6 +43,16 @@ public class AzureDevOpsServer(
     }
 
     public async Task<WorkItem[]> GetWorkItemsAsync(IEnumerable<int> workItemIds) => await GetWorkItemsAsync(workItemIds.ToArray());
+    /// <summary>
+    /// Gets work items by their ids.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// https://learn.microsoft.com/en-us/rest/api/azure/devops/wit/work-items/list?view=azure-devops-rest-6.0
+    /// </para>
+    /// </remarks>
+    /// <param name="workItemIds"></param>
+    /// <returns></returns>
     public async Task<WorkItem[]> GetWorkItemsAsync(params int[] workItemIds)
     {
         const int bucketSize = 200;
@@ -59,6 +69,7 @@ public class AzureDevOpsServer(
         var url = ConnectionSettings.Url
             .AppendPathSegment("_apis/wit/workItems")
             .AppendQueryParam("ids", string.Join(',', workItemIds))
+            .AppendQueryParam("$expand", "all")
             .AppendQueryParam("api-version", "6.0");
 
         return await GetRootValueAsync<WorkItem>(url);

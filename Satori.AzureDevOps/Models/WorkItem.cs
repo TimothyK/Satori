@@ -130,4 +130,8 @@ public class WorkItemFields
     /// <seealso cref="Enhancement"/>
     [JsonPropertyName("Microsoft.VSTS.CMMI.ProposedFix")]
     public string? ProposedFix { get; set; }
+
+    [JsonPropertyName("System.Parent")]
+    public int? Parent { get; set; }
+
 }
