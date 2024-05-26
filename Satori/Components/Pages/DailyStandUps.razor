@@ -5,6 +5,7 @@
 @using Flurl
 @using Satori.AppServices.Extensions
 @using Satori.AppServices.ViewModels.WorkItems
+@using CodeMonkeyProjectiles.Linq
 @attribute [StreamRendering]
 @inject UserService UserService
 @inject StandUpService StandUpService
@@ -197,12 +198,37 @@
                                     </span>
                                     <span> » </span>
                                 }
-                                    <span class="work-item @entry.Task.Type.CssClass cell-link" @onclick="() => OpenWorkItem(entry.Task)" title="Open D#@(entry.Task.Id)">
+                                <span class="work-item @entry.Task.Type.CssClass cell-link" @onclick="() => OpenWorkItem(entry.Task)" title="Open D#@(entry.Task.Id)">
                                     @if (entry.Task.Parent == null)
                                     {
                                         <label>D#@entry.Task.Id&nbsp;</label>
                                     }
                                     @entry.Task.Title
+
+                                    @if (entry.Task.Type == WorkItemType.Task)
+                                    {
+                                        if (entry.Task.State == ScrumState.Done)
+                                        {
+                                            <span class="badge bg-success">✔️ Done</span>
+                                        }
+                                        else if (entry.Task.State == ScrumState.Removed)
+                                        {
+                                            <span class="badge bg-success">✔ Removed</span>
+                                        }
+                                        else if (entry.Task.State == ScrumState.ToDo)
+                                        {
+                                            <span class="badge bg-danger">To Do</span>
+                                        }
+    
+                                        if (entry.NeedsEstimate)
+                                        {
+                                            <span class="badge bg-danger">Needs Estimate</span>
+                                        }
+                                        else if (entry.TimeRemaining != null)
+                                        {
+                                                <span class="badge @(entry.TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@entry.TimeRemaining.Value.TotalHours.ToNearest(0.05) h</span>
+                                        }
+                                    }
                                 </span>
                             </p>
                         }

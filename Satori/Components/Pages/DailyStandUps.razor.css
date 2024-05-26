@@ -146,6 +146,9 @@
 .time-entry-comments p {
     margin: 0px;
 }
+.time-entry-comments .badge {
+    margin-left: 5px;
+}
 
 .time-entry td .duration {
     font-size: 0.7em;
