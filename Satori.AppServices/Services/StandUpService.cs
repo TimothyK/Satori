@@ -341,6 +341,8 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
 
         var workItems = await GetWorkItemsAsync(timeEntries);
         ResetWorkItems(timeEntries, workItems);
+
+        ResetTimeRemaining(timeEntries);
     }
 
     /// <summary>
@@ -400,6 +402,20 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
         {
             yield return workItem.Id;
             workItem = workItem.Parent;
+        }
+    }
+
+    private static void ResetTimeRemaining(TimeEntry[] timeEntries)
+    {
+        foreach (var entry in timeEntries)
+        {
+            var unexported = timeEntries
+                .Where(x => !x.Exported)
+                .SelectWhereHasValue(x => x.End - x.Begin)
+                .Sum();
+
+            var estimate = entry.Task?.RemainingWork ?? entry.Task?.OriginalEstimate;
+            entry.TimeRemaining = estimate - unexported;
         }
     }
 

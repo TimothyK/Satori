@@ -1,5 +1,6 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Satori.AppServices.Services;
+using Satori.AppServices.Extensions;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.ViewModels.WorkItems;
@@ -65,7 +66,9 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         entry.Task.Parent.ShouldNotBeNull();
         entry.Task.Parent.Id.ShouldBe(workItem.Id);
     }
-    
+
+    #region Load Work Item Type and Parent/Child relations
+
     [TestMethod]
     public async Task TaskType()
     {
@@ -158,6 +161,110 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         entry.Task.Parent.ShouldNotBeNull();
         entry.Task.Parent.Id.ShouldBe(workItem.Id);
     }
+
+    #endregion Load Work Item Type and Parent/Child relations
+
+    #region Time Remaining
+
+    [TestMethod]
+    public async Task TimeRemaining_KimaiAllExported_ReportsSameAsAzureDevOps()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        kimaiEntry.AddWorkItems(task);
+
+        kimaiEntry.Exported = true;
+        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        var estimate = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
+        task.Fields.OriginalEstimate = estimate.TotalHours + 2.0;
+        task.Fields.RemainingWork = estimate.TotalHours;
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.TimeRemaining.ShouldBe(estimate);
+    }
+    
+    [TestMethod]
+    public async Task TimeRemaining_TimeRemainingMissing_ReportsOriginalEstimate()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        kimaiEntry.AddWorkItems(task);
+
+        kimaiEntry.Exported = true;
+        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        var estimate = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
+        task.Fields.OriginalEstimate = estimate.TotalHours;
+        task.Fields.RemainingWork = null;
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.TimeRemaining.ShouldBe(estimate);
+    }
+    
+    [TestMethod]
+    public async Task TimeRemaining_SubtractsUnexported()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        kimaiEntry.AddWorkItems(task);
+        kimaiEntry.End.ShouldNotBeNull();
+
+        kimaiEntry.Exported = false;
+        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        var estimate = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
+        task.Fields.RemainingWork = estimate.TotalHours;
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        var duration = kimaiEntry.End.Value - kimaiEntry.Begin;
+        entry.TimeRemaining.ShouldBe(estimate - duration);
+    }
+    
+    [TestMethod]
+    public async Task TimeRemaining_SubtractsAllUnexported()
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        var estimate = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
+        task.Fields.RemainingWork = estimate.TotalHours;
+
+        var entry1 = BuildTimeEntry();
+        entry1.AddWorkItems(task);
+        entry1.End.ShouldNotBeNull();
+        entry1.Exported = false;
+
+        var entry2 = BuildTimeEntry();
+        entry2.AddWorkItems(task);
+        entry2.End.ShouldNotBeNull();
+        entry2.Exported = true;
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var duration = entry1.End.Value - entry1.Begin;
+        var expected = estimate - duration;
+
+        entries.Length.ShouldBe(2);
+        entries.ShouldAllBe(x => x.TimeRemaining == expected);
+    }
+
+    #endregion Time Remaining
+
 }
 
 internal static class TimeEntryExtensions

@@ -10,9 +10,20 @@ public static class RoundingExtensions
     public static int ToNearestInt32(this double value) =>
         (int)Math.Round(value);
 
+    public static TimeSpan ToNearest(this TimeSpan value, TimeSpan interval, RoundingDirection direction = RoundingDirection.Nearest)
+    {
+        var roundedTicks = ToNearestTick(value.Ticks, interval, direction);
+        return TimeSpan.FromTicks(roundedTicks);
+    }
+
     public static DateTimeOffset ToNearest(this DateTimeOffset value, TimeSpan interval, RoundingDirection direction = RoundingDirection.Nearest)
     {
-        var ticks = value.Ticks;
+        var roundedTicks = ToNearestTick(value.Ticks, interval, direction);
+        return new DateTimeOffset(roundedTicks, value.Offset);
+    }
+
+    private static long ToNearestTick(long ticks, TimeSpan interval, RoundingDirection direction)
+    {
         var roundingTicks = interval.Ticks;
 
         var remainder = ticks % roundingTicks;
@@ -27,9 +38,9 @@ public static class RoundingExtensions
 
         var roundedTicks = roundUp ? ticks - remainder + roundingTicks : ticks - remainder;
 
-        return new DateTimeOffset(roundedTicks, value.Offset);
+        return roundedTicks;
     }
-    
+
     /// <summary>
     /// Removes the seconds
     /// </summary>
@@ -40,8 +51,6 @@ public static class RoundingExtensions
 
     public static DateTimeOffset TruncateSeconds(this DateTimeOffset value) =>
         value.ToNearest(TimeSpan.FromMinutes(1), RoundingDirection.Floor);
-
-
 }
 
 public enum RoundingDirection 
