@@ -1,4 +1,5 @@
 ﻿using Flurl;
+using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.WorkItems;
 
 namespace Satori.AppServices.Services.Converters
@@ -40,12 +41,35 @@ namespace Satori.AppServices.Services.Converters
                 CompletedWork = wi.Fields.CompletedWork.HoursToTimeSpan(),
                 RemainingWork = wi.Fields.RemainingWork.HoursToTimeSpan(),
                 ProjectCode = wi.Fields.ProjectCode ?? string.Empty,
+                Parent = CreateWorkItemPlaceholder(wi.Fields.Parent, UriParser.GetAzureDevOpsOrgUrl(wi.Url)),
                 Url = UriParser.GetAzureDevOpsOrgUrl(wi.Url)
                     .AppendPathSegment("_workItems/edit")
                     .AppendPathSegment(id),
             };
 
             return workItem;
+        }
+
+        private static WorkItem? CreateWorkItemPlaceholder(int? workItemId, Uri azureDevOpsOrgUrl)
+        {
+            if (workItemId == null)
+            {
+                return null;
+            }
+
+            return new WorkItem
+            {
+                Id = workItemId.Value,
+                Title = $"Work Item {workItemId}",
+                Url = azureDevOpsOrgUrl
+                    .AppendPathSegment("_workItems/edit")
+                    .AppendPathSegment(workItemId.Value),
+                AssignedTo = Person.Empty,
+                CreatedBy = Person.Empty,
+                Type = WorkItemType.Unknown,
+                State = ScrumState.Open,
+                Tags = [],
+            };
         }
 
         private static List<string> ParseTags(string? tagsString)

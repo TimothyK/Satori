@@ -54,6 +54,7 @@ internal class WorkItemBuilder
     }
     public WorkItemBuilder AddChild(WorkItem child)
     {
+        child.Fields.Parent = WorkItem.Id;
         _database.AddWorkItem(child);
         _database.AddWorkItemLink(WorkItem, LinkType.IsParentOf, child);
 
