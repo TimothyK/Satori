@@ -355,7 +355,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
             entry.Task = workItem;
             if (workItem.Parent != null)
             {
-                workItem.Parent = workItems.Single(wi => wi.Id == workItem.Parent!.Id);
+                workItem.Parent = workItems.SingleOrDefault(wi => wi.Id == workItem.Parent!.Id);
             }
         }
     }
