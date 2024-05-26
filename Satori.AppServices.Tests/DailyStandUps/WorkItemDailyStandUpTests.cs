@@ -317,6 +317,131 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
     }
     #endregion Time Remaining
 
+    #region NeedsEstimate
+
+    [TestMethod]
+    public async Task NeedsEstimate_ToDo_NoEstimate_Yes()
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        task.Fields.State = ScrumState.ToDo.ToApiValue();
+        task.Fields.OriginalEstimate = null;
+        task.Fields.RemainingWork = null;
+
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.AddWorkItems(task);
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.NeedsEstimate.ShouldBeTrue();
+    }
+    
+    [TestMethod]
+    public async Task NeedsEstimate_ToDo_HasEstimate_No()
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        task.Fields.State = ScrumState.ToDo.ToApiValue();
+        var estimate = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
+        task.Fields.OriginalEstimate = estimate.TotalHours;
+        task.Fields.RemainingWork = null;
+
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.AddWorkItems(task);
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.NeedsEstimate.ShouldBeFalse();
+    }
+    
+    [TestMethod]
+    public async Task NeedsEstimate_ToDo_HasRemaining_No()
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        task.Fields.State = ScrumState.ToDo.ToApiValue();
+        var estimate = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
+        task.Fields.OriginalEstimate = null;
+        task.Fields.RemainingWork = estimate.TotalHours;
+
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.AddWorkItems(task);
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.NeedsEstimate.ShouldBeFalse();
+    }
+
+    [TestMethod]
+    public async Task NeedsEstimate_InProgress_NoEstimate_Yes()
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        task.Fields.OriginalEstimate = null;
+        task.Fields.RemainingWork = null;
+
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.AddWorkItems(task);
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.NeedsEstimate.ShouldBeTrue();
+    }
+    
+    [TestMethod]
+    public async Task NeedsEstimate_Done_NoEstimate_No()
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        task.Fields.State = ScrumState.Done.ToApiValue();
+        task.Fields.OriginalEstimate = null;
+        task.Fields.RemainingWork = null;
+
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.AddWorkItems(task);
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.NeedsEstimate.ShouldBeFalse();
+    }
+    
+    [TestMethod]
+    public async Task NeedsEstimate_Removed_NoEstimate_No()
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        task.Fields.State = ScrumState.Removed.ToApiValue();
+        task.Fields.OriginalEstimate = null;
+        task.Fields.RemainingWork = null;
+
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.AddWorkItems(task);
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.NeedsEstimate.ShouldBeFalse();
+    }
+    #endregion NeedsEstimate
+
 }
 
 internal static class TimeEntryExtensions

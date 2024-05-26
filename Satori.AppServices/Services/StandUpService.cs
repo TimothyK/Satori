@@ -343,6 +343,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
         ResetWorkItems(timeEntries, workItems);
 
         ResetTimeRemaining(timeEntries);
+        ResetNeedsEstimate(timeEntries);
     }
 
     /// <summary>
@@ -417,6 +418,16 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
 
             var estimate = entry.Task?.RemainingWork ?? entry.Task?.OriginalEstimate;
             entry.TimeRemaining = estimate - unexported;
+        }
+    }
+    
+    private static void ResetNeedsEstimate(TimeEntry[] timeEntries)
+    {
+        foreach (var entry in timeEntries.Where(x => x.Task?.State != ScrumState.Done))
+        {
+            entry.NeedsEstimate = entry.Task!.State.IsIn(ScrumState.ToDo, ScrumState.InProgress)
+                                  && entry.Task!.OriginalEstimate == null
+                                  && entry.Task!.RemainingWork == null;
         }
     }
 
