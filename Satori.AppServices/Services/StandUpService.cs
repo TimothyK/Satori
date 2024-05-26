@@ -339,17 +339,17 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
             .Where(entry => entry.Task != null)
             .ToArray();
 
-        var workItemIds = timeEntries.SelectMany(GetAllWorkItemIds).Distinct();
+        var workItems = await GetWorkItemsAsync(timeEntries);
+        ResetWorkItems(timeEntries, workItems);
+    }
 
-        var workItems = (await GetWorkItemsAsync(workItemIds)).ToList();
-
-        var parentIds = workItems
-            .Where(wi => wi.Type == WorkItemType.Task)
-            .SelectWhereHasValue(wi => wi.Parent?.Id)
-            .Except(workItems.Select(wi => wi.Id));
-
-        workItems.AddRange(await GetWorkItemsAsync(parentIds));
-
+    /// <summary>
+    /// Replace the Work Items referenced in the time entries with the new work items provided.
+    /// </summary>
+    /// <param name="timeEntries">Time Entries where the Task reference is just a placeholder <see cref="WorkItem"/> created merely from the Kimai time entry comment</param>
+    /// <param name="workItems">Work Items that were loaded from Azure DevOps </param>
+    private static void ResetWorkItems(TimeEntry[] timeEntries, List<WorkItem> workItems)
+    {
         foreach (var task in workItems.Where(wi => wi.Type == WorkItemType.Task))
         {
             task.Parent = workItems.SingleOrDefault(wi => wi.Id == task.Parent?.Id);
@@ -363,8 +363,28 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
                 .ToArray();
             
             entry.Task = matchingWorkItems.SingleOrDefault(wi => wi.Type == WorkItemType.Task)
-                ?? matchingWorkItems.SingleOrDefault();
+                         ?? matchingWorkItems.SingleOrDefault();
         }
+    }
+
+    private async Task<List<WorkItem>> GetWorkItemsAsync(TimeEntry[] timeEntries)
+    {
+        var workItemIds = timeEntries.SelectMany(GetAllWorkItemIds).Distinct();
+
+        var workItems = (await GetWorkItemsAsync(workItemIds)).ToList();
+
+        var parentIds = workItems
+            .Where(wi => wi.Type == WorkItemType.Task)
+            .SelectWhereHasValue(wi => wi.Parent?.Id)
+            .Except(workItems.Select(wi => wi.Id));
+
+        workItems.AddRange(await GetWorkItemsAsync(parentIds));
+        return workItems;
+    }
+
+    private async Task<IEnumerable<WorkItem>> GetWorkItemsAsync(IEnumerable<int> workItemIds)
+    {
+        return (await azureDevOps.GetWorkItemsAsync(workItemIds)).Select(wi => wi.ToViewModel());
     }
 
     private static IEnumerable<int> GetAllWorkItemIds(TimeEntry entry)
@@ -381,11 +401,6 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
             yield return workItem.Id;
             workItem = workItem.Parent;
         }
-    }
-
-    private async Task<IEnumerable<WorkItem>> GetWorkItemsAsync(IEnumerable<int> workItemIds)
-    {
-        return (await azureDevOps.GetWorkItemsAsync(workItemIds)).Select(wi => wi.ToViewModel());
     }
 
     #endregion GetWorkItemsAsync
