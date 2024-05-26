@@ -189,7 +189,7 @@
                         @if (entry.Task != null)
                         {
                             <p>
-                                @if (entry.Task.Parent != null)
+                                @if (entry.Task.Type == WorkItemType.Task && entry.Task.Parent != null)
                                 {
                                     <span class="work-item @entry.Task.Parent.Type.CssClass cell-link" @onclick="() => OpenWorkItem(entry.Task.Parent)" title="Open D#@(entry.Task.Parent.Id)">
                                         D#@entry.Task.Parent.Id 

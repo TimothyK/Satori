@@ -61,9 +61,17 @@ public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? sta
         OnDateChanging();
         await Task.Yield();
 
-        var days = standUpService == null ? [] 
-            : await standUpService.GetStandUpDaysAsync(BeginDate, EndDate);
+        if (standUpService == null)
+        {
+            OnDateChanged([]);
+            return;
+        }
+
+        var days = await standUpService.GetStandUpDaysAsync(BeginDate, EndDate);
         OnDateChanged(days);
+
+        await Task.Yield();
+        await standUpService.GetWorkItemsAsync(days);
     }
 
     private void OnDateChanging()
