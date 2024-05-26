@@ -3,6 +3,7 @@ using Satori.Kimai;
 using Satori.Kimai.Models;
 using CodeMonkeyProjectiles.Linq;
 using Flurl;
+using MoreLinq;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.WorkItems;
@@ -340,13 +341,28 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
 
         var workItemIds = timeEntries.Select(entry => entry.Task!.Id).Distinct();
 
-        var workItems = (await azureDevOps.GetWorkItemsAsync(workItemIds))
-            .Select(wi => wi.ToViewModel());
+        var workItems = (await GetWorkItemsAsync(workItemIds)).ToList();
+
+        var parentIds = workItems
+            .Where(wi => wi.Type == WorkItemType.Task)
+            .SelectWhereHasValue(wi => wi.Parent?.Id)
+            .Except(workItems.Select(wi => wi.Id));
+
+        workItems.AddRange(await GetWorkItemsAsync(parentIds));
 
         foreach (var (entry, workItem) in timeEntries.Join(workItems, entry => entry.Task?.Id, wi => wi.Id, (entry, wi) => (entry, wi)))
         {
             entry.Task = workItem;
+            if (workItem.Parent != null)
+            {
+                workItem.Parent = workItems.Single(wi => wi.Id == workItem.Parent!.Id);
+            }
         }
+    }
+
+    private async Task<IEnumerable<WorkItem>> GetWorkItemsAsync(IEnumerable<int> workItemIds)
+    {
+        return (await azureDevOps.GetWorkItemsAsync(workItemIds)).Select(wi => wi.ToViewModel());
     }
 
     #endregion GetWorkItemsAsync

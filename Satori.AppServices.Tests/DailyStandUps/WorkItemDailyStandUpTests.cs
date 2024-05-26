@@ -103,6 +103,25 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         entry.Task.Parent.ShouldNotBeNull();
         entry.Task.Parent.Id.ShouldBe(workItem.Id);
     }
+    
+    [TestMethod]
+    public async Task ParentType()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        AzureDevOpsBuilder.BuildWorkItem(out var workItem).AddChild(out var task);
+        task.Fields.WorkItemType.ShouldBe(WorkItemType.Task.ToApiValue());
+        kimaiEntry.AddWorkItems(task);
+        
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.Task.ShouldNotBeNull();
+        entry.Task.Parent.ShouldNotBeNull();
+        entry.Task.Parent.Type.ToApiValue().ShouldBe(workItem.Fields.WorkItemType);
+    }
 }
 
 internal static class TimeEntryExtensions
