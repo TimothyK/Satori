@@ -198,6 +198,25 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         entry.Task.Id.ShouldBe(workItem.Id);
         entry.Task.Parent.ShouldBeNull();
     }
+    
+    [TestMethod]
+    public async Task OrphanedTask()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        AzureDevOpsBuilder.BuildWorkItem(out var task);
+        task.Fields.WorkItemType = WorkItemType.Task.ToApiValue();
+        kimaiEntry.Description = $"D#{task.Id}";
+        
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.Task.ShouldNotBeNull();
+        entry.Task.Id.ShouldBe(task.Id);
+        entry.Task.Parent.ShouldBeNull();
+    }
 
     #endregion Load Work Item Type and Parent/Child relations
 
