@@ -365,8 +365,8 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
                 .OrderBy(wi => wi.Id)
                 .ToArray();
             
-            entry.Task = matchingWorkItems.SingleOrDefault(wi => wi.Type == WorkItemType.Task)
-                         ?? matchingWorkItems.SingleOrDefault();
+            entry.Task = matchingWorkItems.FirstOrDefault(wi => wi.Type == WorkItemType.Task)
+                         ?? matchingWorkItems.FirstOrDefault();
         }
     }
 

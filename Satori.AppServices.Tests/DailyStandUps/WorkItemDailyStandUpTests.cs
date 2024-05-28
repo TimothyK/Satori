@@ -161,6 +161,43 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         entry.Task.Parent.ShouldNotBeNull();
         entry.Task.Parent.Id.ShouldBe(workItem.Id);
     }
+    
+    [TestMethod]
+    public async Task TaskReferencedTwice()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        AzureDevOpsBuilder.BuildWorkItem(out var workItem).AddChild(out var task);
+        kimaiEntry.Description = $"D#{task.Id} Misquoted PBI ID » D#{task.Id} Task Title";
+        
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.Task.ShouldNotBeNull();
+        entry.Task.Id.ShouldBe(task.Id);
+        entry.Task.Parent.ShouldNotBeNull();
+        entry.Task.Parent.Id.ShouldBe(workItem.Id);
+    }
+    
+    [TestMethod]
+    public async Task BoardItemReferencedTwice()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        AzureDevOpsBuilder.BuildWorkItem(out var workItem);
+        kimaiEntry.Description = $"D#{workItem.Id} Board Item Title » D#{workItem.Id} Misquoted Task ID";
+        
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.Task.ShouldNotBeNull();
+        entry.Task.Id.ShouldBe(workItem.Id);
+        entry.Task.Parent.ShouldBeNull();
+    }
 
     #endregion Load Work Item Type and Parent/Child relations
 
