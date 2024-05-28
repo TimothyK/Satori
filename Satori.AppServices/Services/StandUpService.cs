@@ -364,7 +364,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
                 .Join(workItems, id => id, wi => wi.Id, (_, wi) => wi)
                 .OrderByDescending(wi => wi.Type == WorkItemType.Task)
                 .ThenBy(wi => wi.Id)
-                .First();
+                .FirstOrDefault();
         }
     }
 
@@ -421,7 +421,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
     
     private static void ResetNeedsEstimate(TimeEntry[] timeEntries)
     {
-        foreach (var entry in timeEntries.Where(x => x.Task?.State != ScrumState.Done))
+        foreach (var entry in timeEntries.Where(x => x.Task != null && x.Task.State != ScrumState.Done))
         {
             entry.NeedsEstimate = entry.Task!.State.IsIn(ScrumState.ToDo, ScrumState.InProgress)
                                   && entry.Task!.OriginalEstimate == null

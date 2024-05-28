@@ -217,6 +217,21 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         entry.Task.Id.ShouldBe(task.Id);
         entry.Task.Parent.ShouldBeNull();
     }
+    
+    [TestMethod]
+    public async Task TaskDoesNotExist()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.Description = "D#99999";
+        
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.Task.ShouldBeNull();
+    }
 
     #endregion Load Work Item Type and Parent/Child relations
 
