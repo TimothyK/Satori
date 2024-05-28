@@ -360,13 +360,11 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
 
         foreach (var entry in timeEntries)
         {
-            var matchingWorkItems = GetAllWorkItemIds(entry)
+            entry.Task = GetAllWorkItemIds(entry).Distinct()
                 .Join(workItems, id => id, wi => wi.Id, (_, wi) => wi)
-                .OrderBy(wi => wi.Id)
-                .ToArray();
-            
-            entry.Task = matchingWorkItems.FirstOrDefault(wi => wi.Type == WorkItemType.Task)
-                         ?? matchingWorkItems.FirstOrDefault();
+                .OrderByDescending(wi => wi.Type == WorkItemType.Task)
+                .ThenBy(wi => wi.Id)
+                .First();
         }
     }
 
