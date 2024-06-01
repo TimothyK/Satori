@@ -5,6 +5,7 @@ using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Database;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 using System.Reflection;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Satori.AppServices.Tests.TestDoubles.AzureDevOps;
@@ -82,9 +83,16 @@ internal class TestAzureDevOpsServer
         var workItem = _database.GetWorkItemsById(id.Yield()).SingleOrDefault()
             ?? throw new InvalidOperationException($"Work Item {id} not found");
 
+        var original = JsonSerializer.Serialize(workItem);
+
         foreach (var item in items)
         {
             PatchWorkItem(workItem, item);
+        }
+
+        if (original != JsonSerializer.Serialize(workItem))
+        {
+            workItem.Rev++;
         }
 
         return workItem;

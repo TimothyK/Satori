@@ -1,4 +1,5 @@
-﻿using Satori.AppServices.Services;
+﻿using Satori.AppServices.Extensions;
+using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
@@ -64,6 +65,36 @@ public class CompletedWorkTests
         // Assert
         task.Fields.CompletedWork.ShouldBe(1.2 + adjustment);
     }
+    
+    [TestMethod]
+    public async Task RevisionIncrements()
+    {
+        // Arrange
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        task.Fields.CompletedWork = null;
+        var adjustment = RandomGenerator.Number(2.5).ToNearest(0.05);
+        var original = task.Rev;
+
+        // Act
+        await AdjustCompletedWork(task.Id, adjustment);
+
+        // Assert
+        task.Rev.ShouldBe(original + 1);
     }
+    
+    [TestMethod]
+    public async Task AdjustmentZero_RevUnchanged()
+    {
+        // Arrange
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        task.Fields.CompletedWork = 1.2;
+        var adjustment = 0.0;
+        var original = task.Rev;
+
+        // Act
+        await AdjustCompletedWork(task.Id, adjustment);
+
+        // Assert
+        task.Rev.ShouldBe(original);
     }
 }
