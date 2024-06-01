@@ -26,13 +26,9 @@ public class CompletedWorkService(IAzureDevOpsServer azureDevOpsServer)
             throw new InvalidOperationException($"Work Item {workItemId} is not a task");
         }
 
-        if (workItem.Fields.OriginalEstimate == null)
-        {
-
-        }
-
         var patchItems = new List<WorkItemPatchItem>
         {
+            new () { Operation = Operation.Test, Path = "/rev", Value = workItem.Rev },
             new()
             {
                 Operation = Operation.Add,
@@ -40,6 +36,27 @@ public class CompletedWorkService(IAzureDevOpsServer azureDevOpsServer)
                 Value = (workItem.Fields.CompletedWork ?? 0.0) + adjustment
             }
         };
+
+        if (workItem.Fields.OriginalEstimate == null && workItem.Fields.RemainingWork != null)
+        {
+            patchItems.Add(new WorkItemPatchItem
+            {
+                Operation = Operation.Add, 
+                Path = "/fields/Microsoft.VSTS.Scheduling.OriginalEstimate", 
+                Value = workItem.Fields.RemainingWork
+            });
+        }
+
+        var remainingWork = workItem.Fields.RemainingWork ?? workItem.Fields.OriginalEstimate;
+        if (remainingWork != null)
+        {
+            patchItems.Add(new WorkItemPatchItem
+            {
+                Operation = Operation.Add,
+                Path = "/fields/Microsoft.VSTS.Scheduling.RemainingWork",
+                Value = remainingWork - adjustment
+            });
+        }
 
         await azureDevOpsServer.PatchWorkItemAsync(workItemId, patchItems);
     }

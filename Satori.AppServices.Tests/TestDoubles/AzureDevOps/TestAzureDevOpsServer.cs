@@ -4,6 +4,7 @@ using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Database;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
+using Shouldly;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -85,11 +86,22 @@ internal class TestAzureDevOpsServer
 
         var original = JsonSerializer.Serialize(workItem);
 
+        var revWasTested = false;
+
         foreach (var item in items)
         {
-            PatchWorkItem(workItem, item);
+            if (item is { Operation: Operation.Test, Path: "/rev" })
+            {
+                workItem.Rev.ShouldBe(item.Value);
+                revWasTested = true;
+            }
+            else
+            {
+                PatchWorkItem(workItem, item);
+            }
         }
 
+        revWasTested.ShouldBeTrue();
         if (original != JsonSerializer.Serialize(workItem))
         {
             workItem.Rev++;
