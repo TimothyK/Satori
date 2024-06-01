@@ -1,8 +1,11 @@
-﻿using Moq;
+﻿using CodeMonkeyProjectiles.Linq;
+using Moq;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Database;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
+using System.Reflection;
+using System.Text.Json.Serialization;
 
 namespace Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 
@@ -45,6 +48,8 @@ internal class TestAzureDevOpsServer
 
         _mock.Setup(srv => srv.GetWorkItemsAsync(It.IsAny<IEnumerable<int>>()))
             .ReturnsAsync((IEnumerable<int> workItemIds) => GetWorkItems(workItemIds));
+        _mock.Setup(srv => srv.GetWorkItemsAsync(It.IsAny<int[]>()))
+            .ReturnsAsync((int[] workItemIds) => GetWorkItems(workItemIds));
 
         _mock.Setup(srv => srv.GetTeamsAsync())
             .ReturnsAsync(() => _database.GetTeams());
@@ -54,6 +59,9 @@ internal class TestAzureDevOpsServer
 
         _mock.Setup(srv => srv.GetIterationWorkItemsAsync(It.IsAny<IterationId>()))
             .ReturnsAsync((IterationId iteration) => _database.GetWorkItemsForIteration(iteration));
+
+        _mock.Setup(srv => srv.PatchWorkItemAsync(It.IsAny<int>(), It.IsAny<IEnumerable<WorkItemPatchItem>>()))
+            .ReturnsAsync((int id, IEnumerable<WorkItemPatchItem> items) => PatchWorkItems(id, items));
 
         return;
         IdMap[] GetWorkItemMap(PullRequestId pullRequest)
@@ -67,6 +75,37 @@ internal class TestAzureDevOpsServer
         {
             return _database.GetWorkItemsById(workItemIds).ToArray();
         }
+    }
+
+    private WorkItem PatchWorkItems(int id, IEnumerable<WorkItemPatchItem> items)
+    {
+        var workItem = _database.GetWorkItemsById(id.Yield()).SingleOrDefault()
+            ?? throw new InvalidOperationException($"Work Item {id} not found");
+
+        foreach (var item in items)
+        {
+            PatchWorkItem(workItem, item);
+        }
+
+        return workItem;
+    }
+
+    private static void PatchWorkItem(WorkItem workItem, WorkItemPatchItem item)
+    {
+        if (!item.Path.StartsWith("/fields/"))
+        {
+            throw new NotSupportedException($"Unsupported path {item.Path}");
+        }
+
+        var propertyName = item.Path["/fields/".Length..];
+        var property = workItem.Fields.GetType().GetProperties()
+            .SingleOrDefault(p => p.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name == propertyName);
+        if (property == null)
+        {
+            throw new InvalidOperationException($"Unknown path {item.Path}");
+        }
+
+        property.SetValue(workItem.Fields, item.Value);
     }
 
     public IAzureDevOpsServer AsInterface() => _mock.Object;
