@@ -100,6 +100,9 @@ public class WorkItemTests
     public void Title() => SingleWorkItem().Fields.Title.ShouldBe("Program no longer crashes on startup");
 
     [TestMethod]
+    public void Revision() => SingleWorkItem().Rev.ShouldBe(16);
+
+    [TestMethod]
     public void WorkItemType() => SingleWorkItem().Fields.WorkItemType.ShouldBe("Product Backlog Item");
 
 
