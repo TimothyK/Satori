@@ -37,7 +37,7 @@ public class CompletedWorkService(IAzureDevOpsServer azureDevOpsServer)
             {
                 Operation = Operation.Add,
                 Path = "/fields/Microsoft.VSTS.Scheduling.CompletedWork",
-                Value = adjustment
+                Value = (workItem.Fields.CompletedWork ?? 0.0) + adjustment
             }
         };
 

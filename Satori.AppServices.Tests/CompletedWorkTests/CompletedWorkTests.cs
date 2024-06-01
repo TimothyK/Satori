@@ -41,12 +41,29 @@ public class CompletedWorkTests
         // Arrange
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
         task.Fields.CompletedWork = null;
-        var adjustment = RandomGenerator.Number(2.5);
+        var adjustment = RandomGenerator.Number(2.5).ToNearest(0.05);
 
         // Act
         await AdjustCompletedWork(task.Id, adjustment);
 
         // Assert
         task.Fields.CompletedWork.ShouldBe(adjustment);
+    }
+    
+    [TestMethod]
+    public async Task Adjustment_Increments()
+    {
+        // Arrange
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        task.Fields.CompletedWork = 1.2;
+        var adjustment = RandomGenerator.Number(2.5).ToNearest(0.05);
+
+        // Act
+        await AdjustCompletedWork(task.Id, adjustment);
+
+        // Assert
+        task.Fields.CompletedWork.ShouldBe(1.2 + adjustment);
+    }
+    }
     }
 }
