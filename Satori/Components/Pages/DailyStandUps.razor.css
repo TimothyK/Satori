@@ -253,6 +253,7 @@
 
 .work-item {
     border-left: solid 5px;
+    margin-left: 5px;
     padding-left: 3px;
 }
 
