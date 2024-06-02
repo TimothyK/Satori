@@ -119,11 +119,8 @@ internal class TestAzureDevOpsServer
 
         var propertyName = item.Path["/fields/".Length..];
         var property = workItem.Fields.GetType().GetProperties()
-            .SingleOrDefault(p => p.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name == propertyName);
-        if (property == null)
-        {
-            throw new InvalidOperationException($"Unknown path {item.Path}");
-        }
+            .SingleOrDefault(p => p.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name == propertyName)
+            ?? throw new InvalidOperationException($"Unknown path {item.Path}");
 
         property.SetValue(workItem.Fields, item.Value);
     }
