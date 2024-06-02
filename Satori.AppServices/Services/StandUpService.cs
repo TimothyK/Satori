@@ -1,13 +1,12 @@
-﻿using Satori.AppServices.ViewModels.DailyStandUps;
-using Satori.Kimai;
-using Satori.Kimai.Models;
-using CodeMonkeyProjectiles.Linq;
+﻿using CodeMonkeyProjectiles.Linq;
 using Flurl;
-using MoreLinq;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.ViewModels;
+using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps;
+using Satori.Kimai;
+using Satori.Kimai.Models;
 using System.Net;
 using System.Text.RegularExpressions;
 using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
@@ -212,6 +211,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
                     CanExport = GetCanExport(g),
                     Url = uri,
                     TimeEntries = g.Select(ToViewModel).ToArray(),
+                    TaskSummaries = [],
                 };
             })
             .OrderByDescending(a => a.TotalTime).ThenBy(a => a.ActivityName)
@@ -335,7 +335,12 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
 
     public async Task GetWorkItemsAsync(StandUpDay[] days)
     {
-        var timeEntries = days.SelectMany(day => day.Projects.SelectMany(project => project.Activities.SelectMany(activity => activity.TimeEntries)))
+        var activitySummaries = days
+            .SelectMany(day => day.Projects)
+            .SelectMany(p => p.Activities)
+            .ToArray();
+        var timeEntries = activitySummaries
+            .SelectMany(activitySummary => activitySummary.TimeEntries)
             .Where(entry => entry.Task != null)
             .ToArray();
 
@@ -344,6 +349,11 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
 
         ResetTimeRemaining(timeEntries);
         ResetNeedsEstimate(timeEntries);
+
+        foreach(var summary in activitySummaries)
+        {
+            SummarizeTimeEntries(summary);
+        }
     }
 
     /// <summary>
@@ -427,6 +437,47 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
                                   && entry.Task!.OriginalEstimate == null
                                   && entry.Task!.RemainingWork == null;
         }
+    }
+
+    private static void SummarizeTimeEntries(ActivitySummary activitySummary)
+    {
+        activitySummary.TaskSummaries = Summarize(activitySummary.TimeEntries);
+
+        activitySummary.Accomplishments = GetDistinctComments(activitySummary, x => x.Accomplishments);
+        activitySummary.Impediments = GetDistinctComments(activitySummary, x => x.Impediments);
+        activitySummary.Learnings = GetDistinctComments(activitySummary, x => x.Learnings);
+        activitySummary.OtherComments = GetDistinctComments(activitySummary, x => x.OtherComments);
+    }
+
+    private static string? GetDistinctComments(ActivitySummary activitySummary, Func<TimeEntry, string?> selector)
+    {
+        var lines = activitySummary.TimeEntries
+            .OrderBy(entry => entry.Begin)
+            .Select(selector)
+            .SelectMany(comment => comment?.Split('\n') ?? [])
+            .SelectWhereHasValue(x => string.IsNullOrWhiteSpace(x) ? null : x.Trim())
+            .Distinct()
+            .ToArray();
+
+        return RejoinLines(lines);
+    }
+
+    private static TaskSummary[] Summarize(TimeEntry[] entries)
+    {
+        var taskGroups = entries.GroupBy(entry => entry.Task).ToArray();
+
+        if (taskGroups is [{ Key: null }])
+        {
+            return [];
+        }
+
+        return taskGroups.Select(g => new TaskSummary()
+        {
+            Task = g.Key,
+            TotalTime = g.Select(x => x.TotalTime).Sum(),
+            TimeRemaining = g.First().TimeRemaining,
+            NeedsEstimate = g.First().NeedsEstimate,
+        }).ToArray();
     }
 
     #endregion GetWorkItemsAsync

@@ -65,7 +65,8 @@ public abstract class DailyStandUpTests
         return activities;
     }
 
-    protected static DateOnly Today => DateOnly.FromDateTime(DateTime.Today);
+    private static DateOnly? _today;
+    protected static DateOnly Today => _today ?? (_today = DateOnly.FromDateTime(DateTime.Today)).Value;
 
     protected KimaiTimeEntry BuildTimeEntry(DateOnly day) => 
         BuildTimeEntry(day, TimeSpan.FromMinutes(30).Randomize());
