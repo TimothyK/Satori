@@ -81,6 +81,20 @@
     background-color: #0096D6;
 }
 
+.avatar-cell {
+    position: relative;
+    text-align: left;
+    margin-right: 8px;
+}
+
+.avatar-cell img {
+    width: 24px;
+    height: 24px;
+}
+.avatar-cell {
+    border: 3px solid red;
+}
+
 .day-header {
     display: flex;
     flex-wrap: wrap;
@@ -148,6 +162,7 @@
 }
 .time-entry-comments .badge {
     margin-left: 5px;
+    align-self: flex-start;
 }
 
 .time-entry td .duration {
@@ -251,10 +266,16 @@
     cursor: pointer;
 }
 
+.work-item-row {
+    display: flex;
+    flex-wrap: wrap;
+}
+
 .work-item {
     border-left: solid 5px;
     margin-left: 5px;
     padding-left: 3px;
+    display: flex;
 }
 
 .work-item-epic {

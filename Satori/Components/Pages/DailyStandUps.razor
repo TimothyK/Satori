@@ -189,7 +189,7 @@
                     <td class="time-entry-comments">
                         @if (entry.Task != null)
                         {
-                            <p>
+                            <div class="work-item-row">
                                 @if (entry.Task.Type == WorkItemType.Task && entry.Task.Parent != null)
                                 {
                                     <span class="work-item @entry.Task.Parent.Type.CssClass cell-link" @onclick="() => OpenWorkItem(entry.Task.Parent)" title="Open D#@(entry.Task.Parent.Id)">
@@ -198,6 +198,14 @@
                                     </span>
                                 }
                                 <span class="work-item @entry.Task.Type.CssClass cell-link" @onclick="() => OpenWorkItem(entry.Task)" title="Open D#@(entry.Task.Id)">
+                                    @if (entry.Task.AssignedTo != CurrentUser && entry.Task.Type == WorkItemType.Task)
+                                    {
+                                        <div class="avatar-cell">
+                                            <img src="@entry.Task.AssignedTo.AvatarUrl"
+                                                 alt="@entry.Task.AssignedTo.DisplayName"
+                                                 title="@entry.Task.AssignedTo.DisplayName" />
+                                        </div>
+                                    }
                                     @if (entry.Task.Parent == null)
                                     {
                                         <label>D#@entry.Task.Id&nbsp;</label>
@@ -218,18 +226,18 @@
                                         {
                                             <span class="badge bg-danger">To Do</span>
                                         }
-    
+
                                         if (entry.NeedsEstimate)
                                         {
                                             <span class="badge bg-danger">Needs Estimate</span>
                                         }
                                         else if (entry.TimeRemaining != null)
                                         {
-                                                <span class="badge @(entry.TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@entry.TimeRemaining.Value.TotalHours.ToNearest(0.05) h</span>
+                                            <span class="badge @(entry.TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@entry.TimeRemaining.Value.TotalHours.ToNearest(0.05) h</span>
                                         }
                                     }
                                 </span>
-                            </p>
+                            </div>
                         }
                         @if (entry.Accomplishments != null)
                         {
