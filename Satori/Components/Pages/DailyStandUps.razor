@@ -155,6 +155,103 @@
                 <div class="activity-header-activity">@activity.ActivityName</div>
             </div>
 
+            <div class="activity-summary @(day.IsCollapsed || project.IsCollapsed || !activity.IsCollapsed ? "hidden" : "")">
+                <table class="time-table">
+                @foreach (var entry in activity.TaskSummaries)
+                {
+                        <tr class="time-entry">
+                            <td class="@(activity.TaskSummaries.Length == 1 ? "hidden" : "")">
+                                <div class="duration">
+                                    <div class="duration-minutes">
+                                        <span class="">@entry.TotalTime.ToString(@"hh\:mm")</span>
+                                    </div>
+                                    <div class="duration-decimal">
+                                        <span class="">@entry.TotalTime.TotalHours.ToNearest(0.05) h</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="work-item-row">
+                                    @if (entry.Task == null)
+                                    {
+                                        <label>Not linked to any Work Item</label>
+                                    }
+                                    else
+                                    {
+                                        @if (entry.Task.Type == WorkItemType.Task && entry.Task.Parent != null)
+                                        {
+                                            <span class="work-item @entry.Task.Parent.Type.CssClass cell-link" @onclick="() => OpenWorkItem(entry.Task.Parent)" title="Open D#@(entry.Task.Parent.Id)">
+                                                D#@entry.Task.Parent.Id
+                                                @entry.Task.Parent.Title
+                                            </span>
+                                        }
+
+                                        <span class="work-item @entry.Task.Type.CssClass cell-link" @onclick="() => OpenWorkItem(entry.Task)" title="Open D#@(entry.Task.Id)">
+                                            @if (entry.Task.AssignedTo != CurrentUser && entry.Task.Type == WorkItemType.Task)
+                                            {
+                                                <div class="avatar-cell">
+                                                    <img src="@entry.Task.AssignedTo.AvatarUrl"
+                                                         alt="@entry.Task.AssignedTo.DisplayName"
+                                                         title="@entry.Task.AssignedTo.DisplayName" />
+                                                </div>
+                                            }
+                                            @if (entry.Task.Parent == null)
+                                            {
+                                                <label>D#@entry.Task.Id&nbsp;</label>
+                                            }
+                                            @entry.Task.Title
+
+                                            @if (entry.Task.Type == WorkItemType.Task)
+                                            {
+                                                if (entry.Task.State == ScrumState.Done)
+                                                {
+                                                    <span class="badge bg-success">✔️ Done</span>
+                                                }
+                                                else if (entry.Task.State == ScrumState.Removed)
+                                                {
+                                                    <span class="badge bg-success">✔ Removed</span>
+                                                }
+                                                else if (entry.Task.State == ScrumState.ToDo)
+                                                {
+                                                    <span class="badge bg-danger">To Do</span>
+                                                }
+
+                                                if (entry.NeedsEstimate)
+                                                {
+                                                    <span class="badge bg-danger">Needs Estimate</span>
+                                                }
+                                                else if (entry.TimeRemaining != null)
+                                                {
+                                                    <span class="badge @(entry.TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@entry.TimeRemaining.Value.TotalHours.ToNearest(0.05) h</span>
+                                                }
+                                            }
+                                        </span>
+                                    }
+                                </div>
+                            </td>
+
+                        </tr>
+                    }
+                </table>
+                @if (activity.OtherComments != null)
+                {
+                    <p>@activity.OtherComments</p>
+                }
+                @if (activity.Accomplishments != null)
+                {
+                    <p><span title="Accomplishments">🏆</span> @activity.Accomplishments</p>
+                }
+                @if (activity.Impediments != null)
+                {
+                    <p><span title="Impediments">🧱</span> @activity.Impediments</p>
+                }
+                @if (activity.Learnings != null)
+                {
+                    <p><span title="Today I Learned">🧠</span> @activity.Learnings</p>
+                }
+            </div>
+
+
             <table class="time-table @(day.IsCollapsed || project.IsCollapsed || activity.IsCollapsed ? "hidden" : "")">
             @foreach (var entry in activity.TimeEntries)
             {

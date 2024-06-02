@@ -150,15 +150,32 @@
     margin-left: auto;
 }
 
+.activity-summary {
+    margin-left: 150px;
+    border-spacing: 0px;
+}
+.activity-summary p {
+    margin: 0px;
+    white-space: pre;
+}
+.activity-summary .badge {
+    margin-left: 5px;
+    align-self: flex-start;
+}
+
 .time-table {
     margin-left: 100px;
     border-spacing: 0px;
+}
+.activity-summary .time-table {
+    margin-left: 0px;
 }
 .time-entry-comments {
     vertical-align: middle;
 }
 .time-entry-comments p {
     margin: 0px;
+    white-space: pre;
 }
 .time-entry-comments .badge {
     margin-left: 5px;
@@ -197,6 +214,7 @@
     border: 1px solid darkgray;
     border-radius: 5px;
     margin-right: 5px;
+    align-self: flex-start;
 }
 
 .duration-caret {
