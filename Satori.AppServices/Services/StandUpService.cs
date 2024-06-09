@@ -99,11 +99,11 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
         );
     }
 
-    private StandUpDay ToDayViewModel(IGrouping<DateOnly, KimaiTimeEntry> day, Url url)
+    private StandUpDay ToDayViewModel(IGrouping<DateOnly, KimaiTimeEntry> entries, Url url)
     {
         var uri = url.ToUri()
             // ReSharper disable once StringLiteralTypo
-            .AppendQueryParam("daterange", $"{day.Key:O} - {day.Key:O}")
+            .AppendQueryParam("daterange", $"{entries.Key:O} - {entries.Key:O}")
             .AppendQueryParam("state", 3)  // stopped
             .AppendQueryParam("billable", 0)
             .AppendQueryParam("exported", 1)
@@ -115,16 +115,16 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
 
         return new StandUpDay()
         {
-            Date = day.Key,
-            TotalTime = GetDuration(day),
-            AllExported = GetAllExported(day),
-            CanExport = GetCanExport(day),
+            Date = entries.Key,
+            TotalTime = GetDuration(entries),
+            AllExported = GetAllExported(entries),
+            CanExport = GetCanExport(entries),
             Url = uri,
-            Projects = ToProjectsViewModel(day, uri),
-        };
+            Projects = [],
+        }.With(day => day.Projects = ToProjectsViewModel(entries, uri, day));
     }
 
-    private ProjectSummary[] ToProjectsViewModel(IEnumerable<KimaiTimeEntry> entries, Url url)
+    private ProjectSummary[] ToProjectsViewModel(IEnumerable<KimaiTimeEntry> entries, Url url, StandUpDay day)
     {
         var groups = entries.GroupBy(entry => new
         {
@@ -142,6 +142,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
                 {
                     ProjectId = g.Key.ProjectID,
                     ProjectName = g.Key.ProjectName,
+                    ParentDay = day,
                     CustomerId = g.Key.CustomerID,
                     CustomerName = g.Key.CustomerName,
                     CustomerAcronym = GetCustomerAcronym(g.Key.CustomerName),
@@ -150,8 +151,8 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
                     AllExported = GetAllExported(g),
                     CanExport = GetCanExport(g),
                     Url = uri,
-                    Activities = ToActivitiesViewModel(g, uri),
-                };
+                    Activities = [],
+                }.With(p => p.Activities = ToActivitiesViewModel(g, uri, p));
             })
             .OrderByDescending(p => p.TotalTime).ThenBy(p => p.ProjectName)
             .ToArray();
@@ -192,7 +193,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
         }
     }
 
-    private ActivitySummary[] ToActivitiesViewModel(IEnumerable<KimaiTimeEntry> entries, Url url)
+    private ActivitySummary[] ToActivitiesViewModel(IEnumerable<KimaiTimeEntry> entries, Url url, ProjectSummary project)
     {
         var groups = entries.GroupBy(entry => new
         {
@@ -209,14 +210,15 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
                 {
                     ActivityId = g.Key.Id,
                     ActivityName = g.Key.Name,
+                    ParentProjectSummary = project,
                     Comment = g.Key.Comment,
                     TotalTime = GetDuration(g),
                     AllExported = GetAllExported(g),
                     CanExport = GetCanExport(g),
                     Url = uri,
-                    TimeEntries = g.Select(ToViewModel).ToArray(),
+                    TimeEntries = [],
                     TaskSummaries = [],
-                };
+                }.With(a => a.TimeEntries = g.Select(entry => ToViewModel(a, entry)).ToArray());
             })
             .OrderByDescending(a => a.TotalTime).ThenBy(a => a.ActivityName)
             .ToArray();
@@ -227,7 +229,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
     [GeneratedRegex(@"^D#?(?'parentId'\d+)[\s-]*(?'parentTitle'.*)\s+D#?(?'id'\d+)[\s-]*(?'title'.*)$", RegexOptions.IgnoreCase)]
     private static partial Regex ParentedWorkItemCommentRegex();
 
-    private TimeEntry ToViewModel(KimaiTimeEntry kimaiEntry)
+    private TimeEntry ToViewModel(ActivitySummary activitySummary, KimaiTimeEntry kimaiEntry)
     {
         var lines = kimaiEntry.Description?.Split('\n')
             .SelectWhereHasValue(x => string.IsNullOrWhiteSpace(x) ? null : x.Trim())
@@ -236,6 +238,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
         return new TimeEntry()
         {
             Id = kimaiEntry.Id,
+            ParentActivitySummary = activitySummary,
             Begin = kimaiEntry.Begin,
             End = kimaiEntry.End,
             TotalTime = GetDuration(kimaiEntry),
@@ -488,7 +491,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
 
     #region Export
 
-    public async Task ExportAsync(StandUpDay day, params TimeEntry[] timeEntries)
+    public async Task ExportAsync(params TimeEntry[] timeEntries)
     {
         foreach (var entry in timeEntries)
         {

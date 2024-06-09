@@ -5,6 +5,9 @@ namespace Satori.AppServices.ViewModels.DailyStandUps;
 public class TimeEntry
 {
     public int Id { get; init; }
+
+    public required ActivitySummary ParentActivitySummary { get; init; }
+
     public DateTimeOffset Begin { get; init; }
     public DateTimeOffset? End { get; init; }
     

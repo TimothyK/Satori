@@ -52,7 +52,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
             .ToArray();
 
         //Act
-        await Server.ExportAsync(day, timeEntries);
+        await Server.ExportAsync(timeEntries);
 
         return timeEntries;
     }

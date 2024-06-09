@@ -58,6 +58,48 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
         var entry = entries.Single();
         entry.Id.ShouldBe(kimaiEntry.Id);
     }
+    
+    [TestMethod]
+    public async Task ParentActivity()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.ParentActivitySummary.ActivityId.ShouldBe(kimaiEntry.Activity.Id);
+    }
+    
+    [TestMethod]
+    public async Task ParentProject()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.ParentActivitySummary.ParentProjectSummary.ProjectId.ShouldBe(kimaiEntry.Activity.Project.Id);
+    }
+    
+    [TestMethod]
+    public async Task ParentDay()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.ParentActivitySummary.ParentProjectSummary.ParentDay.Date.ShouldBe(DateOnly.FromDateTime(kimaiEntry.Begin.Date));
+    }
 
     #region Time
 

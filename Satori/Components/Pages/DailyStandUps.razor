@@ -5,7 +5,6 @@
 @using Flurl
 @using Satori.AppServices.Extensions
 @using Satori.AppServices.ViewModels.WorkItems
-@using CodeMonkeyProjectiles.Linq
 @attribute [StreamRendering]
 @inject UserService UserService
 @inject StandUpService StandUpService
@@ -275,7 +274,7 @@
                             }
                             else if (entry.CanExport)
                             {
-                                <button class="btn btn-outline-success" @onclick="async () => await ExportAsync(day, entry)">Export</button>
+                                <button class="btn btn-outline-success" @onclick="async () => await ExportAsync(entry)">Export</button>
                             }
                             else
                             {
@@ -513,9 +512,9 @@
         public static readonly LoadingStatusLabel FinishedLoading = new(string.Empty);
     }
 
-    private async Task ExportAsync(StandUpDay day, TimeEntry entry)
+    private async Task ExportAsync(TimeEntry entry)
     {
-        await StandUpService.ExportAsync(day, entry);
+        await StandUpService.ExportAsync(entry);
     }
 
 }

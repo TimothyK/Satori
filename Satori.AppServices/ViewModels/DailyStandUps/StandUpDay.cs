@@ -4,7 +4,7 @@ public class StandUpDay
 {
     public DateOnly Date { get; internal init; }
 
-    public required ProjectSummary[] Projects { get; init; }
+    public required ProjectSummary[] Projects { get; set; }
 
     public TimeSpan TotalTime { get; internal init; }
     public required Uri Url { get; init; }

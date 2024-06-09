@@ -4,9 +4,12 @@ public class ActivitySummary
 {
     public int ActivityId { get; init; }
     public required string ActivityName { get; init; }
+
+    public required ProjectSummary ParentProjectSummary { get; init; }
+
     public string? Comment { get; init; }
 
-    public required TimeEntry[] TimeEntries { get; init; }
+    public required TimeEntry[] TimeEntries { get; set; }
 
     public TimeSpan TotalTime { get; internal init; }
     public required Uri Url { get; init; }
