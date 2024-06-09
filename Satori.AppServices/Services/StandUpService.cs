@@ -493,7 +493,8 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
 
     public async Task ExportAsync(params TimeEntry[] timeEntries)
     {
-        foreach (var entry in timeEntries.Where(x => x.CanExport))
+        var exportableEntries = timeEntries.Where(x => x.CanExport).ToArray();
+        foreach (var entry in exportableEntries)
         {
             if (entry.Task != null)
             {
@@ -506,6 +507,22 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
 
             entry.Exported = true;
             entry.CanExport = false;
+        }
+
+        foreach (var activitySummary in exportableEntries.Select(entry => entry.ParentActivitySummary).Distinct())
+        {
+            activitySummary.AllExported = activitySummary.TimeEntries.All(x => x.Exported);
+            activitySummary.CanExport = activitySummary.TimeEntries.Any(x => x.CanExport);
+        }
+        foreach (var projectSummary in exportableEntries.Select(entry => entry.ParentActivitySummary.ParentProjectSummary).Distinct())
+        {
+            projectSummary.AllExported = projectSummary.Activities.All(x => x.AllExported);
+            projectSummary.CanExport = projectSummary.Activities.Any(x => x.CanExport);
+        }
+        foreach (var day in exportableEntries.Select(entry => entry.ParentActivitySummary.ParentProjectSummary.ParentDay).Distinct())
+        {
+            day.AllExported = day.Projects.All(x => x.AllExported);
+            day.CanExport = day.Projects.Any(x => x.CanExport);
         }
     }
 

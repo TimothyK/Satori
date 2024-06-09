@@ -255,6 +255,86 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         var entry = entries.Single();
         entry.CanExport.ShouldBeFalse();
     }
+    
+    [TestMethod]
+    public async Task Parents_CanExport_Reset()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+
+        //Act
+        var entries = await ExportTimeEntriesAsync(kimaiEntry);
+
+        //Assert
+        var entry = entries.Single();
+        entry.ParentActivitySummary.CanExport.ShouldBeFalse();
+        entry.ParentActivitySummary.ParentProjectSummary.CanExport.ShouldBeFalse();
+        entry.ParentActivitySummary.ParentProjectSummary.ParentDay.CanExport.ShouldBeFalse();
+    }
+    
+    [TestMethod]
+    public async Task MultipleActivityEntries_ExportOne_ActivityCanStillExport()
+    {
+        //Arrange
+        var activity = TestActivities.SingleRandom();
+        var kimaiEntry1 = BuildTimeEntry(activity);
+        var kimaiEntry2 = BuildTimeEntry(activity);
+
+        //Act
+        var entries = await ExportTimeEntriesAsync(kimaiEntry1);
+
+        //Assert
+        kimaiEntry1.Exported.ShouldBeTrue();
+        kimaiEntry2.Exported.ShouldBeFalse();
+
+        var entry = entries.Single();
+        entry.CanExport.ShouldBeFalse();
+        entry.ParentActivitySummary.CanExport.ShouldBeTrue();
+        entry.ParentActivitySummary.ParentProjectSummary.CanExport.ShouldBeTrue();
+        entry.ParentActivitySummary.ParentProjectSummary.ParentDay.CanExport.ShouldBeTrue();
+    }
+    
+    [TestMethod]
+    public async Task CanExport_TortureTest()
+    {
+        //Arrange
+        var today = Today;
+        var yesterday = today.AddDays(-1);
+        var activity1 = TestActivities.SingleRandom();
+        var kimaiEntry1 = BuildTimeEntry(activity1, today);
+        var kimaiEntry2 = BuildTimeEntry(activity1, today);
+
+        var activity2 = TestActivities.Where(a => a.Project != activity1.Project).SingleRandom();
+        var kimaiEntry3 = BuildTimeEntry(activity2, today);
+        var kimaiEntry4 = BuildTimeEntry(activity2, yesterday);
+        
+        //Act
+        var entries = await ExportTimeEntriesAsync(kimaiEntry1, kimaiEntry3);
+
+        //Assert
+        entries.Length.ShouldBe(2);
+
+        kimaiEntry1.Exported.ShouldBeTrue();
+        kimaiEntry2.Exported.ShouldBeFalse();
+        kimaiEntry3.Exported.ShouldBeTrue();
+        kimaiEntry4.Exported.ShouldBeFalse();
+
+        var entry1 = entries.Single(x => x.Id == kimaiEntry1.Id);
+        entry1.CanExport.ShouldBeFalse();
+        entry1.ParentActivitySummary.CanExport.ShouldBeTrue();
+        entry1.ParentActivitySummary.AllExported.ShouldBeFalse();
+        entry1.ParentActivitySummary.ParentProjectSummary.CanExport.ShouldBeTrue();
+        entry1.ParentActivitySummary.ParentProjectSummary.AllExported.ShouldBeFalse();
+        entry1.ParentActivitySummary.ParentProjectSummary.ParentDay.CanExport.ShouldBeTrue();
+
+        var entry3 = entries.Single(x => x.Id == kimaiEntry3.Id);
+        entry3.CanExport.ShouldBeFalse();
+        entry3.ParentActivitySummary.CanExport.ShouldBeFalse();
+        entry3.ParentActivitySummary.AllExported.ShouldBeTrue();
+        entry3.ParentActivitySummary.ParentProjectSummary.CanExport.ShouldBeFalse();
+        entry3.ParentActivitySummary.ParentProjectSummary.AllExported.ShouldBeTrue();
+        entry3.ParentActivitySummary.ParentProjectSummary.ParentDay.CanExport.ShouldBeTrue();
+    }
 
     #endregion Parent Updated
 
