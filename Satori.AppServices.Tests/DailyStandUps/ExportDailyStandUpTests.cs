@@ -118,5 +118,23 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         //Assert
         TaskAdjuster.Find(task.Id).Adjustment.ShouldBe(kimaiEntry.End!.Value - kimaiEntry.Begin);
     }
+    
+    [TestMethod]
+    public async Task TaskAdjustmentFails_KimaiNotUpdated()
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.AddWorkItems(task);
+
+        TaskAdjuster.ThrowOnSend = true;
+
+        //Act
+        await Should.ThrowAsync<ApplicationException>(async () => await ExportTimeEntriesAsync(kimaiEntry));
+
+        //Assert
+        kimaiEntry.Exported.ShouldBeFalse();
+
+    }
 
 }

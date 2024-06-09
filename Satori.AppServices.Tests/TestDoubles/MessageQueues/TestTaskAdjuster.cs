@@ -8,8 +8,15 @@ internal class TestTaskAdjuster : ITaskAdjuster
 {
     public void Send(TaskAdjustment payload)
     {
+        if (ThrowOnSend)
+        {
+            throw new ApplicationException("Simulating error sending message to message queue");
+        }
+
         Adjustments.Add(payload);
     }
+
+    public bool ThrowOnSend { get; set; }
 
     private List<TaskAdjustment> Adjustments { get; } = [];
 

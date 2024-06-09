@@ -492,11 +492,13 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
     {
         foreach (var entry in timeEntries)
         {
-            await kimai.ExportTimeSheetAsync(entry.Id);
             if (entry.Task != null)
             {
                 taskAdjuster.Send(new TaskAdjustment(entry.Task.Id, entry.TotalTime));
             }
+
+            await kimai.ExportTimeSheetAsync(entry.Id);
+
             entry.Exported = true;
         }
     }
