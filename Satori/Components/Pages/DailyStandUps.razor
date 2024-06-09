@@ -512,9 +512,28 @@
         public static readonly LoadingStatusLabel FinishedLoading = new(string.Empty);
     }
 
+    #region Export
+
+    private bool _isExporting;
+
     private async Task ExportAsync(TimeEntry entry)
     {
-        await StandUpService.ExportAsync(entry);
+        if (_isExporting)
+        {
+            return;
+        }
+
+        _isExporting = true;
+        try
+        {
+            await StandUpService.ExportAsync(entry);
+        }
+        finally
+        {
+            _isExporting = false;
+        }
     }
+
+    #endregion Export
 
 }
