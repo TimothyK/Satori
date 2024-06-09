@@ -6,7 +6,7 @@ namespace Satori.AppServices.Tests.TestDoubles.MessageQueues;
 
 internal class TestTaskAdjuster : ITaskAdjuster
 {
-    public void Send(TaskAdjustment payload)
+    public Task SendAsync(TaskAdjustment payload)
     {
         if (ThrowOnSend)
         {
@@ -14,6 +14,8 @@ internal class TestTaskAdjuster : ITaskAdjuster
         }
 
         Adjustments.Add(payload);
+
+        return Task.CompletedTask;
     }
 
     public bool ThrowOnSend { get; set; }

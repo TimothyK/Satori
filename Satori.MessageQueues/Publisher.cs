@@ -70,7 +70,7 @@ public class Publisher<T> : IDisposable
 
     #endregion Dispose
 
-    public virtual void Send(T message)
+    public virtual Task SendAsync(T message)
     {
         ArgumentNullException.ThrowIfNull(message);
         if (_channel == null)
@@ -87,5 +87,7 @@ public class Publisher<T> : IDisposable
         var payload = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
 
         _channel.BasicPublish(ExchangeName, routingKey, properties, payload);
+
+        return Task.CompletedTask;
     }
 }

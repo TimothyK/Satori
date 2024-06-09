@@ -4,5 +4,5 @@ namespace Satori.AppServices.Services.Abstractions;
 
 public interface ITaskAdjuster
 {
-    void Send(TaskAdjustment payload);
+    Task SendAsync(TaskAdjustment payload);
 }

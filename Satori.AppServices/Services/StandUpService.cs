@@ -494,7 +494,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
         {
             if (entry.Task != null)
             {
-                taskAdjuster.Send(new TaskAdjustment(entry.Task.Id, entry.TotalTime));
+                await taskAdjuster.SendAsync(new TaskAdjustment(entry.Task.Id, entry.TotalTime));
             }
 
             await kimai.ExportTimeSheetAsync(entry.Id);

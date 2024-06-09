@@ -6,20 +6,20 @@ namespace Satori.AppServices.Services;
 
 public class TaskAdjuster(UserService userService, ConnectionSettings settings) : Publisher<TaskAdjustment>, ITaskAdjuster
 {
-    private void Open()
+    private async Task OpenAsync()
     {
-        var user = userService.GetCurrentUserAsync().GetAwaiter().GetResult();
+        var user = await userService.GetCurrentUserAsync();
         var exchangeName = $"Satori.TaskAdjustment.{user.DomainLogin}";
         Open(settings, exchangeName);
     }
 
-    public override void Send(TaskAdjustment message)
+    public override async Task SendAsync(TaskAdjustment message)
     {
         if (!IsOpen)
         {
-            Open();
+            await OpenAsync();
         }
 
-        base.Send(message);
+        await base.SendAsync(message);
     }
 }
