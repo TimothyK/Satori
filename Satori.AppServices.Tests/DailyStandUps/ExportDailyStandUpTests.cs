@@ -89,7 +89,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         //Assert
         kimaiEntry.Exported.ShouldBeTrue();
     }
-
+    
     #region Task Adjustment
 
     [TestMethod]
@@ -137,6 +137,22 @@ public class ExportDailyStandUpTests : DailyStandUpTests
 
         //Assert
         kimaiEntry.Exported.ShouldBeFalse();
+    }
+
+    [TestMethod]
+    public async Task AlreadyExported_NotExportedAgain()
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.AddWorkItems(task);
+        kimaiEntry.Exported = true;
+
+        //Act
+        await ExportTimeEntriesAsync(kimaiEntry);
+
+        //Assert
+        TaskAdjuster.FindOrDefault(task.Id).ShouldBeNull();
     }
 
     #endregion Task Adjustment

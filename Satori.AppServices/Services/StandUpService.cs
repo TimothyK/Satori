@@ -493,7 +493,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
 
     public async Task ExportAsync(params TimeEntry[] timeEntries)
     {
-        foreach (var entry in timeEntries)
+        foreach (var entry in timeEntries.Where(x => x.CanExport))
         {
             if (entry.Task != null)
             {
