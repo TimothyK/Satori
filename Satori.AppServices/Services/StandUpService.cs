@@ -498,11 +498,14 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
             if (entry.Task != null)
             {
                 await taskAdjuster.SendAsync(new TaskAdjustment(entry.Task.Id, entry.TotalTime));
+                entry.Task.RemainingWork -= entry.TotalTime;
+                entry.Task.CompletedWork = (entry.Task.CompletedWork ?? TimeSpan.Zero) + entry.TotalTime;
             }
 
             await kimai.ExportTimeSheetAsync(entry.Id);
 
             entry.Exported = true;
+            entry.CanExport = false;
         }
     }
 

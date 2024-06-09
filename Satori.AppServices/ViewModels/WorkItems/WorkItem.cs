@@ -17,8 +17,8 @@ public class WorkItem
     public bool Blocked { get; init; }
     public required List<string> Tags { get; init; }
     public TimeSpan? OriginalEstimate { get; init; }
-    public TimeSpan? CompletedWork { get; init; }
-    public TimeSpan? RemainingWork { get; init; }
+    public TimeSpan? CompletedWork { get; set; }
+    public TimeSpan? RemainingWork { get; set; }
     public string? ProjectCode { get; init; }
 
     public WorkItem? Parent { get; set; }
