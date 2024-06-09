@@ -275,7 +275,7 @@
                             }
                             else if (entry.CanExport)
                             {
-                                <button class="btn btn-outline-success">Export</button>
+                                <button class="btn btn-outline-success" @onclick="async () => await ExportAsync(day, entry)">Export</button>
                             }
                             else
                             {
@@ -512,4 +512,10 @@
         public static readonly LoadingStatusLabel InLoading = new("Loading: ");
         public static readonly LoadingStatusLabel FinishedLoading = new(string.Empty);
     }
+
+    private async Task ExportAsync(StandUpDay day, TimeEntry entry)
+    {
+        await StandUpService.ExportAsync(day, entry);
+    }
+
 }

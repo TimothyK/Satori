@@ -21,6 +21,10 @@ internal class TestKimaiServer
 
         _mock.Setup(srv => srv.GetMyUserAsync())
             .ReturnsAsync(() => CurrentUser!);
+
+        _mock.Setup(srv => srv.ExportTimeSheetAsync(It.IsAny<int>()))
+            .Callback((int id) => MarkAsExported(id))
+            .Returns(Task.CompletedTask);
     }
 
     public Uri BaseUrl { get; } = new("https://kimai.test/");
@@ -72,6 +76,19 @@ internal class TestKimaiServer
         }
 
         return GetTimeSheet(filter).FirstOrDefault();
+    }
+
+    private void MarkAsExported(int id)
+    {
+        var entry = TimeSheet.SingleOrDefault(x => x.Id == id)
+                    ?? throw new InvalidOperationException($"Id {id} not found");
+
+        if (entry.Exported)
+        {
+            throw new InvalidOperationException($"Id {id} already exported");
+        }
+
+        entry.Exported = true;
     }
 
 }

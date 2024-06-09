@@ -35,9 +35,8 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
     private async Task<TimeEntry[]> GetTimesAsync()
     {
         var today = Today;
-        var srv = new StandUpService(Kimai.AsInterface(), AzureDevOps.AsInterface());
-        var days = await srv.GetStandUpDaysAsync(today.AddDays(-6), today);
-        await srv.GetWorkItemsAsync(days);
+        var days = await Server.GetStandUpDaysAsync(today.AddDays(-6), today);
+        await Server.GetWorkItemsAsync(days);
         
         return days.SelectMany(day => day.Projects.SelectMany(project => project.Activities.SelectMany(activity => activity.TimeEntries)))
             .ToArray();

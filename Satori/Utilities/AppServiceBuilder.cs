@@ -1,4 +1,5 @@
 ﻿using Satori.AppServices.Services;
+using Satori.AppServices.Services.Abstractions;
 using Satori.AzureDevOps;
 using Satori.Kimai;
 using Satori.TimeServices;
@@ -13,14 +14,21 @@ internal static class AppServiceBuilder
         var settings = builder.GetConnectionSettings();
         builder.Services.AddSingleton(settings);
         builder.Services.AddSingleton<HttpClient>();
+        
         builder.Services.AddSingleton<SprintBoardService>();
         builder.Services.AddSingleton<PullRequestService>();
         builder.Services.AddSingleton<UserService>();
         builder.Services.AddSingleton<StandUpService>();
+        
         builder.Services.AddSingleton(settings.AzureDevOps);
         builder.Services.AddSingleton<IAzureDevOpsServer, AzureDevOpsServer>();
+        
         builder.Services.AddSingleton(settings.Kimai);
         builder.Services.AddSingleton<IKimaiServer, KimaiServer>();
+
+        builder.Services.AddSingleton(settings.MessageQueue);
+        builder.Services.AddSingleton<ITaskAdjuster, TaskAdjuster>();
+        
         builder.Services.AddSingleton<ITimeServer, TimeServer>();
         var loggerFactory = new LoggerFactory().AddSerilog();
         builder.Services.AddSingleton(loggerFactory);
@@ -34,6 +42,7 @@ internal static class AppServiceBuilder
         {
             AzureDevOps = builder.GetAzureDevOpsSettings(),
             Kimai = builder.GetKimaiSettings(),
+            MessageQueue = builder.GetMessageQueueSettings(),
         };
     }
 
@@ -52,6 +61,18 @@ internal static class AppServiceBuilder
             Url = new Uri(builder.Configuration["Kimai:Url"] ?? throw new InvalidOperationException("Missing Kimai:Url in settings")),
             UserName = builder.Configuration["Kimai:User"] ?? string.Empty,
             Token = builder.Configuration["Kimai:Token"] ?? string.Empty,
+        };
+    }
+
+    private static MessageQueues.ConnectionSettings GetMessageQueueSettings(this WebApplicationBuilder builder)
+    {
+        return new MessageQueues.ConnectionSettings()
+        {
+            HostName = builder.Configuration["MessageQueue:HostName"] ?? throw new InvalidOperationException("Missing MessageQueue:HostName in settings"),
+            Port = int.Parse(builder.Configuration["MessageQueue:Port"] ?? "0"),
+            Path = builder.Configuration["MessageQueue:Path"] ?? string.Empty,
+            UserName = builder.Configuration["MessageQueue:UserName"] ?? string.Empty,
+            Password = builder.Configuration["MessageQueue:Password"] ?? string.Empty,
         };
     }
 

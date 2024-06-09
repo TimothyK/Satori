@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace Satori.MessageQueues;
 
-public sealed class Publisher<T> : IDisposable
+public class Publisher<T> : IDisposable
 {
     private IConnection? _connection;
     private IModel? _channel;
@@ -21,6 +21,8 @@ public sealed class Publisher<T> : IDisposable
 
         CreateExchangeAndQueue(name);
     }
+
+    protected bool IsOpen => _channel != null;
 
     private void CreateExchangeAndQueue(string name)
     {
@@ -68,7 +70,7 @@ public sealed class Publisher<T> : IDisposable
 
     #endregion Dispose
 
-    public void Send(T message)
+    public virtual void Send(T message)
     {
         ArgumentNullException.ThrowIfNull(message);
         if (_channel == null)

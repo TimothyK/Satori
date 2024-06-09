@@ -14,7 +14,7 @@ namespace Satori.AppServices.Tests.DailyStandUps;
 [TestClass]
 public class ActivitySummaryDailyStandUpTests : DailyStandUpTests
 {
-    public ActivitySummaryDailyStandUpTests() : base()
+    public ActivitySummaryDailyStandUpTests()
     {
         ActivityUnderTest = TestActivities.SingleRandom();
         AzureDevOpsBuilder = AzureDevOps.CreateBuilder();
@@ -35,9 +35,8 @@ public class ActivitySummaryDailyStandUpTests : DailyStandUpTests
 
     private async Task<ActivitySummary> GetActivitySummaryAsync()
     {
-        var srv = new StandUpService(Kimai.AsInterface(), AzureDevOps.AsInterface());
-        var days = await srv.GetStandUpDaysAsync(Today, Today);
-        await srv.GetWorkItemsAsync(days);
+        var days = await Server.GetStandUpDaysAsync(Today, Today);
+        await Server.GetWorkItemsAsync(days);
 
         return days
             .Single(day => day.Date == Today)

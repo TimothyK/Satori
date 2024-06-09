@@ -4,6 +4,7 @@ using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
+using Satori.AppServices.Tests.TestDoubles.MessageQueues;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.Kimai.Models;
 using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
@@ -12,6 +13,13 @@ namespace Satori.AppServices.Tests.DailyStandUps;
 
 public abstract class DailyStandUpTests
 {
+    protected StandUpService Server { get; }
+
+    protected DailyStandUpTests()
+    {
+        Server = new StandUpService(Kimai.AsInterface(), AzureDevOps.AsInterface(), TaskAdjuster);
+    }
+
     #region Helpers
 
     #region Arrange
@@ -19,6 +27,8 @@ public abstract class DailyStandUpTests
     private protected TestAzureDevOpsServer AzureDevOps { get; } = new();
 
     private protected TestKimaiServer Kimai { get; } = new() {CurrentUser = DefaultUser};
+
+    private protected TestTaskAdjuster TaskAdjuster { get; } = new();
 
     protected static readonly User DefaultUser = Builder<User>.New().Build(user =>
     {
@@ -113,9 +123,7 @@ public abstract class DailyStandUpTests
 
     protected async Task<StandUpDay[]> GetStandUpDaysAsync(DateOnly begin, DateOnly end)
     {
-        var srv = new StandUpService(Kimai.AsInterface(), AzureDevOps.AsInterface());
-
-        return await srv.GetStandUpDaysAsync(begin, end);
+        return await Server.GetStandUpDaysAsync(begin, end);
     }
 
     #endregion Act

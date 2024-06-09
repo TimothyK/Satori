@@ -1,8 +1,10 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Flurl;
+using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.DailyStandUps;
+using Satori.AppServices.ViewModels.TaskAdjustments;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps;
 using Satori.Kimai;
@@ -15,7 +17,9 @@ using UriFormatException = System.UriFormatException;
 
 namespace Satori.AppServices.Services;
 
-public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azureDevOps)
+public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azureDevOps
+    , ITaskAdjuster taskAdjuster
+    )
 {
     #region GetStandUpDaysAsync
 
@@ -481,4 +485,21 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
     }
 
     #endregion GetWorkItemsAsync
+
+    #region Export
+
+    public async Task ExportAsync(StandUpDay day, params TimeEntry[] timeEntries)
+    {
+        foreach (var entry in timeEntries)
+        {
+            await kimai.ExportTimeSheetAsync(entry.Id);
+            if (entry.Task != null)
+            {
+                taskAdjuster.Send(new TaskAdjustment(entry.Task.Id, entry.TotalTime));
+            }
+            entry.Exported = true;
+        }
+    }
+
+    #endregion Export
 }
