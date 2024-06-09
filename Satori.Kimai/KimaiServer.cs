@@ -1,7 +1,6 @@
 ﻿using Flurl;
 using Microsoft.Extensions.Logging;
 using Satori.Kimai.Models;
-using System.Text;
 using System.Text.Json;
 
 namespace Satori.Kimai;
@@ -39,17 +38,12 @@ public class KimaiServer(
     {
         var url = connectionSettings.Url
             .AppendPathSegment("api/timesheets")
-            .AppendPathSegment(id);
+            .AppendPathSegment(id)
+            .AppendPathSegment("export");
 
         var request = new HttpRequestMessage(HttpMethod.Patch, url);
         AddAuthHeader(request);
-        Logger.LogInformation("{Method} {Url} - marking as exported", request.Method.ToString().ToUpper(), request.RequestUri);
-
-        var payload = new Dictionary<string, object>()
-        {
-            { "export", true }
-        };
-        request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+        Logger.LogInformation("{Method} {Url}", request.Method.ToString().ToUpper(), request.RequestUri);
 
         var response = await httpClient.SendAsync(request);
         await VerifySuccessfulResponseAsync(response);

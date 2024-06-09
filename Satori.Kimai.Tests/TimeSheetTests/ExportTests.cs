@@ -21,7 +21,8 @@ public class ExportTests
     private Url GetUrl(int id) =>
         _connectionSettings.Url
             .AppendPathSegment("api/timesheets")
-            .AppendPathSegment(id);
+            .AppendPathSegment(id)
+            .AppendPathSegment("export");
 
     #endregion Arrange
 
@@ -37,15 +38,6 @@ public class ExportTests
         await srv.ExportTimeSheetAsync(id);
     }
     
-    private static string ReadRequestBody(HttpRequestMessage request)
-    {
-        request.Content.ShouldNotBeNull();
-        using var stream = request.Content.ReadAsStream();
-        using var reader = new StreamReader(stream);
-        var body = reader.ReadToEnd();
-        return body;
-    }
-
     #endregion Act
 
 
@@ -60,17 +52,6 @@ public class ExportTests
         static bool VerifyRequest(HttpRequestMessage request)
         {
             request.Method.ShouldBe(HttpMethod.Patch);
-
-            var body = ReadRequestBody(request);
-            Console.WriteLine(body);
-
-            var payload = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(body);
-
-            payload.ShouldNotBeNull();
-            payload.ContainsKey("export").ShouldBeTrue();
-
-            payload["export"].ValueKind.ShouldBe(JsonValueKind.True);
-
             return true;
         }
     }
