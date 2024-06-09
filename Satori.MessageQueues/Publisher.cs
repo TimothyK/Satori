@@ -26,9 +26,9 @@ public class Publisher<T> : IDisposable
 
     private void CreateExchangeAndQueue(string name)
     {
-        _channel.ExchangeDeclare(name, "direct", durable: true);
+        _channel.ExchangeDeclare(name, "fanout", durable: true);
         _channel.QueueDeclare(name, durable: true, exclusive: false, autoDelete: false);
-        _channel.QueueBind(name, name, routingKey: null);
+        _channel.QueueBind(name, name, routingKey: string.Empty);
     }
 
     public void Close()
