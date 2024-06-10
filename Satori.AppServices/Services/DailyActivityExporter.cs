@@ -4,16 +4,16 @@ using Satori.MessageQueues;
 
 namespace Satori.AppServices.Services;
 
-public class TaskAdjuster(UserService userService, ConnectionSettings settings) : Publisher<TaskAdjustment>, ITaskAdjuster
+public class DailyActivityExporter(UserService userService, ConnectionSettings settings) : Publisher<DailyActivity>, IDailyActivityExporter
 {
     private async Task OpenAsync()
     {
         var user = await userService.GetCurrentUserAsync();
-        var exchangeName = $"Satori.TaskAdjustment.{user.DomainLogin}";
+        var exchangeName = $"Satori.DailyActivity.{user.DomainLogin}";
         Open(settings, exchangeName);
     }
 
-    public override async Task SendAsync(TaskAdjustment message)
+    public override async Task SendAsync(DailyActivity message)
     {
         if (!IsOpen)
         {

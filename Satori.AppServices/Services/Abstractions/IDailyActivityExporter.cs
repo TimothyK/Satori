@@ -2,7 +2,7 @@
 
 namespace Satori.AppServices.Services.Abstractions;
 
-public interface ITaskAdjuster
+public interface IDailyActivityExporter
 {
-    Task SendAsync(TaskAdjustment payload);
+    Task SendAsync(DailyActivity payload);
 }

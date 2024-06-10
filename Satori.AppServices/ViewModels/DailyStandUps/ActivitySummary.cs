@@ -7,7 +7,7 @@ public class ActivitySummary
 
     public required ProjectSummary ParentProjectSummary { get; init; }
 
-    public string? Comment { get; init; }
+    public string? ActivityDescription { get; init; }
 
     public required TimeEntry[] TimeEntries { get; set; }
 

@@ -1,4 +1,4 @@
-﻿namespace Satori.AppServices.ViewModels.TaskAdjustments;
+﻿namespace Satori.AppServices.ViewModels.ExportPayloads;
 
 public class TaskAdjustment
 {

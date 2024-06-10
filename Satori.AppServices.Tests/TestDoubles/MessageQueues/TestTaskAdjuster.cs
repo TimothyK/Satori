@@ -1,5 +1,5 @@
 ﻿using Satori.AppServices.Services.Abstractions;
-using Satori.AppServices.ViewModels.TaskAdjustments;
+using Satori.AppServices.ViewModels.ExportPayloads;
 using Shouldly;
 
 namespace Satori.AppServices.Tests.TestDoubles.MessageQueues;

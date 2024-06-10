@@ -28,6 +28,7 @@ internal static class AppServiceBuilder
 
         builder.Services.AddSingleton(settings.MessageQueue);
         builder.Services.AddSingleton<ITaskAdjuster, TaskAdjuster>();
+        builder.Services.AddSingleton<IDailyActivityExporter, DailyActivityExporter>();
         
         builder.Services.AddSingleton<ITimeServer, TimeServer>();
         var loggerFactory = new LoggerFactory().AddSerilog();

@@ -3,6 +3,7 @@ using Satori.AppServices.Extensions;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.ViewModels.DailyStandUps;
+using Satori.AppServices.ViewModels.ExportPayloads;
 using Satori.AzureDevOps.Models;
 using Satori.Kimai.Models;
 using Shouldly;
@@ -176,7 +177,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
     }
 
     /// <summary>
-    /// Ensure that if multiple time entries for the same AzDO task are exported together that they are summed into 1 export record (<see cref="ViewModels.TaskAdjustments.TaskAdjustment"/>
+    /// Ensure that if multiple time entries for the same AzDO task are exported together that they are summed into 1 export record (<see cref="TaskAdjustment"/>
     /// </summary>
     /// <remarks>
     /// <para>
@@ -432,4 +433,110 @@ public class ExportDailyStandUpTests : DailyStandUpTests
 
     #endregion ViewModel Updates
 
+    #region Daily Activity Export
+
+    [TestMethod]
+    public async Task DailyActivitySent()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+
+        //Act
+        await ExportTimeEntriesAsync(kimaiEntry);
+
+        //Assert
+        var payload = DailyActivityExporter.Messages.SingleOrDefault(msg => msg.Date == Today && msg.ActivityId == kimaiEntry.Activity.Id);
+        payload.ShouldNotBeNull();
+
+        payload.ActivityName.ShouldBe(kimaiEntry.Activity.Name);
+        payload.ActivityDescription.ShouldBe(kimaiEntry.Activity.Comment);
+        payload.ProjectId.ShouldBe(kimaiEntry.Activity.Project.Id);
+        payload.ProjectName.ShouldBe(kimaiEntry.Activity.Project.Name);
+        payload.CustomerId.ShouldBe(kimaiEntry.Activity.Project.Customer.Id);
+        payload.CustomerName.ShouldBe(kimaiEntry.Activity.Project.Customer.Name);
+
+        var totalTime = (kimaiEntry.End!.Value - kimaiEntry.Begin).ToNearest(TimeSpan.FromMinutes(3));
+        payload.TotalTime.ShouldBe(totalTime);
+    }
+    
+    [TestMethod]
+    public async Task DailyActivitySent_TimeRounded()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+
+        //Act
+        await ExportTimeEntriesAsync(kimaiEntry);
+
+        //Assert
+        var payload = DailyActivityExporter.Messages.Single(msg => msg.Date == Today && msg.ActivityId == kimaiEntry.Activity.Id);
+
+        var totalTime = (kimaiEntry.End!.Value - kimaiEntry.Begin).ToNearest(TimeSpan.FromMinutes(3));
+        payload.TotalTime.ShouldBe(totalTime);
+    }
+    
+    [TestMethod]
+    public async Task DailyActivitySent_TimeOnlyIncludesExported()
+    {
+        //Arrange
+        var activity = TestActivities.SingleRandom();
+        var kimaiEntry1 = BuildTimeEntry(activity).With(x => x.Exported = true);
+        var kimaiEntry2 = BuildTimeEntry(activity);
+        BuildTimeEntry(activity);
+
+        //Act
+        await ExportTimeEntriesAsync(kimaiEntry2);
+
+        //Assert
+        var payload = DailyActivityExporter.Messages.Single(msg => msg.Date == Today && msg.ActivityId == activity.Id);
+
+        var totalTime = ((kimaiEntry1.End!.Value - kimaiEntry1.Begin)
+                + (kimaiEntry2.End!.Value - kimaiEntry2.Begin)
+                ).ToNearest(TimeSpan.FromMinutes(3));
+        payload.TotalTime.ShouldBe(totalTime);
+    }
+
+    [TestMethod]
+    public async Task DailyActivitySent_Task()
+    {
+        //Arrange
+        var task = BuildTask();
+        var kimaiEntry = BuildTimeEntry().AddWorkItems(task);
+
+        //Act
+        var entries = await ExportTimeEntriesAsync(kimaiEntry);
+
+        //Assert
+        var payload = DailyActivityExporter.Messages.Single(msg => msg.Date == Today && msg.ActivityId == kimaiEntry.Activity.Id);
+        
+        var workItem = entries.Single().Task?.Parent;
+        workItem.ShouldNotBeNull();
+        payload.Tasks.ShouldBe($"D#{workItem.Id} {workItem.Title} » D#{task.Id} {task.Fields.Title}");
+    }
+    
+    [TestMethod]
+    public async Task DailyActivitySent_Comments()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.Description = """
+                                 🏆 Drank coffee
+                                 🧱Bathroom queues
+                                 🧠 Bladder control
+                                 Stand-Up Meeting
+                                 """;
+
+        //Act
+        await ExportTimeEntriesAsync(kimaiEntry);
+
+        //Assert
+        var payload = DailyActivityExporter.Messages.Single(msg => msg.Date == Today && msg.ActivityId == kimaiEntry.Activity.Id);
+        
+        payload.Accomplishments.ShouldBe("Drank coffee");
+        payload.Impediments.ShouldBe("Bathroom queues");
+        payload.Learnings.ShouldBe("Bladder control");
+        payload.OtherComments.ShouldBe("Stand-Up Meeting");
+    }
+
+    #endregion Daily Activity Export
 }

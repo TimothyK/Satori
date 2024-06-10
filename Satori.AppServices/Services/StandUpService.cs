@@ -5,12 +5,13 @@ using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.DailyStandUps;
-using Satori.AppServices.ViewModels.TaskAdjustments;
+using Satori.AppServices.ViewModels.ExportPayloads;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps;
 using Satori.Kimai;
 using Satori.Kimai.Models;
 using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
 using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
 using TimeEntry = Satori.AppServices.ViewModels.DailyStandUps.TimeEntry;
@@ -22,6 +23,7 @@ public partial class StandUpService(
     IKimaiServer kimai
     , IAzureDevOpsServer azureDevOps
     , UserService userService
+    , IDailyActivityExporter dailyActivityExporter
     , ITaskAdjuster taskAdjuster
     )
 {
@@ -215,7 +217,7 @@ public partial class StandUpService(
                     ActivityId = g.Key.Id,
                     ActivityName = g.Key.Name,
                     ParentProjectSummary = project,
-                    Comment = g.Key.Comment,
+                    ActivityDescription = g.Key.Comment,
                     TotalTime = GetDuration(g),
                     AllExported = GetAllExported(g),
                     CanExport = GetCanExport(g),
@@ -499,10 +501,16 @@ public partial class StandUpService(
     {
         var exportableEntries = timeEntries.Where(x => x.CanExport).ToArray();
 
+        foreach (var activitySummary in exportableEntries.Select(entry => entry.ParentActivitySummary).Distinct())
+        {
+            var payload = ToPayload(activitySummary, exportableEntries);
+            await dailyActivityExporter.SendAsync(payload);
+        }
+
         foreach (var g in exportableEntries
-                     .Where(x => x.Task != null)
-                     .Where(x => x.Task!.AssignedTo == Person.Me)
-                     .GroupBy(x => x.Task))
+                 .Where(x => x.Task != null)
+                 .Where(x => x.Task!.AssignedTo == Person.Me)
+                 .GroupBy(x => x.Task))
         {
             var adjustment = new TaskAdjustment(g.Key!.Id, g.Select(x => x.TotalTime).Sum().ToNearest(TimeSpan.FromMinutes(6)));
             await taskAdjuster.SendAsync(adjustment);
@@ -534,6 +542,51 @@ public partial class StandUpService(
             day.AllExported = day.Projects.All(x => x.AllExported);
             day.CanExport = day.Projects.Any(x => x.CanExport);
         }
+    }
+
+    private static DailyActivity ToPayload(ActivitySummary activitySummary, TimeEntry[] exportableEntries)
+    {
+        var previous = activitySummary.TimeEntries.Where(x => x.Exported).Select(x => x.TotalTime).Sum();
+        var adjustment = exportableEntries.Where(x => x.ParentActivitySummary == activitySummary).Select(x => x.TotalTime).Sum();
+
+        var payload = new DailyActivity()
+        {
+            Date = activitySummary.ParentProjectSummary.ParentDay.Date,
+            ActivityId = activitySummary.ActivityId,
+            ActivityName = activitySummary.ActivityName,
+            ActivityDescription = activitySummary.ActivityDescription,
+            ProjectId = activitySummary.ParentProjectSummary.ProjectId,
+            ProjectName = activitySummary.ParentProjectSummary.ProjectName,
+            CustomerId = activitySummary.ParentProjectSummary.CustomerId,
+            CustomerName = activitySummary.ParentProjectSummary.CustomerName,
+            TotalTime = (previous + adjustment).ToNearest(TimeSpan.FromMinutes(3)),
+            Accomplishments = activitySummary.Accomplishments,
+            Impediments = activitySummary.Impediments,
+            Learnings = activitySummary.Learnings,
+            OtherComments = activitySummary.OtherComments,
+            Tasks = ToComment(activitySummary.TaskSummaries)
+        };
+        return payload;
+    }
+
+    private static string? ToComment(TaskSummary[] taskSummaries)
+    {
+        var lines = taskSummaries.Where(x => x.Task != null).Select(x => ToComment(x.Task!)).ToArray();
+        return lines.None() ? null : string.Join(Environment.NewLine, lines);
+    }
+
+    private static string ToComment(WorkItem task)
+    {
+        var builder = new StringBuilder();
+
+        if (task.Parent != null)
+        {
+            builder.Append($"D#{task.Parent.Id} {task.Parent.Title}");
+            builder.Append(" » ");
+        }
+        builder.Append($"D#{task.Id} {task.Title}");
+
+        return builder.ToString();
     }
 
     #endregion Export

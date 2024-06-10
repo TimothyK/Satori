@@ -4,10 +4,10 @@ namespace Satori.AppServices.ViewModels.DailyStandUps;
 
 public class TaskSummary
 {
-    public WorkItem? Task { get; set; }
+    public WorkItem? Task { get; init; }
 
     public TimeSpan TotalTime { get; internal init; }
 
-    public bool NeedsEstimate { get; set; }
-    public TimeSpan? TimeRemaining { get; set; }
+    public bool NeedsEstimate { get; init; }
+    public TimeSpan? TimeRemaining { get; init; }
 }
