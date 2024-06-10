@@ -499,7 +499,10 @@ public partial class StandUpService(
     {
         var exportableEntries = timeEntries.Where(x => x.CanExport).ToArray();
 
-        foreach (var g in exportableEntries.Where(x => x.Task != null).GroupBy(x => x.Task))
+        foreach (var g in exportableEntries
+                     .Where(x => x.Task != null)
+                     .Where(x => x.Task!.AssignedTo == Person.Me)
+                     .GroupBy(x => x.Task))
         {
             var adjustment = new TaskAdjustment(g.Key!.Id, g.Select(x => x.TotalTime).Sum().ToNearest(TimeSpan.FromMinutes(6)));
             await taskAdjuster.SendAsync(adjustment);

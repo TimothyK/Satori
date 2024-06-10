@@ -2,6 +2,7 @@
 using Moq;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Database;
+using Satori.AppServices.ViewModels;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 using Shouldly;
@@ -38,11 +39,11 @@ internal class TestAzureDevOpsServer
 
     public TestAzureDevOpsServer()
     {
-        TestUserAzureDevOpsId = Guid.NewGuid();
+        TestUserAzureDevOpsId = Person.Me?.AzureDevOpsId ?? Guid.NewGuid();
         Identity = new Identity
         {
             Id = TestUserAzureDevOpsId,
-            ProviderDisplayName = "Test User (AzDO)",
+            ProviderDisplayName = Person.Me?.DisplayName ?? "Test User (AzDO)",
             Properties = new IdentityProperties()
             {
                 Description = new IdentityPropertyValue<string>() { Value = "Code Monkey" },
@@ -99,7 +100,7 @@ internal class TestAzureDevOpsServer
         }
     }
 
-    public Guid TestUserAzureDevOpsId { get; }
+    private Guid TestUserAzureDevOpsId { get; }
 
     public Identity Identity { get; set; }
 

@@ -3,10 +3,12 @@ using Satori.AppServices.Extensions;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.ViewModels.DailyStandUps;
+using Satori.AzureDevOps.Models;
 using Satori.Kimai.Models;
 using Shouldly;
 using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
 using TimeEntry = Satori.AppServices.ViewModels.DailyStandUps.TimeEntry;
+using User = Satori.AzureDevOps.Models.User;
 
 namespace Satori.AppServices.Tests.DailyStandUps;
 
@@ -35,6 +37,23 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         await Server.GetWorkItemsAsync(days);
 
         return days.Single(day => day.Date == Today);
+    }
+
+    private WorkItem BuildTask()
+    {
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+
+        var identity = AzureDevOps.Identity;
+        task.Fields.AssignedTo = new User
+        {
+            Id = identity.Id,
+            DisplayName = identity.ProviderDisplayName,
+            ImageUrl = "https://azureDevOps.test/Org/Id?id=" + identity.Id,
+            UniqueName = $"{identity.Properties.Domain}\\{identity.Properties.Account}",
+            Url = "https://azureDevOps.test/Org/Id?id=" + identity.Id,
+        };
+
+        return task;
     }
 
     #endregion Arrange
@@ -96,7 +115,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
     public async Task NoTask_TaskAdjustmentNotSent()
     {
         //Arrange
-        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        var task = BuildTask();
         var kimaiEntry = BuildTimeEntry();
         kimaiEntry.Description = null;
 
@@ -106,12 +125,12 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         //Assert
         TaskAdjuster.FindOrDefault(task.Id).ShouldBeNull();
     }
-    
+
     [TestMethod]
     public async Task TaskAdjustmentSent()
     {
         //Arrange
-        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        var task = BuildTask();
         var kimaiEntry = BuildTimeEntry();
         kimaiEntry.AddWorkItems(task);
 
@@ -127,7 +146,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
     public async Task TaskAdjustmentFails_KimaiNotUpdated()
     {
         //Arrange
-        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        var task = BuildTask();
         var kimaiEntry = BuildTimeEntry();
         kimaiEntry.AddWorkItems(task);
 
@@ -144,7 +163,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
     public async Task AlreadyExported_NotExportedAgain()
     {
         //Arrange
-        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        var task = BuildTask();
         var kimaiEntry = BuildTimeEntry();
         kimaiEntry.AddWorkItems(task);
         kimaiEntry.Exported = true;
@@ -173,7 +192,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
     public async Task TaskTotalSummed()
     {
         //Arrange
-        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        var task = BuildTask();
 
         var activity = TestActivities.SingleRandom();
         var today = Today;
@@ -189,6 +208,45 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         TaskAdjuster.Find(task.Id).Adjustment.ShouldBe(TimeSpan.FromMinutes(12));  //Rounded to the nearest 0.1 hours.
     }
 
+    /// <summary>
+    /// Timing other people's tasks doesn't count for export to AzDO.  Time Remaining only applies to the time spent by the assigned person.
+    /// If other people need to help with that task, other tasks should be created.
+    /// </summary>
+    /// <returns></returns>
+    [TestMethod]
+    public async Task AssignedToOther_NotAdjusted()
+    {
+        //Arrange
+        var task = BuildTask();
+        task.Fields.AssignedTo = null;
+
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.AddWorkItems(task);
+
+        //Act
+        await ExportTimeEntriesAsync(kimaiEntry);
+
+        //Assert
+        TaskAdjuster.FindOrDefault(task.Id).ShouldBeNull();
+    }
+    
+    [TestMethod]
+    public async Task AssignedToOther_IsExported()
+    {
+        //Arrange
+        var task = BuildTask();
+        task.Fields.AssignedTo = null;
+
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.AddWorkItems(task);
+
+        //Act
+        await ExportTimeEntriesAsync(kimaiEntry);
+
+        //Assert
+        kimaiEntry.Exported.ShouldBeTrue();
+    }
+
     #endregion Task Adjustment
 
     #region ViewModel Updates
@@ -199,7 +257,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
     public async Task TaskRemainingWorkUpdated()
     {
         //Arrange
-        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        var task = BuildTask();
         var remainingWork = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
         task.Fields.RemainingWork = remainingWork.TotalHours;
 
@@ -219,7 +277,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
     public async Task TaskRemainingWork_Null_Unchanged()
     {
         //Arrange
-        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        var task = BuildTask();
         task.Fields.RemainingWork = null;
 
         var kimaiEntry = BuildTimeEntry();
@@ -237,7 +295,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
     public async Task TaskCompletedWorkUpdated()
     {
         //Arrange
-        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        var task = BuildTask();
         var completedWork = TimeSpan.FromHours(1).Randomize().ToNearest(TimeSpan.FromMinutes(3));
         task.Fields.CompletedWork = completedWork.TotalHours;
 
@@ -257,7 +315,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
     public async Task TaskCompletedWork_Null_Incremented()
     {
         //Arrange
-        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        var task = BuildTask();
         task.Fields.CompletedWork = null;
 
         var kimaiEntry = BuildTimeEntry();
