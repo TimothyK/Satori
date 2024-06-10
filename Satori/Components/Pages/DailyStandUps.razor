@@ -221,7 +221,7 @@
                                                 }
                                                 else if (entry.TimeRemaining != null)
                                                 {
-                                                    <span class="badge @(entry.TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@entry.TimeRemaining.Value.TotalHours.ToNearest(0.05) h</span>
+                                                    <span class="badge @(entry.TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@entry.TimeRemaining.Value.TotalHours.ToNearest(0.1) h</span>
                                                 }
                                             }
                                         </span>
@@ -329,7 +329,7 @@
                                         }
                                         else if (entry.TimeRemaining != null)
                                         {
-                                            <span class="badge @(entry.TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@entry.TimeRemaining.Value.TotalHours.ToNearest(0.05) h</span>
+                                            <span class="badge @(entry.TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@entry.TimeRemaining.Value.TotalHours.ToNearest(0.1) h</span>
                                         }
                                     }
                                 </span>

@@ -1,5 +1,6 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Flurl;
+using Satori.AppServices.Extensions;
 using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.ViewModels;
@@ -494,15 +495,18 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
     public async Task ExportAsync(params TimeEntry[] timeEntries)
     {
         var exportableEntries = timeEntries.Where(x => x.CanExport).ToArray();
+
+        foreach (var g in exportableEntries.Where(x => x.Task != null).GroupBy(x => x.Task))
+        {
+            var adjustment = new TaskAdjustment(g.Key!.Id, g.Select(x => x.TotalTime).Sum().ToNearest(TimeSpan.FromMinutes(6)));
+            await taskAdjuster.SendAsync(adjustment);
+
+            g.Key.RemainingWork -= adjustment.Adjustment;
+            g.Key.CompletedWork = (g.Key.CompletedWork ?? TimeSpan.Zero) + adjustment.Adjustment;
+        }
+        
         foreach (var entry in exportableEntries)
         {
-            if (entry.Task != null)
-            {
-                await taskAdjuster.SendAsync(new TaskAdjustment(entry.Task.Id, entry.TotalTime));
-                entry.Task.RemainingWork -= entry.TotalTime;
-                entry.Task.CompletedWork = (entry.Task.CompletedWork ?? TimeSpan.Zero) + entry.TotalTime;
-            }
-
             await kimai.ExportTimeSheetAsync(entry.Id);
 
             entry.Exported = true;

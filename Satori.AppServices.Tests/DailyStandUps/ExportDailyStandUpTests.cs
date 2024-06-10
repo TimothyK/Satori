@@ -119,7 +119,8 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         await ExportTimeEntriesAsync(kimaiEntry);
 
         //Assert
-        TaskAdjuster.Find(task.Id).Adjustment.ShouldBe(kimaiEntry.End!.Value - kimaiEntry.Begin);
+        var totalTime = (kimaiEntry.End!.Value - kimaiEntry.Begin).ToNearest(TimeSpan.FromMinutes(6));
+        TaskAdjuster.Find(task.Id).Adjustment.ShouldBe(totalTime);
     }
     
     [TestMethod]
@@ -155,6 +156,39 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         TaskAdjuster.FindOrDefault(task.Id).ShouldBeNull();
     }
 
+    /// <summary>
+    /// Ensure that if multiple time entries for the same AzDO task are exported together that they are summed into 1 export record (<see cref="ViewModels.TaskAdjustments.TaskAdjustment"/>
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Aggregating the time entries into a single task adjustment isn't just for efficiency in reducing the number of messages.
+    /// It also minimizes rounding errors.
+    /// The adjustment should be made in increments of 0.1 hours (6 minutes).
+    /// AzDO task cards on their sprint boards can show the Remaining Work field.
+    /// But the have is often cut off if it is 2 decimal points.  So to avoid that we limit the numbers to one decimal point.
+    /// </para>
+    /// </remarks>
+    /// <returns></returns>
+    [TestMethod]
+    public async Task TaskTotalSummed()
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+
+        var activity = TestActivities.SingleRandom();
+        var today = Today;
+        
+        var kimaiEntry1 = BuildTimeEntry(activity, today, TimeSpan.FromMinutes(2)).AddWorkItems(task);
+        var kimaiEntry2 = BuildTimeEntry(activity, today, TimeSpan.FromMinutes(3)).AddWorkItems(task);
+        var kimaiEntry3 = BuildTimeEntry(activity, today, TimeSpan.FromMinutes(6)).AddWorkItems(task);
+
+        //Act
+        await ExportTimeEntriesAsync(kimaiEntry1, kimaiEntry2, kimaiEntry3);
+
+        //Assert
+        TaskAdjuster.Find(task.Id).Adjustment.ShouldBe(TimeSpan.FromMinutes(12));  //Rounded to the nearest 0.1 hours.
+    }
+
     #endregion Task Adjustment
 
     #region ViewModel Updates
@@ -177,7 +211,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
 
         //Assert
         var entry = entries.Single();
-        var entryDuration = kimaiEntry.End!.Value - kimaiEntry.Begin;
+        var entryDuration = (kimaiEntry.End!.Value - kimaiEntry.Begin).ToNearest(TimeSpan.FromMinutes(6));
         entry.Task!.RemainingWork.ShouldBe(remainingWork - entryDuration);
     }
     
@@ -215,7 +249,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
 
         //Assert
         var entry = entries.Single();
-        var entryDuration = kimaiEntry.End!.Value - kimaiEntry.Begin;
+        var entryDuration = (kimaiEntry.End!.Value - kimaiEntry.Begin).ToNearest(TimeSpan.FromMinutes(6));
         entry.Task!.CompletedWork.ShouldBe(completedWork + entryDuration);
     }
     
@@ -234,7 +268,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
 
         //Assert
         var entry = entries.Single();
-        var entryDuration = kimaiEntry.End!.Value - kimaiEntry.Begin;
+        var entryDuration = (kimaiEntry.End!.Value - kimaiEntry.Begin).ToNearest(TimeSpan.FromMinutes(6));
         entry.Task!.CompletedWork.ShouldBe(entryDuration);
     }
 

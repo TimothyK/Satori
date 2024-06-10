@@ -516,7 +516,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
 
 internal static class TimeEntryExtensions
 {
-    public static void AddWorkItems(this KimaiTimeEntry timeEntry, params WorkItem[] workItems)
+    public static KimaiTimeEntry AddWorkItems(this KimaiTimeEntry timeEntry, params WorkItem[] workItems)
     {
         var tasks = workItems.Where(wi => wi.Fields.WorkItemType == WorkItemType.Task.ToApiValue()).ToArray();
         var boardItemTypes = WorkItemType.BoardTypes.Select(x => x.ToApiValue());
@@ -535,5 +535,7 @@ internal static class TimeEntryExtensions
         }
 
         timeEntry.Description += string.Join(Environment.NewLine, lines);
+
+        return timeEntry;
     }
 }
