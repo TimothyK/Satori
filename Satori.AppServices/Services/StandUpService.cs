@@ -24,7 +24,7 @@ public partial class StandUpService(
     , IAzureDevOpsServer azureDevOps
     , UserService userService
     , IDailyActivityExporter dailyActivityExporter
-    , ITaskAdjuster taskAdjuster
+    , ITaskAdjustmentExporter taskAdjustmentExporter
     )
 {
     #region GetStandUpDaysAsync
@@ -513,7 +513,7 @@ public partial class StandUpService(
                  .GroupBy(x => x.Task))
         {
             var adjustment = new TaskAdjustment(g.Key!.Id, g.Select(x => x.TotalTime).Sum().ToNearest(TimeSpan.FromMinutes(6)));
-            await taskAdjuster.SendAsync(adjustment);
+            await taskAdjustmentExporter.SendAsync(adjustment);
 
             g.Key.RemainingWork -= adjustment.Adjustment;
             g.Key.CompletedWork = (g.Key.CompletedWork ?? TimeSpan.Zero) + adjustment.Adjustment;

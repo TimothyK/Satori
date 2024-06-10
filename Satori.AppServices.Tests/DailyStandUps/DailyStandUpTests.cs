@@ -18,7 +18,7 @@ public abstract class DailyStandUpTests
     protected DailyStandUpTests()
     {
         var userService = new UserService(AzureDevOps.AsInterface(), Kimai.AsInterface());
-        Server = new StandUpService(Kimai.AsInterface(), AzureDevOps.AsInterface(), userService, DailyActivityExporter, TaskAdjuster);
+        Server = new StandUpService(Kimai.AsInterface(), AzureDevOps.AsInterface(), userService, DailyActivityExporter, TaskAdjustmentExporter);
     }
 
     #region Helpers
@@ -29,7 +29,7 @@ public abstract class DailyStandUpTests
 
     private protected TestKimaiServer Kimai { get; } = new() {CurrentUser = DefaultUser};
 
-    private protected TestTaskAdjuster TaskAdjuster { get; } = new();
+    private protected TestTaskAdjustmentExporter TaskAdjustmentExporter { get; } = new();
     private protected TestDailyActivityExporter DailyActivityExporter { get; } = new();
 
     protected static readonly User DefaultUser = Builder<User>.New().Build(user =>

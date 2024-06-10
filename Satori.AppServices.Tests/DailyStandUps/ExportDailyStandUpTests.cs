@@ -124,7 +124,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         await ExportTimeEntriesAsync(kimaiEntry);
 
         //Assert
-        TaskAdjuster.FindOrDefault(task.Id).ShouldBeNull();
+        TaskAdjustmentExporter.FindOrDefault(task.Id).ShouldBeNull();
     }
 
     [TestMethod]
@@ -140,7 +140,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
 
         //Assert
         var totalTime = (kimaiEntry.End!.Value - kimaiEntry.Begin).ToNearest(TimeSpan.FromMinutes(6));
-        TaskAdjuster.Find(task.Id).Adjustment.ShouldBe(totalTime);
+        TaskAdjustmentExporter.Find(task.Id).Adjustment.ShouldBe(totalTime);
     }
     
     [TestMethod]
@@ -151,7 +151,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         var kimaiEntry = BuildTimeEntry();
         kimaiEntry.AddWorkItems(task);
 
-        TaskAdjuster.ThrowOnSend = true;
+        TaskAdjustmentExporter.ThrowOnSend = true;
 
         //Act
         await Should.ThrowAsync<ApplicationException>(async () => await ExportTimeEntriesAsync(kimaiEntry));
@@ -173,7 +173,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         await ExportTimeEntriesAsync(kimaiEntry);
 
         //Assert
-        TaskAdjuster.FindOrDefault(task.Id).ShouldBeNull();
+        TaskAdjustmentExporter.FindOrDefault(task.Id).ShouldBeNull();
     }
 
     /// <summary>
@@ -206,7 +206,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         await ExportTimeEntriesAsync(kimaiEntry1, kimaiEntry2, kimaiEntry3);
 
         //Assert
-        TaskAdjuster.Find(task.Id).Adjustment.ShouldBe(TimeSpan.FromMinutes(12));  //Rounded to the nearest 0.1 hours.
+        TaskAdjustmentExporter.Find(task.Id).Adjustment.ShouldBe(TimeSpan.FromMinutes(12));  //Rounded to the nearest 0.1 hours.
     }
 
     /// <summary>
@@ -228,7 +228,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         await ExportTimeEntriesAsync(kimaiEntry);
 
         //Assert
-        TaskAdjuster.FindOrDefault(task.Id).ShouldBeNull();
+        TaskAdjustmentExporter.FindOrDefault(task.Id).ShouldBeNull();
     }
     
     [TestMethod]

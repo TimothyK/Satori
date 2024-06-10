@@ -4,7 +4,7 @@ using Satori.MessageQueues;
 
 namespace Satori.AppServices.Services;
 
-public class TaskAdjuster(UserService userService, ConnectionSettings settings) : Publisher<TaskAdjustment>, ITaskAdjuster
+public class TaskAdjustmentExporter(UserService userService, ConnectionSettings settings) : Publisher<TaskAdjustment>, ITaskAdjustmentExporter
 {
     private async Task OpenAsync()
     {

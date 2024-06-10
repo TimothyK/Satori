@@ -4,7 +4,7 @@ using Shouldly;
 
 namespace Satori.AppServices.Tests.TestDoubles.MessageQueues;
 
-internal class TestTaskAdjuster : ITaskAdjuster
+internal class TestTaskAdjustmentExporter : ITaskAdjustmentExporter
 {
     public Task SendAsync(TaskAdjustment payload)
     {

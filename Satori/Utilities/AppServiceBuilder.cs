@@ -27,7 +27,7 @@ internal static class AppServiceBuilder
         builder.Services.AddSingleton<IKimaiServer, KimaiServer>();
 
         builder.Services.AddSingleton(settings.MessageQueue);
-        builder.Services.AddSingleton<ITaskAdjuster, TaskAdjuster>();
+        builder.Services.AddSingleton<ITaskAdjustmentExporter, TaskAdjustmentExporter>();
         builder.Services.AddSingleton<IDailyActivityExporter, DailyActivityExporter>();
         
         builder.Services.AddSingleton<ITimeServer, TimeServer>();
