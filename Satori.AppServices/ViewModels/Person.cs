@@ -37,6 +37,8 @@ public class Person
 
     #region Caching
 
+    public static Person? Me { get; set; }
+
     private static Person FromAzureDevOpsId(Guid id, Func<Person> createPerson)
     {
         lock (PeopleLock)

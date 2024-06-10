@@ -18,7 +18,10 @@ using UriFormatException = System.UriFormatException;
 
 namespace Satori.AppServices.Services;
 
-public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azureDevOps
+public partial class StandUpService(
+    IKimaiServer kimai
+    , IAzureDevOpsServer azureDevOps
+    , UserService userService
     , ITaskAdjuster taskAdjuster
     )
 {
@@ -41,12 +44,12 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
             throw new ArgumentException("There are too many days requested in this report.  Please use a smaller date range");
         }
 
-        var getUserTask = kimai.GetMyUserAsync();
+        var getUserTask = userService.GetCurrentUserAsync();
         var getTimeSheetTask = GetTimeSheetAsync(begin, end);
 
         await Task.WhenAll(getUserTask, getTimeSheetTask);
 
-        var language = getUserTask.Result.Language;
+        var language = getUserTask.Result.Language.Replace("-", "_");
         var url = kimai.BaseUrl.AppendPathSegments(language, "timesheet");
 
         var timeSheet = getTimeSheetTask.Result;

@@ -38,9 +38,29 @@ internal class TestAzureDevOpsServer
 
     public TestAzureDevOpsServer()
     {
+        TestUserAzureDevOpsId = Guid.NewGuid();
+        Identity = new Identity
+        {
+            Id = TestUserAzureDevOpsId,
+            ProviderDisplayName = "Test User (AzDO)",
+            Properties = new IdentityProperties()
+            {
+                Description = new IdentityPropertyValue<string>() { Value = "Code Monkey" },
+                Domain = new IdentityPropertyValue<string>() { Value = "DomainName" },
+                Account = new IdentityPropertyValue<string>() { Value = "TimothyK" },
+                Mail = new IdentityPropertyValue<string>() { Value = "timothy@klenkeverse.com" },
+            }
+        };
+
         _mock = new Mock<IAzureDevOpsServer>(MockBehavior.Strict);
         _mock.Setup(srv => srv.ConnectionSettings)
             .Returns(new ConnectionSettings { Url = new Uri(AzureDevOpsRootUrl), PersonalAccessToken = "token" });
+
+        _mock.Setup(srv => srv.GetCurrentUserIdAsync())
+            .ReturnsAsync(() => TestUserAzureDevOpsId);
+
+        _mock.Setup(srv => srv.GetIdentityAsync(TestUserAzureDevOpsId))
+            .ReturnsAsync(() => Identity);
 
         _mock.Setup(srv => srv.GetPullRequestsAsync())
             .ReturnsAsync(() => _database.GetPullRequests());
@@ -78,6 +98,11 @@ internal class TestAzureDevOpsServer
             return _database.GetWorkItemsById(workItemIds).ToArray();
         }
     }
+
+    public Guid TestUserAzureDevOpsId { get; }
+
+    public Identity Identity { get; set; }
+
 
     private WorkItem PatchWorkItems(int id, IEnumerable<WorkItemPatchItem> items)
     {

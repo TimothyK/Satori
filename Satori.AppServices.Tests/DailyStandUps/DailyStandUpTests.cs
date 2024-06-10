@@ -17,7 +17,8 @@ public abstract class DailyStandUpTests
 
     protected DailyStandUpTests()
     {
-        Server = new StandUpService(Kimai.AsInterface(), AzureDevOps.AsInterface(), TaskAdjuster);
+        var userService = new UserService(AzureDevOps.AsInterface(), Kimai.AsInterface());
+        Server = new StandUpService(Kimai.AsInterface(), AzureDevOps.AsInterface(), userService, TaskAdjuster);
     }
 
     #region Helpers
