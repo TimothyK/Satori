@@ -139,7 +139,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         await ExportTimeEntriesAsync(kimaiEntry);
 
         //Assert
-        var totalTime = (kimaiEntry.End!.Value - kimaiEntry.Begin).ToNearest(TimeSpan.FromMinutes(6));
+        var totalTime = kimaiEntry.End!.Value - kimaiEntry.Begin;
         TaskAdjustmentExporter.Find(task.Id).Adjustment.ShouldBe(totalTime);
     }
     
@@ -206,7 +206,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         await ExportTimeEntriesAsync(kimaiEntry1, kimaiEntry2, kimaiEntry3);
 
         //Assert
-        TaskAdjustmentExporter.Find(task.Id).Adjustment.ShouldBe(TimeSpan.FromMinutes(12));  //Rounded to the nearest 0.1 hours.
+        TaskAdjustmentExporter.Find(task.Id).Adjustment.ShouldBe(TimeSpan.FromMinutes(11));
     }
 
     /// <summary>
@@ -270,7 +270,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
 
         //Assert
         var entry = entries.Single();
-        var entryDuration = (kimaiEntry.End!.Value - kimaiEntry.Begin).ToNearest(TimeSpan.FromMinutes(6));
+        var entryDuration = kimaiEntry.End!.Value - kimaiEntry.Begin;
         entry.Task!.RemainingWork.ShouldBe(remainingWork - entryDuration);
     }
     
@@ -308,7 +308,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
 
         //Assert
         var entry = entries.Single();
-        var entryDuration = (kimaiEntry.End!.Value - kimaiEntry.Begin).ToNearest(TimeSpan.FromMinutes(6));
+        var entryDuration = kimaiEntry.End!.Value - kimaiEntry.Begin;
         entry.Task!.CompletedWork.ShouldBe(completedWork + entryDuration);
     }
     
@@ -327,7 +327,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
 
         //Assert
         var entry = entries.Single();
-        var entryDuration = (kimaiEntry.End!.Value - kimaiEntry.Begin).ToNearest(TimeSpan.FromMinutes(6));
+        var entryDuration = kimaiEntry.End!.Value - kimaiEntry.Begin;
         entry.Task!.CompletedWork.ShouldBe(entryDuration);
     }
 
@@ -455,7 +455,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         payload.CustomerId.ShouldBe(kimaiEntry.Activity.Project.Customer.Id);
         payload.CustomerName.ShouldBe(kimaiEntry.Activity.Project.Customer.Name);
 
-        var totalTime = (kimaiEntry.End!.Value - kimaiEntry.Begin).ToNearest(TimeSpan.FromMinutes(3));
+        var totalTime = kimaiEntry.End!.Value - kimaiEntry.Begin;
         payload.TotalTime.ShouldBe(totalTime);
     }
     
@@ -471,7 +471,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         //Assert
         var payload = DailyActivityExporter.Messages.Single(msg => msg.Date == Today && msg.ActivityId == kimaiEntry.Activity.Id);
 
-        var totalTime = (kimaiEntry.End!.Value - kimaiEntry.Begin).ToNearest(TimeSpan.FromMinutes(3));
+        var totalTime = kimaiEntry.End!.Value - kimaiEntry.Begin;
         payload.TotalTime.ShouldBe(totalTime);
     }
     
@@ -490,9 +490,8 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         //Assert
         var payload = DailyActivityExporter.Messages.Single(msg => msg.Date == Today && msg.ActivityId == activity.Id);
 
-        var totalTime = ((kimaiEntry1.End!.Value - kimaiEntry1.Begin)
-                + (kimaiEntry2.End!.Value - kimaiEntry2.Begin)
-                ).ToNearest(TimeSpan.FromMinutes(3));
+        var totalTime = (kimaiEntry1.End!.Value - kimaiEntry1.Begin)
+                        + (kimaiEntry2.End!.Value - kimaiEntry2.Begin);
         payload.TotalTime.ShouldBe(totalTime);
     }
 

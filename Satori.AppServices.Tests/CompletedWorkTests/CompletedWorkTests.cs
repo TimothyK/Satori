@@ -10,6 +10,16 @@ namespace Satori.AppServices.Tests.CompletedWorkTests;
 [TestClass]
 public class CompletedWorkTests
 {
+    /// <summary>
+    /// Remaining work can be shown on the Azure DevOps cards on the sprint board.
+    /// This value is usually cut off if it is 2 decimal points.  The adjustments should for the Remaining Work to be rounded to 1 decimal point.
+    /// </summary>
+    private const double RemainingWorkPrecision = 0.1;
+    /// <summary>
+    /// Completed work isn't usually shown on task cards, so we can have extra precision here.
+    /// </summary>
+    private const double CompletedWorkPrecision = 0.05;
+
     public CompletedWorkTests()
     {
         AzureDevOpsBuilder = AzureDevOps.CreateBuilder();
@@ -42,7 +52,7 @@ public class CompletedWorkTests
         // Arrange
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
         task.Fields.CompletedWork = null;
-        var adjustment = RandomGenerator.Number(2.5).ToNearest(0.05);
+        var adjustment = RandomGenerator.Number(2.5).ToNearest(CompletedWorkPrecision);
 
         // Act
         await AdjustCompletedWorkAsync(task.Id, adjustment);
@@ -111,6 +121,7 @@ public class CompletedWorkTests
         // Arrange
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
         task.Fields.CompletedWork = 1.2;
+        task.Fields.RemainingWork = 2.3;
         const double adjustment = 0.0;
         var originalRev = task.Rev;
 
@@ -177,13 +188,13 @@ public class CompletedWorkTests
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
         var original = RandomGenerator.Number(8).ToNearest(0.05);
         task.Fields.RemainingWork = original;
-        var adjustment = RandomGenerator.Number(2.5).ToNearest(0.05);
+        var adjustment = RandomGenerator.Number(2.5).ToNearest(RemainingWorkPrecision);
         
         // Act
         await AdjustCompletedWorkAsync(task.Id, adjustment);
 
         // Assert
-        task.Fields.RemainingWork.ShouldBe(original - adjustment);
+        task.Fields.RemainingWork.ShouldBe((original - adjustment).ToNearest(RemainingWorkPrecision));
     }
 
     [TestMethod]
@@ -191,15 +202,15 @@ public class CompletedWorkTests
     {
         // Arrange
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
-        var original = RandomGenerator.Number(8).ToNearest(0.05);
+        var original = RandomGenerator.Number(8).ToNearest(RemainingWorkPrecision);
         task.Fields.OriginalEstimate = original;
         task.Fields.RemainingWork = null;
-        var adjustment = RandomGenerator.Number(2.5).ToNearest(0.05);
+        var adjustment = RandomGenerator.Number(2.5).ToNearest(RemainingWorkPrecision);
 
         // Act
         await AdjustCompletedWorkAsync(task.Id, adjustment);
 
         // Assert
-        task.Fields.RemainingWork.ShouldBe(original - adjustment);
+        task.Fields.RemainingWork.ShouldBe((original - adjustment).ToNearest(RemainingWorkPrecision));
     }
 }

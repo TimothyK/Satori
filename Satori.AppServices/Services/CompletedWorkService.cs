@@ -1,4 +1,5 @@
-﻿using Satori.AppServices.ViewModels.WorkItems;
+﻿using Satori.AppServices.Extensions;
+using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 
@@ -33,7 +34,7 @@ public class CompletedWorkService(IAzureDevOpsServer azureDevOpsServer)
             {
                 Operation = Operation.Add,
                 Path = "/fields/Microsoft.VSTS.Scheduling.CompletedWork",
-                Value = (workItem.Fields.CompletedWork ?? 0.0) + adjustment
+                Value = ((workItem.Fields.CompletedWork ?? 0.0) + adjustment).ToNearest(0.05)
             }
         };
 
@@ -54,7 +55,7 @@ public class CompletedWorkService(IAzureDevOpsServer azureDevOpsServer)
             {
                 Operation = Operation.Add,
                 Path = "/fields/Microsoft.VSTS.Scheduling.RemainingWork",
-                Value = remainingWork - adjustment
+                Value = (remainingWork.Value - adjustment).ToNearest(0.1)
             });
         }
 

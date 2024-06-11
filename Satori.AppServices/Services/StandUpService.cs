@@ -512,7 +512,7 @@ public partial class StandUpService(
                  .Where(x => x.Task!.AssignedTo == Person.Me)
                  .GroupBy(x => x.Task))
         {
-            var adjustment = new TaskAdjustment(g.Key!.Id, g.Select(x => x.TotalTime).Sum().ToNearest(TimeSpan.FromMinutes(6)));
+            var adjustment = new TaskAdjustment(g.Key!.Id, g.Select(x => x.TotalTime).Sum());
             await taskAdjustmentExporter.SendAsync(adjustment);
 
             g.Key.RemainingWork -= adjustment.Adjustment;
@@ -559,7 +559,7 @@ public partial class StandUpService(
             ProjectName = activitySummary.ParentProjectSummary.ProjectName,
             CustomerId = activitySummary.ParentProjectSummary.CustomerId,
             CustomerName = activitySummary.ParentProjectSummary.CustomerName,
-            TotalTime = (previous + adjustment).ToNearest(TimeSpan.FromMinutes(3)),
+            TotalTime = previous + adjustment,
             Accomplishments = activitySummary.Accomplishments,
             Impediments = activitySummary.Impediments,
             Learnings = activitySummary.Learnings,
