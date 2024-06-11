@@ -1,6 +1,5 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Flurl;
-using Satori.AppServices.Extensions;
 using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.ViewModels;
@@ -579,7 +578,7 @@ public partial class StandUpService(
     {
         var builder = new StringBuilder();
 
-        if (task.Parent != null)
+        if (task.Parent != null && task.Type == WorkItemType.Task)
         {
             builder.Append($"D#{task.Parent.Id} {task.Parent.Title}");
             builder.Append(" » ");

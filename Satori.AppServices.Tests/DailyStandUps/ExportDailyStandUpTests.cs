@@ -4,12 +4,13 @@ using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.AppServices.ViewModels.ExportPayloads;
-using Satori.AzureDevOps.Models;
+using Satori.AppServices.ViewModels.WorkItems;
 using Satori.Kimai.Models;
 using Shouldly;
 using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
 using TimeEntry = Satori.AppServices.ViewModels.DailyStandUps.TimeEntry;
 using User = Satori.AzureDevOps.Models.User;
+using WorkItem = Satori.AzureDevOps.Models.WorkItem;
 
 namespace Satori.AppServices.Tests.DailyStandUps;
 
@@ -44,8 +45,15 @@ public class ExportDailyStandUpTests : DailyStandUpTests
     {
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
 
+        AssignMe(task);
+
+        return task;
+    }
+
+    private void AssignMe(WorkItem workItem)
+    {
         var identity = AzureDevOps.Identity;
-        task.Fields.AssignedTo = new User
+        workItem.Fields.AssignedTo = new User
         {
             Id = identity.Id,
             DisplayName = identity.ProviderDisplayName,
@@ -53,8 +61,6 @@ public class ExportDailyStandUpTests : DailyStandUpTests
             UniqueName = $"{identity.Properties.Domain}\\{identity.Properties.Account}",
             Url = "https://azureDevOps.test/Org/Id?id=" + identity.Id,
         };
-
-        return task;
     }
 
     #endregion Arrange
@@ -511,6 +517,24 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         var workItem = entries.Single().Task?.Parent;
         workItem.ShouldNotBeNull();
         payload.Tasks.ShouldBe($"D#{workItem.Id} {workItem.Title} » D#{task.Id} {task.Fields.Title}");
+    }
+    
+    [TestMethod]
+    public async Task DailyActivitySent_FeatureParent_NotIncludedInComment()
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem(out var feature).AddChild(out var workItem);
+        feature.Fields.WorkItemType = WorkItemType.Feature.ToApiValue();
+        workItem.Fields.WorkItemType = WorkItemType.ProductBacklogItem.ToApiValue();
+        var kimaiEntry = BuildTimeEntry().AddWorkItems(workItem);
+
+        //Act
+        await ExportTimeEntriesAsync(kimaiEntry);
+
+        //Assert
+        var payload = DailyActivityExporter.Messages.Single(msg => msg.Date == Today && msg.ActivityId == kimaiEntry.Activity.Id);
+        
+        payload.Tasks.ShouldBe($"D#{workItem.Id} {workItem.Fields.Title}");
     }
     
     [TestMethod]
