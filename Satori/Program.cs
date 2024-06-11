@@ -1,4 +1,5 @@
 using Blazored.LocalStorage;
+using Satori.AppServices.Services;
 using Satori.Components;
 using Satori.Utilities;
 using Serilog;
@@ -8,6 +9,8 @@ namespace Satori;
 
 internal class Program
 {
+    private static TaskAdjustmentImporter? _taskImporter;
+
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
@@ -47,6 +50,9 @@ internal class Program
             .AddInteractiveServerRenderMode();
 
         App = app;
+
+        _taskImporter = Services.GetRequiredService<TaskAdjustmentImporter>();
+        _taskImporter.Start();
 
         app.Run();
     }
