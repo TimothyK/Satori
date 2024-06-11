@@ -5,6 +5,7 @@
 @using Flurl
 @using Satori.AppServices.Extensions
 @using Satori.AppServices.ViewModels.WorkItems
+@using CodeMonkeyProjectiles.Linq
 @attribute [StreamRendering]
 @inject UserService UserService
 @inject StandUpService StandUpService
@@ -66,7 +67,7 @@
             }
             else if (day.CanExport)
             {
-                <button class="btn btn-outline-success">Export</button>
+                <button class="btn btn-outline-success" @onclick="async () => await ExportAsync(day)">Export</button>
             }
             else
             {
@@ -97,7 +98,7 @@
                 }
                 else if (project.CanExport)
                 {
-                    <button class="btn btn-outline-success">Export</button>
+                    <button class="btn btn-outline-success" @onclick="async () => await ExportAsync(project)">Export</button>
                 }
                 else
                 {
@@ -144,7 +145,7 @@
                     }
                     else if (activity.CanExport)
                     {
-                        <button class="btn btn-outline-success">Export</button>
+                        <button class="btn btn-outline-success" @onclick="async () => await ExportAsync(activity)">Export</button>
                     }
                     else
                     {
@@ -516,7 +517,27 @@
 
     private bool _isExporting;
 
+    private async Task ExportAsync(StandUpDay day)
+    {
+        await ExportAsync(day.Projects.SelectMany(p => p.Activities).SelectMany(a => a.TimeEntries));
+    }
+
+    private async Task ExportAsync(ProjectSummary project)
+    {
+        await ExportAsync(project.Activities.SelectMany(a => a.TimeEntries));
+    }
+
+    private async Task ExportAsync(ActivitySummary activity)
+    {
+        await ExportAsync(activity.TimeEntries);
+    }
+
     private async Task ExportAsync(TimeEntry entry)
+    {
+        await ExportAsync(entry.Yield());
+    }
+
+    private async Task ExportAsync(IEnumerable<TimeEntry> entries)
     {
         if (_isExporting)
         {
@@ -526,7 +547,7 @@
         _isExporting = true;
         try
         {
-            await StandUpService.ExportAsync(entry);
+            await StandUpService.ExportAsync(entries.Where(x => x.CanExport).ToArray());
         }
         finally
         {
