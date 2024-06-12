@@ -1,4 +1,5 @@
-﻿using Satori.AppServices.Extensions;
+﻿using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
+using Satori.AppServices.Extensions;
 using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
@@ -75,15 +76,17 @@ public class CompletedWorkTests
     }
     
     [TestMethod]
-    public void UnknownWorkItemId_ThrowsInvalidOp()
+    public void UnknownWorkItemId_Throws()
     {
         // Arrange
         var workItemId = RandomGenerator.Integer(100000);
         var adjustment = RandomGenerator.Number(2.5).ToNearest(0.05);
 
         // Act
-        Should.ThrowAsync<InvalidOperationException>(() => AdjustCompletedWorkAsync(workItemId, adjustment))
-            .Result.Message.ShouldBe($"Work Item ID {workItemId} was not found");
+        var ex = Should.ThrowAsync<Exception>(() => AdjustCompletedWorkAsync(workItemId, adjustment)).Result;
+
+        // Assert
+        ex.Message.ShouldContain(workItemId.ToString());
     }
     
     [TestMethod]
@@ -98,7 +101,7 @@ public class CompletedWorkTests
         await AdjustCompletedWorkAsync(task.Id, adjustment);
 
         // Assert
-        task.Fields.CompletedWork.ShouldBe(1.2 + adjustment);
+        task.Fields.CompletedWork.ShouldBe((1.2 + adjustment).ToNearest(CompletedWorkPrecision));
     }
     
     [TestMethod]

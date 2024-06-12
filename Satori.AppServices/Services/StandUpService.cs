@@ -1,5 +1,6 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Flurl;
+using Microsoft.Extensions.Logging;
 using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.ViewModels;
@@ -24,6 +25,7 @@ public partial class StandUpService(
     , UserService userService
     , IDailyActivityExporter dailyActivityExporter
     , ITaskAdjustmentExporter taskAdjustmentExporter
+    , ILoggerFactory loggerFactory
     )
 {
     #region GetStandUpDaysAsync
@@ -382,11 +384,16 @@ public partial class StandUpService(
 
         foreach (var entry in timeEntries)
         {
-            entry.Task = GetAllWorkItemIds(entry).Distinct()
+            var task = GetAllWorkItemIds(entry).Distinct()
                 .Join(workItems, id => id, wi => wi.Id, (_, wi) => wi)
                 .OrderByDescending(wi => wi.Type == WorkItemType.Task)
                 .ThenBy(wi => wi.Id)
                 .FirstOrDefault();
+
+            if (task != null)
+            {
+                entry.Task = task;
+            }
         }
     }
 
@@ -405,9 +412,28 @@ public partial class StandUpService(
         return workItems;
     }
 
-    private async Task<IEnumerable<WorkItem>> GetWorkItemsAsync(IEnumerable<int> workItemIds)
+    private async Task<IEnumerable<WorkItem>> GetWorkItemsAsync(IEnumerable<int> workItemIds) =>
+        await GetWorkItemsAsync(workItemIds.ToArray());
+
+    private async Task<IEnumerable<WorkItem>> GetWorkItemsAsync(int[] workItemIds)
     {
-        return (await azureDevOps.GetWorkItemsAsync(workItemIds)).Select(wi => wi.ToViewModel());
+        try
+        {
+            return (await azureDevOps.GetWorkItemsAsync(workItemIds)).Select(wi => wi.ToViewModel());
+        }
+        catch (Exception ex)
+        {
+            var logger = loggerFactory.CreateLogger<StandUpService>();
+            logger.LogError(ex, "Failed to load work items {WorkItemIds}", workItemIds);
+
+            var badIds = workItemIds.Where(id => ex.Message.Contains($" {id} ")).ToList();
+            if (badIds.Any())
+            {
+                return await GetWorkItemsAsync(workItemIds.Except(badIds).ToArray());
+            }
+
+            return [];
+        }
     }
 
     private static IEnumerable<int> GetAllWorkItemIds(TimeEntry entry)

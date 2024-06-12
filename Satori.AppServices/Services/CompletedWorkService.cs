@@ -20,8 +20,7 @@ public class CompletedWorkService(IAzureDevOpsServer azureDevOpsServer)
     /// <exception cref="ArgumentException"></exception>
     public async Task AdjustCompletedWorkAsync(int workItemId, double adjustment)
     {
-        var workItem = (await azureDevOpsServer.GetWorkItemsAsync(workItemId)).SingleOrDefault() 
-                       ?? throw new InvalidOperationException($"Work Item ID {workItemId} was not found");
+        var workItem = (await azureDevOpsServer.GetWorkItemsAsync(workItemId)).Single();
         if (WorkItemType.FromApiValue(workItem.Fields.WorkItemType) != WorkItemType.Task)
         {
             throw new InvalidOperationException($"Work Item {workItemId} is not a task");

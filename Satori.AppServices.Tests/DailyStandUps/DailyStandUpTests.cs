@@ -1,4 +1,5 @@
 ﻿using Builder;
+using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Extensions;
 using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
@@ -18,7 +19,7 @@ public abstract class DailyStandUpTests
     protected DailyStandUpTests()
     {
         var userService = new UserService(AzureDevOps.AsInterface(), Kimai.AsInterface());
-        Server = new StandUpService(Kimai.AsInterface(), AzureDevOps.AsInterface(), userService, DailyActivityExporter, TaskAdjustmentExporter);
+        Server = new StandUpService(Kimai.AsInterface(), AzureDevOps.AsInterface(), userService, DailyActivityExporter, TaskAdjustmentExporter, NullLoggerFactory.Instance);
     }
 
     #region Helpers

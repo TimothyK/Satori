@@ -217,8 +217,12 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         entry.Task.Parent.ShouldBeNull();
     }
     
+    /// <summary>
+    /// If someone enters a bad/unknown D# in the Kimai comment, don't throw it away.  Show that the D# is Unknown.
+    /// </summary>
+    /// <returns></returns>
     [TestMethod]
-    public async Task TaskDoesNotExist()
+    public async Task TaskDoesNotExist_ShowUnknown()
     {
         //Arrange
         var kimaiEntry = BuildTimeEntry();
@@ -229,7 +233,26 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
 
         //Assert
         var entry = entries.Single();
-        entry.Task.ShouldBeNull();
+        entry.Task.ShouldNotBeNull();
+        entry.Task.Id.ShouldBe(99999);
+        entry.Task.Type.ShouldBe(WorkItemType.Unknown);
+    }
+    
+    [TestMethod]
+    public async Task OneTaskDoesNotExist()
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem(out var task);
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.Description = $"D#99999 Not Found » D#{task.Id}";
+        
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.Task.ShouldNotBeNull();
+        entry.Task.Id.ShouldBe(task.Id);
     }
 
     #endregion Load Work Item Type and Parent/Child relations
