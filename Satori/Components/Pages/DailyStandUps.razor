@@ -195,7 +195,7 @@
                                                          title="@entry.Task.AssignedTo.DisplayName" />
                                                 </div>
                                             }
-                                            @if (entry.Task.Parent == null)
+                                            @if (entry.Task.Parent == null || entry.Task.Type != WorkItemType.Task)
                                             {
                                                 <label>D#@entry.Task.Id&nbsp;</label>
                                             }
@@ -303,7 +303,7 @@
                                                  title="@entry.Task.AssignedTo.DisplayName" />
                                         </div>
                                     }
-                                    @if (entry.Task.Parent == null)
+                                    @if (entry.Task.Parent == null || entry.Task.Type != WorkItemType.Task)
                                     {
                                         <label>D#@entry.Task.Id&nbsp;</label>
                                     }
