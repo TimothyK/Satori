@@ -3,6 +3,7 @@ using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
+using Satori.AppServices.ViewModels.WorkItems;
 using Shouldly;
 
 namespace Satori.AppServices.Tests.CompletedWorkTests;
@@ -212,5 +213,24 @@ public class CompletedWorkTests
 
         // Assert
         task.Fields.RemainingWork.ShouldBe((original - adjustment).ToNearest(RemainingWorkPrecision));
+    }
+    
+    [TestMethod]
+    public async Task Done_DoesNotSetRemainingWork()
+    {
+        // Arrange
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        var original = RandomGenerator.Number(8).ToNearest(RemainingWorkPrecision);
+        task.Fields.OriginalEstimate = original;
+        task.Fields.RemainingWork = original;
+        var adjustment = RandomGenerator.Number(2.5).ToNearest(RemainingWorkPrecision);
+        
+        task.Fields.State = ScrumState.Done.ToApiValue();
+
+        // Act
+        await AdjustCompletedWorkAsync(task.Id, adjustment);
+
+        // Assert
+        task.Fields.RemainingWork.ShouldBe(original);
     }
 }

@@ -49,7 +49,8 @@ public class CompletedWorkService(IAzureDevOpsServer azureDevOpsServer)
         }
 
         var remainingWork = workItem.Fields.RemainingWork ?? workItem.Fields.OriginalEstimate;
-        if (remainingWork != null)
+        var isDone = ScrumState.FromApiValue(workItem.Fields.State) == ScrumState.Done;
+        if (remainingWork != null && !isDone)
         {
             patchItems.Add(new WorkItemPatchItem
             {
