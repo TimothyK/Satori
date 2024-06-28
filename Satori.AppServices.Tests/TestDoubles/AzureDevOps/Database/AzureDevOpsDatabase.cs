@@ -90,9 +90,17 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
 
     public IEnumerable<WorkItem> GetWorkItemsById(IEnumerable<int> workItemIds)
     {
-        return _workItems
+        var foundWorkItems = _workItems
             .Where(wi => wi.Id.IsIn(workItemIds))
             .ToArray();
+
+        var notFoundIds = workItemIds.Where(id => id.IsNotIn(foundWorkItems.Select(wi => wi.Id))).ToArray();
+        if (notFoundIds.Any())
+        {
+            throw new InvalidOperationException($"TF401232: Work item {notFoundIds.First()} does not exist, or you do not have permissions to read it.");
+        }
+
+        return foundWorkItems;
     }
 
     public Team[] GetTeams() => [.. _teams];

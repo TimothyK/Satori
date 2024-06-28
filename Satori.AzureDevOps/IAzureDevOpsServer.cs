@@ -10,6 +10,15 @@ public interface IAzureDevOpsServer
     Task<IdMap[]> GetPullRequestWorkItemIdsAsync(PullRequestId pr);
     Task<WorkItem[]> GetWorkItemsAsync(IEnumerable<int> workItemIds);
     Task<WorkItem[]> GetWorkItemsAsync(params int[] workItemIds);
+
+    /// <summary>
+    /// Updates a work item
+    /// </summary>
+    /// <param name="id">Work Item ID</param>
+    /// <param name="items">Items/fields on the work item to update</param>
+    /// <returns></returns>
+    Task<WorkItem> PatchWorkItemAsync(int id, IEnumerable<WorkItemPatchItem> items);
+
     Task<Team[]> GetTeamsAsync();
     Task<Iteration?> GetCurrentIterationAsync(Team team);
     Task<WorkItemRelation[]> GetIterationWorkItemsAsync(IterationId iteration);

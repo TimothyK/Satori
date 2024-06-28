@@ -676,7 +676,7 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         days[0].Projects[0].Activities.Length.ShouldBe(3);
         days[0].Projects[0].Activities[0].ActivityId.ShouldBe(activities[2].Id);
         days[0].Projects[0].Activities[0].ActivityName.ShouldBe(activities[2].Name);
-        days[0].Projects[0].Activities[0].Comment.ShouldBe(activities[2].Comment);
+        days[0].Projects[0].Activities[0].ActivityDescription.ShouldBe(activities[2].Comment);
         days[0].Projects[0].Activities[0].TotalTime.ShouldBe(TimeSpan.FromMinutes(50));
         days[0].Projects[0].Activities[0].AllExported.ShouldBeFalse();
         days[0].Projects[0].Activities[0].CanExport.ShouldBeTrue();

@@ -35,9 +35,8 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
     private async Task<TimeEntry[]> GetTimesAsync()
     {
         var today = Today;
-        var srv = new StandUpService(Kimai.AsInterface(), AzureDevOps.AsInterface());
-        var days = await srv.GetStandUpDaysAsync(today.AddDays(-6), today);
-        await srv.GetWorkItemsAsync(days);
+        var days = await Server.GetStandUpDaysAsync(today.AddDays(-6), today);
+        await Server.GetWorkItemsAsync(days);
         
         return days.SelectMany(day => day.Projects.SelectMany(project => project.Activities.SelectMany(activity => activity.TimeEntries)))
             .ToArray();
@@ -218,8 +217,12 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         entry.Task.Parent.ShouldBeNull();
     }
     
+    /// <summary>
+    /// If someone enters a bad/unknown D# in the Kimai comment, don't throw it away.  Show that the D# is Unknown.
+    /// </summary>
+    /// <returns></returns>
     [TestMethod]
-    public async Task TaskDoesNotExist()
+    public async Task TaskDoesNotExist_ShowUnknown()
     {
         //Arrange
         var kimaiEntry = BuildTimeEntry();
@@ -230,7 +233,26 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
 
         //Assert
         var entry = entries.Single();
-        entry.Task.ShouldBeNull();
+        entry.Task.ShouldNotBeNull();
+        entry.Task.Id.ShouldBe(99999);
+        entry.Task.Type.ShouldBe(WorkItemType.Unknown);
+    }
+    
+    [TestMethod]
+    public async Task OneTaskDoesNotExist()
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem(out var task);
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.Description = $"D#99999 Not Found » D#{task.Id}";
+        
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.Task.ShouldNotBeNull();
+        entry.Task.Id.ShouldBe(task.Id);
     }
 
     #endregion Load Work Item Type and Parent/Child relations
@@ -517,7 +539,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
 
 internal static class TimeEntryExtensions
 {
-    public static void AddWorkItems(this KimaiTimeEntry timeEntry, params WorkItem[] workItems)
+    public static KimaiTimeEntry AddWorkItems(this KimaiTimeEntry timeEntry, params WorkItem[] workItems)
     {
         var tasks = workItems.Where(wi => wi.Fields.WorkItemType == WorkItemType.Task.ToApiValue()).ToArray();
         var boardItemTypes = WorkItemType.BoardTypes.Select(x => x.ToApiValue());
@@ -536,5 +558,7 @@ internal static class TimeEntryExtensions
         }
 
         timeEntry.Description += string.Join(Environment.NewLine, lines);
+
+        return timeEntry;
     }
 }

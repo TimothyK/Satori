@@ -8,12 +8,17 @@ public class UserService(IAzureDevOpsServer azureDevOpsServer, IKimaiServer kima
 {
     public async Task<Person> GetCurrentUserAsync()
     {
+        if (Person.Me != null)
+        {
+            return Person.Me;
+        }
+
         var azureDevOpsId = await azureDevOpsServer.GetCurrentUserIdAsync();
         var identity = await azureDevOpsServer.GetIdentityAsync(azureDevOpsId);
         var connectionSettings = azureDevOpsServer.ConnectionSettings;
 
         var kimaiUser = await kimaiServer.GetMyUserAsync();
 
-        return Person.From(identity, kimaiUser, connectionSettings);
+        return Person.Me = Person.From(identity, kimaiUser, connectionSettings);
     }
 }

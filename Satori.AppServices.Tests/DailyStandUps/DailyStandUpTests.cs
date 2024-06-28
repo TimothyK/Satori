@@ -1,9 +1,11 @@
 ﻿using Builder;
+using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Extensions;
 using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
+using Satori.AppServices.Tests.TestDoubles.MessageQueues;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.Kimai.Models;
 using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
@@ -12,6 +14,14 @@ namespace Satori.AppServices.Tests.DailyStandUps;
 
 public abstract class DailyStandUpTests
 {
+    protected StandUpService Server { get; }
+
+    protected DailyStandUpTests()
+    {
+        var userService = new UserService(AzureDevOps.AsInterface(), Kimai.AsInterface());
+        Server = new StandUpService(Kimai.AsInterface(), AzureDevOps.AsInterface(), userService, DailyActivityExporter, TaskAdjustmentExporter, NullLoggerFactory.Instance);
+    }
+
     #region Helpers
 
     #region Arrange
@@ -19,6 +29,9 @@ public abstract class DailyStandUpTests
     private protected TestAzureDevOpsServer AzureDevOps { get; } = new();
 
     private protected TestKimaiServer Kimai { get; } = new() {CurrentUser = DefaultUser};
+
+    private protected TestTaskAdjustmentExporter TaskAdjustmentExporter { get; } = new();
+    private protected TestDailyActivityExporter DailyActivityExporter { get; } = new();
 
     protected static readonly User DefaultUser = Builder<User>.New().Build(user =>
     {
@@ -65,7 +78,8 @@ public abstract class DailyStandUpTests
         return activities;
     }
 
-    protected static DateOnly Today => DateOnly.FromDateTime(DateTime.Today);
+    private static DateOnly? _today;
+    protected static DateOnly Today => _today ?? (_today = DateOnly.FromDateTime(DateTime.Today)).Value;
 
     protected KimaiTimeEntry BuildTimeEntry(DateOnly day) => 
         BuildTimeEntry(day, TimeSpan.FromMinutes(30).Randomize());
@@ -112,9 +126,7 @@ public abstract class DailyStandUpTests
 
     protected async Task<StandUpDay[]> GetStandUpDaysAsync(DateOnly begin, DateOnly end)
     {
-        var srv = new StandUpService(Kimai.AsInterface(), AzureDevOps.AsInterface());
-
-        return await srv.GetStandUpDaysAsync(begin, end);
+        return await Server.GetStandUpDaysAsync(begin, end);
     }
 
     #endregion Act

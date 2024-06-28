@@ -15,6 +15,7 @@
     <ProjectReference Include="..\CodeMonkeyProjectiles.Linq\CodeMonkeyProjectiles.Linq.csproj" />
     <ProjectReference Include="..\Satori.AzureDevOps\Satori.AzureDevOps.csproj" />
     <ProjectReference Include="..\Satori.Kimai\Satori.Kimai.csproj" />
+    <ProjectReference Include="..\Satori.MessageQueues\Satori.MessageQueues.csproj" />
   </ItemGroup>
 
 </Project>

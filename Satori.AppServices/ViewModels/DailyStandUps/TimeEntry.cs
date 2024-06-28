@@ -5,12 +5,15 @@ namespace Satori.AppServices.ViewModels.DailyStandUps;
 public class TimeEntry
 {
     public int Id { get; init; }
+
+    public required ActivitySummary ParentActivitySummary { get; init; }
+
     public DateTimeOffset Begin { get; init; }
     public DateTimeOffset? End { get; init; }
     
     public TimeSpan TotalTime { get; internal init; }
-    public bool Exported { get; internal init; }
-    public bool CanExport { get; internal init; }
+    public bool Exported { get; internal set; }
+    public bool CanExport { get; internal set; }
 
     /// <summary>
     /// This is read from the comment of the underlying time entry record.

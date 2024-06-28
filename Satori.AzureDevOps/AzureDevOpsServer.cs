@@ -95,6 +95,35 @@ public class AzureDevOpsServer(
         return [.. results];
     }
 
+    public async Task<WorkItem> PatchWorkItemAsync(int id, IEnumerable<WorkItemPatchItem> items) =>
+        await PatchWorkItemAsync(id, items as WorkItemPatchItem[] ?? items.ToArray());
+
+    private async Task<WorkItem> PatchWorkItemAsync(int id, WorkItemPatchItem[] items)
+    {
+        var url = ConnectionSettings.Url
+            .AppendPathSegment("_apis/wit/workItems")
+            .AppendPathSegment(id)
+            .AppendQueryParam("$expand", "all")
+            .AppendQueryParam("api-version", "6.0");
+
+        using (Logger.BeginScope("{Body}", JsonSerializer.Serialize(items)))
+            Logger.LogInformation("PATCH {Url}", url);
+
+        var request = new HttpRequestMessage(HttpMethod.Patch, url);
+        AddAuthHeader(request);
+
+        request.Content = new StringContent(JsonSerializer.Serialize(items), Encoding.UTF8, "application/json-patch+json");
+
+        var response = await httpClient.SendAsync(request);
+        await VerifySuccessfulResponseAsync(response);
+
+        await using var responseStream = await response.Content.ReadAsStreamAsync();
+        var workItem = await JsonSerializer.DeserializeAsync<WorkItem>(responseStream)
+                   ?? throw new ApplicationException("Server did not respond");
+
+        return workItem;
+    }
+
     public async Task<Team[]> GetTeamsAsync()
     {
         var url = ConnectionSettings.Url

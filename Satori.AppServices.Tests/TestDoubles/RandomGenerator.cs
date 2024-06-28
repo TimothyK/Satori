@@ -57,7 +57,7 @@ public static class RandomGenerator
     /// <param name="target"></param>
     /// <param name="standardDeviation">distribution of the returned value</param>
     /// <returns></returns>
-    private static double Number(double target, double? standardDeviation = null)
+    public static double Number(double target, double? standardDeviation = null)
     {
         var u1 = 1.0 - Random.NextDouble(); //uniform(0,1] random doubles
         var u2 = 1.0 - Random.NextDouble();

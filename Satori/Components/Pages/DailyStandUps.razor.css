@@ -81,6 +81,20 @@
     background-color: #0096D6;
 }
 
+.avatar-cell {
+    position: relative;
+    text-align: left;
+    margin-right: 8px;
+}
+
+.avatar-cell img {
+    width: 24px;
+    height: 24px;
+}
+.avatar-cell {
+    border: 3px solid red;
+}
+
 .day-header {
     display: flex;
     flex-wrap: wrap;
@@ -136,18 +150,36 @@
     margin-left: auto;
 }
 
+.activity-summary {
+    margin-left: 150px;
+    border-spacing: 0px;
+}
+.activity-summary p {
+    margin: 0px;
+    white-space: pre;
+}
+.activity-summary .badge {
+    margin-left: 5px;
+    align-self: flex-start;
+}
+
 .time-table {
     margin-left: 100px;
     border-spacing: 0px;
+}
+.activity-summary .time-table {
+    margin-left: 0px;
 }
 .time-entry-comments {
     vertical-align: middle;
 }
 .time-entry-comments p {
     margin: 0px;
+    white-space: pre;
 }
 .time-entry-comments .badge {
     margin-left: 5px;
+    align-self: flex-start;
 }
 
 .time-entry td .duration {
@@ -165,9 +197,11 @@
 }
 
 .export {
-    margin-left: 5px;
     margin-right: 5px;
     font-size: 0.9em;
+}
+.export-done {
+    display: none;
 }
 .export button {
     font-size: 0.9em;
@@ -179,6 +213,8 @@
     align-items: center;
     border: 1px solid darkgray;
     border-radius: 5px;
+    margin-right: 5px;
+    align-self: flex-start;
 }
 
 .duration-caret {
@@ -251,9 +287,16 @@
     cursor: pointer;
 }
 
+.work-item-row {
+    display: flex;
+    flex-wrap: wrap;
+}
+
 .work-item {
     border-left: solid 5px;
+    margin-left: 5px;
     padding-left: 3px;
+    display: flex;
 }
 
 .work-item-epic {

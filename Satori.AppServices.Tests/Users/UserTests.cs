@@ -24,6 +24,8 @@ public class UserTests
     {
         public TestData()
         {
+            Person.Me = null;  //Clear cache
+
             TestUserAzureDevOpsId = Guid.NewGuid();
             Identity = new Identity
             {

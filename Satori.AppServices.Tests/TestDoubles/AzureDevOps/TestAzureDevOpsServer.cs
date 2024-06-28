@@ -1,8 +1,14 @@
-﻿using Moq;
+﻿using CodeMonkeyProjectiles.Linq;
+using Moq;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Database;
+using Satori.AppServices.ViewModels;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
+using Shouldly;
+using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 
@@ -33,9 +39,29 @@ internal class TestAzureDevOpsServer
 
     public TestAzureDevOpsServer()
     {
+        TestUserAzureDevOpsId = Person.Me?.AzureDevOpsId ?? Guid.NewGuid();
+        Identity = new Identity
+        {
+            Id = TestUserAzureDevOpsId,
+            ProviderDisplayName = Person.Me?.DisplayName ?? "Test User (AzDO)",
+            Properties = new IdentityProperties()
+            {
+                Description = new IdentityPropertyValue<string>() { Value = "Code Monkey" },
+                Domain = new IdentityPropertyValue<string>() { Value = "DomainName" },
+                Account = new IdentityPropertyValue<string>() { Value = "TimothyK" },
+                Mail = new IdentityPropertyValue<string>() { Value = "timothy@klenkeverse.com" },
+            }
+        };
+
         _mock = new Mock<IAzureDevOpsServer>(MockBehavior.Strict);
         _mock.Setup(srv => srv.ConnectionSettings)
             .Returns(new ConnectionSettings { Url = new Uri(AzureDevOpsRootUrl), PersonalAccessToken = "token" });
+
+        _mock.Setup(srv => srv.GetCurrentUserIdAsync())
+            .ReturnsAsync(() => TestUserAzureDevOpsId);
+
+        _mock.Setup(srv => srv.GetIdentityAsync(TestUserAzureDevOpsId))
+            .ReturnsAsync(() => Identity);
 
         _mock.Setup(srv => srv.GetPullRequestsAsync())
             .ReturnsAsync(() => _database.GetPullRequests());
@@ -45,6 +71,8 @@ internal class TestAzureDevOpsServer
 
         _mock.Setup(srv => srv.GetWorkItemsAsync(It.IsAny<IEnumerable<int>>()))
             .ReturnsAsync((IEnumerable<int> workItemIds) => GetWorkItems(workItemIds));
+        _mock.Setup(srv => srv.GetWorkItemsAsync(It.IsAny<int[]>()))
+            .ReturnsAsync((int[] workItemIds) => GetWorkItems(workItemIds));
 
         _mock.Setup(srv => srv.GetTeamsAsync())
             .ReturnsAsync(() => _database.GetTeams());
@@ -54,6 +82,9 @@ internal class TestAzureDevOpsServer
 
         _mock.Setup(srv => srv.GetIterationWorkItemsAsync(It.IsAny<IterationId>()))
             .ReturnsAsync((IterationId iteration) => _database.GetWorkItemsForIteration(iteration));
+
+        _mock.Setup(srv => srv.PatchWorkItemAsync(It.IsAny<int>(), It.IsAny<IEnumerable<WorkItemPatchItem>>()))
+            .ReturnsAsync((int id, IEnumerable<WorkItemPatchItem> items) => PatchWorkItems(id, items));
 
         return;
         IdMap[] GetWorkItemMap(PullRequestId pullRequest)
@@ -67,6 +98,57 @@ internal class TestAzureDevOpsServer
         {
             return _database.GetWorkItemsById(workItemIds).ToArray();
         }
+    }
+
+    private Guid TestUserAzureDevOpsId { get; }
+
+    public Identity Identity { get; set; }
+
+
+    private WorkItem PatchWorkItems(int id, IEnumerable<WorkItemPatchItem> items)
+    {
+        var workItem = _database.GetWorkItemsById(id.Yield()).SingleOrDefault()
+            ?? throw new InvalidOperationException($"Work Item {id} not found");
+
+        var original = JsonSerializer.Serialize(workItem);
+
+        var revWasTested = false;
+
+        foreach (var item in items)
+        {
+            if (item is { Operation: Operation.Test, Path: "/rev" })
+            {
+                workItem.Rev.ShouldBe(item.Value);
+                revWasTested = true;
+            }
+            else
+            {
+                PatchWorkItem(workItem, item);
+            }
+        }
+
+        revWasTested.ShouldBeTrue();
+        if (original != JsonSerializer.Serialize(workItem))
+        {
+            workItem.Rev++;
+        }
+
+        return workItem;
+    }
+
+    private static void PatchWorkItem(WorkItem workItem, WorkItemPatchItem item)
+    {
+        if (!item.Path.StartsWith("/fields/"))
+        {
+            throw new NotSupportedException($"Unsupported path {item.Path}");
+        }
+
+        var propertyName = item.Path["/fields/".Length..];
+        var property = workItem.Fields.GetType().GetProperties()
+            .SingleOrDefault(p => p.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name == propertyName)
+            ?? throw new InvalidOperationException($"Unknown path {item.Path}");
+
+        property.SetValue(workItem.Fields, item.Value);
     }
 
     public IAzureDevOpsServer AsInterface() => _mock.Object;

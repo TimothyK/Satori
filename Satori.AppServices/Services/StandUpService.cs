@@ -1,14 +1,17 @@
-﻿using Satori.AppServices.ViewModels.DailyStandUps;
-using Satori.Kimai;
-using Satori.Kimai.Models;
-using CodeMonkeyProjectiles.Linq;
+﻿using CodeMonkeyProjectiles.Linq;
 using Flurl;
-using MoreLinq;
+using Microsoft.Extensions.Logging;
+using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.ViewModels;
+using Satori.AppServices.ViewModels.DailyStandUps;
+using Satori.AppServices.ViewModels.ExportPayloads;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps;
+using Satori.Kimai;
+using Satori.Kimai.Models;
 using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
 using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
 using TimeEntry = Satori.AppServices.ViewModels.DailyStandUps.TimeEntry;
@@ -16,7 +19,14 @@ using UriFormatException = System.UriFormatException;
 
 namespace Satori.AppServices.Services;
 
-public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azureDevOps)
+public partial class StandUpService(
+    IKimaiServer kimai
+    , IAzureDevOpsServer azureDevOps
+    , UserService userService
+    , IDailyActivityExporter dailyActivityExporter
+    , ITaskAdjustmentExporter taskAdjustmentExporter
+    , ILoggerFactory loggerFactory
+    )
 {
     #region GetStandUpDaysAsync
 
@@ -37,12 +47,12 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
             throw new ArgumentException("There are too many days requested in this report.  Please use a smaller date range");
         }
 
-        var getUserTask = kimai.GetMyUserAsync();
+        var getUserTask = userService.GetCurrentUserAsync();
         var getTimeSheetTask = GetTimeSheetAsync(begin, end);
 
         await Task.WhenAll(getUserTask, getTimeSheetTask);
 
-        var language = getUserTask.Result.Language;
+        var language = getUserTask.Result.Language.Replace("-", "_");
         var url = kimai.BaseUrl.AppendPathSegments(language, "timesheet");
 
         var timeSheet = getTimeSheetTask.Result;
@@ -96,11 +106,11 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
         );
     }
 
-    private StandUpDay ToDayViewModel(IGrouping<DateOnly, KimaiTimeEntry> day, Url url)
+    private StandUpDay ToDayViewModel(IGrouping<DateOnly, KimaiTimeEntry> entries, Url url)
     {
         var uri = url.ToUri()
             // ReSharper disable once StringLiteralTypo
-            .AppendQueryParam("daterange", $"{day.Key:O} - {day.Key:O}")
+            .AppendQueryParam("daterange", $"{entries.Key:O} - {entries.Key:O}")
             .AppendQueryParam("state", 3)  // stopped
             .AppendQueryParam("billable", 0)
             .AppendQueryParam("exported", 1)
@@ -112,16 +122,16 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
 
         return new StandUpDay()
         {
-            Date = day.Key,
-            TotalTime = GetDuration(day),
-            AllExported = GetAllExported(day),
-            CanExport = GetCanExport(day),
+            Date = entries.Key,
+            TotalTime = GetDuration(entries),
+            AllExported = GetAllExported(entries),
+            CanExport = GetCanExport(entries),
             Url = uri,
-            Projects = ToProjectsViewModel(day, uri),
-        };
+            Projects = [],
+        }.With(day => day.Projects = ToProjectsViewModel(entries, uri, day));
     }
 
-    private ProjectSummary[] ToProjectsViewModel(IEnumerable<KimaiTimeEntry> entries, Url url)
+    private ProjectSummary[] ToProjectsViewModel(IEnumerable<KimaiTimeEntry> entries, Url url, StandUpDay day)
     {
         var groups = entries.GroupBy(entry => new
         {
@@ -139,6 +149,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
                 {
                     ProjectId = g.Key.ProjectID,
                     ProjectName = g.Key.ProjectName,
+                    ParentDay = day,
                     CustomerId = g.Key.CustomerID,
                     CustomerName = g.Key.CustomerName,
                     CustomerAcronym = GetCustomerAcronym(g.Key.CustomerName),
@@ -147,8 +158,8 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
                     AllExported = GetAllExported(g),
                     CanExport = GetCanExport(g),
                     Url = uri,
-                    Activities = ToActivitiesViewModel(g, uri),
-                };
+                    Activities = [],
+                }.With(p => p.Activities = ToActivitiesViewModel(g, uri, p));
             })
             .OrderByDescending(p => p.TotalTime).ThenBy(p => p.ProjectName)
             .ToArray();
@@ -189,7 +200,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
         }
     }
 
-    private ActivitySummary[] ToActivitiesViewModel(IEnumerable<KimaiTimeEntry> entries, Url url)
+    private ActivitySummary[] ToActivitiesViewModel(IEnumerable<KimaiTimeEntry> entries, Url url, ProjectSummary project)
     {
         var groups = entries.GroupBy(entry => new
         {
@@ -206,13 +217,15 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
                 {
                     ActivityId = g.Key.Id,
                     ActivityName = g.Key.Name,
-                    Comment = g.Key.Comment,
+                    ParentProjectSummary = project,
+                    ActivityDescription = g.Key.Comment,
                     TotalTime = GetDuration(g),
                     AllExported = GetAllExported(g),
                     CanExport = GetCanExport(g),
                     Url = uri,
-                    TimeEntries = g.Select(ToViewModel).ToArray(),
-                };
+                    TimeEntries = [],
+                    TaskSummaries = [],
+                }.With(a => a.TimeEntries = g.Select(entry => ToViewModel(a, entry)).ToArray());
             })
             .OrderByDescending(a => a.TotalTime).ThenBy(a => a.ActivityName)
             .ToArray();
@@ -223,7 +236,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
     [GeneratedRegex(@"^D#?(?'parentId'\d+)[\s-]*(?'parentTitle'.*)\s+D#?(?'id'\d+)[\s-]*(?'title'.*)$", RegexOptions.IgnoreCase)]
     private static partial Regex ParentedWorkItemCommentRegex();
 
-    private TimeEntry ToViewModel(KimaiTimeEntry kimaiEntry)
+    private TimeEntry ToViewModel(ActivitySummary activitySummary, KimaiTimeEntry kimaiEntry)
     {
         var lines = kimaiEntry.Description?.Split('\n')
             .SelectWhereHasValue(x => string.IsNullOrWhiteSpace(x) ? null : x.Trim())
@@ -232,6 +245,7 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
         return new TimeEntry()
         {
             Id = kimaiEntry.Id,
+            ParentActivitySummary = activitySummary,
             Begin = kimaiEntry.Begin,
             End = kimaiEntry.End,
             TotalTime = GetDuration(kimaiEntry),
@@ -335,7 +349,12 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
 
     public async Task GetWorkItemsAsync(StandUpDay[] days)
     {
-        var timeEntries = days.SelectMany(day => day.Projects.SelectMany(project => project.Activities.SelectMany(activity => activity.TimeEntries)))
+        var activitySummaries = days
+            .SelectMany(day => day.Projects)
+            .SelectMany(p => p.Activities)
+            .ToArray();
+        var timeEntries = activitySummaries
+            .SelectMany(activitySummary => activitySummary.TimeEntries)
             .Where(entry => entry.Task != null)
             .ToArray();
 
@@ -344,6 +363,11 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
 
         ResetTimeRemaining(timeEntries);
         ResetNeedsEstimate(timeEntries);
+
+        foreach(var summary in activitySummaries)
+        {
+            SummarizeTimeEntries(summary);
+        }
     }
 
     /// <summary>
@@ -360,11 +384,16 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
 
         foreach (var entry in timeEntries)
         {
-            entry.Task = GetAllWorkItemIds(entry).Distinct()
+            var task = GetAllWorkItemIds(entry).Distinct()
                 .Join(workItems, id => id, wi => wi.Id, (_, wi) => wi)
                 .OrderByDescending(wi => wi.Type == WorkItemType.Task)
                 .ThenBy(wi => wi.Id)
                 .FirstOrDefault();
+
+            if (task != null)
+            {
+                entry.Task = task;
+            }
         }
     }
 
@@ -383,9 +412,28 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
         return workItems;
     }
 
-    private async Task<IEnumerable<WorkItem>> GetWorkItemsAsync(IEnumerable<int> workItemIds)
+    private async Task<IEnumerable<WorkItem>> GetWorkItemsAsync(IEnumerable<int> workItemIds) =>
+        await GetWorkItemsAsync(workItemIds.ToArray());
+
+    private async Task<IEnumerable<WorkItem>> GetWorkItemsAsync(int[] workItemIds)
     {
-        return (await azureDevOps.GetWorkItemsAsync(workItemIds)).Select(wi => wi.ToViewModel());
+        try
+        {
+            return (await azureDevOps.GetWorkItemsAsync(workItemIds)).Select(wi => wi.ToViewModel());
+        }
+        catch (Exception ex)
+        {
+            var logger = loggerFactory.CreateLogger<StandUpService>();
+            logger.LogError(ex, "Failed to load work items {WorkItemIds}", workItemIds);
+
+            var badIds = workItemIds.Where(id => ex.Message.Contains($" {id} ")).ToList();
+            if (badIds.Any())
+            {
+                return await GetWorkItemsAsync(workItemIds.Except(badIds).ToArray());
+            }
+
+            return [];
+        }
     }
 
     private static IEnumerable<int> GetAllWorkItemIds(TimeEntry entry)
@@ -429,5 +477,142 @@ public partial class StandUpService(IKimaiServer kimai, IAzureDevOpsServer azure
         }
     }
 
+    private static void SummarizeTimeEntries(ActivitySummary activitySummary)
+    {
+        activitySummary.TaskSummaries = Summarize(activitySummary.TimeEntries);
+
+        activitySummary.Accomplishments = GetDistinctComments(activitySummary, x => x.Accomplishments);
+        activitySummary.Impediments = GetDistinctComments(activitySummary, x => x.Impediments);
+        activitySummary.Learnings = GetDistinctComments(activitySummary, x => x.Learnings);
+        activitySummary.OtherComments = GetDistinctComments(activitySummary, x => x.OtherComments);
+    }
+
+    private static string? GetDistinctComments(ActivitySummary activitySummary, Func<TimeEntry, string?> selector)
+    {
+        var lines = activitySummary.TimeEntries
+            .OrderBy(entry => entry.Begin)
+            .Select(selector)
+            .SelectMany(comment => comment?.Split('\n') ?? [])
+            .SelectWhereHasValue(x => string.IsNullOrWhiteSpace(x) ? null : x.Trim())
+            .Distinct()
+            .ToArray();
+
+        return RejoinLines(lines);
+    }
+
+    private static TaskSummary[] Summarize(TimeEntry[] entries)
+    {
+        var taskGroups = entries.GroupBy(entry => entry.Task).ToArray();
+
+        if (taskGroups is [{ Key: null }])
+        {
+            return [];
+        }
+
+        return taskGroups.Select(g => new TaskSummary()
+        {
+            Task = g.Key,
+            TotalTime = g.Select(x => x.TotalTime).Sum(),
+            TimeRemaining = g.First().TimeRemaining,
+            NeedsEstimate = g.First().NeedsEstimate,
+        }).ToArray();
+    }
+
     #endregion GetWorkItemsAsync
+
+    #region Export
+
+    public async Task ExportAsync(params TimeEntry[] timeEntries)
+    {
+        var exportableEntries = timeEntries.Where(x => x.CanExport).ToArray();
+
+        foreach (var activitySummary in exportableEntries.Select(entry => entry.ParentActivitySummary).Distinct())
+        {
+            var payload = ToPayload(activitySummary, exportableEntries);
+            await dailyActivityExporter.SendAsync(payload);
+        }
+
+        foreach (var g in exportableEntries
+                 .Where(x => x.Task != null)
+                 .Where(x => x.Task!.AssignedTo == Person.Me)
+                 .GroupBy(x => x.Task))
+        {
+            var adjustment = new TaskAdjustment(g.Key!.Id, g.Select(x => x.TotalTime).Sum());
+            await taskAdjustmentExporter.SendAsync(adjustment);
+
+            g.Key.RemainingWork -= adjustment.Adjustment;
+            g.Key.CompletedWork = (g.Key.CompletedWork ?? TimeSpan.Zero) + adjustment.Adjustment;
+        }
+        
+        foreach (var entry in exportableEntries)
+        {
+            await kimai.ExportTimeSheetAsync(entry.Id);
+
+            entry.Exported = true;
+            entry.CanExport = false;
+        }
+
+        foreach (var activitySummary in exportableEntries.Select(entry => entry.ParentActivitySummary).Distinct())
+        {
+            activitySummary.AllExported = activitySummary.TimeEntries.All(x => x.Exported);
+            activitySummary.CanExport = activitySummary.TimeEntries.Any(x => x.CanExport);
+        }
+        foreach (var projectSummary in exportableEntries.Select(entry => entry.ParentActivitySummary.ParentProjectSummary).Distinct())
+        {
+            projectSummary.AllExported = projectSummary.Activities.All(x => x.AllExported);
+            projectSummary.CanExport = projectSummary.Activities.Any(x => x.CanExport);
+        }
+        foreach (var day in exportableEntries.Select(entry => entry.ParentActivitySummary.ParentProjectSummary.ParentDay).Distinct())
+        {
+            day.AllExported = day.Projects.All(x => x.AllExported);
+            day.CanExport = day.Projects.Any(x => x.CanExport);
+        }
+    }
+
+    private static DailyActivity ToPayload(ActivitySummary activitySummary, TimeEntry[] exportableEntries)
+    {
+        var previous = activitySummary.TimeEntries.Where(x => x.Exported).Select(x => x.TotalTime).Sum();
+        var adjustment = exportableEntries.Where(x => x.ParentActivitySummary == activitySummary).Select(x => x.TotalTime).Sum();
+
+        var payload = new DailyActivity()
+        {
+            Date = activitySummary.ParentProjectSummary.ParentDay.Date,
+            ActivityId = activitySummary.ActivityId,
+            ActivityName = activitySummary.ActivityName,
+            ActivityDescription = activitySummary.ActivityDescription,
+            ProjectId = activitySummary.ParentProjectSummary.ProjectId,
+            ProjectName = activitySummary.ParentProjectSummary.ProjectName,
+            CustomerId = activitySummary.ParentProjectSummary.CustomerId,
+            CustomerName = activitySummary.ParentProjectSummary.CustomerName,
+            TotalTime = previous + adjustment,
+            Accomplishments = activitySummary.Accomplishments,
+            Impediments = activitySummary.Impediments,
+            Learnings = activitySummary.Learnings,
+            OtherComments = activitySummary.OtherComments,
+            Tasks = ToComment(activitySummary.TaskSummaries)
+        };
+        return payload;
+    }
+
+    private static string? ToComment(TaskSummary[] taskSummaries)
+    {
+        var lines = taskSummaries.Where(x => x.Task != null).Select(x => ToComment(x.Task!)).ToArray();
+        return lines.None() ? null : string.Join(Environment.NewLine, lines);
+    }
+
+    private static string ToComment(WorkItem task)
+    {
+        var builder = new StringBuilder();
+
+        if (task.Parent != null && task.Type == WorkItemType.Task)
+        {
+            builder.Append($"D#{task.Parent.Id} {task.Parent.Title}");
+            builder.Append(" » ");
+        }
+        builder.Append($"D#{task.Id} {task.Title}");
+
+        return builder.ToString();
+    }
+
+    #endregion Export
 }
