@@ -44,14 +44,15 @@
             </div>
         </div>
     </a>
+    <a href="@_rabbitMqUrl" target="_blank">
+        <div class="card">
+            <img style="padding: 15px;" src="images/rabbitmq.svg" alt="RabbitMQ Logo" />
+            <div class="card-body">
+                <p class="card-text">RabbitMQ</p>
+            </div>
+        </div>
+    </a>
 </div>
-
-<h4>Coming Soon</h4>
-<ul>
-    <li>Rabbit MQ</li>
-    <li><a target="_blank" href="https://outlook.office.com/mail/">Outlook</a></li>
-    <li>and more to come</li>
-</ul>
 
 <h4>Contributions</h4>
 <ul>
@@ -63,6 +64,7 @@
 {
     private Uri? _azureDevOpsUrl;
     private Uri? _kimaiUrl;
+    private Uri? _rabbitMqUrl;
 
     protected override async Task OnInitializedAsync()
     {
@@ -72,6 +74,8 @@
             .AppendPathSegment(person.Language.Replace("-", "_"))
             .AppendPathSegment("timesheet")
             .ToUri();
+
+        _rabbitMqUrl = new Uri($"http://{ConnectionSettings.MessageQueue.HostName}:15672");
     }
 
 }
