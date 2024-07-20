@@ -2,7 +2,7 @@
 @using Satori.AppServices.Models
 @using Satori.AppServices.Services
 @using Flurl
-@inject ConnectionSettings ConnectionSettings
+@inject IConnectionSettingsStore ConnectionSettingsStore
 @inject UserService UserService
 
 <PageTitle>Satori</PageTitle>
@@ -79,14 +79,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _azureDevOpsUrl = ConnectionSettings.AzureDevOps.Url;
+        _azureDevOpsUrl = ConnectionSettingsStore.GetAzureDevOpsSettings().Url;
         var person = await UserService.GetCurrentUserAsync();
-        _kimaiUrl = ConnectionSettings.Kimai.Url
+        _kimaiUrl = ConnectionSettingsStore.GetKimaiSettings().Url
             .AppendPathSegment(person.Language.Replace("-", "_"))
             .AppendPathSegment("timesheet")
             .ToUri();
 
-        _rabbitMqUrl = new Uri($"http://{ConnectionSettings.MessageQueue.HostName}:15672");
+        _rabbitMqUrl = new Uri($"http://{ConnectionSettingsStore.GetMessageQueueSettings().HostName}:15672");
     }
 
 }

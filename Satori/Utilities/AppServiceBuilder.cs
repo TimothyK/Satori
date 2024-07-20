@@ -1,4 +1,5 @@
-﻿using Satori.AppServices.Services;
+﻿using Satori.AppServices.Models;
+using Satori.AppServices.Services;
 using Satori.AppServices.Services.Abstractions;
 using Satori.AzureDevOps;
 using Satori.Kimai;
@@ -13,6 +14,8 @@ internal static class AppServiceBuilder
     {
         var settings = builder.GetConnectionSettings();
         builder.Services.AddSingleton(settings);
+        builder.Services.AddSingleton<IConnectionSettingsStore, ConnectionSettingsStore>();
+
         builder.Services.AddSingleton<HttpClient>();
         
         builder.Services.AddSingleton<SprintBoardService>();
