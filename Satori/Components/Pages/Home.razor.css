@@ -3,19 +3,25 @@
 }
 
 .card {
-    width: 150px;
+    border: 1px dotted grey;
 }
-.card:hover {
+.card-body:hover {
     background-color: #f5f5f5;
 }
-
 .card-body {
-
 }
-
-.card-text{
+.card-body img {
+    width: 150px;
+}
+.card-text {
     text-align: center;
+    margin-bottom: 0px;
 }
+.card-footer {
+    text-align: center;
+    padding: 5px;
+}
+
 .card-stack a {
     text-decoration: none;
 }
