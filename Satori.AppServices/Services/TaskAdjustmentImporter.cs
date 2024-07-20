@@ -4,6 +4,13 @@ using Satori.MessageQueues;
 
 namespace Satori.AppServices.Services;
 
+/// <summary>
+/// Reads task adjustments from the message queue and applies them to the Azure DevOps work items.
+/// </summary>
+/// <param name="userService"></param>
+/// <param name="settings"></param>
+/// <param name="completedWorkService"></param>
+/// <param name="loggerFactory"></param>
 public class TaskAdjustmentImporter(
     UserService userService
     , ConnectionSettings settings
