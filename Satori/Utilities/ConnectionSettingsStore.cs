@@ -3,7 +3,10 @@ using ConnectionSettings = Satori.AzureDevOps.ConnectionSettings;
 
 namespace Satori.Utilities
 {
-    internal class ConnectionSettingsStore(AppServices.Models.ConnectionSettings oldAppSettings) : IConnectionSettingsStore
+    internal class ConnectionSettingsStore(
+        Blazored.LocalStorage.ILocalStorageService localStorage,
+        AppServices.Models.ConnectionSettings oldAppSettings
+    ) : IConnectionSettingsStore
     {
         public ConnectionSettings GetAzureDevOpsSettings()
         {

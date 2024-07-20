@@ -14,7 +14,7 @@ internal static class AppServiceBuilder
     {
         var settings = builder.GetConnectionSettings();
         builder.Services.AddSingleton(settings);
-        builder.Services.AddSingleton<IConnectionSettingsStore, ConnectionSettingsStore>();
+        builder.Services.AddScoped<IConnectionSettingsStore, ConnectionSettingsStore>();
 
         builder.Services.AddSingleton<HttpClient>();
         
