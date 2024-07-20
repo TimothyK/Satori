@@ -9,7 +9,8 @@ namespace Satori;
 
 internal class Program
 {
-    private static TaskAdjustmentImporter? _taskImporter;
+    public static readonly object TaskImporterLock = new();
+    public static TaskAdjustmentImporter? TaskImporter { get; set; }
 
     public static void Main(string[] args)
     {
@@ -26,10 +27,14 @@ internal class Program
 
         builder.Logging.AddSerilog();
 
+        var loggerFactory = new LoggerFactory().AddSerilog();
+        builder.Services.AddSingleton(loggerFactory);
+
+        builder.Services.AddConnectionSettingsFromConfig(builder);
         builder.Services.AddBlazoredLocalStorage();
         builder.Services.AddHotKeys2();
         
-        builder.AddAppServices();
+        builder.Services.AddSatoriServices();
         
         var app = builder.Build();
 
@@ -50,9 +55,6 @@ internal class Program
             .AddInteractiveServerRenderMode();
 
         App = app;
-
-        _taskImporter = Services.GetRequiredService<TaskAdjustmentImporter>();
-        _taskImporter.Start();
 
         app.Run();
     }

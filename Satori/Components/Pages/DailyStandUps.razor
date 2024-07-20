@@ -12,6 +12,7 @@
 @inject NavigationManager NavigationManager
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject IJSRuntime JsRuntime
+@inject IServiceProvider ServiceProvider
 
 <PageTitle>Stand-Ups - Satori</PageTitle>
 
@@ -376,6 +377,27 @@
         DateSelector.DateChanging += DateChanging;
         DateSelector.DateChanged += DateChanged;
         await DateSelector.ChangePeriod(period);
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        StartTaskImporter();
+    }
+
+    private void StartTaskImporter()
+    {
+        lock (Program.TaskImporterLock)
+        {
+            if (Program.TaskImporter != null)
+            {
+                return;
+            }
+
+            var service = ServiceProvider.GetRequiredService<TaskAdjustmentImporter>();
+            service.Start();
+            Program.TaskImporter = service;
+        }
     }
 
     private Period GetPeriodFromUrl()
