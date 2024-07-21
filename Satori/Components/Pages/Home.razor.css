@@ -26,6 +26,19 @@
     text-decoration: none;
 }
 
+h4 {
+    margin-top: 30px;
+}
+
+.integration-help {
+     margin-top: 10px;
+}
+.integration-header {
+    text-decoration: underline;
+    font-weight: 400;
+}
+
 h5 {
     margin-top: 30px;
 }
+
