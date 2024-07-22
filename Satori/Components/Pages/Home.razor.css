@@ -38,6 +38,11 @@ h4 {
     font-weight: 400;
 }
 
+.validation-error {
+    margin-left: 10px;
+    color: red;
+}
+
 h5 {
     margin-top: 30px;
 }
