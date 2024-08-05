@@ -68,7 +68,7 @@ public class KimaiServer(
     private void AddAuthHeader(HttpRequestMessage request)
     {
         request.Headers.Add("X-AUTH-USER", connectionSettings.UserName);
-        request.Headers.Add("X-AUTH-TOKEN", connectionSettings.Token);
+        request.Headers.Add("X-AUTH-TOKEN", connectionSettings.ApiPassword);
     }
 
     private static async Task VerifySuccessfulResponseAsync(HttpResponseMessage response)

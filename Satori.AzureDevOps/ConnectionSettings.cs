@@ -6,7 +6,7 @@ public class ConnectionSettings
     public required Uri Url { get; init; }
     public required string PersonalAccessToken { get; init; }
 
-    public static ConnectionSettings Default = new()
+    public static readonly ConnectionSettings Default = new()
     {
         Enabled = false,
         Url = new Uri("https://devops.test/Org"),

@@ -20,7 +20,7 @@
                     <td><span class="validation-error">@UrlValidationErrorMessage</span></td>
                 </tr>
                 <tr>
-                    <td><label for="azdo-token">Personal Access Token:</label></td>
+                    <td><label for="azdo-token">Personal Access ApiPassword:</label></td>
                     <td><input type="password" id="azdo-token" size="50" @bind="Token" @onblur="Validate" /></td>
                     <td><span class="validation-error">@TokenValidationErrorMessage</span></td>
                 </tr>
@@ -36,7 +36,7 @@
                     <li>click your avatar icon in the top right</li>
                     <li>choose "Security from the menu"</li>
                     <li>
-                        on the Personal access tokens tab click the "+ New Token" button
+                        on the Personal access tokens tab click the "+ New ApiPassword" button
                         <ol type="a">
                             <li>Enter a name for the new token. e.g. "Satori"</li>
                             <li>Change the Expiry Date an interval you wish. Azure DevOps will email you to renew the token when it is about to expire</li>
@@ -47,7 +47,7 @@
                         </ol>
                     </li>
                     <li>Copy the token created. Note that you will not be able to get to this token later.</li>
-                    <li>Paste the value in the Personal Access Token field above</li>
+                    <li>Paste the value in the Personal Access ApiPassword field above</li>
                 </ol>
                 <p class="integration-header">Read Access</p>
                 <p>Satori pulls from Azure DevOps work items for the Sprint Board view. Work Items are also displayed with pull requests and Kimai time entries. </p>

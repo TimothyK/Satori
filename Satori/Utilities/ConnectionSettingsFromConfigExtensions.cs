@@ -35,7 +35,7 @@ internal static class ConnectionSettingsFromConfigExtensions
         {
             Url = new Uri(builder.Configuration["Kimai:Url"] ?? throw new InvalidOperationException("Missing Kimai:Url in settings")),
             UserName = builder.Configuration["Kimai:User"] ?? string.Empty,
-            Token = builder.Configuration["Kimai:Token"] ?? string.Empty,
+            ApiPassword = builder.Configuration["Kimai:Token"] ?? string.Empty,
         };
     }
 

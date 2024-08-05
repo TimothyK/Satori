@@ -15,7 +15,7 @@ internal static class Services
         {
             Url = new Uri("http://kimai.test/"),
             UserName = "me",
-            Token = "myToken"
+            ApiPassword = "myToken"
         };
         builder.Register(_ => connectionSettings).As<ConnectionSettings>();
 

@@ -2,6 +2,8 @@
 
 public class ConnectionSettings
 {
+    public bool Enabled { get; init; } = true;
+
     /// <summary>
     /// Base URL to the Kimai server.  The path should be empty.
     /// </summary>
@@ -13,5 +15,13 @@ public class ConnectionSettings
     /// <summary>
     /// API token that was set for the user
     /// </summary>
-    public required string Token { get; init; }
+    public required string ApiPassword { get; init; }
+
+    public static readonly ConnectionSettings Default = new()
+    {
+        Enabled = false,
+        Url = new Uri("https://kimai.test"),
+        UserName = string.Empty,
+        ApiPassword = string.Empty,
+    };
 }

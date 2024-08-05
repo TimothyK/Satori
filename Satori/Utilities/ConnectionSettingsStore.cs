@@ -11,6 +11,7 @@ namespace Satori.Utilities
         private static class LocalStorageKeys
         {
             public const string AzureDevOpsSettings = "AzureDevOpsSettings";
+            public const string KimaiSettings = "KimaiSettings";
         }
 
         public ConnectionSettings GetAzureDevOpsSettings()
@@ -37,7 +38,7 @@ namespace Satori.Utilities
 
         public void SetKimaiSettings(Kimai.ConnectionSettings settings)
         {
-            throw new NotImplementedException();
+            localStorage.SetItemAsync(LocalStorageKeys.KimaiSettings, settings);
         }
 
         public void SetMessageQueueSettings(MessageQueues.ConnectionSettings settings)
