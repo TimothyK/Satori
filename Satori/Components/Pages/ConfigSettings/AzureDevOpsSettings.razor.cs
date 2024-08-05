@@ -7,85 +7,85 @@ namespace Satori.Components.Pages.ConfigSettings
 {
     public partial class AzureDevOpsSettings
     {
-        private VisibleCssClass AzureDevopsVisible { get; set; } = VisibleCssClass.Hidden;
+        private VisibleCssClass IsVisibleClass { get; set; } = VisibleCssClass.Hidden;
 
         [Parameter]
         public EventCallback OnSettingsChanged { get; set; }
 
-        public void ShowAzureDevOps()
+        public void Show()
         {
             var settings = ConnectionSettingsStore.GetAzureDevOpsSettings();
 
-            AzureDevOpsEnabled = settings.Enabled;
-            AzureDevOpsUrl = settings.Url.ToString();
-            AzureDevOpsToken = settings.PersonalAccessToken;
-            ValidateAzureDevOps();
+            Enabled = settings.Enabled;
+            Url = settings.Url.ToString();
+            Token = settings.PersonalAccessToken;
+            Validate();
 
-            AzureDevopsVisible = VisibleCssClass.Visible;
+            IsVisibleClass = VisibleCssClass.Visible;
             StateHasChanged();
         }
 
-        private void SaveAzureDevOps()
+        private void Save()
         {
-            if (!Uri.TryCreate(AzureDevOpsUrl, UriKind.Absolute, out var url))
+            if (!Uri.TryCreate(Url, UriKind.Absolute, out var url))
             {
                 return;
             }
-            if (string.IsNullOrEmpty(AzureDevOpsToken))
+            if (string.IsNullOrEmpty(Token))
             {
                 return;
             }
 
             var settings = new ConnectionSettings
             {
-                Enabled = AzureDevOpsEnabled,
+                Enabled = Enabled,
                 Url = url,
-                PersonalAccessToken = AzureDevOpsToken
+                PersonalAccessToken = Token
             };
             ConnectionSettingsStore.SetAzureDevOpsSettings(settings);
 
-            AzureDevopsVisible = VisibleCssClass.Hidden;
+            IsVisibleClass = VisibleCssClass.Hidden;
             OnSettingsChanged.InvokeAsync();
         }
         private void CancelAzureDevOps()
         {
-            AzureDevopsVisible = VisibleCssClass.Hidden;
+            IsVisibleClass = VisibleCssClass.Hidden;
         }
 
-        private bool AzureDevOpsEnabled { get; set; } = true;
-        private string? AzureDevOpsUrl { get; set; }
-        private string? AzureDevOpsUrlValidationErrorMessage { get; set; }
-        private string? AzureDevOpsToken { get; set; }
-        private string? AzureDevOpsTokenValidationErrorMessage { get; set; }
-        private bool AzureDevOpsFormIsValid { get; set; }
+        private bool Enabled { get; set; } = true;
+        private string? Url { get; set; }
+        private string? UrlValidationErrorMessage { get; set; }
+        private string? Token { get; set; }
+        private string? TokenValidationErrorMessage { get; set; }
+        private bool FormIsValid { get; set; }
 
-        private void ValidateAzureDevOps()
+        private void Validate()
         {
-            AzureDevOpsFormIsValid = true;
-            if (!AzureDevOpsEnabled)
+            FormIsValid = true;
+            if (!Enabled)
             {
-                AzureDevOpsUrlValidationErrorMessage = null;
-                AzureDevOpsTokenValidationErrorMessage = null;
+                UrlValidationErrorMessage = null;
+                TokenValidationErrorMessage = null;
                 return;
             }
 
-            AzureDevOpsUrlValidationErrorMessage = GetAzureDevOpsUrlValidationErrorMessage();
-            AzureDevOpsTokenValidationErrorMessage = GetAzureDevOpsTokenValidationErrorMessage();
+            UrlValidationErrorMessage = GetUrlValidationErrorMessage();
+            TokenValidationErrorMessage = GetTokenValidationErrorMessage();
 
-            AzureDevOpsFormIsValid = string.IsNullOrEmpty(AzureDevOpsUrlValidationErrorMessage)
-                                     && string.IsNullOrEmpty(AzureDevOpsTokenValidationErrorMessage);
+            FormIsValid = string.IsNullOrEmpty(UrlValidationErrorMessage)
+                                     && string.IsNullOrEmpty(TokenValidationErrorMessage);
         }
 
-        private string? GetAzureDevOpsUrlValidationErrorMessage()
+        private string? GetUrlValidationErrorMessage()
         {
-            AzureDevOpsUrl = AzureDevOpsUrl?.TrimEnd('/');
+            Url = Url?.TrimEnd('/');
 
-            if (string.IsNullOrEmpty(AzureDevOpsUrl))
+            if (string.IsNullOrEmpty(Url))
             {
                 return "Required";
             }
 
-            if (!Uri.TryCreate(AzureDevOpsUrl, UriKind.Absolute, out var url))
+            if (!Uri.TryCreate(Url, UriKind.Absolute, out var url))
             {
                 return "Not a value URL";
             }
@@ -108,9 +108,9 @@ namespace Satori.Components.Pages.ConfigSettings
             return null;
         }
 
-        private string? GetAzureDevOpsTokenValidationErrorMessage()
+        private string? GetTokenValidationErrorMessage()
         {
-            return string.IsNullOrEmpty(AzureDevOpsToken) ? "Required" : null;
+            return string.IsNullOrEmpty(Token) ? "Required" : null;
         }
 
     }

@@ -2,7 +2,7 @@
 @using ConnectionSettings = Satori.AzureDevOps.ConnectionSettings
 @inject IConnectionSettingsStore ConnectionSettingsStore
 
-<div id="edit-azureDevOps" class="integration-region @AzureDevopsVisible">
+<div id="edit-azureDevOps" class="integration-region @IsVisibleClass">
     <h4>Azure DevOps Configuration</h4>
     <div>
         <div class="integration-form">
@@ -10,22 +10,22 @@
                 <tr>
                     <td />
                     <td>
-                        <input type="checkbox" id="azdo-enabled" @bind="AzureDevOpsEnabled" @onblur="ValidateAzureDevOps" />
+                        <input type="checkbox" id="azdo-enabled" @bind="Enabled" @onblur="Validate" />
                         <label for="azdo-enabled">Enabled</label>
                     </td>
                 </tr>
                 <tr>
                     <td><label for="azdo-url">URL:</label></td>
-                    <td><input type="text" id="azdo-url" placeholder="@ConnectionSettings.Default.Url.ToString()" size="50" @bind="AzureDevOpsUrl" @onblur="ValidateAzureDevOps" /></td>
-                    <td><span class="validation-error">@AzureDevOpsUrlValidationErrorMessage</span></td>
+                    <td><input type="text" id="azdo-url" placeholder="@ConnectionSettings.Default.Url.ToString()" size="50" @bind="Url" @onblur="Validate" /></td>
+                    <td><span class="validation-error">@UrlValidationErrorMessage</span></td>
                 </tr>
                 <tr>
                     <td><label for="azdo-token">Personal Access Token:</label></td>
-                    <td><input type="password" id="azdo-token" size="50" @bind="AzureDevOpsToken" @onblur="ValidateAzureDevOps" /></td>
-                    <td><span class="validation-error">@AzureDevOpsTokenValidationErrorMessage</span></td>
+                    <td><input type="password" id="azdo-token" size="50" @bind="Token" @onblur="Validate" /></td>
+                    <td><span class="validation-error">@TokenValidationErrorMessage</span></td>
                 </tr>
             </table>
-            <button class="btn btn-primary" @onclick="SaveAzureDevOps" disabled="@(!AzureDevOpsFormIsValid)">Save</button>
+            <button class="btn btn-primary" @onclick="Save" disabled="@(!FormIsValid)">Save</button>
             <button class="btn btn-light" @onclick="CancelAzureDevOps">Cancel</button>
             <div class="integration-help">
                 <p class="integration-header">Instructions</p>
