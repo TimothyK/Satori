@@ -1,4 +1,5 @@
 ﻿using CodeMonkeyProjectiles.Linq;
+using Microsoft.AspNetCore.Components;
 using Satori.AzureDevOps;
 using Satori.Utilities;
 
@@ -7,6 +8,9 @@ namespace Satori.Components.Pages
     public partial class AzureDevOpsSettings
     {
         private VisibleCssClass AzureDevopsVisible { get; set; } = VisibleCssClass.Hidden;
+
+        [Parameter]
+        public EventCallback OnSettingsChanged { get; set; }
 
         public void ShowAzureDevOps()
         {
@@ -41,6 +45,7 @@ namespace Satori.Components.Pages
             ConnectionSettingsStore.SetAzureDevOpsSettings(settings);
 
             AzureDevopsVisible = VisibleCssClass.Hidden;
+            OnSettingsChanged.InvokeAsync();
         }
         private void CancelAzureDevOps()
         {

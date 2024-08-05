@@ -64,7 +64,7 @@
 
 </div>
 
-<AzureDevOpsSettings @ref="_azureDevOpsSettings" />
+<AzureDevOpsSettings @ref="_azureDevOpsSettings" OnSettingsChanged="LoadAzureDevOpsSettings" />
 
 
 <h5>Privacy Policy</h5>
@@ -93,7 +93,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _azureDevOpsUrl = ConnectionSettingsStore.GetAzureDevOpsSettings().Url;
+        LoadAzureDevOpsSettings();
         var person = await UserService.GetCurrentUserAsync();
         _kimaiUrl = ConnectionSettingsStore.GetKimaiSettings().Url
             .AppendPathSegment(person.Language.Replace("-", "_"))
@@ -106,5 +106,10 @@
     private void ShowAzureDevOps()
     {
         _azureDevOpsSettings?.ShowAzureDevOps();
+    }
+
+    private void LoadAzureDevOpsSettings()
+    {
+        _azureDevOpsUrl = ConnectionSettingsStore.GetAzureDevOpsSettings().Url;
     }
 }
