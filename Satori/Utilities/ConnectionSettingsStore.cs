@@ -4,7 +4,7 @@ using ConnectionSettings = Satori.AzureDevOps.ConnectionSettings;
 namespace Satori.Utilities
 {
     internal class ConnectionSettingsStore(
-        Blazored.LocalStorage.ISyncLocalStorageService  localStorage,
+        Blazored.LocalStorage.ILocalStorageService  localStorage,
         AppServices.Models.ConnectionSettings oldAppSettings
     ) : IConnectionSettingsStore
     {
@@ -32,7 +32,7 @@ namespace Satori.Utilities
 
         public void SetAzureDevOpsSettings(ConnectionSettings settings)
         {
-            localStorage.SetItem(LocalStorageKeys.AzureDevOpsSettings, settings);
+            localStorage.SetItemAsync(LocalStorageKeys.AzureDevOpsSettings, settings);
         }
 
         public void SetKimaiSettings(Kimai.ConnectionSettings settings)
