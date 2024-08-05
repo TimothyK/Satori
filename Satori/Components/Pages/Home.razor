@@ -81,7 +81,7 @@
                 </tr>
                 <tr>
                     <td><label for="azdo-url">URL:</label></td>
-                    <td><input type="text" id="azdo-url" placeholder="https://devops.test/Org" size="50" @bind="AzureDevOpsUrl" @onblur="ValidateAzureDevOps"/></td>
+                    <td><input type="text" id="azdo-url" placeholder="@ConnectionSettings.Default.Url.ToString()" size="50" @bind="AzureDevOpsUrl" @onblur="ValidateAzureDevOps"/></td>
                     <td><span class="validation-error">@AzureDevOpsUrlValidationErrorMessage</span></td>
                 </tr>
                 <tr>
@@ -161,7 +161,7 @@
     }
 
     private VisibleCssClass AzureDevopsVisible { get; set; } = VisibleCssClass.Hidden;
-    private void ShowAzureDevOps()
+    private Task ShowAzureDevOps()
     {
         var settings = ConnectionSettingsStore.GetAzureDevOpsSettings();
 
@@ -171,6 +171,7 @@
         ValidateAzureDevOps();
 
         AzureDevopsVisible = VisibleCssClass.Visible;
+        return Task.CompletedTask;
     }
 
     private void SaveAzureDevOps()
@@ -190,7 +191,7 @@
             Url = url,
             PersonalAccessToken = AzureDevOpsToken
         };
-        // ConnectionSettingsStore.SetAzureDevOpsSettings(settings);
+        ConnectionSettingsStore.SetAzureDevOpsSettings(settings);
 
         AzureDevopsVisible = VisibleCssClass.Hidden;
     }
