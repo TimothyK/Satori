@@ -1,0 +1,63 @@
+﻿@using Satori.AppServices.Models
+@using ConnectionSettings = Satori.AzureDevOps.ConnectionSettings
+@inject IConnectionSettingsStore ConnectionSettingsStore
+
+<div id="edit-azureDevOps" class="integration-region @AzureDevopsVisible">
+    <h4>Azure DevOps Configuration</h4>
+    <div>
+        <div class="integration-form">
+            <table>
+                <tr>
+                    <td />
+                    <td>
+                        <input type="checkbox" id="azdo-enabled" @bind="AzureDevOpsEnabled" @onblur="ValidateAzureDevOps" />
+                        <label for="azdo-enabled">Enabled</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label for="azdo-url">URL:</label></td>
+                    <td><input type="text" id="azdo-url" placeholder="@ConnectionSettings.Default.Url.ToString()" size="50" @bind="AzureDevOpsUrl" @onblur="ValidateAzureDevOps" /></td>
+                    <td><span class="validation-error">@AzureDevOpsUrlValidationErrorMessage</span></td>
+                </tr>
+                <tr>
+                    <td><label for="azdo-token">Personal Access Token:</label></td>
+                    <td><input type="password" id="azdo-token" size="50" @bind="AzureDevOpsToken" @onblur="ValidateAzureDevOps" /></td>
+                    <td><span class="validation-error">@AzureDevOpsTokenValidationErrorMessage</span></td>
+                </tr>
+            </table>
+            <button class="btn btn-primary" @onclick="SaveAzureDevOps" disabled="@(!AzureDevOpsFormIsValid)">Save</button>
+            <button class="btn btn-light" @onclick="CancelAzureDevOps">Cancel</button>
+            <div class="integration-help">
+                <p class="integration-header">Instructions</p>
+                <p>In the URL field enter the full URL of the Azure DevOps web portal. This will include the https, the site name, and the Organization as the first and only part of the path of the URL. E.g. https://devops.test/Org</p>
+                <p>To get a token to use with Satori</p>
+                <ol>
+                    <li>go to Azure DevOps web portal</li>
+                    <li>click your avatar icon in the top right</li>
+                    <li>choose "Security from the menu"</li>
+                    <li>
+                        on the Personal access tokens tab click the "+ New Token" button
+                        <ol type="a">
+                            <li>Enter a name for the new token. e.g. "Satori"</li>
+                            <li>Change the Expiry Date an interval you wish. Azure DevOps will email you to renew the token when it is about to expire</li>
+                            <li>Scopes can be set to "Custom defined"</li>
+                            <li>For Work Items choose "Read & write"</li>
+                            <li>For Code choose "Read"</li>
+                            <li>Click the "Create" button</li>
+                        </ol>
+                    </li>
+                    <li>Copy the token created. Note that you will not be able to get to this token later.</li>
+                    <li>Paste the value in the Personal Access Token field above</li>
+                </ol>
+                <p class="integration-header">Read Access</p>
+                <p>Satori pulls from Azure DevOps work items for the Sprint Board view. Work Items are also displayed with pull requests and Kimai time entries. </p>
+                <p>Git Pull Requests are displayed on the Pull Requests page</p>
+                <p class="integration-header">Write Access</p>
+                <p>From the Stand-up page, Kimai time entries can be exported to update the Completed and Remaining work on task work items.  RabbitMQ must be configured for Export to be enabled.</p>
+                <p>From the Sprint Board page, priority of work items can be changed.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+

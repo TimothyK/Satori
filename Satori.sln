@@ -26,7 +26,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Satori.Kimai", "Satori.Kima
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Satori.Kimai.Tests", "Satori.Kimai.Tests\Satori.Kimai.Tests.csproj", "{A945F2A2-5667-402A-BA28-D514A6E84B87}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Satori.MessageQueues", "Satori.MessageQueues\Satori.MessageQueues.csproj", "{8A2F5FDD-5C89-4AAE-A6A6-0872860D5035}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Satori.MessageQueues", "Satori.MessageQueues\Satori.MessageQueues.csproj", "{8A2F5FDD-5C89-4AAE-A6A6-0872860D5035}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
