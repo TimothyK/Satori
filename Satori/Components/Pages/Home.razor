@@ -59,7 +59,7 @@
             </a>
         </div>
         <div class="card-footer">
-            <button class="btn btn-primary">Edit</button>
+            <button class="btn btn-primary" @onclick="ShowMessageQueueSettings">Edit</button>
         </div>
     </div>
 
@@ -67,6 +67,7 @@
 
 <AzureDevOpsSettings @ref="_azureDevOpsSettings" OnSettingsChanged="LoadAzureDevOpsSettings" />
 <KimaiSettings @ref="_kimaiSettings" OnSettingsChanged="async () => await LoadKimaiSettingsAsync()" />
+<MessageQueueSettings @ref="_messageQueueSettings" OnSettingsChanged="LoadMessageQueueSettings" />
 
 <h5>Privacy Policy</h5>
 <p>
@@ -92,13 +93,13 @@
     private Uri? _rabbitMqUrl;
     private AzureDevOpsSettings? _azureDevOpsSettings;
     private KimaiSettings? _kimaiSettings;
+    private MessageQueueSettings? _messageQueueSettings;
 
     protected override async Task OnInitializedAsync()
     {
         LoadAzureDevOpsSettings();
         await LoadKimaiSettingsAsync();
-
-        _rabbitMqUrl = new Uri($"http://{ConnectionSettingsStore.GetMessageQueueSettings().HostName}:15672");
+        LoadMessageQueueSettings();
     }
 
     private void ShowAzureDevOpsSettings()
@@ -123,6 +124,17 @@
             .AppendPathSegment(person.Language.Replace("-", "_"))
             .AppendPathSegment("timesheet")
             .ToUri();
+    }
+
+    private void ShowMessageQueueSettings()
+    {
+        _messageQueueSettings?.Show();
+    }
+
+    private void LoadMessageQueueSettings()
+    {
+        var settings = ConnectionSettingsStore.GetMessageQueueSettings();
+        _rabbitMqUrl = new Uri($"http://{settings.HostName}:{settings.PortalPort}");
     }
 
 }

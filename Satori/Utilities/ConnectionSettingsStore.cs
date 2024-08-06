@@ -12,6 +12,7 @@ namespace Satori.Utilities
         {
             public const string AzureDevOpsSettings = "AzureDevOpsSettings";
             public const string KimaiSettings = "KimaiSettings";
+            public const string MessageQueueSettings = "MessageQueueSettings";
         }
 
         public ConnectionSettings GetAzureDevOpsSettings()
@@ -43,7 +44,7 @@ namespace Satori.Utilities
 
         public void SetMessageQueueSettings(MessageQueues.ConnectionSettings settings)
         {
-            throw new NotImplementedException();
+            localStorage.SetItemAsync(LocalStorageKeys.MessageQueueSettings, settings);
         }
     }
 }

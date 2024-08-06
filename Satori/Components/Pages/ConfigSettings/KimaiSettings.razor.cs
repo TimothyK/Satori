@@ -74,6 +74,7 @@ namespace Satori.Components.Pages.ConfigSettings
             if (!Enabled)
             {
                 UrlValidationErrorMessage = null;
+                UserNameValidationErrorMessage = null;
                 TokenValidationErrorMessage = null;
                 return;
             }
@@ -83,7 +84,8 @@ namespace Satori.Components.Pages.ConfigSettings
             TokenValidationErrorMessage = GetApiPasswordValidationErrorMessage();
 
             FormIsValid = string.IsNullOrEmpty(UrlValidationErrorMessage)
-                                     && string.IsNullOrEmpty(TokenValidationErrorMessage);
+                          && string.IsNullOrEmpty(UserNameValidationErrorMessage) 
+                          && string.IsNullOrEmpty(TokenValidationErrorMessage);
         }
 
         private string? GetUrlValidationErrorMessage()

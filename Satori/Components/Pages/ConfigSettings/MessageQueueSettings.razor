@@ -1,0 +1,63 @@
+﻿@using Satori.AppServices.Models
+@using ConnectionSettings = Satori.MessageQueues.ConnectionSettings
+@inject IConnectionSettingsStore ConnectionSettingsStore
+
+<div id="edit-messageQueue" class="integration-region @IsVisibleClass">
+    <h4>RabbitMQ Configuration</h4>
+    <div>
+        <div class="integration-form">
+            <table>
+                <tr>
+                    <td />
+                    <td>
+                        <input type="checkbox" id="mq-enabled" @bind="Enabled" @onblur="Validate" />
+                        <label for="mq-enabled">Enabled</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label for="mq-hostname">Host Name:</label></td>
+                    <td><input type="text" id="mq-hostname" placeholder="@ConnectionSettings.Default.HostName" size="50" @bind="HostName" @onblur="Validate" /></td>
+                    <td><span class="validation-error">@HostNameValidationErrorMessage</span></td>
+                </tr>
+                <tr>
+                    <td><label for="mq-apiport">API Port:</label></td>
+                    <td><input type="text" id="mq-apiport" placeholder="@ConnectionSettings.Default.Port" size="20" @bind="Port" @onblur="Validate" /></td>
+                    <td><span class="validation-error">@PortValidationErrorMessage</span></td>
+                </tr>
+                <tr>
+                    <td><label for="mq-portalport">Web Portal Port:</label></td>
+                    <td><input type="text" id="mq-portalport" placeholder="@ConnectionSettings.Default.PortalPort" size="20" @bind="PortalPort" @onblur="Validate" /></td>
+                    <td><span class="validation-error">@PortalPortValidationErrorMessage</span></td>
+                </tr>
+                <tr>
+                    <td><label for="mq-path">Path:</label></td>
+                    <td><input type="text" id="mq-path" placeholder="@ConnectionSettings.Default.Path" size="50" @bind="Path" @onblur="Validate" /></td>
+                    <td><span class="validation-error">@PathValidationErrorMessage</span></td>
+                </tr>
+                <tr>
+                    <td><label for="mq-username">Username:</label></td>
+                    <td><input type="text" id="mq-username" placeholder="@ConnectionSettings.Default.UserName" size="50" @bind="UserName" @onblur="Validate" /></td>
+                    <td><span class="validation-error">@UserNameValidationErrorMessage</span></td>
+                </tr>
+                <tr>
+                    <td><label for="mq-password">Password:</label></td>
+                    <td><input type="password" id="mq-password" size="50" @bind="Password" @onblur="Validate" /></td>
+                    <td><span class="validation-error">@PasswordValidationErrorMessage</span></td>
+                </tr>
+            </table>
+            <button class="btn btn-primary" @onclick="Save" disabled="@(!FormIsValid)">Save</button>
+            <button class="btn btn-light" @onclick="CancelAzureDevOps">Cancel</button>
+            <div class="integration-help">
+                <p class="integration-header">Instructions</p>
+                <p>Enter the setting to communicate with the RabbitMQ API.  These settings are required to export time sheets on the Daily Stand-Up page.</p>
+                <p>The Portal Port is optional.  It is only used to provide the link on this Satori Home page</p>
+                <p class="integration-header">Write Access</p>
+                <p>Satori will export to 2 Exchanges/Queues in RabbitMQ.  The Exchanges and Queues will be created by Satori.  The exchanges are written to, then Satori marks the Kimai time entry record as exported.</p>
+                <p>The queue <i>Satori.TaskAdjustment.&lt;UserName&gt;</i> is used to export to Azure DevOps.  The messages contain the adjustment to be applied to tasks in the Completed Work and Remaining Work fields.  Only tasks owned by the current user are updated.</p>
+                <p>The queue <i>Satori.DailyActivity.&lt;UserName&gt;</i> is used to export daily summary information to third party applications, typically your company's time sheet/invoicing system.  Satori only exports to this queue.  The expectation is that custom software will import from this queue to that external system.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
