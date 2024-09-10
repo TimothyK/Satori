@@ -27,8 +27,8 @@
             </table>
             <button class="btn btn-primary" @onclick="Save" disabled="@(!FormIsValid)">Save</button>
             <button class="btn btn-light" @onclick="CancelAzureDevOps">Cancel</button>
-            <div class="integration-help">
-                <p class="integration-header">Instructions</p>
+            <div class="help-section">
+                <p class="help-header">Instructions</p>
                 <p>In the URL field enter the full URL of the Azure DevOps web portal. This will include the https, the site name, and the Organization as the first and only part of the path of the URL. E.g. https://devops.test/Org</p>
                 <p>To get a token to use with Satori</p>
                 <ol>
@@ -49,10 +49,10 @@
                     <li>Copy the token created. Note that you will not be able to get to this token later.</li>
                     <li>Paste the value in the Personal Access ApiPassword field above</li>
                 </ol>
-                <p class="integration-header">Read Access</p>
+                <p class="help-header">Read Access</p>
                 <p>Satori pulls from Azure DevOps work items for the Sprint Board view. Work Items are also displayed with pull requests and Kimai time entries. </p>
                 <p>Git Pull Requests are displayed on the Pull Requests page</p>
-                <p class="integration-header">Write Access</p>
+                <p class="help-header">Write Access</p>
                 <p>From the Stand-up page, Kimai time entries can be exported to update the Completed and Remaining work on task work items.  RabbitMQ must be configured for Export to be enabled.</p>
                 <p>From the Sprint Board page, priority of work items can be changed.</p>
             </div>

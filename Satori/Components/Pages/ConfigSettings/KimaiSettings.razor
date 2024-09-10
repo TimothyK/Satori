@@ -32,8 +32,8 @@
             </table>
             <button class="btn btn-primary" @onclick="Save" disabled="@(!FormIsValid)">Save</button>
             <button class="btn btn-light" @onclick="CancelAzureDevOps">Cancel</button>
-            <div class="integration-help">
-                <p class="integration-header">Instructions</p>
+            <div class="help-section">
+                <p class="help-header">Instructions</p>
                 <p>In the URL field enter the full URL of the Kimai server. The value should not contain any path information. E.g. https://kimai.test</p>
                 <p>Your Username and API Key is required for Satori to access Kimai on your behalf.</p>
                 <p>To get your Username</p>
@@ -54,9 +54,9 @@
                     <li>Enter the same value into the Repeat API password field.</li>
                     <li>Enter the sae value into the API Password field above on this page</li>
                 </ol>
-                <p class="integration-header">Read Access</p>
+                <p class="help-header">Read Access</p>
                 <p>Satori pulls from Kimai timesheet data for the Daily Stand-Up page.</p>
-                <p class="integration-header">Write Access</p>
+                <p class="help-header">Write Access</p>
                 <p>From the Stand-up page, After time is exported, Satori will mark Kimai time entries as "exported".  RabbitMQ must be configured for Export to be enabled.</p>
                 <p>Comments on unexported time entries can be edited from the Stand-Up page</p>
                 <p>Satori may start and stop the current task timer in Kimai.</p>

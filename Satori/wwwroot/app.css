@@ -54,3 +54,19 @@ h1:focus {
 .hidden {
     display: none;
 }
+
+
+
+.help-section {
+    margin-top: 10px;
+}
+
+.help-header {
+    text-decoration: underline;
+    font-weight: 400;
+}
+
+.validation-error {
+    margin-left: 10px;
+    color: red;
+}

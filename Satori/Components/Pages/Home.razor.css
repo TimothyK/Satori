@@ -1,5 +1,6 @@
 ﻿.card-stack {
     display: flex;
+    margin-bottom: 30px;
 }
 
 .card {
@@ -26,7 +27,4 @@
     text-decoration: none;
 }
 
-h5 {
-    margin-top: 30px;
-}
 
