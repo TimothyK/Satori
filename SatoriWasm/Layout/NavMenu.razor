@@ -1,39 +1,138 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using Satori.AppServices.Services
+@using Satori.AppServices.ViewModels
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject UserService UserService
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">SatoriWasm</a>
+        
+        @if (!IconMenuActive)
+        {
+            <a class="navbar-brand" href="">Satori</a>
+        }
+        else
+        {
+            <a class="navbar-brand" href="">
+                <img src="images/favicon.png" width="24" height="24" alt="Satori"/>
+            </a>
+        }
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
     </div>
 </div>
 
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
+        <div style="width: 95%; margin: 5px; text-align:center;">
+            <img src="@CurrentUser.AvatarUrl" class="avatar" alt="Logged in as @CurrentUser.DisplayName"/>
+        </div>
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span>
+                @if (!IconMenuActive)
+                {
+                    <label>Home</label>
+                }
             </NavLink>
         </div>
+
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
+            <NavLink class="nav-link" href="DailyStandUps">
+                <span class="bi bi-bucket-person-standing-menu" aria-hidden="true"></span>
+                @if (!IconMenuActive)
+                {
+                    <label>Daily Stand-Ups</label>
+                }
             </NavLink>
         </div>
+
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
+            <NavLink class="nav-link" href="SprintBoards">
+                <span class="bi bi-bug-fill-nav-menu" aria-hidden="true"></span>
+                @if (!IconMenuActive)
+                {
+                    <label>Sprint Boards</label>
+                }
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="PullRequests">
+                <span class="bi bi-bucket-fill-nav-menu" aria-hidden="true"></span>
+                @if (!IconMenuActive)
+                {
+                    <label>Pull Requests</label>
+                }
             </NavLink>
         </div>
     </nav>
 </div>
 
-@code {
-    private bool collapseNavMenu = true;
+<div class="bottom-row">
+    <div class="icon-menu-arrow">
+        @if (!IconMenuActive)
+        {
+            <span class="bi bi-left-square-fill-nav-menu" style="background-color: white;" @onclick="ToggleIconMenu"></span>
+        }
+        else
+        {
+            <span class="bi bi-right-square-fill-nav-menu" style="background-color: white;" @onclick="ToggleIconMenu"></span>
+        }
+    </div>
+</div>
 
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+@code {
+
+    private Person CurrentUser { get; set; } = Person.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentUser = await UserService.GetCurrentUserAsync();
+    }
+
+    //bool to send to MainLayout for shrinking sidebar and showing/hide menu text
+    private bool IconMenuActive { get; set; } = false;
+
+    //EventCallback for sending bool to MainLayout
+    [Parameter]
+    public EventCallback<bool> ShowIconMenu { get; set; }
+
+    private bool _collapseNavMenu = true;
+
+    private string? NavMenuCssClass => _collapseNavMenu ? "collapse" : null;
 
     private void ToggleNavMenu()
     {
-        collapseNavMenu = !collapseNavMenu;
+        _collapseNavMenu = !_collapseNavMenu;
     }
+
+    private const string IconMenuActiveStorageKey = "NavMenu.IconMenuActive";
+    //Method to toggle IconMenuActive bool and send bool via EventCallback
+    private async Task ToggleIconMenu()
+    {
+        IconMenuActive = !IconMenuActive;
+        await LocalStorage.SetItemAsync(IconMenuActiveStorageKey, IconMenuActive);
+        await ShowIconMenu.InvokeAsync(IconMenuActive);
+    }
+
+    private bool _isInitialized = false;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_isInitialized)
+        {
+            return;
+        }
+
+        var iconMenuActive = await LocalStorage.GetItemAsync<bool>(IconMenuActiveStorageKey);
+        if (iconMenuActive != IconMenuActive)
+        {
+            await ToggleIconMenu();
+        }
+
+        _isInitialized = true;
+    }
+
 }
