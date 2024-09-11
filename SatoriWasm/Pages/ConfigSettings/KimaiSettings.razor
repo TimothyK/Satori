@@ -1,0 +1,66 @@
+﻿@using Satori.AppServices.Models
+@using ConnectionSettings = Satori.Kimai.ConnectionSettings
+@inject IConnectionSettingsStore ConnectionSettingsStore
+
+<div id="edit-kimai" class="integration-region @IsVisibleClass">
+    <h4>Kimai Configuration</h4>
+    <div>
+        <div class="integration-form">
+            <table>
+                <tr>
+                    <td />
+                    <td>
+                        <input type="checkbox" id="kimai-enabled" @bind="Enabled" @onblur="Validate" />
+                        <label for="kimai-enabled">Enabled</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label for="kimai-url">URL:</label></td>
+                    <td><input type="text" id="kimai-url" placeholder="@ConnectionSettings.Default.Url.ToString()" size="50" @bind="Url" @onblur="Validate" /></td>
+                    <td><span class="validation-error">@UrlValidationErrorMessage</span></td>
+                </tr>
+                <tr>
+                    <td><label for="kimai-username">Username:</label></td>
+                    <td><input type="text" id="kimai-username" size="50" @bind="UserName" @onblur="Validate" /></td>
+                    <td><span class="validation-error">@UserNameValidationErrorMessage</span></td>
+                </tr>
+                <tr>
+                    <td><label for="kimai-token">API Password:</label></td>
+                    <td><input type="password" id="kimai-token" size="50" @bind="ApiPassword" @onblur="Validate" /></td>
+                    <td><span class="validation-error">@TokenValidationErrorMessage</span></td>
+                </tr>
+            </table>
+            <button class="btn btn-primary" @onclick="Save" disabled="@(!FormIsValid)">Save</button>
+            <button class="btn btn-light" @onclick="CancelAzureDevOps">Cancel</button>
+            <div class="help-section">
+                <p class="help-header">Instructions</p>
+                <p>In the URL field enter the full URL of the Kimai server. The value should not contain any path information. E.g. https://kimai.test</p>
+                <p>Your Username and API Key is required for Satori to access Kimai on your behalf.</p>
+                <p>To get your Username</p>
+                <ol>
+                    <li>log into Kimai</li>
+                    <li>click on your avatar in the top right</li>
+                    <li>choose "Edit" from the Menu</li>
+                    <li>make user you are on the Profile tab</li>
+                    <li>Copy the value of the "Name" property.  Note this value may contain spaces.</li>
+                    <li>Paste the value in the Username field above</li>
+                </ol>
+                <p>To get an API Password to use with Satori</p>
+                <ol>
+                    <li>log into Kimai</li>
+                    <li>click on your avatar in the top right</li>
+                    <li>choose "API Access" from the Menu</li>
+                    <li>Enter a value into the API password field.  Ensure this is a strong password.</li>
+                    <li>Enter the same value into the Repeat API password field.</li>
+                    <li>Enter the sae value into the API Password field above on this page</li>
+                </ol>
+                <p class="help-header">Read Access</p>
+                <p>Satori pulls from Kimai timesheet data for the Daily Stand-Up page.</p>
+                <p class="help-header">Write Access</p>
+                <p>From the Stand-up page, After time is exported, Satori will mark Kimai time entries as "exported".  RabbitMQ must be configured for Export to be enabled.</p>
+                <p>Comments on unexported time entries can be edited from the Stand-Up page</p>
+                <p>Satori may start and stop the current task timer in Kimai.</p>
+            </div>
+        </div>
+    </div>
+</div>
