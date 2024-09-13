@@ -40,7 +40,7 @@
             </a>
         </div>
         <div class="card-footer">
-            <button class="btn btn-primary" @onclick="ShowAzureDevOpsSettings">Edit</button>
+            <button class="btn btn-primary" @onclick="ShowAzureDevOpsSettings">@(_azureDevOpsEnabled ? "Edit" : "Add")</button>
         </div>
     </div>
     <div class="card">
@@ -51,18 +51,18 @@
             </a>
         </div>
         <div class="card-footer">
-            <button class="btn btn-primary" @onclick="ShowKimaiSettings">Edit</button>
+            <button class="btn btn-primary" @onclick="ShowKimaiSettings">@(_kimaiEnabled ? "Edit" : "Add")</button>
         </div>
     </div>
     <div class="card">
         <div class="card-body">
-            <a href="@_rabbitMqUrl" target="_blank">
+            <a href="@_messageQueueUrl" target="_blank">
                 <img style="padding: 15px;" src="images/rabbitmq.svg" alt="RabbitMQ Logo" />
                 <p class="card-text">RabbitMQ</p>
             </a>
         </div>
         <div class="card-footer">
-            <button class="btn btn-primary" @onclick="ShowMessageQueueSettings">Edit</button>
+            <button class="btn btn-primary" @onclick="ShowMessageQueueSettings">@(_messageQueueEnabled ? "Edit" : "Add")</button>
         </div>
     </div>
 
@@ -91,9 +91,12 @@
 
 @code
 {
+    private bool _azureDevOpsEnabled;
+    private bool _kimaiEnabled;
+    private bool _messageQueueEnabled;
     private Uri? _azureDevOpsUrl;
     private Uri? _kimaiUrl;
-    private Uri? _rabbitMqUrl;
+    private Uri? _messageQueueUrl;
     private AzureDevOpsSettings? _azureDevOpsSettings;
     private KimaiSettings? _kimaiSettings;
     private MessageQueueSettings? _messageQueueSettings;
@@ -112,7 +115,9 @@
 
     private void LoadAzureDevOpsSettings()
     {
-        _azureDevOpsUrl = ConnectionSettingsStore.GetAzureDevOpsSettings().Url;
+        var settings = ConnectionSettingsStore.GetAzureDevOpsSettings();
+        _azureDevOpsEnabled = settings.Enabled;
+        _azureDevOpsUrl = settings.Url;
     }
 
     private void ShowKimaiSettings()
@@ -123,7 +128,9 @@
     private async Task LoadKimaiSettingsAsync()
     {
         var person = await UserService.GetCurrentUserAsync();
-        _kimaiUrl = ConnectionSettingsStore.GetKimaiSettings().Url
+        var settings = ConnectionSettingsStore.GetKimaiSettings();
+        _kimaiEnabled = settings.Enabled;
+        _kimaiUrl = settings.Url
             .AppendPathSegment(person.Language.Replace("-", "_"))
             .AppendPathSegment("timesheet")
             .ToUri();
@@ -137,7 +144,8 @@
     private void LoadMessageQueueSettings()
     {
         var settings = ConnectionSettingsStore.GetMessageQueueSettings();
-        _rabbitMqUrl = new Uri($"http://{settings.HostName}:{settings.PortalPort}");
+        _messageQueueEnabled = settings.Enabled;
+        _messageQueueUrl = new Uri($"http://{settings.HostName}:{settings.PortalPort}");
     }
 
     private void ReloadPage()
