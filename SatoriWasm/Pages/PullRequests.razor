@@ -3,9 +3,12 @@
 @using Satori.AppServices.ViewModels.PullRequests
 @using Satori.AppServices.Services
 @using CodeMonkeyProjectiles.Linq
+@using Satori.AppServices.Models
 @using Satori.AppServices.ViewModels.WorkItems
 @inject PullRequestService PullRequestService
 @inject IJSRuntime JsRuntime
+@inject NavigationManager NavigationManager
+@inject IConnectionSettingsStore ConnectionSettingsStore
 
 <PageTitle>Pull Requests - Satori</PageTitle>
 
@@ -128,6 +131,12 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        if (!ConnectionSettingsStore.GetAzureDevOpsSettings().Enabled)
+        {
+            // This page shouldn't be accessible if Kimai is disabled.  Go to Home page where AzureDevOps can be configured/enabled.
+            NavigationManager.NavigateTo("/");
+        }
+
         _pullRequests = (await PullRequestService.GetPullRequestsAsync()).ToArray();
         StateHasChanged();  //Quickly show the PR list to the user.
 

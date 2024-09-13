@@ -7,6 +7,7 @@
 @using MessageQueueSettings = Satori.Pages.ConfigSettings.MessageQueueSettings
 @inject IConnectionSettingsStore ConnectionSettingsStore
 @inject UserService UserService
+@inject NavigationManager NavigationManager
 
 <PageTitle>Satori</PageTitle>
 
@@ -67,9 +68,9 @@
 
 </div>
 
-<AzureDevOpsSettings @ref="_azureDevOpsSettings" OnSettingsChanged="LoadAzureDevOpsSettings" />
-<KimaiSettings @ref="_kimaiSettings" OnSettingsChanged="async () => await LoadKimaiSettingsAsync()" />
-<MessageQueueSettings @ref="_messageQueueSettings" OnSettingsChanged="LoadMessageQueueSettings" />
+<AzureDevOpsSettings @ref="_azureDevOpsSettings" OnSettingsChanged="ReloadPage" />
+<KimaiSettings @ref="_kimaiSettings" OnSettingsChanged="ReloadPage" />
+<MessageQueueSettings @ref="_messageQueueSettings" OnSettingsChanged="ReloadPage" />
 
 <h5>Privacy Policy</h5>
 <p>
@@ -137,6 +138,11 @@
     {
         var settings = ConnectionSettingsStore.GetMessageQueueSettings();
         _rabbitMqUrl = new Uri($"http://{settings.HostName}:{settings.PortalPort}");
+    }
+
+    private void ReloadPage()
+    {
+        NavigationManager.NavigateTo(NavigationManager.Uri, true);
     }
 
 }

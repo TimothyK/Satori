@@ -6,6 +6,7 @@
 @using Satori.AppServices.Extensions
 @using Satori.AppServices.ViewModels.WorkItems
 @using CodeMonkeyProjectiles.Linq
+@using Satori.AppServices.Models
 @attribute [StreamRendering]
 @inject UserService UserService
 @inject StandUpService StandUpService
@@ -13,6 +14,7 @@
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject IJSRuntime JsRuntime
 @inject IServiceProvider ServiceProvider
+@inject IConnectionSettingsStore ConnectionSettingsStore
 
 <PageTitle>Stand-Ups - Satori</PageTitle>
 
@@ -371,6 +373,12 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (!ConnectionSettingsStore.GetKimaiSettings().Enabled)
+        {
+            // This page shouldn't be accessible if Kimai is disabled.  Go to Home page where Kimai can be configured/enabled.
+            NavigationManager.NavigateTo("/");
+        }
+
         CurrentUser = await UserService.GetCurrentUserAsync();
         var period = GetPeriodFromUrl();
         DateSelector = new DateSelectorViewModel(CurrentUser.FirstDayOfWeek, StandUpService);

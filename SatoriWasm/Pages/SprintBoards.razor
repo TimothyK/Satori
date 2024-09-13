@@ -4,6 +4,7 @@
 @using Satori.AppServices.ViewModels.WorkItems
 @using System.Web
 @using CodeMonkeyProjectiles.Linq
+@using Satori.AppServices.Models
 @using Toolbelt.Blazor.HotKeys2
 @attribute [StreamRendering]
 @inject NavigationManager NavigationManager
@@ -12,6 +13,7 @@
 @inject ILoggerFactory LoggerFactory
 @inject HotKeys HotKeys
 @inject IJSRuntime JsRuntime
+@inject IConnectionSettingsStore ConnectionSettingsStore
 
 <PageTitle>Sprint Boards - Satori</PageTitle>
 
@@ -246,6 +248,12 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        if (!ConnectionSettingsStore.GetAzureDevOpsSettings().Enabled)
+        {
+            // This page shouldn't be accessible if Kimai is disabled.  Go to Home page where AzureDevOps can be configured/enabled.
+            NavigationManager.NavigateTo("/");
+        }
+
         var sprints = (await SprintBoardService.GetActiveSprintsAsync()).ToArray();
         TeamSelection = new TeamSelectionViewModel(sprints, NavigationManager);
         TeamSelection.SelectedTeamChanged += ResetWorkItemCounts;

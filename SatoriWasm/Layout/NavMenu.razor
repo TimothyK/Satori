@@ -1,7 +1,10 @@
-﻿@using Satori.AppServices.Services
+﻿@using Satori.AppServices.Models
+@using Satori.AppServices.Services
 @using Satori.AppServices.ViewModels
+@using Satori.Utilities
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject UserService UserService
+@inject IConnectionSettingsStore ConnectionSettingsStore
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         
@@ -39,7 +42,7 @@
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
+        <div class="nav-item px-3 @ShowStandUp">
             <NavLink class="nav-link" href="DailyStandUps">
                 <span class="bi bi-bucket-person-standing-menu" aria-hidden="true"></span>
                 @if (!IconMenuActive)
@@ -49,7 +52,7 @@
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
+        <div class="nav-item px-3 @ShowSprintBoard">
             <NavLink class="nav-link" href="SprintBoards">
                 <span class="bi bi-bug-fill-nav-menu" aria-hidden="true"></span>
                 @if (!IconMenuActive)
@@ -59,7 +62,7 @@
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
+        <div class="nav-item px-3 @ShowPullRequests">
             <NavLink class="nav-link" href="PullRequests">
                 <span class="bi bi-bucket-fill-nav-menu" aria-hidden="true"></span>
                 @if (!IconMenuActive)
@@ -87,10 +90,17 @@
 @code {
 
     private Person CurrentUser { get; set; } = Person.Empty;
+    private VisibleCssClass ShowStandUp { get; set; } = VisibleCssClass.Hidden;
+    private VisibleCssClass ShowSprintBoard { get; set; } = VisibleCssClass.Hidden;
+    private VisibleCssClass ShowPullRequests { get; set; } = VisibleCssClass.Hidden;
 
     protected override async Task OnInitializedAsync()
     {
         CurrentUser = await UserService.GetCurrentUserAsync();
+
+        ShowStandUp = ConnectionSettingsStore.GetKimaiSettings().Enabled;
+        ShowSprintBoard = ConnectionSettingsStore.GetAzureDevOpsSettings().Enabled;
+        ShowPullRequests = ShowSprintBoard;
     }
 
     //bool to send to MainLayout for shrinking sidebar and showing/hide menu text
