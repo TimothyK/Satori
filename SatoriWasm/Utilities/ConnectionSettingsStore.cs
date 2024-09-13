@@ -1,10 +1,9 @@
 ﻿using Satori.AppServices.Models;
-using ConnectionSettings = Satori.AzureDevOps.ConnectionSettings;
 
 namespace Satori.Utilities
 {
     internal class ConnectionSettingsStore(
-        Blazored.LocalStorage.ILocalStorageService  localStorage
+        Blazored.LocalStorage.ISyncLocalStorageService  localStorage
     ) : IConnectionSettingsStore
     {
         private static class LocalStorageKeys
@@ -14,36 +13,37 @@ namespace Satori.Utilities
             public const string MessageQueueSettings = "MessageQueueSettings";
         }
 
-        public ConnectionSettings GetAzureDevOpsSettings()
+        public AzureDevOps.ConnectionSettings GetAzureDevOpsSettings()
         {
-            return ConnectionSettings.Default;
-            //return localStorage.GetItem<ConnectionSettings>(LocalStorageKeys.AzureDevOpsSettings)
-            //    ?? ConnectionSettings.Default;
+            return localStorage.GetItem<AzureDevOps.ConnectionSettings>(LocalStorageKeys.AzureDevOpsSettings)
+                ?? AzureDevOps.ConnectionSettings.Default;
         }
 
         public Kimai.ConnectionSettings GetKimaiSettings()
         {
-            return Kimai.ConnectionSettings.Default;
+            return localStorage.GetItem<Kimai.ConnectionSettings>(LocalStorageKeys.KimaiSettings)
+                   ?? Kimai.ConnectionSettings.Default;
         }
 
         public MessageQueues.ConnectionSettings GetMessageQueueSettings()
         {
-            return MessageQueues.ConnectionSettings.Default;
+            return localStorage.GetItem<MessageQueues.ConnectionSettings>(LocalStorageKeys.MessageQueueSettings)
+                   ?? MessageQueues.ConnectionSettings.Default;
         }
 
-        public void SetAzureDevOpsSettings(ConnectionSettings settings)
+        public void SetAzureDevOpsSettings(AzureDevOps.ConnectionSettings settings)
         {
-            localStorage.SetItemAsync(LocalStorageKeys.AzureDevOpsSettings, settings);
+            localStorage.SetItem(LocalStorageKeys.AzureDevOpsSettings, settings);
         }
 
         public void SetKimaiSettings(Kimai.ConnectionSettings settings)
         {
-            localStorage.SetItemAsync(LocalStorageKeys.KimaiSettings, settings);
+            localStorage.SetItem(LocalStorageKeys.KimaiSettings, settings);
         }
 
         public void SetMessageQueueSettings(MessageQueues.ConnectionSettings settings)
         {
-            localStorage.SetItemAsync(LocalStorageKeys.MessageQueueSettings, settings);
+            localStorage.SetItem(LocalStorageKeys.MessageQueueSettings, settings);
         }
     }
 }
