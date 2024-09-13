@@ -1,0 +1,376 @@
+﻿@page "/SprintBoards"
+@using Satori.AppServices.Services
+@using Satori.AppServices.ViewModels.Sprints
+@using Satori.AppServices.ViewModels.WorkItems
+@using System.Web
+@using CodeMonkeyProjectiles.Linq
+@using Toolbelt.Blazor.HotKeys2
+@attribute [StreamRendering]
+@inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject SprintBoardService SprintBoardService
+@inject ILoggerFactory LoggerFactory
+@inject HotKeys HotKeys
+@inject IJSRuntime JsRuntime
+
+<PageTitle>Sprint Boards - Satori</PageTitle>
+
+<div>
+    
+    <h3>Sprint Boards
+        @if (_workItems != null)
+        {
+            <span class="badge bg-primary">@WorkItemActiveCount</span>
+            <span class="badge bg-success">@WorkItemDoneCount</span>
+        }
+        <span style="float: right;">
+            @if (_sprints != null && TeamSelection != null)
+            {
+                <span class="team-selector avatar-row">
+                    @foreach (var sprint in _sprints.OrderBy(x => x.TeamName))
+                    {
+                        <button id="@sprint.TeamId" class='avatar-cell @TeamSelection.TeamSelectedClassName[sprint.TeamId]' @onclick='() => TeamSelection.SelectTeam(sprint.TeamId)'>
+                            <img src="@sprint.TeamAvatarUrl"
+                                 alt="@sprint.TeamName"
+                                 title="@sprint.TeamName @HttpUtility.HtmlEncode("\r") @sprint.Name @HttpUtility.HtmlEncode("\r") Finishes: @sprint.FinishTime.ToString("yyyy-MM-dd")" />
+                        </button>
+                    }
+                </span>
+            }
+        </span>
+    </h3>
+    
+</div>
+
+@if (_sprints == null)
+{
+    <p><em>Loading Sprints...</em></p>
+}
+else
+{
+    if (_workItems == null || TeamSelection == null)
+    {
+        <p><em>Loading Work Items...</em></p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        Work Item
+                        <button type="button" class="btn btn-outline-primary btn-priority @PriorityAdjustment.ShowEnterModeClassName" @onclick="PriorityAdjustment.ToggleMode" title="Enter Adjust Priority Mode">Adjust <u>P</u>riority...</button>
+                    </th>
+                    <th>Tasks</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var workItem in _workItems.OrderBy(wi => wi.AbsolutePriority))
+                {
+                <tr class="
+                            work-item-row
+                            @workItem.Type.CssClass
+                            @workItem.StatusCssClass
+                            @(workItem.Sprint == null ? string.Empty : TeamSelection.TeamSelectedClassName[workItem.Sprint.TeamId])
+                            @(PriorityAdjustment.WorkItemSelectedClassName[workItem.Id])
+                        "
+                    @onclick="() => PriorityAdjustment.SetMoveTo(workItem)">
+                    <td class="cell-link" @onclick="() => OpenWorkItem(workItem)" title="Open D#@(workItem.Id)">
+                        <div style="display: flex;">
+                            <div class="workitem-id @workItem.StatusCssClass">
+                                <div>@workItem.Id</div> 
+                                <div>
+                                    <button type="button" class="btn btn-outline-success btn-priority btn-priority-select @PriorityAdjustment.ShowSelectWorkItemClassName[workItem.Id]" @onclick="() => PriorityAdjustment.AddSelectedWorkItem(workItem)" title="Select this item to adjust its priority">✔️</button>
+                                    <button type="button" class="btn btn-outline-danger btn-priority btn-priority-deselect @PriorityAdjustment.ShowDeselectWorkItemClassName[workItem.Id]" @onclick="() => PriorityAdjustment.RemoveSelectedWorkItem(workItem)" title="Deselect this item so its priority is not adjusted">❌</button>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="display: flex;">
+                                    @if (workItem.Sprint != null)
+                                    {
+                                        <div class="priority-block">
+                                            <div class="avatar-cell">
+                                                <img src="@workItem.Sprint.TeamAvatarUrl"
+                                                     alt="@workItem.Sprint.TeamName"/>
+                                            </div>
+                                            <div class="priority-number">
+                                                @workItem.SprintPriority
+                                            </div>
+                                        </div>
+                                    }
+                                    <div class="avatar-cell">
+                                        <img src="@workItem.AssignedTo.AvatarUrl"
+                                             alt="@workItem.AssignedTo.DisplayName"/>
+                                    </div>
+                                </div>
+                                <div class="work-item-status">@workItem.StatusLabel</div>
+                                @if (workItem.Blocked)
+                                {
+                                    <div class="blocked">🧱 Blocked</div>
+                                }
+                                @foreach (var tag in workItem.Tags)
+                                {
+                                    <div>
+                                        <span class="badge bg-secondary work-item-status">@tag</span>
+                                    </div>
+                                }
+                            </div>
+                            <div class="workitem-title @workItem.StatusCssClass">
+                                @workItem.Title
+                            </div>
+                        </div>
+                    </td>
+      
+                    <td>
+                        @foreach (var task in workItem.Children.OrderByDescending(wi => wi.State).ThenBy(wi => wi.Id))
+                        {
+                        <div class="task-status @task.StatusCssClass cell-link" style="display: flex;" @onclick="() => OpenWorkItem(task)" title="Open D#@(task.Id)">
+                            <div class="avatar-cell">
+                                <img src="@task.AssignedTo.AvatarUrl"
+                                     alt="@task.AssignedTo.DisplayName"
+                                     title="@task.AssignedTo.DisplayName" />
+                            </div>
+                            <div>
+                                @task.Title
+                            </div>
+                            <div>
+                                @task.StatusLabel
+                            </div>
+                            @if (task.Blocked)
+                            {
+                            <div class="blocked">🧱 Blocked</div>
+                            }
+                            @foreach (var tag in task.Tags)
+                            {
+                            <div>
+                                <span class="badge bg-secondary" style="font-size:0.5rem;">@tag</span>
+                            </div>
+                            }
+                        </div>
+                        }
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+<!-- Dialogs -->
+<div class="dialog dialog-adjust-priority @PriorityAdjustment.ShowExitModeClassName">
+    <div class="dialog-title">
+        <span class="dialog-close" @onclick="PriorityAdjustment.ToggleMode">&times;</span>
+        Adjust Priority
+    </div>
+    <div class="dialog-body">
+        <div class="alert @PriorityAdjustment.AlertTypeClassName alert-dismissible fade show @PriorityAdjustment.HideAlertClassName" role="alert">
+            @PriorityAdjustment.AlertContent
+        </div>  
+        <div>Selected Items:
+            <span class="badge bg-primary">@PriorityAdjustment.SelectedWorkItemsCount</span>
+            <ul style="font-size: 0.9em;">
+                @foreach (var workItem in PriorityAdjustment.SelectedWorkItems.OrderBy(wi => wi.AbsolutePriority).Take(3))
+                {
+                    <li>
+                        <div style="display: flex;">
+                            <div class="priority-block">
+                                <div class="avatar-cell">
+                                    <img src="@workItem.Sprint?.TeamAvatarUrl"
+                                         alt="@workItem.Sprint?.TeamName"/>
+                                </div>
+                                <div class="priority-number">
+                                    @workItem.SprintPriority
+                                </div>
+                            </div>
+                            <div>&nbsp;D#@workItem.Id @workItem.Title</div>
+                            <div>
+                                <button type="button" class="btn btn-outline-danger" style="font-size: 0.75em; margin-left: 5px; padding: 2px;" @onclick="() => PriorityAdjustment.RemoveSelectedWorkItem(workItem)">❌</button>
+                            </div>
+                        </div>
+                    </li>
+                }
+                @if (PriorityAdjustment.SelectedWorkItems.Count > 3)
+                {
+                    <li>...and @(PriorityAdjustment.SelectedWorkItems.Count - 3) more.</li>
+                }
+            </ul>
+            <p style="font-size: 0.8em; font-style: italic;">Use the check button on the left of each work item to select it to be moved.</p>
+        </div>
+        <div>
+            <div style="display: flex;">
+                <span>Move To:</span>
+                <label class="switch" style="margin: 0px 5px 0px;">
+                    <input type="checkbox" checked="@(PriorityAdjustment.TargetRelation == PriorityAdjustmentViewModel.RelativePosition.Below)" @oninput="PriorityAdjustment.ToggleMoveBelow">
+                    <span class="slider round"></span>
+                </label>
+                <span style="font-weight: bold">@PriorityAdjustment.MoveToLabel</span>
+            </div>
+            @if (PriorityAdjustment.Target != null)
+            {
+                <ul style="font-size: 0.9em;">
+                    <li>
+                        <div style="display: flex;">
+                            <div class="priority-block">
+                                <div class="avatar-cell">
+                                    <img src="@PriorityAdjustment.Target.Sprint?.TeamAvatarUrl"
+                                         alt="@PriorityAdjustment.Target.Sprint?.TeamName"/>
+                                </div>
+                                <div class="priority-number">
+                                    @PriorityAdjustment.Target.SprintPriority
+                                </div>
+                            </div>
+                            <div>&nbsp;D#@PriorityAdjustment.Target.Id @PriorityAdjustment.Target.Title</div>
+                            <div>
+                                <button type="button" class="btn btn-outline-danger" style="font-size: 0.75em; margin-left: 5px; padding: 2px;" @onclick="PriorityAdjustment.ClearMoveTo">❌</button>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            }
+            <p style="font-size: 0.8em; font-style: italic;">
+                Click a row to set target position, or remove the selected row to move to the top or bottom.
+            </p>
+        </div>
+    </div>
+    <div class="dialog-buttonbar">
+        <button type="button" class="btn btn-outline-primary btn-priority" @onclick="MovePriority" title="Move selected items to the new position">Move</button>
+        <button type="button" class="btn btn-outline-secondary btn-priority" @onclick="PriorityAdjustment.ToggleMode" title="Exit Adjust Priority Mode with no changes">Cancel</button>
+    </div>
+</div>
+
+
+
+@code {
+    private Sprint[]? _sprints;
+    private WorkItem[]? _workItems;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var sprints = (await SprintBoardService.GetActiveSprintsAsync()).ToArray();
+        TeamSelection = new TeamSelectionViewModel(sprints, NavigationManager);
+        TeamSelection.SelectedTeamChanged += ResetWorkItemCounts;
+        _sprints = sprints;
+        StateHasChanged();
+
+        var workItems = (await SprintBoardService.GetWorkItemsAsync(sprints)).ToArray();
+        PriorityAdjustment = new PriorityAdjustmentViewModel(workItems);
+        _workItems = workItems;
+        ResetWorkItemCounts();
+    }
+
+    private HotKeysContext? _hotKeysContext;
+
+    private bool _isInitialized;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) {
+            _hotKeysContext = this.HotKeys.CreateContext()
+                .Add(ModCode.Alt, Code.P, EnterAdjustPriorityMode, new() { Description = "Adjust Priorities" })
+                .Add(ModCode.None, Code.Escape, ExitAdjustPriorityMode, new() { Description = "Exit Adjust Priorities" })
+                .Add(ModCode.None, Code.Enter, MovePriority, new() { Description = "Adjust Priorities" });
+        }
+
+        if (_isInitialized)
+        {
+            return;
+        }
+
+        if (TeamSelection != null)
+        {
+            await TeamSelection.SetDefaultTeamsAsync(LocalStorage);
+            StateHasChanged();
+            _isInitialized = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        _hotKeysContext?.Dispose();
+    }
+
+    private void OpenWorkItem(WorkItem workItem)
+    {
+        if (PriorityAdjustment.ShowExitModeClassName)
+        {
+            return;
+        }
+
+        JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
+    }
+
+    #region Team Selection
+
+    private TeamSelectionViewModel? TeamSelection { get; set; }
+
+    #endregion Team Selection
+
+    #region Work Item Count
+
+    private int WorkItemActiveCount { get; set; }
+    private int WorkItemDoneCount { get; set; }
+
+    private void ResetWorkItemCounts(object? sender, EventArgs eventArgs) => ResetWorkItemCounts();
+
+    private void ResetWorkItemCounts()
+    {
+        var selectedTeamIds = TeamSelection?.SelectedTeamIds ?? [];
+
+        var teamWorkItems = _workItems?.Where(wi => wi.Sprint?.TeamId.IsIn(selectedTeamIds) ?? false).ToArray() ?? [];
+        WorkItemActiveCount = teamWorkItems.Count(wi => wi.State != ScrumState.Done);
+        WorkItemDoneCount = teamWorkItems.Length - WorkItemActiveCount;
+    }
+
+    #endregion Work Item Count
+
+    #region Adjust Priority
+
+    private PriorityAdjustmentViewModel PriorityAdjustment { get; set; } = new([]);
+
+    private void EnterAdjustPriorityMode()
+    {
+        if (PriorityAdjustment.ShowEnterModeClassName)
+        {
+            PriorityAdjustment.ToggleMode();
+        }
+    }
+
+    private void ExitAdjustPriorityMode()
+    {
+        if (PriorityAdjustment.ShowExitModeClassName)
+        {
+            PriorityAdjustment.ToggleMode();
+        }
+    }
+
+    private void MovePriority()
+    {
+        if (PriorityAdjustment.ShowEnterModeClassName)
+        {
+            return;
+        }
+
+        PriorityAdjustment.ClearAlert();
+
+        if (PriorityAdjustment.SelectedWorkItemsCount == 0)
+        {
+            PriorityAdjustment.ShowAlert("No work items selected.  Select work items to move (have their priority changed).", PriorityAdjustmentViewModel.AlertTypeCssClass.Warning);;
+            return;
+        }
+
+        try
+        {
+            SprintBoardService.ReorderWorkItems(PriorityAdjustment.Request);
+            PriorityAdjustment.ToggleMode();
+        }
+        catch (Exception ex)
+        {
+            var logger = LoggerFactory.CreateLogger<SprintBoards>();
+            logger.LogError(ex, "Error moving work items priority.  {Request}", PriorityAdjustment.Request);
+
+            PriorityAdjustment.ShowAlert(ex.Message, PriorityAdjustmentViewModel.AlertTypeCssClass.Error);
+        }
+    }
+
+    #endregion Adjust Priority
+
+}

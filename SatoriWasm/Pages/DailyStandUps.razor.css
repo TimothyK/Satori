@@ -1,0 +1,328 @@
+﻿.filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    width: 100%;
+}
+
+.filter-label {
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+.date-range {
+    display: flex;
+    align-items: center;
+    flex-basis: 100%;
+    min-width: 300px;
+    max-width: 600px;
+}
+
+.btn-date-range {
+    background-color: #00A6ED;
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin: 5px;
+}
+.btn-date-range:hover {
+    background-color: #0096D6;
+}
+
+.date-range div:nth-child(2) {
+    text-align: center;
+    font-weight: bold;
+    flex-basis: 100%;
+}
+
+.dropbtn {
+    background-color: #00A6ED;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+    min-width: 130px;
+}
+
+#collapse-button {
+    margin-left: auto;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.dropdown-content .dropdown-content-menu {
+    color: black;
+    padding: 3px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content .dropdown-content-menu:hover {
+    background-color: #00A6ED;
+    color: white;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown:hover .dropbtn {
+    background-color: #0096D6;
+}
+
+.avatar-cell {
+    position: relative;
+    text-align: left;
+    margin-right: 8px;
+}
+
+.avatar-cell img {
+    width: 24px;
+    height: 24px;
+}
+.avatar-cell {
+    border: 3px solid red;
+}
+
+.day-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    width: 100%;
+    margin-top: 10px;
+    border-top: 5px double black;
+}
+
+.project-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 0.8em;
+    margin-left: 50px;
+    margin-top: 5px;
+    border-top: 1px dotted black;
+    background-color: #f5f5f5;
+}
+.project-header.hidden {
+    display: none;
+}
+.project-header-customer {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-left: 50px;
+}
+.project-header-customer img {
+    width: 32px;
+    height: 32px;
+    margin-left: 5px;
+}
+
+.project-header-project {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-left: auto;
+}
+
+.activity-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 0.8em;
+    margin-left: 100px;
+}
+.activity-header.hidden {
+    display: none;
+}
+.activity-header-activity {
+    font-weight: bold;
+    font-size: 1.0rem;
+    margin-left: auto;
+}
+
+.activity-summary {
+    margin-left: 150px;
+    border-spacing: 0px;
+}
+.activity-summary p {
+    margin: 0px;
+    white-space: pre;
+}
+.activity-summary .badge {
+    margin-left: 5px;
+    align-self: flex-start;
+}
+
+.time-table {
+    margin-left: 100px;
+    border-spacing: 0px;
+}
+.activity-summary .time-table {
+    margin-left: 0px;
+}
+.time-entry-comments {
+    vertical-align: middle;
+}
+.time-entry-comments p {
+    margin: 0px;
+    white-space: pre;
+}
+.time-entry-comments .badge {
+    margin-left: 5px;
+    align-self: flex-start;
+}
+
+.time-entry td .duration {
+    font-size: 0.7em;
+}
+.time-entry td .export {
+    font-size: 0.7em;
+}
+
+.time-entry-time {
+    font-family: "Roboto", sans-serif;
+    font-weight: bold;
+    font-size: 0.9em;
+    padding-right: 5px;
+}
+
+.export {
+    margin-right: 5px;
+    font-size: 0.9em;
+}
+.export-done {
+    display: none;
+}
+.export button {
+    font-size: 0.9em;
+}
+
+.duration {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    border: 1px solid darkgray;
+    border-radius: 5px;
+    margin-right: 5px;
+    align-self: flex-start;
+}
+
+.duration-caret {
+    background-color: lightgray;
+    padding: 5px;
+    border-right: 1px solid darkgray;
+}
+
+.caret {
+    cursor: pointer;
+    user-select: none; /* Prevent text selection */
+}
+
+/* Create the caret/arrow with a unicode, and style it */
+.caret::before {
+    content: "\25B6";
+    color: black;
+    display: inline-block;
+    margin-left: 6px;
+    margin-right: 6px;
+}
+
+/* Rotate the caret/arrow icon when clicked on (using JavaScript) */
+.caret-down::before {
+    transform: rotate(90deg);
+}
+
+.duration-link {
+    background-color: lightgray;
+    padding: 5px 0px 5px 5px;
+    text-align: center;
+}
+.duration-link:hover {
+    background-color: #157347;
+}
+
+.duration-minutes {
+    font-family: "Roboto", sans-serif;
+    font-weight: bold;
+    padding: 5px;
+}
+
+.duration-decimal {
+    background-color: lightgray;
+    padding: 5px;
+    flex-grow: 1;
+}
+
+.bi {
+    display: inline-block;
+    position: relative;
+    width: 1.0em;
+    height: 1.0em;
+    margin-right: 0.75rem;
+    background-size: cover;
+}
+
+.bi-box-arrow-up-right {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-up-right" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg>');
+}
+
+.day-header-day {
+    font-size: 32px;
+    font-weight: bold;
+}
+
+.cell-link:hover {
+    background-color: #f5f5f5;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.work-item-row {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.work-item {
+    border-left: solid 5px;
+    margin-left: 5px;
+    padding-left: 3px;
+    display: flex;
+}
+
+.work-item-epic {
+    border-left-color: #E06C00;
+}
+
+.work-item-feature {
+    border-left-color: #773B93;
+}
+
+.work-item-pbi {
+    border-left-color: #009CCC;
+}
+
+.work-item-bug {
+    border-left-color: #CC293D;
+}
+
+.work-item-impediment {
+    border-left-color: #B4009E;
+}
+
+.work-item-task {
+    border-left-color: #F2CB1D;
+}
+
+.work-item-unknown {
+    border-left-color: gray;
+}

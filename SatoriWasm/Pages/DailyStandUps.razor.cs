@@ -1,0 +1,179 @@
+﻿using Satori.AppServices.Services;
+using Satori.AppServices.ViewModels.DailyStandUps;
+
+namespace Satori.Pages;
+
+public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? standUpService)
+{
+    public event EventHandler<EventArgs>? DateChanging;
+    public event EventHandler<DateChangedEventArgs>? DateChanged;
+
+    private DayOfWeek FirstDayOfWeek { get; } = firstDayOfWeek;
+
+    public Period Period { get; set; } = Period.Today;
+
+    public string PeriodText { get; private set; } = "Today";
+    public DateOnly BeginDate { get; private set; } = Today;
+    public DateOnly EndDate { get; private set; } = Today;
+    public string DateRangeText { get; private set; } = DateTime.Today.ToString("D");
+
+    private static DateOnly Today => DateOnly.FromDateTime(DateTime.Today);
+
+    public async Task ChangePeriod(Period period)
+    {
+        SetPeriod(period);
+
+        var today = Today;
+        var beginDate = period switch
+        {
+            Period.Today => today,
+            Period.LastTwoDays => today.AddDays(-1),
+            Period.WorkWeek => GetStartOfWeek(today),
+            Period.LastSevenDays => today.AddDays(-6),
+            _ => throw new ArgumentOutOfRangeException(nameof(period), period, "Unknown enum value")
+        };
+        await SetBeginDate(beginDate);
+    }
+
+    private void SetPeriod(Period period)
+    {
+        Period = period;
+        PeriodText = period switch
+        {
+            Period.Today => "Today",
+            Period.LastTwoDays => "Last 2 Days",
+            Period.WorkWeek => "Work Week",
+            Period.LastSevenDays => "Last 7 Days",
+            _ => throw new ArgumentOutOfRangeException(nameof(period), period, "Unknown enum value")
+        };
+    }
+
+    private async Task SetBeginDate(DateOnly beginDate)
+    {
+        BeginDate = beginDate;
+
+        EndDate = Period == Period.WorkWeek ? BeginDate.AddDays(6)
+            : Today;
+
+        DateRangeText = beginDate == EndDate ? BeginDate.ToString("D")
+            : $"{BeginDate:D} - {EndDate:D}";
+
+        OnDateChanging();
+        await Task.Yield();
+
+        if (standUpService == null)
+        {
+            OnDateChanged([]);
+            return;
+        }
+
+        var days = await standUpService.GetStandUpDaysAsync(BeginDate, EndDate);
+        OnDateChanged(days);
+
+        await Task.Yield();
+        await standUpService.GetWorkItemsAsync(days);
+    }
+
+    private void OnDateChanging()
+    {
+        DateChanging?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void OnDateChanged(StandUpDay[] days)
+    {
+        DateChanged?.Invoke(this, new DateChangedEventArgs(days));
+    }
+
+
+    private DateOnly GetStartOfWeek(DateOnly date)
+    {
+        while (date.DayOfWeek != FirstDayOfWeek)
+        {
+            date = date.AddDays(-1);
+        }
+        return date;
+    }
+
+    public async Task DecrementPeriod()
+    {
+        switch (Period)
+        {
+            case Period.Today:
+                await ChangePeriod(Period.LastTwoDays);
+                break;
+            case Period.LastTwoDays:
+                if (BeginDate < GetStartOfWeek(Today))
+                {
+                    SetPeriod(Period.WorkWeek);
+                    await SetBeginDate(GetStartOfWeek(BeginDate));
+                }
+                else
+                {
+                    await ChangePeriod(Period.WorkWeek);
+                }
+                break;
+            case Period.WorkWeek:
+                if (Today.AddDays(-6) < BeginDate)
+                {
+                    await ChangePeriod(Period.LastSevenDays);
+                }
+                else
+                {
+                    await SetBeginDate(BeginDate.AddDays(-7));
+                }
+                break;
+            case Period.LastSevenDays:
+                SetPeriod(Period.WorkWeek);
+                await SetBeginDate(GetStartOfWeek(BeginDate));
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(Period), Period, "Unknown enum value");
+        }
+    }
+
+    public async Task IncrementPeriod()
+    {
+        switch (Period)
+        {
+            case Period.Today:
+                // Do nothing
+                break;
+            case Period.LastTwoDays:
+                await ChangePeriod(Period.Today);
+                break;
+            case Period.WorkWeek:
+                if (Today < BeginDate.AddDays(7))
+                {
+                    await ChangePeriod(Period.LastTwoDays);
+                }
+                else if (GetStartOfWeek(Today) == BeginDate.AddDays(7))
+                {
+                    await ChangePeriod(Period.LastSevenDays);
+                }
+                else
+                {
+                    await SetBeginDate(BeginDate.AddDays(7));
+                }
+                break;
+            case Period.LastSevenDays:
+                if (GetStartOfWeek(Today) == Today)
+                {
+                    await ChangePeriod(Period.LastTwoDays);
+                }
+                else
+                {
+                    await ChangePeriod(Period.WorkWeek);
+                }
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(Period), Period, "Unknown enum value");
+        }
+
+    }
+
+}
+
+public class DateChangedEventArgs(StandUpDay[] standUpDays) : EventArgs
+{
+    public StandUpDay[] StandUpDays { get; } = standUpDays;
+}
