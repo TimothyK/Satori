@@ -1,4 +1,5 @@
 ﻿using Flurl;
+using Satori.AzureDevOps.Models;
 using KimaiUser = Satori.Kimai.Models.User;
 using AzDoUser = Satori.AzureDevOps.Models.User;
 using ConnectionSettings = Satori.AzureDevOps.ConnectionSettings;
@@ -56,6 +57,15 @@ public class Person
     }
 
     private static readonly object PeopleLock = new();
+
+    /// <summary>
+    /// Cache of Person objects.  The Key of this dictionary is from <see cref="GetUserId"/>
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This cache is thread safe.  Use the <see cref="PeopleLock"/> to synchronize access to this cache.
+    /// </para>
+    /// </remarks>
     private static readonly Dictionary<Guid, Person> People = [];
 
     #endregion Caching
@@ -79,12 +89,18 @@ public class Person
         }
     }
 
-    public static Person From(AzureDevOps.Models.Identity azDoIdentity, KimaiUser kimaiUser, ConnectionSettings azDoSettings)
+    public static Person From(AzureDevOps.Models.Identity? azDoIdentity, KimaiUser? kimaiUser, ConnectionSettings azDoSettings)
     {
+        if (azDoIdentity == null && kimaiUser == null)
+        {
+            throw new ArgumentNullException(nameof(azDoIdentity), "Both the Azure DevOps and Kimai User cannot be null"); 
+        } 
+
         lock (PeopleLock)
         {
-            var cache = People.GetValueOrDefault(azDoIdentity.Id);
-            if (cache != null && cache.KimaiId == kimaiUser.Id)
+            var id = GetUserId(azDoIdentity, kimaiUser);
+            var cache = People.GetValueOrDefault(id);
+            if (cache != null && cache.KimaiId == kimaiUser?.Id)
             {
                 return cache;
             }
@@ -92,27 +108,69 @@ public class Person
             {
                 People.Remove(cache.AzureDevOpsId);
             }
-            return FromAzureDevOpsId(azDoIdentity.Id, CreatePerson);
+            return FromAzureDevOpsId(id, CreatePerson);
         }
 
         Person CreatePerson()
         {
             return new Person()
             {
-                AzureDevOpsId = azDoIdentity.Id,
-                DisplayName = azDoIdentity.ProviderDisplayName,
-                AvatarUrl = kimaiUser.Avatar ?? azDoSettings.Url.AppendPathSegment("_api/_common/identityImage").AppendQueryParam("id", azDoIdentity.Id).ToUri(),
-                EmailAddress = azDoIdentity.Properties.Mail?.Value,
-                KimaiId = kimaiUser.Id,
-                DomainLogin = $@"{azDoIdentity.Properties.Domain?.Value}\{azDoIdentity.Properties.Account?.Value}",
+                AzureDevOpsId = azDoIdentity?.Id ?? Guid.Empty,
+                DisplayName = azDoIdentity?.ProviderDisplayName ?? kimaiUser?.Alias ?? "Unknown user",
+                AvatarUrl = kimaiUser?.Avatar 
+                            ?? (azDoIdentity == null ? new Url("/images/DefaultAvatar.png").ToUri() 
+                                : azDoSettings.Url.AppendPathSegment("_api/_common/identityImage").AppendQueryParam("id", azDoIdentity.Id).ToUri()),
+                EmailAddress = azDoIdentity?.Properties.Mail?.Value,
+                KimaiId = kimaiUser?.Id,
+                DomainLogin = azDoIdentity == null ? null : $@"{azDoIdentity.Properties.Domain?.Value}\{azDoIdentity.Properties.Account?.Value}",
                 FirstDayOfWeek = GetFirstDayOfWeek(kimaiUser),
-                Language = kimaiUser.Language?.Replace("_", "-") ?? "en",
+                Language = kimaiUser?.Language?.Replace("_", "-") ?? "en",
             };
         }
     }
 
-    private static DayOfWeek GetFirstDayOfWeek(KimaiUser kimaiUser)
+    /// <summary>
+    /// Gets a unique ID for a user.  This id is used for caching of the Person.  See <see cref="People"/>.
+    /// </summary>
+    /// <param name="azDoIdentity"></param>
+    /// <param name="kimaiUser"></param>
+    /// <returns></returns>
+    /// <remarks>
+    /// <para>
+    /// Azure DevOps and Kimai both have their own IDs for users.  AzDO uses a Guid, Kimai uses an int.
+    /// Typically, this application with AzDO enabled, so every user will have an AzDO Guid.
+    /// In the rare case that AzDO is disabled, the Kimai ID will be used instead.
+    /// </para>
+    /// <para>
+    /// This probably isn't a great design.  Instead of converting the Kimai int32 ID to a GUID,
+    /// it would better to have a Satori UserId class that holds both/all the foreign IDs.
+    /// 
+    /// </para>
+    /// </remarks>
+    private static Guid GetUserId(Identity? azDoIdentity, KimaiUser? kimaiUser)
     {
+        return azDoIdentity?.Id ?? IntToGuid(kimaiUser?.Id);
+    }
+
+    public static Guid IntToGuid(int? value)
+    {
+        if (value == null)
+        {
+            return Guid.Empty;
+        }
+
+        var bytes = new byte[16];
+        BitConverter.GetBytes(value.Value).CopyTo(bytes, 0);
+        return new Guid(bytes);
+    }
+
+    private static DayOfWeek GetFirstDayOfWeek(KimaiUser? kimaiUser)
+    {
+        if (kimaiUser == null)
+        {
+            return DayOfWeek.Monday;
+        }
+        
         var firstDayOfWeekSetting = kimaiUser.Preferences?.SingleOrDefault(p => p.Name == "firstDayOfWeek")?.Value;
         if (!Enum.TryParse(firstDayOfWeekSetting, ignoreCase: true, out DayOfWeek firstDayOfWeek))
         {

@@ -15,6 +15,8 @@ public class AzureDevOpsServer(
     , ILoggerFactory loggerFactory
 ) : IAzureDevOpsServer
 {
+    public bool Enabled => ConnectionSettings.Enabled;
+
     public ConnectionSettings ConnectionSettings { get; } = connectionSettings;
 
     private ILogger<AzureDevOpsServer> Logger => loggerFactory.CreateLogger<AzureDevOpsServer>();

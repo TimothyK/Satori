@@ -11,6 +11,7 @@ public class KimaiServer(
     , ILoggerFactory loggerFactory
 ) : IKimaiServer
 {
+    public bool Enabled => connectionSettings.Enabled;
 
     private ILogger<KimaiServer> Logger => loggerFactory.CreateLogger<KimaiServer>();
 

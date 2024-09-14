@@ -4,6 +4,7 @@ namespace Satori.Kimai;
 
 public interface IKimaiServer
 {
+    bool Enabled { get; }
     Uri BaseUrl { get; }
 
     Task<TimeEntry[]> GetTimeSheetAsync(TimeSheetFilter filter);

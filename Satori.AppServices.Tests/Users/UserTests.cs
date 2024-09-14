@@ -1,5 +1,7 @@
-﻿using Moq;
+﻿using Flurl;
+using Moq;
 using Satori.AppServices.Services;
+using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.ViewModels;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
@@ -41,6 +43,9 @@ public class UserTests
             };
         }
 
+        public bool AzureDevOpsEnabled { get; set; } = true;
+        public bool KimaiEnabled { get; set; } = true;
+
         private const string AzureDevOpsRootUrl = "http://devops.test/Org";
 
         public ConnectionSettings AzureDevOpsConnectionSettings { get; set; } =
@@ -56,7 +61,7 @@ public class UserTests
         
         public User KimaiUser { get; set; } = new()
         {
-            Id = 1,
+            Id = Sequence.KimaiUserId.Next(),
             UserName = "kimai login",
             Alias = "Test User (Kimai)",
             Avatar = null,
@@ -76,10 +81,12 @@ public class UserTests
         return srv;
     }
 
-
     private Mock<IAzureDevOpsServer> BuildAzureDevOpsMock()
     {
         var mock = new Mock<IAzureDevOpsServer>(MockBehavior.Strict);
+
+        mock.Setup(srv => srv.Enabled)
+            .Returns(() => _testData.AzureDevOpsEnabled);
 
         mock.Setup(srv => srv.GetCurrentUserIdAsync())
             .ReturnsAsync(() => _testData.TestUserAzureDevOpsId);
@@ -97,6 +104,9 @@ public class UserTests
     private Mock<IKimaiServer> BuildKimaiMock()
     {
         var kimaiMock = new Mock<IKimaiServer>(MockBehavior.Strict);
+
+        kimaiMock.Setup(srv => srv.Enabled)
+            .Returns(() => _testData.KimaiEnabled);
 
         kimaiMock.Setup(srv => srv.GetMyUserAsync())
             .ReturnsAsync(() => _testData.KimaiUser);
@@ -116,7 +126,7 @@ public class UserTests
         //Act
         var user = srv.GetCurrentUserAsync().Result;
         return user;
-    }
+    }    
 
     #endregion Act
 
@@ -150,7 +160,7 @@ public class UserTests
             .ShouldBe($@"{_testData.Identity.Properties.Domain?.Value}\{_testData.Identity.Properties.Account?.Value}");
 
     [TestMethod]
-    public void CacheBusted()
+    public void CacheStale()
     {
         //Arrange
         var azureDevOpsUser = new AzureDevOps.Models.User
@@ -215,5 +225,66 @@ public class UserTests
 
         //Assert
         user.FirstDayOfWeek.ShouldBe(DayOfWeek.Sunday);
+    }
+    
+    [TestMethod]
+    public void AzureDevOpsAndKimaiDisabled_ReturnsEmpty()
+    {
+        //Arrange
+        _testData.AzureDevOpsEnabled = false;
+        _testData.KimaiEnabled = false;
+
+        //Act
+        var user = GetCurrentUser();
+
+        //Assert
+        user.ShouldBeSameAs(Person.Empty);
+    }
+
+    [TestMethod]
+    public void AzureDevOpsDisabled_ReturnsKimaiData()
+    {
+        //Arrange
+        _testData.AzureDevOpsEnabled = false;
+        _testData.KimaiUser.Avatar = new Uri("http://gravatar.com/me");
+    
+        //Act
+        var user = GetCurrentUser();
+
+        //Assert
+        user.KimaiId.ShouldBe(_testData.KimaiUser.Id);
+        user.DisplayName.ShouldBe(_testData.KimaiUser.Alias);
+        user.AvatarUrl.ShouldBe(_testData.KimaiUser.Avatar);
+        user.AzureDevOpsId.ShouldBe(Guid.Empty);
+        user.DomainLogin.ShouldBeNull();
+    }
+    
+    [TestMethod]
+    public void AzureDevOpsDisabledAndNoKimaiAvatar_ReturnsDefaultAvatar()
+    {
+        //Arrange
+        _testData.AzureDevOpsEnabled = false;
+        _testData.KimaiUser.Avatar = null;
+
+        //Act
+        var user = GetCurrentUser();
+
+        //Assert
+        user.AvatarUrl.ShouldBe(new Url("/images/DefaultAvatar.png").ToUri());
+    }
+
+    [TestMethod]
+    public void KimaiDisabled_ReturnsNoKimaiData()
+    {
+        //Arrange
+        _testData.KimaiEnabled = false;
+    
+        //Act
+        var user = GetCurrentUser();
+
+        //Assert
+        user.KimaiId.ShouldBeNull();
+        user.Language.ShouldBe("en");
+        user.FirstDayOfWeek.ShouldBe(DayOfWeek.Monday);
     }
 }

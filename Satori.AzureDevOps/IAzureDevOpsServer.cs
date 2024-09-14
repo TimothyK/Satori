@@ -4,6 +4,7 @@ namespace Satori.AzureDevOps;
 
 public interface IAzureDevOpsServer
 {
+    bool Enabled { get; }
     ConnectionSettings ConnectionSettings { get; }
 
     Task<PullRequest[]> GetPullRequestsAsync();
