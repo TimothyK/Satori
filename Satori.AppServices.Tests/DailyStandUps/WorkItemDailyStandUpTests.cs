@@ -66,6 +66,24 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         entry.Task.Parent.Id.ShouldBe(workItem.Id);
     }
 
+    [TestMethod]
+    public async Task AzureDevOpsDisabled_NoTask()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        AzureDevOpsBuilder.BuildWorkItem(out var workItem).AddChild(out var task);
+        kimaiEntry.AddWorkItems(workItem, task);
+        AzureDevOps.Enabled = false;
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        entries.Length.ShouldBe(1);
+        var entry = entries.Single();
+        entry.Task.ShouldBeNull();
+    }
+
     #region Load Work Item Type and Parent/Child relations
 
     [TestMethod]

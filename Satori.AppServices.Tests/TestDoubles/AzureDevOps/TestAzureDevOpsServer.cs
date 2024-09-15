@@ -54,6 +54,10 @@ internal class TestAzureDevOpsServer
         };
 
         _mock = new Mock<IAzureDevOpsServer>(MockBehavior.Strict);
+
+        _mock.Setup(srv => srv.Enabled)
+            .Returns(() => Enabled);
+
         _mock.Setup(srv => srv.ConnectionSettings)
             .Returns(new ConnectionSettings { Url = new Uri(AzureDevOpsRootUrl), PersonalAccessToken = "token" });
 
@@ -99,6 +103,8 @@ internal class TestAzureDevOpsServer
             return _database.GetWorkItemsById(workItemIds).ToArray();
         }
     }
+
+    public bool Enabled { get; set; } = true;
 
     private Guid TestUserAzureDevOpsId { get; }
 

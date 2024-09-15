@@ -260,6 +260,11 @@ public partial class StandUpService(
 
         WorkItem? ExtractWorkItem()
         {
+            if (!azureDevOps.Enabled)
+            {
+                return null;
+            }
+
             var parentedWorkItemRegex = ParentedWorkItemCommentRegex();
             var match = lines.Select(x => parentedWorkItemRegex.Match(x)).FirstOrDefault(m => m.Success);
             WorkItem? parentWorkItem = null;

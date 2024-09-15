@@ -6,6 +6,7 @@ using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.Tests.TestDoubles.MessageQueues;
+using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.Kimai.Models;
 using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
@@ -18,6 +19,8 @@ public abstract class DailyStandUpTests
 
     protected DailyStandUpTests()
     {
+        Person.Me = null;  //Clear cache
+
         var userService = new UserService(AzureDevOps.AsInterface(), Kimai.AsInterface());
         Server = new StandUpService(Kimai.AsInterface(), AzureDevOps.AsInterface(), userService, DailyActivityExporter, TaskAdjustmentExporter, NullLoggerFactory.Instance);
     }
@@ -35,6 +38,7 @@ public abstract class DailyStandUpTests
 
     protected static readonly User DefaultUser = Builder<User>.New().Build(user =>
     {
+        user.Id = Sequence.KimaiUserId.Next();
         user.Enabled = true;
         user.Language = "en_CA";
     });

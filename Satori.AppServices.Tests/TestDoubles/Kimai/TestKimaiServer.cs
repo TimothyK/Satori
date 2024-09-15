@@ -13,6 +13,10 @@ internal class TestKimaiServer
     public TestKimaiServer()
     {
         _mock = new Mock<IKimaiServer>(MockBehavior.Strict);
+
+        _mock.Setup(srv => srv.Enabled)
+            .Returns(() => Enabled);
+
         _mock.Setup(srv => srv.GetTimeSheetAsync(It.IsAny<TimeSheetFilter>()))
             .ReturnsAsync((TimeSheetFilter filter) => GetTimeSheet(filter));
 
@@ -26,6 +30,8 @@ internal class TestKimaiServer
             .Callback((int id) => MarkAsExported(id))
             .Returns(Task.CompletedTask);
     }
+
+    public bool Enabled { get; set; } = true;
 
     public Uri BaseUrl { get; } = new("https://kimai.test/");
     public required User CurrentUser { get; init; }
