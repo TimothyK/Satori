@@ -13,8 +13,6 @@ internal static class AppServiceBuilder
     {
         services.AddScoped<IConnectionSettingsStore, ConnectionSettingsStore>();
 
-        services.AddScoped<HttpClient>();
-        
         services.AddScoped<SprintBoardService>();
         services.AddScoped<PullRequestService>();
         services.AddScoped<UserService>();
@@ -31,8 +29,8 @@ internal static class AppServiceBuilder
         services.AddScoped<IDailyActivityExporter, DailyActivityExporter>();
 
         services.AddSingleton<ITimeServer, TimeServer>();
-        return services;
 
+        return services;
     }
 
 
