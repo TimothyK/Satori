@@ -3,7 +3,7 @@
 @inject IConnectionSettingsStore ConnectionSettingsStore
 
 <div id="edit-messageQueue" class="integration-region @IsVisibleClass">
-    <h4>RabbitMQ Configuration</h4>
+    <h4>Azure Service Bus Configuration</h4>
     <div>
         <div class="integration-form">
             <table>
@@ -15,46 +15,74 @@
                     </td>
                 </tr>
                 <tr>
-                    <td><label for="mq-hostname">Host Name:</label></td>
-                    <td><input type="text" id="mq-hostname" placeholder="@ConnectionSettings.Default.HostName" size="50" @bind="HostName" @onblur="Validate" /></td>
-                    <td><span class="validation-error">@HostNameValidationErrorMessage</span></td>
+                    <td><label for="mq-subdomain">Subdomain (Namespace):</label></td>
+                    <td><input type="text" id="mq-subdomain" placeholder="@ConnectionSettings.Default.Subdomain" size="50" @bind="Subdomain" @onblur="Validate" /></td>
+                    <td><span class="validation-error">@SubdomainValidationErrorMessage</span></td>
                 </tr>
                 <tr>
-                    <td><label for="mq-apiport">API Port:</label></td>
-                    <td><input type="text" id="mq-apiport" placeholder="@ConnectionSettings.Default.Port" size="20" @bind="Port" @onblur="Validate" /></td>
-                    <td><span class="validation-error">@PortValidationErrorMessage</span></td>
+                    <td><label for="mq-queuename">Queue Name:</label></td>
+                    <td><input type="text" id="mq-queuename" placeholder="@ConnectionSettings.Default.QueueName" size="50" @bind="QueueName" @onblur="Validate" /></td>
+                    <td><span class="validation-error">@QueueNameValidationErrorMessage</span></td>
                 </tr>
                 <tr>
-                    <td><label for="mq-portalport">Web Portal Port:</label></td>
-                    <td><input type="text" id="mq-portalport" placeholder="@ConnectionSettings.Default.PortalPort" size="20" @bind="PortalPort" @onblur="Validate" /></td>
-                    <td><span class="validation-error">@PortalPortValidationErrorMessage</span></td>
+                    <td><label for="mq-keyname">Key Name (Policy):</label></td>
+                    <td><input type="text" id="mq-keyname" placeholder="@ConnectionSettings.Default.KeyName" size="50" @bind="KeyName" @onblur="Validate" /></td>
+                    <td><span class="validation-error">@KeyNameValidationErrorMessage</span></td>
                 </tr>
                 <tr>
-                    <td><label for="mq-path">Path:</label></td>
-                    <td><input type="text" id="mq-path" placeholder="@ConnectionSettings.Default.Path" size="50" @bind="Path" @onblur="Validate" /></td>
-                    <td><span class="validation-error">@PathValidationErrorMessage</span></td>
-                </tr>
-                <tr>
-                    <td><label for="mq-username">Username:</label></td>
-                    <td><input type="text" id="mq-username" placeholder="@ConnectionSettings.Default.UserName" size="50" @bind="UserName" @onblur="Validate" /></td>
-                    <td><span class="validation-error">@UserNameValidationErrorMessage</span></td>
-                </tr>
-                <tr>
-                    <td><label for="mq-password">Password:</label></td>
-                    <td><input type="password" id="mq-password" size="50" @bind="Password" @onblur="Validate" /></td>
-                    <td><span class="validation-error">@PasswordValidationErrorMessage</span></td>
+                    <td><label for="mq-key">Key:</label></td>
+                    <td><input type="text" id="mq-key" placeholder="@ConnectionSettings.Default.Key" size="50" @bind="Key" @onblur="Validate" /></td>
+                    <td><span class="validation-error">@KeyValidationErrorMessage</span></td>
                 </tr>
             </table>
             <button class="btn btn-primary" @onclick="Save" disabled="@(!FormIsValid)">Save</button>
             <button class="btn btn-light" @onclick="CancelAzureDevOps">Cancel</button>
             <div class="help-section">
                 <p class="help-header">Instructions</p>
-                <p>Enter the setting to communicate with the RabbitMQ API.  These settings are required to export time sheets on the Daily Stand-Up page.</p>
-                <p>The Portal Port is optional.  It is only used to provide the link on this Satori Home page</p>
+                <p>An Azure Service Bus is only required if daily activity time sheet information will be imported into a third party system.
+                    If a custom program does not exist to read this queue, then this integration should be disabled.
+                </p>
+                <p>If the owner of the import program hasn't already do this for you, create an Azure Service Bus Namespace and Queue.
+                    See <a href="https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-dotnet-get-started-with-queues?tabs=passwordless#create-a-namespace-in-the-azure-portal">
+                        Azure documentation</a> for details on how to create an Azure Service Bus namespace and queue.
+                    Use a connection string with the "Send" permission to write to the queue.
+                </p>
+                <ol>
+                    <li>
+                        Create a new "Service Bus" resource
+                        <ol type="a">
+                            <li>Choose a Subscription and Resource Group</li>
+                            <li>Choose a unique Namespace name.  This will be the public URL for the service bus.  e.g. "https://myNamespace.servicebus.windows.net")</li>
+                            <li>Choose a Location close to you</li>
+                            <li>Choose a pricing tier.  The Basic tier is sufficient for most use cases.</li>
+                        </ol>
+                    </li>
+                    <li>
+                        Create a new "Queue"
+                        <ol type="a">
+                            <li>On the Azure Service Bus Namespace portal page created in the previous step, navigate on the tree to Entities » Queues</li>
+                            <li>Click the "+ Queue" button to Add a queue</li>
+                            <li>Enter the Queue Name.  This is recommended to be your username.</li>
+                            <li>The defaults for other settings should be sufficient.</li>
+                        </ol>
+                    </li>
+                    <li>
+                        Create an Access Policy for the queue
+                        <ol type="a">
+                            <li>On the queue portal page, navigate on the tree to Settings » Shared access policies</li>
+                            <li>Click the "+ Add" button to Add a policy</li>
+                            <li>Enter the Policy Name (aka Key Name).  This is recommended to be "Send"</li>
+                            <li>Click the Send claim check box to grant this to the policy.</li>
+                            <li>The custom program that listens to this queue will need its own policy.  It is recommended that a new policy is created for that purpose (Least Privilege Principle)</li>
+                            <li>View the Primary Key value assigned by Azure.  That will be needed for the "Key" value above</li>
+                        </ol>
+                    </li>
+                </ol>
                 <p class="help-header">Write Access</p>
-                <p>Satori will export to 2 Exchanges/Queues in RabbitMQ.  The Exchanges and Queues will be created by Satori.  The exchanges are written to, then Satori marks the Kimai time entry record as exported.</p>
-                <p>The queue <i>Satori.TaskAdjustment.&lt;UserName&gt;</i> is used to export to Azure DevOps.  The messages contain the adjustment to be applied to tasks in the Completed Work and Remaining Work fields.  Only tasks owned by the current user are updated.</p>
-                <p>The queue <i>Satori.DailyActivity.&lt;UserName&gt;</i> is used to export daily summary information to third party applications, typically your company's time sheet/invoicing system.  Satori only exports to this queue.  The expectation is that custom software will import from this queue to that external system.</p>
+                <p>The Daily Stand-Up page can send daily activity messages to Azure Service Bus.  
+                    The Service Bus and Queue must be created in the Azure Portal (or from the CLI).  
+                    The queue is written to, then Satori marks the Kimai time entry record as exported.  
+                    If this integration is enabled and the queue cannot be written to, the Kimai time entry record will not be marked as Exported.</p>
             </div>
         </div>
     </div>

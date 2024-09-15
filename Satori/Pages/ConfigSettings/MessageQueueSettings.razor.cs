@@ -16,12 +16,10 @@ namespace Satori.Pages.ConfigSettings
             var settings = ConnectionSettingsStore.GetMessageQueueSettings();
 
             Enabled = settings.Enabled;
-            HostName = settings.HostName;
-            Port = settings.Port.ToString();
-            PortalPort = settings.PortalPort.ToString();
-            Path = settings.Path;
-            UserName = settings.UserName;
-            Password = settings.Password;
+            Subdomain = settings.Subdomain;
+            QueueName = settings.QueueName;
+            KeyName = settings.KeyName;
+            Key = settings.Key;
             Validate();
 
             IsVisibleClass = VisibleCssClass.Visible;
@@ -30,24 +28,21 @@ namespace Satori.Pages.ConfigSettings
 
         private void Save()
         {
-            if (string.IsNullOrEmpty(HostName) || string.IsNullOrEmpty(Path) || string.IsNullOrEmpty(UserName) || string.IsNullOrEmpty(Password))
+            Validate();
+            if (!FormIsValid)
             {
                 return;
             }
-            if (!int.TryParse(Port, out var port) || !int.TryParse(PortalPort, out var portalPort))
-            {
-                return;
-            }
-            
+
             var settings = new ConnectionSettings
             {
                 Enabled = Enabled,
-                HostName = HostName,
-                Port = port,
-                PortalPort = portalPort,
-                Path = Path,
-                UserName = UserName,
-                Password = Password
+#pragma warning disable CS8601 // Possible null reference assignment.  Verified by FormIsValid above
+                Subdomain = Subdomain,
+                QueueName = QueueName,
+                KeyName = KeyName,
+                Key = Key
+#pragma warning restore CS8601 // Possible null reference assignment.
             };
             ConnectionSettingsStore.SetMessageQueueSettings(settings);
 
@@ -60,18 +55,14 @@ namespace Satori.Pages.ConfigSettings
         }
 
         private bool Enabled { get; set; } = true;
-        private string? HostName { get; set; }
-        private string? HostNameValidationErrorMessage { get; set; }
-        private string? Port { get; set; }
-        private string? PortValidationErrorMessage { get; set; }
-        private string? PortalPort { get; set; }
-        private string? PortalPortValidationErrorMessage { get; set; }
-        private string? Path { get; set; }
-        private string? PathValidationErrorMessage { get; set; }
-        private string? UserName { get; set; }
-        private string? UserNameValidationErrorMessage { get; set; }
-        private string? Password { get; set; }
-        private string? PasswordValidationErrorMessage { get; set; }
+        private string? Subdomain { get; set; }
+        private string? SubdomainValidationErrorMessage { get; set; }
+        private string? QueueName { get; set; }
+        private string? QueueNameValidationErrorMessage { get; set; }
+        private string? KeyName { get; set; }
+        private string? KeyNameValidationErrorMessage { get; set; }
+        private string? Key { get; set; }
+        private string? KeyValidationErrorMessage { get; set; }
         private bool FormIsValid { get; set; }
 
         private void Validate()
@@ -79,41 +70,27 @@ namespace Satori.Pages.ConfigSettings
             FormIsValid = true;
             if (!Enabled)
             {
-                HostNameValidationErrorMessage = null;
-                PortValidationErrorMessage = null;
-                PortalPortValidationErrorMessage = null;
-                PathValidationErrorMessage = null;
-                UserNameValidationErrorMessage = null;
-                PasswordValidationErrorMessage = null;
+                SubdomainValidationErrorMessage = null;
+                QueueNameValidationErrorMessage = null;
+                KeyNameValidationErrorMessage = null;
+                KeyValidationErrorMessage = null;
                 return;
             }
 
-            HostNameValidationErrorMessage = GetRequiredValidationErrorMessage(HostName);
-            PortValidationErrorMessage = GetPortValidationErrorMessage(Port);
-            PortalPortValidationErrorMessage = GetPortValidationErrorMessage(PortalPort);
-            PathValidationErrorMessage = GetRequiredValidationErrorMessage(Path);
-            UserNameValidationErrorMessage = GetRequiredValidationErrorMessage(UserName);
-            PasswordValidationErrorMessage = GetRequiredValidationErrorMessage(Password);
+            SubdomainValidationErrorMessage = GetRequiredValidationErrorMessage(Subdomain);
+            QueueNameValidationErrorMessage = GetRequiredValidationErrorMessage(QueueName);
+            KeyNameValidationErrorMessage = GetRequiredValidationErrorMessage(KeyName);
+            KeyValidationErrorMessage = GetRequiredValidationErrorMessage(Key);
 
-            FormIsValid = string.IsNullOrEmpty(HostNameValidationErrorMessage)
-                          && string.IsNullOrEmpty(PortValidationErrorMessage)
-                          && string.IsNullOrEmpty(PortalPortValidationErrorMessage)
-                          && string.IsNullOrEmpty(PathValidationErrorMessage)
-                          && string.IsNullOrEmpty(UserNameValidationErrorMessage)
-                          && string.IsNullOrEmpty(PasswordValidationErrorMessage);
+            FormIsValid = string.IsNullOrEmpty(SubdomainValidationErrorMessage)
+                          && string.IsNullOrEmpty(QueueNameValidationErrorMessage)
+                          && string.IsNullOrEmpty(KeyNameValidationErrorMessage)
+                          && string.IsNullOrEmpty(KeyValidationErrorMessage);
         }
 
         private static string? GetRequiredValidationErrorMessage(string? value)
         {
             return string.IsNullOrEmpty(value) ? "Required" : null;
         }
-        
-        private static string? GetPortValidationErrorMessage(string? value)
-        {
-            return !int.TryParse(value, out var port) ? "Numeric value required" 
-                : port < 0 ? "Value must be positive" 
-                : null;
-        }
-
     }
 }

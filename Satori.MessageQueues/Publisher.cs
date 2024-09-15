@@ -1,93 +1,60 @@
-﻿using RabbitMQ.Client;
+﻿using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Flurl;
 
 namespace Satori.MessageQueues;
 
-public class Publisher<T> : IDisposable
+public class Publisher<T>(ConnectionSettings settings, HttpClient httpClient)
 {
-    private IConnection? _connection;
-    private IModel? _channel;
-
-    private string? ExchangeName { get; set; }
-
-    public void Open(ConnectionSettings settings, string name)
-    {
-        ArgumentNullException.ThrowIfNull(settings);
-        ArgumentNullException.ThrowIfNull(name);
-        ExchangeName = name;
-
-        (_connection, _channel) = settings.Open();
-
-        CreateExchangeAndQueue(name);
-    }
-
-    protected bool IsOpen => _channel != null;
-
-    private void CreateExchangeAndQueue(string name)
-    {
-        _channel.ExchangeDeclare(name, "fanout", durable: true);
-        _channel.QueueDeclare(name, durable: true, exclusive: false, autoDelete: false);
-        _channel.QueueBind(name, name, routingKey: string.Empty);
-    }
-
-    public void Close()
-    {
-        _channel?.Dispose();
-        _connection?.Dispose();
-
-        _channel = null;
-        _connection = null;
-    }
-
-    #region Dispose
-
-    private bool _disposed;
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    private void Dispose(bool disposing)
-    {
-        if (_disposed) return;
-        if (disposing)
-        {
-            // Dispose managed resources.
-            Close();
-        }
-
-        // Dispose unmanaged resources.
-
-        _disposed = true;
-    }
-
-    ~Publisher()
-    {
-        Dispose(false);
-    }
-
-    #endregion Dispose
-
     public virtual Task SendAsync(T message)
     {
         ArgumentNullException.ThrowIfNull(message);
-        if (_channel == null)
-        {
-            throw new InvalidOperationException("The channel is not open");
-        }
+
+        var payload = JsonSerializer.Serialize(message);
+
+        return SendMessageAsync(payload);
+    }
+
+    private async Task SendMessageAsync(string payload)
+    {
+        var requestUri = QueueUri.AppendPathSegment("messages");
+        var sasToken = GetSasToken();
+
+        var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
+        request.Headers.Add("Authorization", sasToken);
+        request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
         
-        var routingKey = typeof(T).FullName;
+        var response = await httpClient.SendAsync(request);
+        await ThrowIfBadStatusCode(response);
+    }
 
-        var properties = _channel.CreateBasicProperties();
-        properties.ContentType = "application/json";
-        properties.Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+    private string GetSasToken()
+    {
+        var resourceUri = QueueUri;
 
-        var payload = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
+        var expiry = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds();
+        var stringToSign = $"{resourceUri}\n{expiry}";
+        var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(settings.Key));
+        var signature = Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(stringToSign)));
+        var sasToken = $"SharedAccessSignature sr={resourceUri}&sig={Uri.EscapeDataString(signature)}&se={expiry}&skn={settings.KeyName}";
+        return sasToken;
+    }
 
-        _channel.BasicPublish(ExchangeName, routingKey, properties, payload);
+    private Url QueueUri => 
+        new Uri($"https://{settings.Subdomain}.servicebus.windows.net/")
+            .AppendPathSegment(settings.QueueName);
 
-        return Task.CompletedTask;
+    private static async Task ThrowIfBadStatusCode(HttpResponseMessage response)
+    {
+        if (!response.IsSuccessStatusCode)
+        {
+            var fromUriMsg = response.RequestMessage == null ? string.Empty : $" from {response.RequestMessage.RequestUri}";
+            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            using var reader = new StreamReader(responseStream);
+            var responseBody = await reader.ReadToEndAsync();
+
+            throw new ApplicationException($"Unexpected error {(int)response.StatusCode} {fromUriMsg}. {Environment.NewLine}{responseBody}");
+        }
     }
 }
