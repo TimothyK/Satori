@@ -27,15 +27,12 @@ internal static class AppServiceBuilder
         services.AddScoped<IKimaiServer, KimaiServer>();
 
         services.AddScoped(serviceProvider => serviceProvider.GetRequiredService<IConnectionSettingsStore>().GetMessageQueueSettings());
-        services.AddScoped<ITaskAdjustmentExporter, TaskAdjustmentExporter>();
+        services.AddScoped<ITaskAdjustmentExporter, CompletedWorkService>();
         services.AddScoped<IDailyActivityExporter, DailyActivityExporter>();
 
-        services.AddScoped<CompletedWorkService>();
-        services.AddScoped<TaskAdjustmentImporter>();
-        
         services.AddSingleton<ITimeServer, TimeServer>();
-
         return services;
+
     }
 
 

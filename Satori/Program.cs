@@ -9,9 +9,6 @@ namespace Satori;
 
 internal class Program
 {
-    public static readonly object TaskImporterLock = new();
-    public static TaskAdjustmentImporter? TaskImporter { get; set; }
-
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);

@@ -1,4 +1,6 @@
 ﻿using Satori.AppServices.Extensions;
+using Satori.AppServices.Services.Abstractions;
+using Satori.AppServices.ViewModels.ExportPayloads;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
@@ -9,7 +11,7 @@ namespace Satori.AppServices.Services;
 /// Service to update the completed work on Azure DevOps work items
 /// </summary>
 /// <param name="azureDevOpsServer"></param>
-public class CompletedWorkService(IAzureDevOpsServer azureDevOpsServer)
+public class CompletedWorkService(IAzureDevOpsServer azureDevOpsServer) : ITaskAdjustmentExporter
 {
     /// <summary>
     /// Adjusts the completed work field, and remaining work (in the opposite direction) if defined.
@@ -60,5 +62,11 @@ public class CompletedWorkService(IAzureDevOpsServer azureDevOpsServer)
         }
 
         await azureDevOpsServer.PatchWorkItemAsync(workItemId, patchItems);
+    }
+
+    /// <inheritdoc />
+    Task ITaskAdjustmentExporter.SendAsync(TaskAdjustment payload)
+    {
+        return AdjustCompletedWorkAsync(payload.WorkItemId, payload.Adjustment.TotalHours);
     }
 }

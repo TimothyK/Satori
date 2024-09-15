@@ -386,28 +386,7 @@
         DateSelector.DateChanged += DateChanged;
         await DateSelector.ChangePeriod(period);
     }
-
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-        // StartTaskImporter();
-    }
-
-    private void StartTaskImporter()
-    {
-        lock (Program.TaskImporterLock)
-        {
-            if (Program.TaskImporter != null)
-            {
-                return;
-            }
-
-            var service = ServiceProvider.GetRequiredService<TaskAdjustmentImporter>();
-            service.Start();
-            Program.TaskImporter = service;
-        }
-    }
-
+    
     private Period GetPeriodFromUrl()
     {
         var periodString = new Url(NavigationManager.Uri).QueryParams

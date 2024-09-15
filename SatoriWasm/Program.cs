@@ -1,7 +1,6 @@
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Satori.AppServices.Services;
 using Satori.Utilities;
 using Toolbelt.Blazor.Extensions.DependencyInjection;
 
@@ -9,9 +8,6 @@ namespace Satori;
 
 public class Program
 {
-    public static readonly object TaskImporterLock = new();
-    public static TaskAdjustmentImporter? TaskImporter { get; set; }
-
     public static async Task Main(string[] args)
     {
         var builder = WebAssemblyHostBuilder.CreateDefault(args);
