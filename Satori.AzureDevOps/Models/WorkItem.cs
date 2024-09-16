@@ -1,5 +1,5 @@
-﻿using System.Text.Json.Serialization;
-using Satori.AzureDevOps.Converters;
+﻿using Satori.Converters;
+using System.Text.Json.Serialization;
 
 namespace Satori.AzureDevOps.Models;
 

@@ -28,6 +28,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Satori.MessageQueues", "Sat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Satori", "Satori\Satori.csproj", "{45D8E878-34F5-4864-B3EF-20F3A6222DF1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Satori.Converters", "Satori.Converters\Satori.Converters.csproj", "{ACAD7190-91C9-479F-881C-ABB89A755895}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -74,6 +76,10 @@ Global
 		{45D8E878-34F5-4864-B3EF-20F3A6222DF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{45D8E878-34F5-4864-B3EF-20F3A6222DF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{45D8E878-34F5-4864-B3EF-20F3A6222DF1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ACAD7190-91C9-479F-881C-ABB89A755895}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ACAD7190-91C9-479F-881C-ABB89A755895}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ACAD7190-91C9-479F-881C-ABB89A755895}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ACAD7190-91C9-479F-881C-ABB89A755895}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,5 +1,6 @@
-﻿using Satori.Kimai.Converters;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
+using Satori.Converters;
+
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 // ReSharper disable ClassNeverInstantiated.Global
 
@@ -11,11 +12,11 @@ public class TimeEntry
     public int Id { get; set; }
 
     [JsonPropertyName("begin")]
-    [JsonConverter(typeof(KimaiDateTimeOffsetConverter))]
+    [JsonConverter(typeof(DateTimeOffsetConverter))]
     public DateTimeOffset Begin { get; set; }
 
     [JsonPropertyName("end")]
-    [JsonConverter(typeof(KimaiNullableDateTimeOffsetConverter))]
+    [JsonConverter(typeof(NullableDateTimeOffsetConverter))]
     public DateTimeOffset? End { get; set; }
 
     [JsonPropertyName("user")]

@@ -1,9 +1,9 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Satori.AzureDevOps.Converters;
+namespace Satori.Converters;
 
-internal class YesNoConverter : JsonConverter<bool>
+public class YesNoConverter : JsonConverter<bool>
 {
     public override bool Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {

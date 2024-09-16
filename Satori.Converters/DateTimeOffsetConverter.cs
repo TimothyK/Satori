@@ -2,13 +2,13 @@
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace Satori.Kimai.Converters;
+namespace Satori.Converters;
 
-internal class KimaiDateTimeOffsetConverter : JsonConverter<DateTimeOffset>
+public class DateTimeOffsetConverter : JsonConverter<DateTimeOffset>
 {
     public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        var converter = new KimaiNullableDateTimeOffsetConverter();
+        var converter = new NullableDateTimeOffsetConverter();
         var value = converter.Read(ref reader, typeToConvert, options);
 
         return value ?? throw new FormatException("The DateTimeOffset value cannot be null");
@@ -16,12 +16,12 @@ internal class KimaiDateTimeOffsetConverter : JsonConverter<DateTimeOffset>
 
     public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options)
     {
-        var converter = new KimaiNullableDateTimeOffsetConverter();
+        var converter = new NullableDateTimeOffsetConverter();
         converter.Write(writer, value, options);
     }
 }
 
-internal partial class KimaiNullableDateTimeOffsetConverter : JsonConverter<DateTimeOffset?>
+public partial class NullableDateTimeOffsetConverter : JsonConverter<DateTimeOffset?>
 {
     public override DateTimeOffset? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
@@ -30,7 +30,7 @@ internal partial class KimaiNullableDateTimeOffsetConverter : JsonConverter<Date
         {
             return null;
         }
-        if (KimaiDateTimeOffsetPattern().IsMatch(value))
+        if (DateTimeOffsetPattern().IsMatch(value))
         {
             value = value.Insert(value.Length - 2, ":");
         }
@@ -47,5 +47,5 @@ internal partial class KimaiNullableDateTimeOffsetConverter : JsonConverter<Date
     }
 
     [GeneratedRegex(@"^\d{4}-$\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{4}$")]
-    private static partial Regex KimaiDateTimeOffsetPattern();
+    private static partial Regex DateTimeOffsetPattern();
 }

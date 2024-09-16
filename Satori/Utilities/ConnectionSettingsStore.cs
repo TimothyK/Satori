@@ -3,7 +3,7 @@
 namespace Satori.Utilities
 {
     internal class ConnectionSettingsStore(
-        Blazored.LocalStorage.ISyncLocalStorageService  localStorage
+        Blazored.LocalStorage.ISyncLocalStorageService localStorage
     ) : IConnectionSettingsStore
     {
         private static class LocalStorageKeys
