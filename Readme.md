@@ -4,47 +4,37 @@ Satori is web application that provides comprehension and understanding to the e
 
 This is not yet another To Do List, you already have enough of those.  Satori does not store any data itself.  It only makes sense of the distributed data you already have.  It streamlines navigating between those systems.  Quick actions ensure that data is kept consistent between all systems.
 
-Supported Systems 
-- Bug & backlog tracking: Azure DevOps
-- Source Control: Azure DevOps (git)
-- Support Ticket & Sales tracking: Microsoft Dynamics CRM, Sentry
-- Time tracking: Kimai, TimeTrack
+Currently Supported Systems 
+- Kimai (Time Tracking)
+  - Although Kimai does provide a great interface for timing the task you are working on, Satori provides a Daily Stand-Up page to group the time records.
+  - The Stand-Up page allows for easily updating the Kimai comments to record 2 of the "Scrum 3 questions", 1) What did I accomplish today? 2) What were my impediments?
+  - Kimai time entry records can also be annotated with the Azure DevOps work item references.  This provides quick navigation between systems.
+  - Kimai Time entry can be exported to Azure DevOps to keep the Completed Work and Remaining Work totals up to date.  The daily stand-up page is a great place to review the daily work and mark tasks as completed.
+- Azure DevOps
+  - The Satori Sprint Board page provides a unified view of tasks across multiple boards.  
+  - Priorities relative to other boards can be adjusted (coming soon)
+  - Issue dependency and cumulative estimates (coming soon)
+  - Status of all Pull Requests can be seen
+- Azure Service Bus
+  - Kimai Time entries can also be exported to an Azure Service Bus Queue.  Custom programs can be written to import these daily totals.  Duplicate comments created returning (restarting) the same task multiple times in a day are removed. 
+
+# Getting Started
+
+## As an end user
+This web application is already hosted at [https://satori.nexus](https://satori.nexus).  Enter your API keys to connect to any or all of the supported integrated systems.
+
+## Contributing
+This is a Blazor Web Assembly application.
+
+# Future Roadmap
+
+Overtime the number of integrated systems is expected to grow.  These may include:
+
+- ✔️ Bug & backlog tracking: Azure DevOps
+- ✔️ Source Control: Azure DevOps (git)
+- ✔️ Time tracking: Kimai
+- Support Ticket & Sales tracking: Microsoft Dynamics CRM, FreshDesk
 - Email: Outlook
 - Chat: Slack, Microsoft Teams
 - Wiki: Confluence
 - Project Management: BaseCamp
-  
-Features:
-- Quick navigation to the same issue across those multiple systems
-- Quick actions to repair inconsistencies between systems, and keep the issues in all systems progressing.
-- Dashboards and reminders to stay focused on high priority items, and not bombard you with the other high priority items you can worry about tomorrow.  Realistic time management and Work In Progress (WIP) limits.
-- Daily stand-up boards to answer the 3 questions:  yesterday's accomplishments & impediments, and today's plan.
-- Accurate time tracking.  Although we don't need big brother tracking us every minute of every day, if we are going to track our time we may as well do it well.
-
-# Getting Started
-
-This (currently) uses a personal access token of the developer when running this web application in order to interact with Azure DevOps.  This token is stored in a user secrets file stored on the developer machine.  It is not checked into source control.  This will need to be configured before the program will successfully run.
-
-Open the solution in Visual Studio
-- right click the project in the Solution Explorer
-- select the "Manage User Secrets" menu
-- copy the following into this empty json file.  Note that this is also available from `appsettings.Development.json`.
-
-```
-{
-  "AzureDevOps": {
-    "PersonalAccessToken": "the token value from AzureDevOps"
-  }
-}
-```
-
-Create your token by
-- click on your profile avatar picture in the top right of any Azure DevOps web portal page.
-- Click Security menu
-- This takes you to the Person Access Tokens page.  Click "+New Token".
-- Create a the token
-- Copy its value
-- Paste it into your secrets.json file
-
-For more on User Secrets, see [here](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-8.0&tabs=windows)
-
