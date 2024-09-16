@@ -16,7 +16,13 @@
                 </tr>
                 <tr>
                     <td><label for="mq-subdomain">Subdomain (Namespace):</label></td>
-                    <td><input type="text" id="mq-subdomain" placeholder="@ConnectionSettings.Default.Subdomain" size="50" @bind="Subdomain" @onblur="Validate" /></td>
+                    <td>
+                        <div class="input-group">
+                            <span class="input-group-text">https://</span>
+                            <input type="text" id="mq-subdomain" placeholder="@ConnectionSettings.Default.Subdomain" size="50" @bind="Subdomain" @onblur="Validate"/>
+                            <span class="input-group-text">.servicebus.windows.net/</span>
+                        </div>
+                    </td>
                     <td><span class="validation-error">@SubdomainValidationErrorMessage</span></td>
                 </tr>
                 <tr>
