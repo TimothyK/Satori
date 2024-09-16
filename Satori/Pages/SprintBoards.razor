@@ -266,16 +266,15 @@ else
         ResetWorkItemCounts();
     }
 
-    private HotKeysContext? _hotKeysContext;
 
     private bool _isInitialized;
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender) {
-            _hotKeysContext = this.HotKeys.CreateContext()
-                .Add(ModCode.Alt, Code.P, EnterAdjustPriorityMode, new() { Description = "Adjust Priorities" })
-                .Add(ModCode.None, Code.Escape, ExitAdjustPriorityMode, new() { Description = "Exit Adjust Priorities" })
-                .Add(ModCode.None, Code.Enter, MovePriority, new() { Description = "Adjust Priorities" });
+            HotKeys.CreateContext()
+                .Add(ModCode.Alt, Code.P, EnterAdjustPriorityMode, new HotKeyOptions { Description = "Adjust Priorities" })
+                .Add(ModCode.None, Code.Escape, ExitAdjustPriorityMode, new HotKeyOptions { Description = "Exit Adjust Priorities" })
+                .Add(ModCode.None, Code.Enter, MovePriority, new HotKeyOptions { Description = "Adjust Priorities" });
         }
 
         if (_isInitialized)
@@ -289,11 +288,6 @@ else
             StateHasChanged();
             _isInitialized = true;
         }
-    }
-
-    public void Dispose()
-    {
-        _hotKeysContext?.Dispose();
     }
 
     private void OpenWorkItem(WorkItem workItem)
@@ -361,7 +355,7 @@ else
 
         if (PriorityAdjustment.SelectedWorkItemsCount == 0)
         {
-            PriorityAdjustment.ShowAlert("No work items selected.  Select work items to move (have their priority changed).", PriorityAdjustmentViewModel.AlertTypeCssClass.Warning);;
+            PriorityAdjustment.ShowAlert("No work items selected.  Select work items to move (have their priority changed).", PriorityAdjustmentViewModel.AlertTypeCssClass.Warning);
             return;
         }
 
