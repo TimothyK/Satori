@@ -17,7 +17,7 @@ namespace Satori.Pages
     /// This allows users to create bookmark for their team(s).
     /// </para>
     /// <para>
-    /// If no teams are on the URL (i.e. http://satori/Sprints) then the page should default to the team(s) the user selected on their last visit.
+    /// If no teams are on the URL (i.e. https://satori.nexus/Sprints) then the page should default to the team(s) the user selected on their last visit.
     /// Those are stored in Local Storage on the client's web browser.
     /// Note that local storage is only available after the page has loaded.  Only then can we have access to the LocalStorage service.
     /// </para>
