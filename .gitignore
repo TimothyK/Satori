@@ -363,3 +363,6 @@ MigrationBackup/
 FodyWeavers.xsd
 
 /.notes
+
+# Snapshooter
+**/__snapshots__/__mismatch__/*
