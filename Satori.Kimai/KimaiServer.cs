@@ -68,8 +68,18 @@ public class KimaiServer(
 
     private void AddAuthHeader(HttpRequestMessage request)
     {
-        request.Headers.Add("X-AUTH-USER", connectionSettings.UserName);
-        request.Headers.Add("X-AUTH-TOKEN", connectionSettings.ApiPassword);
+        switch (connectionSettings.AuthenticationMethod)
+        {
+            case KimaiAuthenticationMethod.Token:
+                request.Headers.Add("Authorization", "Bearer " + connectionSettings.ApiToken);
+                return;
+            case KimaiAuthenticationMethod.Password:
+                request.Headers.Add("X-AUTH-USER", connectionSettings.UserName);
+                request.Headers.Add("X-AUTH-TOKEN", connectionSettings.ApiPassword);
+                return;
+            default:
+                throw new NotSupportedException("Unknown authentication method: " + connectionSettings.AuthenticationMethod);
+        }
     }
 
     private static async Task VerifySuccessfulResponseAsync(HttpResponseMessage response)

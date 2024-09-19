@@ -108,7 +108,12 @@ code {
     display: none;
 }
 
-
+.flex-row {
+    display: flex;
+}
+.flex-row > div {
+    margin-right: 10px;
+}
 
 .help-section {
     margin-top: 10px;

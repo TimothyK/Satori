@@ -8,14 +8,25 @@ public class ConnectionSettings
     /// Base URL to the Kimai server.  The path should be empty.
     /// </summary>
     public required Uri Url { get; init; }
+
+    public KimaiAuthenticationMethod AuthenticationMethod { get; init; } = KimaiAuthenticationMethod.Token;
+
+    /// <summary>
+    /// Token used to authenticate with to the Kimai server
+    /// </summary>
+    /// <remarks>Only used if <see cref="AuthenticationMethod"/> is <see cref="KimaiAuthenticationMethod.Token"/> </remarks>
+    public string? ApiToken { get; init; }
+
     /// <summary>
     /// The user's Name field
     /// </summary>
-    public required string UserName { get; init; }
+    /// <remarks>Only used if <see cref="AuthenticationMethod"/> is <see cref="KimaiAuthenticationMethod.Password"/> </remarks>
+    public string? UserName { get; init; }
     /// <summary>
     /// API token that was set for the user
     /// </summary>
-    public required string ApiPassword { get; init; }
+    /// <remarks>Only used if <see cref="AuthenticationMethod"/> is <see cref="KimaiAuthenticationMethod.Password"/> </remarks>
+    public string? ApiPassword { get; init; }
 
     public static readonly ConnectionSettings Default = new()
     {
@@ -24,4 +35,10 @@ public class ConnectionSettings
         UserName = string.Empty,
         ApiPassword = string.Empty,
     };
+}
+
+public enum KimaiAuthenticationMethod
+{
+    Token,
+    Password,
 }

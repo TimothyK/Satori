@@ -1,4 +1,6 @@
 ﻿@using Satori.AppServices.Models
+@using Satori.Kimai
+@using Satori.Utilities
 @using ConnectionSettings = Satori.Kimai.ConnectionSettings
 @inject IConnectionSettingsStore ConnectionSettingsStore
 
@@ -20,14 +22,35 @@
                     <td><span class="validation-error">@UrlValidationErrorMessage</span></td>
                 </tr>
                 <tr>
+                    <td>Authentication Method:</td>
+                    <td>
+                        <div class="flex-row">
+                            <div>
+                                <input type="radio" name="KimaiAuthenticationMethod" id="kimai-authmethod-token" checked="@(AuthenticationMethod == KimaiAuthenticationMethod.Token)" @onchange="() => SetAuthenticationMethod(KimaiAuthenticationMethod.Token)"/>
+                                <label for="kimai-authmethod-token">API Token</label>
+                            </div>
+                            <div>
+                                <input type="radio" name="KimaiAuthenticationMethod" id="kimai-authmethod-password" checked="@(AuthenticationMethod == KimaiAuthenticationMethod.Password)" @onchange="() => SetAuthenticationMethod(KimaiAuthenticationMethod.Password)"/>
+                                <label for="kimai-authmethod-password">API Password</label>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="validation-error"></span></td>
+                </tr>
+                <tr class="@ShowToken.ToString()">
+                    <td><label for="kimai-token">API Token:</label></td>
+                    <td><input type="password" id="kimai-token" size="50" @bind="ApiToken" @onblur="Validate" /></td>
+                    <td><span class="validation-error">@TokenValidationErrorMessage</span></td>
+                </tr>
+                <tr class="@ShowPassword.ToString()">
                     <td><label for="kimai-username">Username:</label></td>
                     <td><input type="text" id="kimai-username" size="50" @bind="UserName" @onblur="Validate" /></td>
                     <td><span class="validation-error">@UserNameValidationErrorMessage</span></td>
                 </tr>
-                <tr>
-                    <td><label for="kimai-token">API Password:</label></td>
-                    <td><input type="password" id="kimai-token" size="50" @bind="ApiPassword" @onblur="Validate" /></td>
-                    <td><span class="validation-error">@TokenValidationErrorMessage</span></td>
+                <tr class="@ShowPassword.ToString()">
+                    <td><label for="kimai-password">API Password:</label></td>
+                    <td><input type="password" id="kimai-password" size="50" @bind="ApiPassword" @onblur="Validate" /></td>
+                    <td><span class="validation-error">@PasswordValidationErrorMessage</span></td>
                 </tr>
             </table>
             <button class="btn btn-primary" @onclick="Save" disabled="@(!FormIsValid)">Save</button>
@@ -35,25 +58,45 @@
             <div class="help-section">
                 <p class="help-header">Instructions</p>
                 <p>In the URL field enter the full URL of the Kimai server. The value should not contain any path information. E.g. https://kimai.test</p>
-                <p>Your Username and API Key is required for Satori to access Kimai on your behalf.</p>
-                <p>To get your Username</p>
-                <ol>
-                    <li>log into Kimai</li>
-                    <li>click on your avatar in the top right</li>
-                    <li>choose "Edit" from the Menu</li>
-                    <li>make user you are on the Profile tab</li>
-                    <li>Copy the value of the "Name" property.  Note this value may contain spaces.</li>
-                    <li>Paste the value in the Username field above</li>
-                </ol>
-                <p>To get an API Password to use with Satori</p>
-                <ol>
-                    <li>log into Kimai</li>
-                    <li>click on your avatar in the top right</li>
-                    <li>choose "API Access" from the Menu</li>
-                    <li>Enter a value into the API password field.  Ensure this is a strong password.</li>
-                    <li>Enter the same value into the Repeat API password field.</li>
-                    <li>Enter the sae value into the API Password field above on this page</li>
-                </ol>
+                <p>Satori supports 2 authentication methods for Kimai.  API Token is the preferred method.  API Password is a legacy method.</p>
+                <div class="@ShowToken.ToString()">
+                    <p>To create and API Token</p>
+                    <ol>
+                        <li>log into Kimai</li>
+                        <li>click on your avatar in the top right</li>
+                        <li>choose "API Access" from the Menu</li>
+                        <li>Click the "+ Create" button
+                            <ol type="a">
+                                <li>Enter a name for token (e.g. "Satori").</li>
+                                <li>(Optional) Enter an expiry date for the token.</li>
+                                <li>Click Save</li>
+                            </ol>
+                        </li>
+                        <li>Copy the API Token.  There is a copy button/icon to the right of the token value.</li>
+                        <li>Enter the sae value into the API Token field above on this page</li>
+                    </ol>
+                </div>
+                <div class="@ShowPassword.ToString()">
+                    <p>Your Username and API Key is required for Satori to access Kimai on your behalf.</p>
+                    <p>To get your Username</p>
+                    <ol>
+                        <li>log into Kimai</li>
+                        <li>click on your avatar in the top right</li>
+                        <li>choose "Edit" from the Menu</li>
+                        <li>make user you are on the Profile tab</li>
+                        <li>Copy the value of the "Name" property.  Note this value may contain spaces.</li>
+                        <li>Paste the value in the Username field above</li>
+                    </ol>
+                    <p>To get an API Password to use with Satori</p>
+                    <ol>
+                        <li>log into Kimai</li>
+                        <li>click on your avatar in the top right</li>
+                        <li>choose "API Access" from the Menu</li>
+                        <li>Enter a value into the API password field.  Ensure this is a strong password.</li>
+                        <li>Enter the same value into the Repeat API password field.</li>
+                        <li>Enter the sae value into the API Password field above on this page</li>
+                    </ol>
+                </div>
                 <p class="help-header">Read Access</p>
                 <p>Satori pulls from Kimai timesheet data for the Daily Stand-Up page.</p>
                 <p class="help-header">Write Access</p>
