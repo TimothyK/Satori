@@ -73,15 +73,21 @@
 <MessageQueueSettings @ref="_messageQueueSettings" OnSettingsChanged="ReloadPage" />
 
 <h5>Privacy Policy</h5>
-<p>
-    This web application does not store any data whatsoever on any server.
-</p>
-<p style="max-width: 800px;">
-    The access keys to gain access to Azure DevOps, Kimai, or any other integrated service are stored locally in your web browser as encrypted data.
-    Those keys are never captured to any other server.
-    No data pulled from Azure Devops (work items & pull requests), Kimai (timesheets), or any other integrated service are shared or stored on any external service.
-    This data is merely displayed in your web browser.
-</p>
+<div class="privacy-policy">
+    <p>
+        This web application does not store any data whatsoever on any server.
+    </p>
+    <p>
+        The access keys to gain access to Azure DevOps, Kimai, or any other integrated service are stored locally in your web browser.
+        Those keys are never captured to any other server.
+        Sensitive data (passwords) are munged to make it unreadable, but it is not technically encrypted.  
+        Do not use this application on a shared computer and/or clear cookies and local storage after use.
+    </p>
+    <p>
+        No data pulled from Azure Devops (work items & pull requests), Kimai (timesheets), or any other integrated service are shared or stored on any external service.
+        This data is merely displayed in your web browser.
+    </p>
+</div>
 
 <h5>Contributions</h5>
 <ul>

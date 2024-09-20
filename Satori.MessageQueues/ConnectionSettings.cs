@@ -1,4 +1,7 @@
-﻿namespace Satori.MessageQueues;
+﻿using System.Text.Json.Serialization;
+using Satori.Converters;
+
+namespace Satori.MessageQueues;
 
 public class ConnectionSettings
 {
@@ -15,5 +18,6 @@ public class ConnectionSettings
     public required string Subdomain { get; init; }
     public required string QueueName { get; init; }
     public required string KeyName { get; init; }
+    [JsonConverter(typeof(EncryptedStringConverter))]
     public required string Key { get; init; }
 }

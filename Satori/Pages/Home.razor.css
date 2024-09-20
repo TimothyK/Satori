@@ -29,4 +29,6 @@
     text-decoration: none;
 }
 
-
+.privacy-policy > p {
+    max-width: 800px;
+}

@@ -1,4 +1,7 @@
-﻿namespace Satori.Kimai;
+﻿using Satori.Converters;
+using System.Text.Json.Serialization;
+
+namespace Satori.Kimai;
 
 public class ConnectionSettings
 {
@@ -15,6 +18,7 @@ public class ConnectionSettings
     /// Token used to authenticate with to the Kimai server
     /// </summary>
     /// <remarks>Only used if <see cref="AuthenticationMethod"/> is <see cref="KimaiAuthenticationMethod.Token"/> </remarks>
+    [JsonConverter(typeof(EncryptedStringConverter))]
     public string? ApiToken { get; init; }
 
     /// <summary>
@@ -26,6 +30,7 @@ public class ConnectionSettings
     /// API token that was set for the user
     /// </summary>
     /// <remarks>Only used if <see cref="AuthenticationMethod"/> is <see cref="KimaiAuthenticationMethod.Password"/> </remarks>
+    [JsonConverter(typeof(EncryptedStringConverter))]
     public string? ApiPassword { get; init; }
 
     public static readonly ConnectionSettings Default = new()

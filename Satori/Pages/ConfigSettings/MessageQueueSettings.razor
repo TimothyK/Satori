@@ -37,7 +37,7 @@
                 </tr>
                 <tr>
                     <td><label for="mq-key">Key:</label></td>
-                    <td><input type="text" id="mq-key" placeholder="@ConnectionSettings.Default.Key" size="50" @bind="Key" @onblur="Validate" /></td>
+                    <td><input type="password" id="mq-key" placeholder="@ConnectionSettings.Default.Key" size="50" @bind="Key" @onblur="Validate" /></td>
                     <td><span class="validation-error">@KeyValidationErrorMessage</span></td>
                 </tr>
             </table>
