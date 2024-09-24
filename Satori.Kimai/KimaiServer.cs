@@ -21,7 +21,7 @@ public class KimaiServer(
     {
         var url = connectionSettings.Url
             .AppendPathSegment("api/timesheets")
-            .AppendQueryParam("full")
+            .AppendQueryParam("full", "true")
             .AppendQueryParams(filter);
 
         return await GetAsync<TimeEntry[]>(url);
@@ -60,10 +60,19 @@ public class KimaiServer(
         await VerifySuccessfulResponseAsync(response);
 
         await using var responseStream = await response.Content.ReadAsStreamAsync();
-        var result = await JsonSerializer.DeserializeAsync<T>(responseStream)
-                   ?? throw new ApplicationException("Server did not respond");
+        using var reader = new StreamReader(responseStream);
+        var body = await reader.ReadToEndAsync();
 
-        return result;
+        try
+        {
+            return JsonSerializer.Deserialize<T>(body)
+                         ?? throw new ApplicationException("Server did not respond");
+        }
+        catch (JsonException ex)
+        {
+            Logger.LogError(ex, "Failed to deserialize {payload}", body);
+            throw;
+        }
     }
 
     private void AddAuthHeader(HttpRequestMessage request)

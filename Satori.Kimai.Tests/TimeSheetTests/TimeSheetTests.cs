@@ -20,7 +20,7 @@ public class TimeSheetTests
     private Url GetUrl(TimeSheetFilter filter) =>
         _connectionSettings.Url
             .AppendPathSegment("api/timesheets")
-            .AppendQueryParam("full")
+            .AppendQueryParam("full", "true")
             .AppendQueryParams(filter);
 
     private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
