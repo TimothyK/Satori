@@ -273,6 +273,45 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         entry.Task.Id.ShouldBe(task.Id);
     }
 
+    [TestMethod]
+    public async Task UnknownTaskType()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        AzureDevOpsBuilder.BuildWorkItem(out var task);
+        task.Fields.WorkItemType = "Test Case";
+        kimaiEntry.Description = $"D#{task.Id}";
+        
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.Task.ShouldNotBeNull();
+        entry.Task.Id.ShouldBe(task.Id);
+        entry.Task.Type.ShouldBe(WorkItemType.Unknown);
+    }
+    
+    [TestMethod]
+    public async Task UnknownTaskState()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        AzureDevOpsBuilder.BuildWorkItem(out var task);
+        task.Fields.WorkItemType = "Test Case";
+        task.Fields.State = "Design";
+        kimaiEntry.Description = $"D#{task.Id}";
+        
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.Task.ShouldNotBeNull();
+        entry.Task.Id.ShouldBe(task.Id);
+        entry.Task.State.ShouldBe(ScrumState.Unknown);
+    }
+
     #endregion Load Work Item Type and Parent/Child relations
 
     #region Time Remaining

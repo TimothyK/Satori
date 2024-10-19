@@ -25,9 +25,9 @@ public class WorkItemTests
 
     private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
 
-    private void SetResponse(Url url, byte[] response)
+    private void SetResponse(Url url, string response)
     {
-        _mockHttp.When(url).Respond("application/json", System.Text.Encoding.Default.GetString(response));
+        _mockHttp.When(url).Respond("application/json", response);
     }
 
     #endregion Arrange
@@ -57,7 +57,7 @@ public class WorkItemTests
     private const int ExpandedWorkItemId = 12345;
     private static readonly int[] SixTypesWorkItemIds = [28655, 29924, 29922, 29923, 27850, 30343];
 
-    private static byte[] GetPayload(int workItemId)
+    private static string GetPayload(int workItemId)
     {
         if (workItemId == BlockedWorkItemId)
         {
@@ -67,7 +67,6 @@ public class WorkItemTests
         {
             return WorkItemResponses.ExpandedRelations;
         }
-
         if (SixTypesWorkItemIds.Contains(workItemId))
         {
             return WorkItemResponses.SixTypesWorkItems;
