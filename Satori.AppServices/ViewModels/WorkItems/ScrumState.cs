@@ -103,6 +103,16 @@ public class ScrumState : IComparable<ScrumState>
     /// </summary>
     public static readonly ScrumState Removed = new();
 
+    /// <summary>
+    /// State not yet supported
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// e.g. Test Case work item type is not currently supported in Satori.  One of its possible states is "Design", which is also not supported.
+    /// </para>
+    /// </remarks>
+    public static readonly ScrumState Unknown = new();
+
     #endregion
 
     #region To/From String
@@ -117,7 +127,8 @@ public class ScrumState : IComparable<ScrumState>
         {InProgress, nameof(InProgress)},
         {Done, nameof(Done)},
         {Closed, nameof(Closed)},
-        {Removed, nameof(Removed)}
+        {Removed, nameof(Removed)},
+        {Unknown, nameof(Unknown)},
     };
 
     public override string ToString() => ToStringMap[this];
@@ -133,7 +144,7 @@ public class ScrumState : IComparable<ScrumState>
 
     #endregion
 
-    #region DbValue
+    #region ApiValue
 
     private static readonly Dictionary<ScrumState, string> ApiValueMap = new()
     {
@@ -145,7 +156,8 @@ public class ScrumState : IComparable<ScrumState>
         {InProgress, "In Progress"},
         {Done, "Done"},
         {Closed, "Closed"},
-        {Removed, "Removed"}
+        {Removed, "Removed"},
+        {Unknown, "garbage value?!"},
     };
 
     public string ToApiValue() => ApiValueMap[this];
@@ -154,9 +166,7 @@ public class ScrumState : IComparable<ScrumState>
         ArgumentNullException.ThrowIfNull(value);
 
         var result = All().FirstOrDefault(x => x.ToApiValue() == value);
-        if (result != null) return result;
-
-        throw new ArgumentOutOfRangeException(nameof(value), value, $"Invalid {nameof(ScrumState)}");
+        return result ?? Unknown;
     }
 
     #endregion
@@ -173,7 +183,8 @@ public class ScrumState : IComparable<ScrumState>
         {InProgress, 12},
         {Done, 20},
         {Closed, 21},
-        {Removed, 30}
+        {Removed, 30},
+        {Unknown, 9999}
     };
 
     private int OrdinalValue => OrdinalMap[this];
