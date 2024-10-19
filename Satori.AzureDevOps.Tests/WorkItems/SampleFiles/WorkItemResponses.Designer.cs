@@ -61,52 +61,117 @@ namespace Satori.AzureDevOps.Tests.WorkItems.SampleFiles {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to {
+        ///    &quot;count&quot;: 1,
+        ///    &quot;value&quot;: [
+        ///        {
+        ///            &quot;id&quot;: 3,
+        ///            &quot;rev&quot;: 16,
+        ///            &quot;fields&quot;: {
+        ///                &quot;System.AreaPath&quot;: &quot;Product\\AppArea&quot;,
+        ///                &quot;System.TeamProject&quot;: &quot;MyProject&quot;,
+        ///                &quot;System.IterationPath&quot;: &quot;CD\\Skunk\\Sprint 2024-02&quot;,
+        ///                &quot;System.WorkItemType&quot;: &quot;Product Backlog Item&quot;,
+        ///                &quot;System.State&quot;: &quot;New&quot;,
+        ///                &quot;System.Reason&quot;: &quot;New backlog item&quot;,
+        ///                &quot;System.AssignedTo&quot;: {
+        ///                   [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static byte[] BlockedWorkItem {
+        internal static string BlockedWorkItem {
             get {
-                object obj = ResourceManager.GetObject("BlockedWorkItem", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("BlockedWorkItem", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to {
+        ///    &quot;count&quot;: 1,
+        ///    &quot;value&quot;: [
+        ///        {
+        ///            &quot;fields&quot;: {
+        ///                &quot;Custom.Enhancement&quot;: &quot;&lt;div&gt;Enhance the start up logic to not divide by the number of successfully deployments.  This might cause a division by zero error. &lt;/div&gt;&quot;,
+        ///                &quot;Custom.ProjectCode&quot;: &quot;1.2.3 - Skunk Works&quot;,
+        ///                &quot;Microsoft.VSTS.CMMI.Blocked&quot;: &quot;No&quot;,
+        ///                &quot;Microsoft.VSTS.CMMI.ImpactAssessmentHtml&quot;: &quot;&lt;div&gt;If not fixed we will all be fired and die hungry and alone. &lt;/div&gt;&quot;,
+        ///       [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static byte[] ExpandedRelations {
+        internal static string ExpandedRelations {
             get {
-                object obj = ResourceManager.GetObject("ExpandedRelations", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("ExpandedRelations", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to {
+        ///    &quot;count&quot;: 1,
+        ///    &quot;value&quot;: [
+        ///        {
+        ///            &quot;id&quot;: 2,
+        ///            &quot;rev&quot;: 16,
+        ///          &quot;fields&quot;: {
+        ///            &quot;System.AreaPath&quot;: &quot;Product\\AppArea&quot;,
+        ///            &quot;System.TeamProject&quot;: &quot;MyProject&quot;,
+        ///            &quot;System.IterationPath&quot;: &quot;CD\\Skunk\\Sprint 2024-02&quot;,
+        ///            &quot;System.WorkItemType&quot;: &quot;Product Backlog Item&quot;,
+        ///            &quot;System.State&quot;: &quot;New&quot;,
+        ///            &quot;System.Reason&quot;: &quot;New backlog item&quot;,
+        ///            &quot;System.AssignedTo&quot;: {
+        ///              &quot;displayName&quot;: &quot;Timothy Klenke&quot;,
+        /// [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static byte[] SingleWorkItem {
+        internal static string SingleWorkItem {
             get {
-                object obj = ResourceManager.GetObject("SingleWorkItem", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("SingleWorkItem", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to {
+        ///    &quot;count&quot;: 5,
+        ///    &quot;value&quot;: [
+        ///        {
+        ///            &quot;id&quot;: 28655,
+        ///            &quot;rev&quot;: 6,
+        ///            &quot;fields&quot;: {
+        ///                &quot;System.AreaPath&quot;: &quot;Product\\AppArea&quot;,
+        ///                &quot;System.TeamProject&quot;: &quot;MyProject&quot;,
+        ///                &quot;System.IterationPath&quot;: &quot;MyProject\\Skunk\\Sprint 2024-02&quot;,
+        ///                &quot;System.WorkItemType&quot;: &quot;Epic&quot;,
+        ///                &quot;System.State&quot;: &quot;New&quot;,
+        ///                &quot;System.Reason&quot;: &quot;New epic&quot;,
+        ///                &quot;System.CreatedDate&quot;: &quot;2023-12-18T21:52:06.91Z&quot;,
+        ///       [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static byte[] SixTypesWorkItems {
+        internal static string SixTypesWorkItems {
             get {
-                object obj = ResourceManager.GetObject("SixTypesWorkItems", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("SixTypesWorkItems", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to {
+        ///    &quot;workItemRelations&quot;: [
+        ///        {
+        ///            &quot;rel&quot;: null,
+        ///            &quot;source&quot;: null,
+        ///            &quot;target&quot;: {
+        ///                &quot;id&quot;: 1,
+        ///                &quot;url&quot;: &quot;http://devops.test/Org/_apis/wit/workItems/29228&quot;
+        ///            }
+        ///        },
+        ///        {
+        ///            &quot;rel&quot;: &quot;System.LinkTypes.Hierarchy-Forward&quot;,
+        ///            &quot;source&quot;: {
+        ///                &quot;id&quot;: 1,
+        ///                &quot;url&quot;: &quot;http://devops.test/Org/_apis/wit/workItems/29228&quot;
+        ///            },
+        ///            &quot;target&quot;: {
+        ///                &quot;id&quot;: 2,
+        /// [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static byte[] WorkItemRelations {
+        internal static string WorkItemRelations {
             get {
-                object obj = ResourceManager.GetObject("WorkItemRelations", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("WorkItemRelations", resourceCulture);
             }
         }
     }

@@ -50,7 +50,7 @@ public class PatchTests
 
     private static string GetPayload()
     {
-        var s = System.Text.Encoding.Default.GetString(WorkItemResponses.SingleWorkItem);
+        var s = WorkItemResponses.SingleWorkItem;
         var json = JsonDocument.Parse(s);
 
         var workItem = json.RootElement.GetProperty("value")[0];

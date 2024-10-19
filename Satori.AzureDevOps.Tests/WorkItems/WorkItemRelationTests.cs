@@ -26,9 +26,9 @@ public class WorkItemRelationTests
 
     private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
 
-    private void SetResponse(Url url, byte[] response)
+    private void SetResponse(Url url, string response)
     {
-        _mockHttp.When(url).Respond("application/json", System.Text.Encoding.Default.GetString(response));
+        _mockHttp.When(url).Respond("application/json", response);
     }
 
     private static class Iterations
@@ -36,7 +36,7 @@ public class WorkItemRelationTests
         public static readonly IterationId Simple = Builder.Builder<IterationId>.New().Build(int.MaxValue);
     }
 
-    private static byte[] GetPayload(IterationId iteration)
+    private static string GetPayload(IterationId iteration)
     {
         if (iteration.Id == Iterations.Simple.Id)
         {
