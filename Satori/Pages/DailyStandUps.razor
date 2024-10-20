@@ -31,6 +31,11 @@
             <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriod(Period.LastSevenDays)">Last 7 Days</div>
         </div>
     </div>
+    <div class="duration">
+        <div class="duration-decimal">
+            <span class="">@PeriodTotal.TotalHours.ToNearest(0.05) h</span>
+        </div>
+    </div>
     <div class="date-range">
         <div><button class="btn-date-range btn-date-range-decrement" @onclick="DateSelector.DecrementPeriod">«</button></div>
         <div><span>@InLoading @DateSelector.DateRangeText</span></div>
@@ -368,7 +373,8 @@
     private Person CurrentUser { get; set; } = Person.Empty;
     private DateSelectorViewModel DateSelector { get; set; } = new(Person.Empty.FirstDayOfWeek, standUpService: null);
     private StandUpDay[] StandUpDays { get; set; } = [];
-    
+    private TimeSpan PeriodTotal { get; set; } = TimeSpan.Zero;
+
     private LoadingStatusLabel InLoading { get; set; } = LoadingStatusLabel.InLoading;
 
     protected override async Task OnInitializedAsync()
@@ -386,7 +392,7 @@
         DateSelector.DateChanged += DateChanged;
         await DateSelector.ChangePeriod(period);
     }
-    
+
     private Period GetPeriodFromUrl()
     {
         var periodString = new Url(NavigationManager.Uri).QueryParams
@@ -422,7 +428,7 @@
             .AppendQueryParam("DatePeriod", null)
             .AppendQueryParam("DatePeriod", DateSelector.Period);
         NavigationManager.NavigateTo(url, forceLoad: false);
-        
+
         LocalStorage.SetItemAsync("DatePeriod", DateSelector.Period);
         CurrentPeriod = DateSelector.Period;
     }
@@ -430,6 +436,7 @@
     private void DateChanged(object? sender, DateChangedEventArgs eventArgs)
     {
         StandUpDays = eventArgs.StandUpDays;
+        PeriodTotal = StandUpDays.Select(d => d.TotalTime).Sum();
         InLoading = LoadingStatusLabel.FinishedLoading;
     }
     
