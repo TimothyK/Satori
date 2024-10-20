@@ -7,6 +7,7 @@ public class TimeEntry
     public int Id { get; init; }
 
     public required ActivitySummary ParentActivitySummary { get; init; }
+    public TaskSummary? ParentTaskSummary { get; set; }
 
     public DateTimeOffset Begin { get; init; }
     public DateTimeOffset? End { get; init; }

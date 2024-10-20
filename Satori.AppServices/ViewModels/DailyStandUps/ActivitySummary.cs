@@ -22,9 +22,13 @@ public class ActivitySummary
     public bool IsCollapsed { get; set; } = true;
 
     public required TaskSummary[] TaskSummaries { get; set; }
+    [Obsolete]
     public string? Accomplishments { get; set; }
+    [Obsolete]
     public string? Impediments { get; set; }
+    [Obsolete]
     public string? Learnings { get; set; }
+    [Obsolete]
     public string? OtherComments { get; set; }
 
 }

@@ -60,6 +60,22 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
     }
     
     [TestMethod]
+    public async Task ParentTaskSummary()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.ParentTaskSummary.ShouldNotBeNull();
+        entry.ParentTaskSummary.TimeEntries.ShouldContain(entry);
+        entry.ParentTaskSummary.ParentActivitySummary.ActivityId.ShouldBe(kimaiEntry.Activity.Id);
+    }
+    
+    [TestMethod]
     public async Task ParentActivity()
     {
         //Arrange

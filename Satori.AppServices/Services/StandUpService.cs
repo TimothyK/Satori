@@ -210,7 +210,7 @@ public partial class StandUpService(
             ProjectId = entry.Project.Id,
         });
 
-        return groups.Select(g =>
+        var activitySummaries = groups.Select(g =>
             {
                 var uri = url.ToUri().AppendQueryParam("activities[]", g.Key.Id).ToUri();
                 return new ActivitySummary()
@@ -229,6 +229,13 @@ public partial class StandUpService(
             })
             .OrderByDescending(a => a.TotalTime).ThenBy(a => a.ActivityName)
             .ToArray();
+
+        foreach(var summary in activitySummaries)
+        {
+            SummarizeTimeEntries(summary);
+        }
+
+        return activitySummaries;
     }
 
     [GeneratedRegex(@"^D#?(?'id'\d+)[\s-]*(?'title'.*)$", RegexOptions.IgnoreCase)]
@@ -492,9 +499,12 @@ public partial class StandUpService(
         activitySummary.OtherComments = GetDistinctComments(activitySummary, x => x.OtherComments);
     }
 
-    private static string? GetDistinctComments(ActivitySummary activitySummary, Func<TimeEntry, string?> selector)
+    private static string? GetDistinctComments(ActivitySummary activitySummary, Func<TimeEntry, string?> selector) =>
+        GetDistinctComments(activitySummary.TimeEntries, selector);
+
+    private static string? GetDistinctComments(IEnumerable<TimeEntry> entries, Func<TimeEntry, string?> selector)
     {
-        var lines = activitySummary.TimeEntries
+        var lines = entries
             .OrderBy(entry => entry.Begin)
             .Select(selector)
             .SelectMany(comment => comment?.Split('\n') ?? [])
@@ -509,18 +519,31 @@ public partial class StandUpService(
     {
         var taskGroups = entries.GroupBy(entry => entry.Task).ToArray();
 
-        if (taskGroups is [{ Key: null }])
-        {
-            return [];
-        }
-
-        return taskGroups.Select(g => new TaskSummary()
+        var taskSummaries = taskGroups.Select(g => new TaskSummary()
         {
             Task = g.Key,
+            ParentActivitySummary = g.Select(entry => entry.ParentActivitySummary).Distinct().Single(),
+            TimeEntries = g.ToArray(),
             TotalTime = g.Select(x => x.TotalTime).Sum(),
             TimeRemaining = g.First().TimeRemaining,
             NeedsEstimate = g.First().NeedsEstimate,
         }).ToArray();
+
+        foreach (var taskSummary in taskSummaries)
+        {
+            foreach (var entry in taskSummary.TimeEntries)
+            {
+                entry.ParentTaskSummary = taskSummary;
+            }
+            taskSummary.AllExported = taskSummary.TimeEntries.All(x => x.Exported);
+            taskSummary.CanExport = taskSummary.TimeEntries.Any(x => x.CanExport);
+            taskSummary.Accomplishments = GetDistinctComments(taskSummary.TimeEntries, x => x.Accomplishments);
+            taskSummary.Impediments = GetDistinctComments(taskSummary.TimeEntries, x => x.Impediments);
+            taskSummary.Learnings = GetDistinctComments(taskSummary.TimeEntries, x => x.Learnings);
+            taskSummary.OtherComments = GetDistinctComments(taskSummary.TimeEntries, x => x.OtherComments);
+        }
+
+        return taskSummaries;
     }
 
     #endregion GetWorkItemsAsync
