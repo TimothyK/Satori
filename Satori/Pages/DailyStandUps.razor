@@ -23,7 +23,7 @@
 <div class="filter-row">
     <div class="filter-label">Date Range:</div>
     <div class="dropdown">
-        <button class="dropbtn">@DateSelector.PeriodText ▾</button>
+        <button class="btn-header dropbtn">@DateSelector.PeriodText ▾</button>
         <div class="dropdown-content">
             <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriod(Period.Today)">Today</div>
             <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriod(Period.LastTwoDays)">Last 2 Days</div>
@@ -37,15 +37,15 @@
         </div>
     </div>
     <div>
-        <button class="btn-date-range" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
+        <button class="btn-header btn-refresh" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
     </div>
     <div class="date-range">
-        <div><button class="btn-date-range btn-date-range-decrement" @onclick="DateSelector.DecrementPeriod">«</button></div>
+        <div><button class="btn-header btn-date-range" @onclick="DateSelector.DecrementPeriod">«</button></div>
         <div><span>@InLoading @DateSelector.DateRangeText</span></div>
-        <div><button class="btn-date-range btn-date-range-increment" @onclick="DateSelector.IncrementPeriod">»</button></div>
+        <div><button class="btn-header btn-date-range" @onclick="DateSelector.IncrementPeriod">»</button></div>
     </div>
     <div class="dropdown" id="collapse-button">
-        <button class="dropbtn">Collapse ▾</button>
+        <button class="btn-header dropbtn">Collapse ▾</button>
         <div class="dropdown-content">
             <div class="dropdown-content-menu" @onclick="CollapseAll">All</div>
             <div class="dropdown-content-menu" @onclick="CollapseProjects">Projects</div>

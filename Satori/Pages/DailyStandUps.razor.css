@@ -18,12 +18,21 @@
     max-width: 600px;
 }
 
-.btn-date-range {
+.btn-header {
     background-color: #00A6ED;
     color: white;
     border: none;
     cursor: pointer;
+}
+.btn-refresh {
     margin: 5px;
+    padding-top: 5px;
+}
+.btn-date-range {
+    margin: 5px;
+}
+.btn-refresh:hover {
+    background-color: #0096D6;
 }
 .btn-date-range:hover {
     background-color: #0096D6;
@@ -36,10 +45,6 @@
 }
 
 .dropbtn {
-    background-color: #00A6ED;
-    color: white;
-    border: none;
-    cursor: pointer;
 }
 
 .dropdown {
@@ -244,7 +249,7 @@
 
 .duration-link {
     background-color: lightgray;
-    padding: 5px 0px 5px 5px;
+    padding: 5px 10px 5px 5px;
     text-align: center;
 }
 .duration-link:hover {
@@ -268,7 +273,6 @@
     position: relative;
     width: 1.0em;
     height: 1.0em;
-    margin-right: 0.75rem;
     background-size: cover;
 }
 
