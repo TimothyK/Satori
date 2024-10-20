@@ -61,6 +61,11 @@ public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? sta
         OnDateChanging();
         await Task.Yield();
 
+        await RefreshAsync();
+    }
+
+    public async Task RefreshAsync()
+    {
         if (standUpService == null)
         {
             OnDateChanged([]);

@@ -18,12 +18,21 @@
     max-width: 600px;
 }
 
-.btn-date-range {
+.btn-header {
     background-color: #00A6ED;
     color: white;
     border: none;
     cursor: pointer;
+}
+.btn-refresh {
     margin: 5px;
+    padding-top: 5px;
+}
+.btn-date-range {
+    margin: 5px;
+}
+.btn-refresh:hover {
+    background-color: #0096D6;
 }
 .btn-date-range:hover {
     background-color: #0096D6;
@@ -36,10 +45,6 @@
 }
 
 .dropbtn {
-    background-color: #00A6ED;
-    color: white;
-    border: none;
-    cursor: pointer;
 }
 
 .dropdown {
@@ -244,7 +249,7 @@
 
 .duration-link {
     background-color: lightgray;
-    padding: 5px 0px 5px 5px;
+    padding: 5px 10px 5px 5px;
     text-align: center;
 }
 .duration-link:hover {
@@ -268,12 +273,15 @@
     position: relative;
     width: 1.0em;
     height: 1.0em;
-    margin-right: 0.75rem;
     background-size: cover;
 }
 
 .bi-box-arrow-up-right {
     background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-up-right" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/></svg>');
+}
+
+.bi-refresh {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-arrow-clockwise" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/></svg>');
 }
 
 .day-header-day {
