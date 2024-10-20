@@ -36,6 +36,9 @@
             <span class="">@PeriodTotal.TotalHours.ToNearest(0.05) h</span>
         </div>
     </div>
+    <div>
+        <button class="btn-date-range" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
+    </div>
     <div class="date-range">
         <div><button class="btn-date-range btn-date-range-decrement" @onclick="DateSelector.DecrementPeriod">«</button></div>
         <div><span>@InLoading @DateSelector.DateRangeText</span></div>
@@ -431,6 +434,12 @@
 
         LocalStorage.SetItemAsync("DatePeriod", DateSelector.Period);
         CurrentPeriod = DateSelector.Period;
+    }
+
+    private async Task RefreshAsync()
+    {
+        InLoading = LoadingStatusLabel.InLoading;
+        await DateSelector.RefreshAsync();
     }
 
     private void DateChanged(object? sender, DateChangedEventArgs eventArgs)
