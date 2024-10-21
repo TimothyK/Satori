@@ -13,7 +13,6 @@
 @inject NavigationManager NavigationManager
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject IJSRuntime JsRuntime
-@inject IServiceProvider ServiceProvider
 @inject IConnectionSettingsStore ConnectionSettingsStore
 
 <PageTitle>Stand-Ups - Satori</PageTitle>
@@ -50,6 +49,7 @@
             <div class="dropdown-content-menu" @onclick="CollapseAll">All</div>
             <div class="dropdown-content-menu" @onclick="CollapseProjects">Projects</div>
             <div class="dropdown-content-menu" @onclick="CollapseActivities">Activities</div>
+            <div class="dropdown-content-menu" @onclick="CollapseTasks">Tasks</div>
             <div class="dropdown-content-menu" @onclick="CollapseNone">None</div>
         </div>
     </div>
@@ -166,12 +166,132 @@
                 <div class="activity-header-activity">@activity.ActivityName</div>
             </div>
 
-            <div class="activity-summary @(day.IsCollapsed || project.IsCollapsed || !activity.IsCollapsed ? "hidden" : "")">
-                <table class="time-table">
-                @foreach (var entry in activity.TaskSummaries)
-                {
+            @foreach (var taskSummary in activity.TaskSummaries)
+            {
+                <div class="taskSummary-header @(day.IsCollapsed || project.IsCollapsed || activity.IsCollapsed ? "hidden" : "")">
+                    <div class="duration">
+                        <div class="duration-caret"><span class="caret @(taskSummary.IsCollapsed ? "" : "caret-down")" @onclick="() => ToggleCollapsed(taskSummary)"></span></div>
+                        <div class="duration-minutes">
+                            <span class="">@taskSummary.TotalTime.ToString(@"hh\:mm")</span>
+                        </div>
+                        <div class="duration-decimal">
+                            <span class="">@taskSummary.TotalTime.TotalHours.ToNearest(0.05) h</span>
+                        </div>
+                    </div>
+                    <div class="export @(taskSummary.AllExported ? "export-done" : "") @(taskSummary.CanExport ? "export-enabled" : "")">
+                        @if (taskSummary.AllExported)
+                        {
+                            <span class="badge bg-secondary">Exported</span>
+                        }
+                        else if (taskSummary.CanExport)
+                        {
+                            <button class="btn btn-outline-success" @onclick="async () => await ExportAsync(taskSummary)">Export</button>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Cannot Export</span>
+                        }
+                    </div>
+                    <div class="taskSummary-header-description">
+                        @if (taskSummary.Task != null)
+                        {
+                            <div class="work-item-row">
+                                @if (taskSummary.Task.Type == WorkItemType.Task && taskSummary.Task.Parent != null)
+                                {
+                                    <span class="work-item @taskSummary.Task.Parent.Type.CssClass cell-link" @onclick="() => OpenWorkItem(taskSummary.Task.Parent)" title="Open D#@taskSummary.Task.Parent.Id">
+                                        D#@taskSummary.Task.Parent.Id
+                                        @taskSummary.Task.Parent.Title
+                                    </span>
+                                }
+
+                                <span class="work-item @taskSummary.Task.Type.CssClass cell-link" @onclick="() => OpenWorkItem(taskSummary.Task)" title="Open D#@taskSummary.Task.Id">
+                                    @if (taskSummary.Task.AssignedTo != CurrentUser && taskSummary.Task.Type == WorkItemType.Task)
+                                    {
+                                        <div class="avatar-cell">
+                                            <img src="@taskSummary.Task.AssignedTo.AvatarUrl"
+                                                 alt="@taskSummary.Task.AssignedTo.DisplayName"
+                                                 title="@taskSummary.Task.AssignedTo.DisplayName"/>
+                                        </div>
+                                    }
+                                    @if (taskSummary.Task.Parent == null || taskSummary.Task.Type != WorkItemType.Task)
+                                    {
+                                        <label>D#@taskSummary.Task.Id&nbsp;</label>
+                                    }
+                                    @taskSummary.Task.Title
+
+                                    @if (taskSummary.Task.Type == WorkItemType.Task)
+                                    {
+                                        if (taskSummary.Task.State == ScrumState.Done)
+                                        {
+                                            <span class="badge bg-success">✔️ Done</span>
+                                        }
+                                        else
+                                        {
+                                            if (taskSummary.Task.State == ScrumState.Removed)
+                                            {
+                                                <span class="badge bg-success">✔ Removed</span>
+                                            }
+                                            else
+                                            {
+                                                if (taskSummary.Task.State == ScrumState.ToDo)
+                                                {
+                                                    <span class="badge bg-danger">To Do</span>
+                                                }
+                                            }
+                                        }
+
+                                        if (taskSummary.NeedsEstimate)
+                                        {
+                                            <span class="badge bg-danger">Needs Estimate</span>
+                                        }
+                                        else
+                                        {
+                                            if (taskSummary.TimeRemaining != null)
+                                            {
+                                                <span class="badge @(taskSummary.TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@taskSummary.TimeRemaining.Value.TotalHours.ToNearest(0.1) h</span>
+                                            }
+                                        }
+                                    }
+                                </span>
+                            </div>
+                        }
+                        @if (taskSummary.IsCollapsed)
+                        {
+                            @if (taskSummary.OtherComments != null)
+                            {
+                                <p>@taskSummary.OtherComments</p>
+                            }
+                            @if (taskSummary.Accomplishments != null)
+                            {
+                                <div class="flex-row">
+                                    <div><span title="Accomplishments">🏆</span></div>
+                                    <div><p>@taskSummary.Accomplishments</p></div>
+                                </div>
+                            }
+                            @if (taskSummary.Impediments != null)
+                            {
+                                <div class="flex-row">
+                                    <div><span title="Impediments">🧱</span></div>
+                                    <div><p>@taskSummary.Impediments</p></div>
+                                </div>
+                            }
+                            @if (taskSummary.Learnings != null)
+                            {
+                                <div class="flex-row">
+                                    <div><span title="Today I Learned">🧠</span></div>
+                                    <div><p>@taskSummary.Learnings</p></div>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                </div>
+                <table class="time-table @(day.IsCollapsed || project.IsCollapsed || activity.IsCollapsed || taskSummary.IsCollapsed ? "hidden" : "")">
+                    @foreach (var entry in taskSummary.TimeEntries)
+                    {
                         <tr class="time-entry">
-                            <td class="@(activity.TaskSummaries.Length == 1 ? "hidden" : "")">
+                            <td class="time-entry-time">@entry.Begin.ToString("HH:mm") to @entry.End?.ToString("HH:mm")</td>
+                            <td>
                                 <div class="duration">
                                     <div class="duration-minutes">
                                         <span class="">@entry.TotalTime.ToString(@"hh\:mm")</span>
@@ -182,191 +302,52 @@
                                 </div>
                             </td>
                             <td>
-                                <div class="work-item-row">
-                                    @if (entry.Task == null)
+                                <div class="export @(entry.Exported ? "export-done" : "") @(entry.CanExport ? "export-enabled" : "")">
+                                    @if (entry.Exported)
                                     {
-                                        <label>Not linked to any Work Item</label>
+                                        <span class="badge bg-secondary">Exported</span>
+                                    }
+                                    else if (entry.CanExport)
+                                    {
+                                        <button class="btn btn-outline-success" @onclick="async () => await ExportAsync(entry)">Export</button>
                                     }
                                     else
                                     {
-                                        @if (entry.Task.Type == WorkItemType.Task && entry.Task.Parent != null)
-                                        {
-                                            <span class="work-item @entry.Task.Parent.Type.CssClass cell-link" @onclick="() => OpenWorkItem(entry.Task.Parent)" title="Open D#@(entry.Task.Parent.Id)">
-                                                D#@entry.Task.Parent.Id
-                                                @entry.Task.Parent.Title
-                                            </span>
-                                        }
-
-                                        <span class="work-item @entry.Task.Type.CssClass cell-link" @onclick="() => OpenWorkItem(entry.Task)" title="Open D#@(entry.Task.Id)">
-                                            @if (entry.Task.AssignedTo != CurrentUser && entry.Task.Type == WorkItemType.Task)
-                                            {
-                                                <div class="avatar-cell">
-                                                    <img src="@entry.Task.AssignedTo.AvatarUrl"
-                                                         alt="@entry.Task.AssignedTo.DisplayName"
-                                                         title="@entry.Task.AssignedTo.DisplayName" />
-                                                </div>
-                                            }
-                                            @if (entry.Task.Parent == null || entry.Task.Type != WorkItemType.Task)
-                                            {
-                                                <label>D#@entry.Task.Id&nbsp;</label>
-                                            }
-                                            @entry.Task.Title
-
-                                            @if (entry.Task.Type == WorkItemType.Task)
-                                            {
-                                                if (entry.Task.State == ScrumState.Done)
-                                                {
-                                                    <span class="badge bg-success">✔️ Done</span>
-                                                }
-                                                else if (entry.Task.State == ScrumState.Removed)
-                                                {
-                                                    <span class="badge bg-success">✔ Removed</span>
-                                                }
-                                                else if (entry.Task.State == ScrumState.ToDo)
-                                                {
-                                                    <span class="badge bg-danger">To Do</span>
-                                                }
-
-                                                if (entry.NeedsEstimate)
-                                                {
-                                                    <span class="badge bg-danger">Needs Estimate</span>
-                                                }
-                                                else if (entry.TimeRemaining != null)
-                                                {
-                                                    <span class="badge @(entry.TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@entry.TimeRemaining.Value.TotalHours.ToNearest(0.1) h</span>
-                                                }
-                                            }
-                                        </span>
+                                        <span class="badge bg-danger">Cannot Export</span>
                                     }
                                 </div>
                             </td>
-
+                            <td class="time-entry-comments">
+                                @if (entry.OtherComments != null)
+                                {
+                                    <p>@entry.OtherComments</p>
+                                }
+                                @if (entry.Accomplishments != null)
+                                {
+                                    <div class="flex-row">
+                                        <div><span title="Accomplishments">🏆</span></div>
+                                        <div><p>@entry.Accomplishments</p></div>
+                                    </div>
+                                }
+                                @if (entry.Impediments != null)
+                                {
+                                    <div class="flex-row">
+                                        <div><span title="Impediments">🧱</span></div>
+                                        <div><p>@entry.Impediments</p></div>
+                                    </div>
+                                }
+                                @if (entry.Learnings != null)
+                                {
+                                    <div class="flex-row">
+                                        <div><span title="Today I Learned">🧠</span></div>
+                                        <div><p>@entry.Learnings</p></div>
+                                    </div>
+                                }
+                            </td>
                         </tr>
                     }
                 </table>
-                @if (activity.OtherComments != null)
-                {
-                    <p>@activity.OtherComments</p>
-                }
-                @if (activity.Accomplishments != null)
-                {
-                    <p><span title="Accomplishments">🏆</span> @activity.Accomplishments</p>
-                }
-                @if (activity.Impediments != null)
-                {
-                    <p><span title="Impediments">🧱</span> @activity.Impediments</p>
-                }
-                @if (activity.Learnings != null)
-                {
-                    <p><span title="Today I Learned">🧠</span> @activity.Learnings</p>
-                }
-            </div>
-
-
-            <table class="time-table @(day.IsCollapsed || project.IsCollapsed || activity.IsCollapsed ? "hidden" : "")">
-            @foreach (var entry in activity.TimeEntries)
-            {
-                <tr class="time-entry">
-                    <td class="time-entry-time">@entry.Begin.ToString("HH:mm") to @entry.End?.ToString("HH:mm")</td>
-                    <td>
-                        <div class="duration">
-                            <div class="duration-minutes">
-                                <span class="">@entry.TotalTime.ToString(@"hh\:mm")</span>
-                            </div>
-                            <div class="duration-decimal">
-                                <span class="">@entry.TotalTime.TotalHours.ToNearest(0.05) h</span>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="export @(entry.Exported ? "export-done" : "") @(entry.CanExport ? "export-enabled" : "")">
-                            @if (entry.Exported)
-                            {
-                                <span class="badge bg-secondary">Exported</span>
-                            }
-                            else if (entry.CanExport)
-                            {
-                                <button class="btn btn-outline-success" @onclick="async () => await ExportAsync(entry)">Export</button>
-                            }
-                            else
-                            {
-                                <span class="badge bg-danger">Cannot Export</span>
-                            }
-                        </div>
-                    </td>
-                    <td class="time-entry-comments">
-                        @if (entry.Task != null)
-                        {
-                            <div class="work-item-row">
-                                @if (entry.Task.Type == WorkItemType.Task && entry.Task.Parent != null)
-                                {
-                                    <span class="work-item @entry.Task.Parent.Type.CssClass cell-link" @onclick="() => OpenWorkItem(entry.Task.Parent)" title="Open D#@(entry.Task.Parent.Id)">
-                                        D#@entry.Task.Parent.Id 
-                                        @entry.Task.Parent.Title
-                                    </span>
-                                }
-                                <span class="work-item @entry.Task.Type.CssClass cell-link" @onclick="() => OpenWorkItem(entry.Task)" title="Open D#@(entry.Task.Id)">
-                                    @if (entry.Task.AssignedTo != CurrentUser && entry.Task.Type == WorkItemType.Task)
-                                    {
-                                        <div class="avatar-cell">
-                                            <img src="@entry.Task.AssignedTo.AvatarUrl"
-                                                 alt="@entry.Task.AssignedTo.DisplayName"
-                                                 title="@entry.Task.AssignedTo.DisplayName" />
-                                        </div>
-                                    }
-                                    @if (entry.Task.Parent == null || entry.Task.Type != WorkItemType.Task)
-                                    {
-                                        <label>D#@entry.Task.Id&nbsp;</label>
-                                    }
-                                    @entry.Task.Title
-
-                                    @if (entry.Task.Type == WorkItemType.Task)
-                                    {
-                                        if (entry.Task.State == ScrumState.Done)
-                                        {
-                                            <span class="badge bg-success">✔️ Done</span>
-                                        }
-                                        else if (entry.Task.State == ScrumState.Removed)
-                                        {
-                                            <span class="badge bg-success">✔ Removed</span>
-                                        }
-                                        else if (entry.Task.State == ScrumState.ToDo)
-                                        {
-                                            <span class="badge bg-danger">To Do</span>
-                                        }
-
-                                        if (entry.NeedsEstimate)
-                                        {
-                                            <span class="badge bg-danger">Needs Estimate</span>
-                                        }
-                                        else if (entry.TimeRemaining != null)
-                                        {
-                                            <span class="badge @(entry.TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@entry.TimeRemaining.Value.TotalHours.ToNearest(0.1) h</span>
-                                        }
-                                    }
-                                </span>
-                            </div>
-                        }
-                        @if (entry.Accomplishments != null)
-                        {
-                            <p><span title="Accomplishments">🏆</span> @entry.Accomplishments</p>
-                        }
-                        @if (entry.Impediments != null)
-                        {
-                            <p><span title="Impediments">🧱</span> @entry.Impediments</p>
-                        }
-                        @if (entry.Learnings != null)
-                        {
-                            <p><span title="Today I Learned">🧠</span> @entry.Learnings</p>
-                        }
-                        @if (entry.OtherComments != null)
-                        {
-                            <p>@entry.OtherComments</p>
-                        }
-                        </td>
-                </tr>
             }
-            </table>
         }
     }
 }
@@ -468,6 +449,10 @@
     {
         activity.IsCollapsed = !activity.IsCollapsed;
     }   
+    private static void ToggleCollapsed(TaskSummary taskSummary)
+    {
+        taskSummary.IsCollapsed = !taskSummary.IsCollapsed;
+    }  
     
     private void CollapseAll()
     {
@@ -505,6 +490,26 @@
         }
     }
 
+    private void CollapseTasks()
+    {
+        foreach (var day in StandUpDays)
+        {
+            day.IsCollapsed = false;
+            foreach (var project in day.Projects)
+            {
+                project.IsCollapsed = false;
+                foreach (var activity in project.Activities)
+                {
+                    activity.IsCollapsed = false;
+                    foreach (var taskSummary in activity.TaskSummaries)
+                    {
+                        taskSummary.IsCollapsed = true;
+                    }
+                }
+            }
+        }
+    }
+
     private void CollapseNone()
     {
         foreach (var day in StandUpDays)
@@ -516,6 +521,10 @@
                 foreach (var activity in project.Activities)
                 {
                     activity.IsCollapsed = false;
+                    foreach (var taskSummary in activity.TaskSummaries)
+                    {
+                        taskSummary.IsCollapsed = false;
+                    }
                 }
             }
         }
@@ -555,6 +564,10 @@
     private async Task ExportAsync(ActivitySummary activity)
     {
         await ExportAsync(activity.TimeEntries);
+    }
+    private async Task ExportAsync(TaskSummary taskSummary)
+    {
+        await ExportAsync(taskSummary.TimeEntries);
     }
 
     private async Task ExportAsync(TimeEntry entry)

@@ -10,6 +10,11 @@ public class TaskSummary
 
     public required TimeEntry[] TimeEntries { get; set; }
 
+    /// <summary>
+    /// For the UI to control if the section is collapsed or expanded
+    /// </summary>
+    public bool IsCollapsed { get; set; } = true;
+
     public bool AllExported { get; internal set; }
     public bool CanExport { get; internal set; }
 

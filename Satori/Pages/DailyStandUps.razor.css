@@ -155,36 +155,38 @@
     margin-left: auto;
 }
 
-.activity-summary {
+.taskSummary-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 0.8em;
     margin-left: 150px;
     border-spacing: 0px;
 }
-.activity-summary p {
+.taskSummary-header.hidden {
+    display: none;
+}
+.taskSummary-header-description {
+    font-size: 1.0rem;
+}
+
+.taskSummary-header p {
     margin: 0px;
     white-space: pre;
 }
-.activity-summary .badge {
+.taskSummary-header .badge {
     margin-left: 5px;
     align-self: flex-start;
 }
 
 .time-table {
-    margin-left: 100px;
+    margin-left: 150px;
     border-spacing: 0px;
 }
-.activity-summary .time-table {
-    margin-left: 0px;
-}
-.time-entry-comments {
-    vertical-align: middle;
-}
+
 .time-entry-comments p {
     margin: 0px;
     white-space: pre;
-}
-.time-entry-comments .badge {
-    margin-left: 5px;
-    align-self: flex-start;
 }
 
 .time-entry td .duration {
