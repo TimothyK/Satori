@@ -256,6 +256,28 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         entry.Task.Type.ShouldBe(WorkItemType.Unknown);
     }
     
+    /// <summary>
+    /// If someone enters a bad/unknown D# in the Kimai comment and a good one, keep the good one.
+    /// </summary>
+    /// <returns></returns>
+    [TestMethod]
+    public async Task TaskDoesNotExist_KeepGoodOne()
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem(out var task);
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.Description = $"D#99999 » D#{task.Id}";
+        
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.Task.ShouldNotBeNull();
+        entry.Task.Id.ShouldBe(task.Id);
+        entry.Task.Type.ShouldBe(WorkItemType.FromApiValue(task.Fields.WorkItemType));
+    }
+    
     [TestMethod]
     public async Task OneTaskDoesNotExist()
     {
