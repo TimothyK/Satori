@@ -1,6 +1,5 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Satori.AppServices.Extensions;
-using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.ViewModels.DailyStandUps;
@@ -38,14 +37,43 @@ public class ActivitySummaryDailyStandUpTests : DailyStandUpTests
         var days = await Server.GetStandUpDaysAsync(Today, Today);
         await Server.GetWorkItemsAsync(days);
 
-        return days
+        var activitySummary = days
             .Single(day => day.Date == Today)
             .Projects
             .SelectMany(p => p.Activities)
             .Single(act => act.ActivityId == ActivityUnderTest.Id);
+
+        AssertNavLinks(activitySummary);
+
+        return activitySummary;
     }
 
     #endregion Act
+
+    #region Assert
+
+    private static void AssertNavLinks(ActivitySummary activitySummary)
+    {
+        foreach (var taskSummary in activitySummary.TaskSummaries)
+        {
+            taskSummary.ParentActivitySummary.ShouldBe(activitySummary);
+            foreach (var entry in taskSummary.TimeEntries)
+            {
+                entry.ParentTaskSummary.ShouldBeSameAs(taskSummary);
+                if (entry.Task == null)
+                {
+                    taskSummary.Task.ShouldBeNull();
+                }
+                else
+                {
+                    taskSummary.Task.ShouldNotBeNull();
+                    taskSummary.Task.Id.ShouldBe(entry.Task.Id);
+                }
+            }
+        }
+    }
+
+    #endregion Assert
 
     #endregion Helpers
 
@@ -68,13 +96,16 @@ public class ActivitySummaryDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         var entry = BuildTimeEntry();
-        entry.Description = null;
+        entry.Description = "meetings";
 
         //Act
         var activitySummary = await GetActivitySummaryAsync();
 
         //Assert
-        activitySummary.TaskSummaries.ShouldBeEmpty();
+        activitySummary.TaskSummaries.ShouldNotBeEmpty();
+        var taskSummary = activitySummary.TaskSummaries.Single();
+        taskSummary.Task.ShouldBeNull();
+        taskSummary.OtherComments.ShouldBe("meetings");
     }
     
     [TestMethod]
@@ -236,7 +267,7 @@ public class ActivitySummaryDailyStandUpTests : DailyStandUpTests
         var activitySummary = await GetActivitySummaryAsync();
 
         //Assert
-        activitySummary.TaskSummaries.ShouldBeEmpty();
+        activitySummary.TaskSummaries.ShouldNotBeEmpty();
         activitySummary.Accomplishments.ShouldBeNull();
         activitySummary.Impediments.ShouldBeNull();
         activitySummary.Learnings.ShouldBeNull();
@@ -335,6 +366,30 @@ public class ActivitySummaryDailyStandUpTests : DailyStandUpTests
         var activitySummary = await GetActivitySummaryAsync();
 
         //Assert
+        activitySummary.TaskSummaries.Length.ShouldBe(3);
+        var task1Summary = activitySummary.TaskSummaries.Single(x => x.Task?.Id == task1.Id);
+        var task2Summary = activitySummary.TaskSummaries.Single(x => x.Task?.Id == task2.Id);
+        var untaskedSummary = activitySummary.TaskSummaries.Single(x => x.Task == null);
+
+        task1Summary.Accomplishments.ShouldBe("""
+                                             Drank coffee
+                                             Took first step towards TOTAL ENLIGHTENMENT
+                                             """);
+        task1Summary.Impediments.ShouldBeNull();
+        task1Summary.Learnings.ShouldBeNull();
+        task1Summary.OtherComments.ShouldBe("Client Meeting");
+
+        task2Summary.Accomplishments.ShouldBeNull();
+        task2Summary.Impediments.ShouldBeNull();
+        task2Summary.Learnings.ShouldBeNull();
+        task2Summary.OtherComments.ShouldBeNull();
+
+        untaskedSummary.Accomplishments.ShouldBe("Drank coffee");
+        untaskedSummary.Impediments.ShouldBe("Bathroom queues");
+        untaskedSummary.Learnings.ShouldBe("Bladder control");
+        untaskedSummary.OtherComments.ShouldBe("Client Meeting");
+
+
         activitySummary.Accomplishments.ShouldBe("""
                                                Drank coffee
                                                Took first step towards TOTAL ENLIGHTENMENT
@@ -342,6 +397,41 @@ public class ActivitySummaryDailyStandUpTests : DailyStandUpTests
         activitySummary.Impediments.ShouldBe("Bathroom queues");
         activitySummary.Learnings.ShouldBe("Bladder control");
         activitySummary.OtherComments.ShouldBe("Client Meeting");
+    }
+
+    [TestMethod]
+    public async Task TaskSummary_ExportedFlags()
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task1);
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task2);
+
+        BuildTimeEntry().AddWorkItems(task1).Exported = true;
+        BuildTimeEntry().AddWorkItems(task1).Exported = false;
+
+        BuildTimeEntry().AddWorkItems(task2).Exported = true;
+        BuildTimeEntry().AddWorkItems(task2).Exported = true;
+
+        BuildTimeEntry().Exported = false;
+        BuildTimeEntry().Exported = false;
+
+        //Act
+        var activitySummary = await GetActivitySummaryAsync();
+
+        //Assert
         activitySummary.TaskSummaries.Length.ShouldBe(3);
+        var task1Summary = activitySummary.TaskSummaries.Single(x => x.Task?.Id == task1.Id);
+        var task2Summary = activitySummary.TaskSummaries.Single(x => x.Task?.Id == task2.Id);
+        var untaskedSummary = activitySummary.TaskSummaries.Single(x => x.Task == null);
+
+        task1Summary.AllExported.ShouldBeFalse();
+        task1Summary.CanExport.ShouldBeTrue();
+
+        task2Summary.AllExported.ShouldBeTrue();
+        task2Summary.CanExport.ShouldBeFalse();
+        
+        untaskedSummary.AllExported.ShouldBeFalse();
+        untaskedSummary.CanExport.ShouldBeTrue();
+
     }
 }

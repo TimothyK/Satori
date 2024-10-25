@@ -366,6 +366,8 @@ public class ExportDailyStandUpTests : DailyStandUpTests
 
         //Assert
         var entry = entries.Single();
+        entry.ParentTaskSummary.ShouldNotBeNull();
+        entry.ParentTaskSummary.CanExport.ShouldBeFalse();
         entry.ParentActivitySummary.CanExport.ShouldBeFalse();
         entry.ParentActivitySummary.ParentProjectSummary.CanExport.ShouldBeFalse();
         entry.ParentActivitySummary.ParentProjectSummary.ParentDay.CanExport.ShouldBeFalse();
@@ -400,7 +402,8 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         var today = Today;
         var yesterday = today.AddDays(-1);
         var activity1 = TestActivities.SingleRandom();
-        var kimaiEntry1 = BuildTimeEntry(activity1, today);
+        var workItem = BuildTask();
+        var kimaiEntry1 = BuildTimeEntry(activity1, today).AddWorkItems(workItem);
         var kimaiEntry2 = BuildTimeEntry(activity1, today);
 
         var activity2 = TestActivities.Where(a => a.Project != activity1.Project).SingleRandom();
@@ -420,6 +423,11 @@ public class ExportDailyStandUpTests : DailyStandUpTests
 
         var entry1 = entries.Single(x => x.Id == kimaiEntry1.Id);
         entry1.CanExport.ShouldBeFalse();
+        entry1.ParentTaskSummary.ShouldNotBeNull();
+        entry1.ParentTaskSummary.Task.ShouldNotBeNull();
+        entry1.ParentTaskSummary.Task.Id.ShouldBe(workItem.Id);
+        entry1.ParentTaskSummary.CanExport.ShouldBeFalse();
+        entry1.ParentTaskSummary.AllExported.ShouldBeTrue();
         entry1.ParentActivitySummary.CanExport.ShouldBeTrue();
         entry1.ParentActivitySummary.AllExported.ShouldBeFalse();
         entry1.ParentActivitySummary.ParentProjectSummary.CanExport.ShouldBeTrue();
@@ -428,6 +436,10 @@ public class ExportDailyStandUpTests : DailyStandUpTests
 
         var entry3 = entries.Single(x => x.Id == kimaiEntry3.Id);
         entry3.CanExport.ShouldBeFalse();
+        entry3.ParentTaskSummary.ShouldNotBeNull();
+        entry3.ParentTaskSummary.Task.ShouldBeNull();
+        entry3.ParentTaskSummary.CanExport.ShouldBeFalse();
+        entry3.ParentTaskSummary.AllExported.ShouldBeTrue();
         entry3.ParentActivitySummary.CanExport.ShouldBeFalse();
         entry3.ParentActivitySummary.AllExported.ShouldBeTrue();
         entry3.ParentActivitySummary.ParentProjectSummary.CanExport.ShouldBeFalse();

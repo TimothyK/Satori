@@ -155,36 +155,40 @@
     margin-left: auto;
 }
 
-.activity-summary {
+.taskSummary-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: start;
+    font-size: 0.8em;
     margin-left: 150px;
     border-spacing: 0px;
 }
-.activity-summary p {
+.taskSummary-header.hidden {
+    display: none;
+}
+.taskSummary-header-description {
+    font-size: 1.0rem;
+}
+
+.taskSummary-header p {
     margin: 0px;
     white-space: pre;
 }
-.activity-summary .badge {
+.taskSummary-header .badge {
     margin-left: 5px;
     align-self: flex-start;
 }
 
 .time-table {
-    margin-left: 100px;
+    margin-left: 150px;
     border-spacing: 0px;
 }
-.activity-summary .time-table {
-    margin-left: 0px;
-}
-.time-entry-comments {
-    vertical-align: middle;
+.time-entry{
+    vertical-align: top;
 }
 .time-entry-comments p {
     margin: 0px;
     white-space: pre;
-}
-.time-entry-comments .badge {
-    margin-left: 5px;
-    align-self: flex-start;
 }
 
 .time-entry td .duration {
@@ -198,6 +202,7 @@
     font-family: "Roboto", sans-serif;
     font-weight: bold;
     font-size: 0.9em;
+    padding-top: 5px;
     padding-right: 5px;
 }
 
@@ -266,6 +271,9 @@
     background-color: lightgray;
     padding: 5px;
     flex-grow: 1;
+}
+.duration-decimal::after {
+    content: "\00a0h"; /* &nbsp;*/
 }
 
 .bi {

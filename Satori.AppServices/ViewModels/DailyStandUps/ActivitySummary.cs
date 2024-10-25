@@ -19,7 +19,7 @@ public class ActivitySummary
     /// <summary>
     /// For the UI to control if the section is collapsed or expanded
     /// </summary>
-    public bool IsCollapsed { get; set; } = true;
+    public bool IsCollapsed { get; set; } = false;
 
     public required TaskSummary[] TaskSummaries { get; set; }
     public string? Accomplishments { get; set; }
