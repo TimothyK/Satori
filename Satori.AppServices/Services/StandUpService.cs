@@ -439,7 +439,7 @@ public partial class StandUpService(
             logger.LogError(ex, "Failed to load work items {WorkItemIds}", workItemIds);
 
             var badIds = workItemIds.Where(id => ex.Message.Contains($" {id} ")).ToList();
-            if (badIds.Any())
+            if (badIds.Count > 0)
             {
                 return await GetWorkItemsAsync(workItemIds.Except(badIds).ToArray());
             }
