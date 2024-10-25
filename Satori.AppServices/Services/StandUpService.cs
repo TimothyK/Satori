@@ -580,6 +580,12 @@ public partial class StandUpService(
             entry.CanExport = false;
         }
 
+        foreach (var taskSummary in exportableEntries.Select(entry => entry.ParentTaskSummary).Distinct())
+        {
+            _ = taskSummary ?? throw new InvalidOperationException("TaskSummary is null");
+            taskSummary.AllExported = taskSummary.TimeEntries.All(x => x.Exported);
+            taskSummary.CanExport = taskSummary.TimeEntries.Any(x => x.CanExport);
+        }
         foreach (var activitySummary in exportableEntries.Select(entry => entry.ParentActivitySummary).Distinct())
         {
             activitySummary.AllExported = activitySummary.TimeEntries.All(x => x.Exported);
