@@ -296,6 +296,18 @@
     color: white;
 }
 
+.export-cannot::before {
+    content: "Cannot Export";
+}
+.export-cannot {
+    color: white;
+    background-color: #DC3545;
+    border-radius: 5px;
+    padding: 5px;
+    height: 100%;    
+    display: block;
+}
+
 .day-header-day {
     font-size: 32px;
     font-weight: bold;
