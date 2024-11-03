@@ -172,7 +172,7 @@
 
 .taskSummary-header p {
     margin: 0px;
-    white-space: pre;
+    white-space: pre-wrap;
 }
 .taskSummary-header .badge {
     margin-left: 5px;
@@ -188,7 +188,7 @@
 }
 .time-entry-comments p {
     margin: 0px;
-    white-space: pre;
+    white-space: pre-wrap;
 }
 
 .time-entry td .duration {
