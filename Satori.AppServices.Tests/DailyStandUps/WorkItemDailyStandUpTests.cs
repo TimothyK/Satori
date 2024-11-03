@@ -1,5 +1,4 @@
 ﻿using CodeMonkeyProjectiles.Linq;
-using Satori.AppServices.Services;
 using Satori.AppServices.Extensions;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;

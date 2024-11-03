@@ -3,7 +3,6 @@ using Flurl;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RichardSzalay.MockHttp;
 using Shouldly;
-using System.Text.Json;
 
 namespace Satori.Kimai.Tests.TimeSheetTests;
 
