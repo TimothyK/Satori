@@ -70,20 +70,20 @@
             <div class="duration-decimal">
                 <span class="">@day.TotalTime.TotalHours.ToNearest(0.05)</span>
             </div>
-        </div>
-        <div class="export @(day.AllExported ? "export-done" : "") @(day.CanExport ? "export-enabled" : "")">
-            @if (day.AllExported)
-            {
-                <span class="badge bg-secondary">Exported</span>
-            }
-            else if (day.CanExport)
-            {
-                <button class="btn btn-outline-success" @onclick="async () => await ExportAsync(day)">Export</button>
-            }
-            else
-            {
-                <span class="badge bg-danger">Cannot Export</span>
-            }
+            <div class="export @(day.AllExported ? "export-done" : "") @(day.CanExport ? "export-enabled" : "")">
+                @if (day.AllExported)
+                {
+                    <span class="badge bg-secondary">Exported</span>
+                }
+                else if (day.CanExport)
+                {
+                    <button @onclick="async () => await ExportAsync(day)">Export</button>
+                }
+                else
+                {
+                    <span class="badge bg-danger">Cannot Export</span>
+                }
+            </div>
         </div>
         <div class="day-header-day">@day.Date.ToString("D")</div>
     </div>
@@ -101,20 +101,20 @@
                 <div class="duration-decimal">
                     <span class="">@project.TotalTime.TotalHours.ToNearest(0.05)</span>
                 </div>
-            </div>
-            <div class="export @(project.AllExported ? "export-done" : "") @(project.CanExport ? "export-enabled" : "")">
-                @if (project.AllExported)
-                {
-                    <span class="badge bg-secondary">Exported</span>
-                }
-                else if (project.CanExport)
-                {
-                    <button class="btn btn-outline-success" @onclick="async () => await ExportAsync(project)">Export</button>
-                }
-                else
-                {
-                    <span class="badge bg-danger">Cannot Export</span>
-                }
+                <div class="export @(project.AllExported ? "export-done" : "") @(project.CanExport ? "export-enabled" : "")">
+                    @if (project.AllExported)
+                    {
+                        <span class="badge bg-secondary">Exported</span>
+                    }
+                    else if (project.CanExport)
+                    {
+                        <button @onclick="async () => await ExportAsync(project)">Export</button>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Cannot Export</span>
+                    }
+                </div>
             </div>
             <div class="project-header-project">@project.ProjectName</div>
             <div class="project-header-customer">
@@ -148,20 +148,20 @@
                     <div class="duration-decimal">
                         <span class="">@activity.TotalTime.TotalHours.ToNearest(0.05)</span>
                     </div>
-                </div>
-                <div class="export @(activity.AllExported ? "export-done" : "") @(activity.CanExport ? "export-enabled" : "")">
-                    @if (activity.AllExported)
-                    {
-                        <span class="badge bg-secondary">Exported</span>
-                    }
-                    else if (activity.CanExport)
-                    {
-                        <button class="btn btn-outline-success" @onclick="async () => await ExportAsync(activity)">Export</button>
-                    }
-                    else
-                    {
-                        <span class="badge bg-danger">Cannot Export</span>
-                    }
+                    <div class="export @(activity.AllExported ? "export-done" : "") @(activity.CanExport ? "export-enabled" : "")">
+                        @if (activity.AllExported)
+                        {
+                            <span class="badge bg-secondary">Exported</span>
+                        }
+                        else if (activity.CanExport)
+                        {
+                            <button @onclick="async () => await ExportAsync(activity)">Export</button>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Cannot Export</span>
+                        }
+                    </div>
                 </div>
                 <div class="activity-header-activity">@activity.ActivityName</div>
             </div>
@@ -177,20 +177,20 @@
                         <div class="duration-decimal">
                             <span class="">@taskSummary.TotalTime.TotalHours.ToNearest(0.05)</span>
                         </div>
-                    </div>
-                    <div class="export @(taskSummary.AllExported ? "export-done" : "") @(taskSummary.CanExport ? "export-enabled" : "")">
-                        @if (taskSummary.AllExported)
-                        {
-                            <span class="badge bg-secondary">Exported</span>
-                        }
-                        else if (taskSummary.CanExport)
-                        {
-                            <button class="btn btn-outline-success" @onclick="async () => await ExportAsync(taskSummary)">Export</button>
-                        }
-                        else
-                        {
-                            <span class="badge bg-danger">Cannot Export</span>
-                        }
+                        <div class="export @(taskSummary.AllExported ? "export-done" : "") @(taskSummary.CanExport ? "export-enabled" : "")">
+                            @if (taskSummary.AllExported)
+                            {
+                                <span class="badge bg-secondary">Exported</span>
+                            }
+                            else if (taskSummary.CanExport)
+                            {
+                                <button @onclick="async () => await ExportAsync(taskSummary)">Export</button>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Cannot Export</span>
+                            }
+                        </div>
                     </div>
                     <div class="taskSummary-header-description">
                         @if (taskSummary.Task != null)
@@ -299,22 +299,20 @@
                                     <div class="duration-decimal">
                                         <span class="">@entry.TotalTime.TotalHours.ToNearest(0.05)</span>
                                     </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="export @(entry.Exported ? "export-done" : "") @(entry.CanExport ? "export-enabled" : "")">
-                                    @if (entry.Exported)
-                                    {
-                                        <span class="badge bg-secondary">Exported</span>
-                                    }
-                                    else if (entry.CanExport)
-                                    {
-                                        <button class="btn btn-outline-success" @onclick="async () => await ExportAsync(entry)">Export</button>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-danger">Cannot Export</span>
-                                    }
+                                    <div class="export @(entry.Exported ? "export-done" : "") @(entry.CanExport ? "export-enabled" : "")">
+                                        @if (entry.Exported)
+                                        {
+                                            <span class="badge bg-secondary">Exported</span>
+                                        }
+                                        else if (entry.CanExport)
+                                        {
+                                            <button @onclick="async () => await ExportAsync(entry)">Export</button>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Cannot Export</span>
+                                        }
+                                    </div>
                                 </div>
                             </td>
                             <td class="time-entry-comments">
