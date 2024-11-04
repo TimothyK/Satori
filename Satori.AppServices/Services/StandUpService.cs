@@ -111,7 +111,7 @@ public partial class StandUpService(
         var uri = url.ToUri()
             // ReSharper disable once StringLiteralTypo
             .AppendQueryParam("daterange", $"{entries.Key:O} - {entries.Key:O}")
-            .AppendQueryParam("state", 3)  // stopped
+            .AppendQueryParam("state", 1)  // stopped & running
             .AppendQueryParam("billable", 0)
             .AppendQueryParam("exported", 1)
             .AppendQueryParam("orderBy", "begin")
