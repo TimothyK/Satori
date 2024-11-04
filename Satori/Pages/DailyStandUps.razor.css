@@ -322,6 +322,14 @@
     height: 100%;
     display: block;
 }
+.enddate-now {
+    font-family: "Roboto", sans-serif;
+    font-weight: bold;
+    color: black;
+    background-color: #FFC107;
+    padding-left: 2px;
+    padding-right: 2px;
+}
 
 .day-header-day {
     font-size: 32px;

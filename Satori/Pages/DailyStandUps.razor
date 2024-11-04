@@ -306,7 +306,18 @@
                     @foreach (var entry in taskSummary.TimeEntries)
                     {
                         <tr class="time-entry">
-                            <td class="time-entry-time">@entry.Begin.ToString("HH:mm") to @entry.End?.ToString("HH:mm")</td>
+                            <td class="time-entry-time">
+                                @entry.Begin.ToString("HH:mm")
+                                to 
+                                @if (@entry.End == null)
+                                {
+                                    <span class="enddate-now">now</span>
+                                }
+                                else
+                                {
+                                    @entry.End?.ToString("HH:mm")    
+                                }
+                            </td>
                             <td>
                                 <div class="duration">
                                     <div class="duration-minutes">
