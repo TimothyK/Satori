@@ -20,7 +20,7 @@ public class TaskSummary
     public bool IsRunning { get; internal set; }
 
 
-    public TimeSpan TotalTime { get; internal init; }
+    public TimeSpan TotalTime { get; set; }
 
     public bool NeedsEstimate { get; init; }
     public TimeSpan? TimeRemaining { get; init; }

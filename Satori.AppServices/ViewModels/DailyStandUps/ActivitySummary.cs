@@ -11,7 +11,7 @@ public class ActivitySummary
 
     public required TimeEntry[] TimeEntries { get; set; }
 
-    public TimeSpan TotalTime { get; internal init; }
+    public TimeSpan TotalTime { get; set; }
     public required Uri Url { get; init; }
     public bool AllExported { get; internal set; }
     public bool CanExport { get; internal set; }

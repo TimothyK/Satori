@@ -12,7 +12,7 @@ public class TimeEntry
     public DateTimeOffset Begin { get; init; }
     public DateTimeOffset? End { get; init; }
     
-    public TimeSpan TotalTime { get; internal init; }
+    public TimeSpan TotalTime { get; set; }
     public bool Exported { get; internal set; }
     public bool CanExport { get; internal set; }
     public bool IsRunning { get; internal set; }

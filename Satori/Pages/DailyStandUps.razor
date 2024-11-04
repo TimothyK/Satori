@@ -1,4 +1,5 @@
 ﻿@page "/DailyStandUps"
+@using System.Timers
 @using Satori.AppServices.ViewModels.DailyStandUps
 @using Satori.AppServices.Services
 @using Satori.AppServices.ViewModels
@@ -387,6 +388,8 @@
     private DateSelectorViewModel DateSelector { get; set; } = new(Person.Empty.FirstDayOfWeek, standUpService: null);
     private StandUpDay[] StandUpDays { get; set; } = [];
     private TimeSpan PeriodTotal { get; set; } = TimeSpan.Zero;
+    private Timer? RunningTimeEntryTimer { get; set; } 
+    private TimeEntry? RunningTimeEntry { get; set; }
 
     private LoadingStatusLabel InLoading { get; set; } = LoadingStatusLabel.InLoading;
 
@@ -455,10 +458,57 @@
     private void DateChanged(object? sender, DateChangedEventArgs eventArgs)
     {
         StandUpDays = eventArgs.StandUpDays;
+
+        RunningTimeEntry = StandUpDays
+            .SelectMany(d => d.Projects)
+            .SelectMany(p => p.Activities)
+            .SelectMany(a => a.TimeEntries)
+            .FirstOrDefault(e => e.IsRunning);
+
+        RunningTimeEntryTimer ??= new Timer(TimeSpan.FromMinutes(1))
+            .With(t => t.Elapsed += RunningTimeEntryTimer_Elapsed);
+        RunningTimeEntryTimer.Enabled = RunningTimeEntry != null;
+        RefreshTotalTimes();
+
         PeriodTotal = StandUpDays.Select(d => d.TotalTime).Sum();
         InLoading = LoadingStatusLabel.FinishedLoading;
     }
-    
+
+    private void RunningTimeEntryTimer_Elapsed(object? sender, ElapsedEventArgs e)
+    {
+        RefreshTotalTimes();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void RefreshTotalTimes()
+    {
+        if (RunningTimeEntry == null)
+        {
+            if (RunningTimeEntryTimer != null)
+            {
+                RunningTimeEntryTimer.Enabled = false;
+            }
+            return;
+        }
+
+        RunningTimeEntry.TotalTime = DateTimeOffset.Now - RunningTimeEntry.Begin;
+
+        var taskSummary = RunningTimeEntry.ParentTaskSummary ?? throw new InvalidOperationException();
+        taskSummary.TotalTime = taskSummary.TimeEntries.Select(e => e.TotalTime).Sum();
+
+        var activitySummary = taskSummary.ParentActivitySummary;
+        activitySummary.TotalTime = activitySummary.TimeEntries.Select(t => t.TotalTime).Sum();
+
+        var projectSummary = activitySummary.ParentProjectSummary;
+        projectSummary.TotalTime = projectSummary.Activities.Select(a => a.TotalTime).Sum();
+
+        var daySummary = projectSummary.ParentDay;
+        daySummary.TotalTime = daySummary.Projects.Select(p => p.TotalTime).Sum();
+
+        PeriodTotal = StandUpDays.Select(d => d.TotalTime).Sum();
+    }
+
+
     private void OpenWorkItem(WorkItem workItem)
     {
         JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
