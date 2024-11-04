@@ -126,6 +126,7 @@ public partial class StandUpService(
             TotalTime = GetDuration(entries),
             AllExported = GetAllExported(entries),
             CanExport = GetCanExport(entries),
+            IsRunning = GetIsRunning(entries),
             Url = uri,
             Projects = [],
         }.With(day => day.Projects = ToProjectsViewModel(entries, uri, day));
@@ -157,6 +158,7 @@ public partial class StandUpService(
                     TotalTime = GetDuration(g),
                     AllExported = GetAllExported(g),
                     CanExport = GetCanExport(g),
+                    IsRunning = GetIsRunning(g),
                     Url = uri,
                     Activities = [],
                 }.With(p => p.Activities = ToActivitiesViewModel(g, uri, p));
@@ -222,6 +224,7 @@ public partial class StandUpService(
                     TotalTime = GetDuration(g),
                     AllExported = GetAllExported(g),
                     CanExport = GetCanExport(g),
+                    IsRunning = GetIsRunning(g),
                     Url = uri,
                     TimeEntries = [],
                     TaskSummaries = [],
@@ -256,6 +259,7 @@ public partial class StandUpService(
             Begin = kimaiEntry.Begin,
             End = kimaiEntry.End,
             TotalTime = GetDuration(kimaiEntry),
+            IsRunning = kimaiEntry.End == null,
             Exported = kimaiEntry.Exported,
             CanExport = GetCanExport(kimaiEntry),
             Task = ExtractWorkItem(),
@@ -336,6 +340,7 @@ public partial class StandUpService(
     private static bool GetAllExported(IEnumerable<KimaiTimeEntry> entries) => entries.All(entry => entry.Exported);
 
     private static bool GetCanExport(IEnumerable<KimaiTimeEntry> entries) => entries.Any(GetCanExport);
+    private static bool GetIsRunning(IEnumerable<KimaiTimeEntry> entries) => entries.Any(t => t.End == null);
 
     private static bool GetCanExport(KimaiTimeEntry entry)
     {
@@ -538,6 +543,7 @@ public partial class StandUpService(
             }
             taskSummary.AllExported = taskSummary.TimeEntries.All(x => x.Exported);
             taskSummary.CanExport = taskSummary.TimeEntries.Any(x => x.CanExport);
+            taskSummary.IsRunning = taskSummary.TimeEntries.Any(x => x.IsRunning);
             taskSummary.Accomplishments = GetDistinctComments(taskSummary.TimeEntries, x => x.Accomplishments);
             taskSummary.Impediments = GetDistinctComments(taskSummary.TimeEntries, x => x.Impediments);
             taskSummary.Learnings = GetDistinctComments(taskSummary.TimeEntries, x => x.Learnings);
@@ -586,6 +592,7 @@ public partial class StandUpService(
             _ = taskSummary ?? throw new InvalidOperationException("TaskSummary is null");
             taskSummary.AllExported = taskSummary.TimeEntries.All(x => x.Exported);
             taskSummary.CanExport = taskSummary.TimeEntries.Any(x => x.CanExport);
+            taskSummary.IsRunning = taskSummary.TimeEntries.Any(x => x.IsRunning);
         }
         foreach (var activitySummary in exportableEntries.Select(entry => entry.ParentActivitySummary).Distinct())
         {

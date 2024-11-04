@@ -17,6 +17,8 @@ public class TaskSummary
 
     public bool AllExported { get; internal set; }
     public bool CanExport { get; internal set; }
+    public bool IsRunning { get; internal set; }
+
 
     public TimeSpan TotalTime { get; internal init; }
 

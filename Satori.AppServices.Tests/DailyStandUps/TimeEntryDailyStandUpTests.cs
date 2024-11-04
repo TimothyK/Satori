@@ -146,6 +146,20 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
     }
     
     [TestMethod]
+    public async Task IsRunning()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.End.ShouldNotBeNull();
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        entries.Single().IsRunning.ShouldBeFalse();
+    }
+    
+    [TestMethod]
     public async Task TotalTime()
     {
         //Arrange
@@ -214,6 +228,40 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
         //Assert
         var entry = entries.Single();
         entry.TotalTime.ShouldBe(TimeSpan.Zero);
+    }
+    
+    [TestMethod]
+    public async Task RunningTask_IsRunning()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.End = null;
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.IsRunning.ShouldBeTrue();
+    }
+    
+    [TestMethod]
+    public async Task RunningTask_ParentsAreRunning()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.End = null;
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.ParentTaskSummary.ShouldNotBeNull();
+        entry.ParentTaskSummary.IsRunning.ShouldBeTrue();
+        entry.ParentTaskSummary.ParentActivitySummary.IsRunning.ShouldBeTrue();
+        entry.ParentTaskSummary.ParentActivitySummary.ParentProjectSummary.IsRunning.ShouldBeTrue();
+        entry.ParentTaskSummary.ParentActivitySummary.ParentProjectSummary.ParentDay.IsRunning.ShouldBeTrue();
     }
     
     [TestMethod]

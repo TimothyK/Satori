@@ -18,6 +18,8 @@ public class ProjectSummary
     public required Uri Url { get; init; }
     public bool AllExported { get; internal set; }
     public bool CanExport { get; internal set; }
+    public bool IsRunning { get; internal set; }
+
 
     /// <summary>
     /// For the UI to control if the section is collapsed or expanded

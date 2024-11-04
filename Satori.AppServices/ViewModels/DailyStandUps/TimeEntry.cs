@@ -15,6 +15,8 @@ public class TimeEntry
     public TimeSpan TotalTime { get; internal init; }
     public bool Exported { get; internal set; }
     public bool CanExport { get; internal set; }
+    public bool IsRunning { get; internal set; }
+
 
     /// <summary>
     /// This is read from the comment of the underlying time entry record.
