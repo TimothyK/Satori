@@ -71,7 +71,7 @@ public partial class StandUpService(
         {
             Begin = begin.ToDateTime(TimeOnly.MinValue),
             End = end.ToDateTime(TimeOnly.MaxValue),
-            IsRunning = false,
+            IsRunning = null,
             Page = 1,
             Size = 250,
         };
@@ -243,7 +243,7 @@ public partial class StandUpService(
     [GeneratedRegex(@"^D#?(?'parentId'\d+)[\s-]*(?'parentTitle'.*)\s+D#?(?'id'\d+)[\s-]*(?'title'.*)$", RegexOptions.IgnoreCase)]
     private static partial Regex ParentedWorkItemCommentRegex();
 
-    private TimeEntry ToViewModel(ActivitySummary activitySummary, KimaiTimeEntry kimaiEntry)
+   private TimeEntry ToViewModel(ActivitySummary activitySummary, KimaiTimeEntry kimaiEntry)
     {
         var lines = kimaiEntry.Description?.Split('\n')
             .SelectWhereHasValue(x => string.IsNullOrWhiteSpace(x) ? null : x.Trim())
@@ -340,6 +340,7 @@ public partial class StandUpService(
     private static bool GetCanExport(KimaiTimeEntry entry)
     {
         if (entry.Exported) return false;
+        if (entry.End == null) return false;
         if (!entry.Activity.Visible) return false;
         if (!entry.Project.Visible) return false;
         if (!entry.Project.Customer.Visible) return false;

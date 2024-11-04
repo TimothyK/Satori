@@ -158,7 +158,7 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
         //Assert
         entries.Single().TotalTime.ShouldBe(kimaiEntry.End.Value - kimaiEntry.Begin);
     }
-    
+
     [TestMethod]
     public async Task OrderedChronologically()
     {
@@ -183,6 +183,55 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
     }
     
     #endregion Time
+
+    #region Running Task
+
+    [TestMethod]
+    public async Task RunningTask_NullEndTime()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.End = null;
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.End.ShouldBeNull();
+    }
+    
+    [TestMethod]
+    public async Task RunningTask_TotalTime()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.End = null;
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.TotalTime.ShouldBe(TimeSpan.Zero);
+    }
+    
+    [TestMethod]
+    public async Task RunningTask_CannotExport()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.End = null;
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.CanExport.ShouldBeFalse();
+    }
+
+    #endregion Running Task
 
     #region Export
 
