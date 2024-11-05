@@ -71,7 +71,7 @@ public partial class StandUpService(
         {
             Begin = begin.ToDateTime(TimeOnly.MinValue),
             End = end.ToDateTime(TimeOnly.MaxValue),
-            IsRunning = false,
+            IsRunning = null,
             Page = 1,
             Size = 250,
         };
@@ -111,7 +111,7 @@ public partial class StandUpService(
         var uri = url.ToUri()
             // ReSharper disable once StringLiteralTypo
             .AppendQueryParam("daterange", $"{entries.Key:O} - {entries.Key:O}")
-            .AppendQueryParam("state", 3)  // stopped
+            .AppendQueryParam("state", 1)  // stopped & running
             .AppendQueryParam("billable", 0)
             .AppendQueryParam("exported", 1)
             .AppendQueryParam("orderBy", "begin")
@@ -126,6 +126,7 @@ public partial class StandUpService(
             TotalTime = GetDuration(entries),
             AllExported = GetAllExported(entries),
             CanExport = GetCanExport(entries),
+            IsRunning = GetIsRunning(entries),
             Url = uri,
             Projects = [],
         }.With(day => day.Projects = ToProjectsViewModel(entries, uri, day));
@@ -157,6 +158,7 @@ public partial class StandUpService(
                     TotalTime = GetDuration(g),
                     AllExported = GetAllExported(g),
                     CanExport = GetCanExport(g),
+                    IsRunning = GetIsRunning(g),
                     Url = uri,
                     Activities = [],
                 }.With(p => p.Activities = ToActivitiesViewModel(g, uri, p));
@@ -222,6 +224,7 @@ public partial class StandUpService(
                     TotalTime = GetDuration(g),
                     AllExported = GetAllExported(g),
                     CanExport = GetCanExport(g),
+                    IsRunning = GetIsRunning(g),
                     Url = uri,
                     TimeEntries = [],
                     TaskSummaries = [],
@@ -243,7 +246,7 @@ public partial class StandUpService(
     [GeneratedRegex(@"^D#?(?'parentId'\d+)[\s-]*(?'parentTitle'.*)\s+D#?(?'id'\d+)[\s-]*(?'title'.*)$", RegexOptions.IgnoreCase)]
     private static partial Regex ParentedWorkItemCommentRegex();
 
-    private TimeEntry ToViewModel(ActivitySummary activitySummary, KimaiTimeEntry kimaiEntry)
+   private TimeEntry ToViewModel(ActivitySummary activitySummary, KimaiTimeEntry kimaiEntry)
     {
         var lines = kimaiEntry.Description?.Split('\n')
             .SelectWhereHasValue(x => string.IsNullOrWhiteSpace(x) ? null : x.Trim())
@@ -256,6 +259,7 @@ public partial class StandUpService(
             Begin = kimaiEntry.Begin,
             End = kimaiEntry.End,
             TotalTime = GetDuration(kimaiEntry),
+            IsRunning = kimaiEntry.End == null,
             Exported = kimaiEntry.Exported,
             CanExport = GetCanExport(kimaiEntry),
             Task = ExtractWorkItem(),
@@ -336,10 +340,12 @@ public partial class StandUpService(
     private static bool GetAllExported(IEnumerable<KimaiTimeEntry> entries) => entries.All(entry => entry.Exported);
 
     private static bool GetCanExport(IEnumerable<KimaiTimeEntry> entries) => entries.Any(GetCanExport);
+    private static bool GetIsRunning(IEnumerable<KimaiTimeEntry> entries) => entries.Any(t => t.End == null);
 
     private static bool GetCanExport(KimaiTimeEntry entry)
     {
         if (entry.Exported) return false;
+        if (entry.End == null) return false;
         if (!entry.Activity.Visible) return false;
         if (!entry.Project.Visible) return false;
         if (!entry.Project.Customer.Visible) return false;
@@ -464,18 +470,23 @@ public partial class StandUpService(
         }
     }
 
-    private static void ResetTimeRemaining(TimeEntry[] timeEntries)
+    public static void ResetTimeRemaining(TimeEntry[] timeEntries)
     {
         foreach (var entry in timeEntries.Where(x => x.Task?.State != ScrumState.Done))
         {
             var unexported = timeEntries
                 .Where(x => x.Task?.Id == entry.Task?.Id)
                 .Where(x => !x.Exported)
-                .SelectWhereHasValue(x => x.End - x.Begin)
+                .Select(x => x.TotalTime)
                 .Sum();
 
             var estimate = entry.Task?.RemainingWork ?? entry.Task?.OriginalEstimate;
             entry.TimeRemaining = estimate - unexported;
+
+            if (entry.ParentTaskSummary != null)
+            {
+                entry.ParentTaskSummary.TimeRemaining = entry.TimeRemaining;
+            }
         }
     }
     
@@ -537,6 +548,7 @@ public partial class StandUpService(
             }
             taskSummary.AllExported = taskSummary.TimeEntries.All(x => x.Exported);
             taskSummary.CanExport = taskSummary.TimeEntries.Any(x => x.CanExport);
+            taskSummary.IsRunning = taskSummary.TimeEntries.Any(x => x.IsRunning);
             taskSummary.Accomplishments = GetDistinctComments(taskSummary.TimeEntries, x => x.Accomplishments);
             taskSummary.Impediments = GetDistinctComments(taskSummary.TimeEntries, x => x.Impediments);
             taskSummary.Learnings = GetDistinctComments(taskSummary.TimeEntries, x => x.Learnings);
@@ -585,6 +597,7 @@ public partial class StandUpService(
             _ = taskSummary ?? throw new InvalidOperationException("TaskSummary is null");
             taskSummary.AllExported = taskSummary.TimeEntries.All(x => x.Exported);
             taskSummary.CanExport = taskSummary.TimeEntries.Any(x => x.CanExport);
+            taskSummary.IsRunning = taskSummary.TimeEntries.Any(x => x.IsRunning);
         }
         foreach (var activitySummary in exportableEntries.Select(entry => entry.ParentActivitySummary).Distinct())
         {

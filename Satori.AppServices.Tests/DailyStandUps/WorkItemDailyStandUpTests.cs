@@ -1,6 +1,6 @@
 ﻿using CodeMonkeyProjectiles.Linq;
-using Satori.AppServices.Services;
 using Satori.AppServices.Extensions;
+using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.ViewModels.WorkItems;
@@ -433,6 +433,38 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
 
         entries.Length.ShouldBe(2);
         entries.ShouldAllBe(x => x.TimeRemaining == expected);
+    }
+    
+    [TestMethod]
+    public async Task RefreshTimeRemaining_UpdatesParentTaskSummary()
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
+        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        var estimate = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
+        task.Fields.RemainingWork = estimate.TotalHours;
+
+        var entry1 = BuildTimeEntry();
+        entry1.AddWorkItems(task);
+        entry1.End = null;
+        entry1.Exported = false;
+
+        var entries = await GetTimesAsync();
+        var entry = entries.Single();
+        entry.TimeRemaining.ShouldBe(estimate);
+        entry.TotalTime.ShouldBe(TimeSpan.Zero);
+
+        //Arrange - UI will update the TotalTime based on a timer for tasks that are currently running
+        entry.TotalTime = TimeSpan.FromMinutes(30).Randomize();
+
+        //Act
+        StandUpService.ResetTimeRemaining(entries);
+
+        //Assert
+        var expected = estimate - entry.TotalTime;
+        entry.TimeRemaining.ShouldBe(expected);
+        entry.ParentTaskSummary.ShouldNotBeNull();
+        entry.ParentTaskSummary.TimeRemaining.ShouldBe(expected);
     }
     
     [TestMethod]

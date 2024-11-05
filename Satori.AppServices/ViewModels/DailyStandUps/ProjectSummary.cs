@@ -1,6 +1,6 @@
 ﻿namespace Satori.AppServices.ViewModels.DailyStandUps;
 
-public class ProjectSummary
+public class ProjectSummary : ISummary
 {
     public int ProjectId { get; init; }
     public required string ProjectName { get; init; }
@@ -13,11 +13,15 @@ public class ProjectSummary
     public Uri? CustomerUrl { get; init; }
 
     public required ActivitySummary[] Activities { get; set; }
-    
-    public TimeSpan TotalTime { get; internal init; }
+
+    public IEnumerable<TimeEntry> TimeEntries => Activities.SelectMany(a => a.TimeEntries);
+
+    public TimeSpan TotalTime { get; set; }
     public required Uri Url { get; init; }
     public bool AllExported { get; internal set; }
     public bool CanExport { get; internal set; }
+    public bool IsRunning { get; internal set; }
+
 
     /// <summary>
     /// For the UI to control if the section is collapsed or expanded

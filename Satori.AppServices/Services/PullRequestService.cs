@@ -1,7 +1,6 @@
 ﻿using Flurl;
 using Microsoft.Extensions.Logging;
 using Satori.AppServices.Services.Converters;
-using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;

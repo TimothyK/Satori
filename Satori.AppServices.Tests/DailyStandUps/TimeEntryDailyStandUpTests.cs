@@ -146,6 +146,20 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
     }
     
     [TestMethod]
+    public async Task IsRunning()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.End.ShouldNotBeNull();
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        entries.Single().IsRunning.ShouldBeFalse();
+    }
+    
+    [TestMethod]
     public async Task TotalTime()
     {
         //Arrange
@@ -158,7 +172,7 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
         //Assert
         entries.Single().TotalTime.ShouldBe(kimaiEntry.End.Value - kimaiEntry.Begin);
     }
-    
+
     [TestMethod]
     public async Task OrderedChronologically()
     {
@@ -183,6 +197,89 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
     }
     
     #endregion Time
+
+    #region Running Task
+
+    [TestMethod]
+    public async Task RunningTask_NullEndTime()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.End = null;
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.End.ShouldBeNull();
+    }
+    
+    [TestMethod]
+    public async Task RunningTask_TotalTime()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.End = null;
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.TotalTime.ShouldBe(TimeSpan.Zero);
+    }
+    
+    [TestMethod]
+    public async Task RunningTask_IsRunning()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.End = null;
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.IsRunning.ShouldBeTrue();
+    }
+    
+    [TestMethod]
+    public async Task RunningTask_ParentsAreRunning()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.End = null;
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.ParentTaskSummary.ShouldNotBeNull();
+        entry.ParentTaskSummary.IsRunning.ShouldBeTrue();
+        entry.ParentTaskSummary.ParentActivitySummary.IsRunning.ShouldBeTrue();
+        entry.ParentTaskSummary.ParentActivitySummary.ParentProjectSummary.IsRunning.ShouldBeTrue();
+        entry.ParentTaskSummary.ParentActivitySummary.ParentProjectSummary.ParentDay.IsRunning.ShouldBeTrue();
+    }
+    
+    [TestMethod]
+    public async Task RunningTask_CannotExport()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.End = null;
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        var entry = entries.Single();
+        entry.CanExport.ShouldBeFalse();
+    }
+
+    #endregion Running Task
 
     #region Export
 

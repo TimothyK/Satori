@@ -1,0 +1,45 @@
+﻿.export-done {
+    display: none;
+}
+
+.export button {
+    color: green;
+    background-color: transparent;
+    border-radius: 5px;
+    border-color: green;
+    border-width: 1px;
+    height: 100%;
+}
+
+.export button:hover {
+    background-color: green;
+    color: white;
+}
+
+.export-cannot::before {
+    content: "Cannot Export";
+}
+
+.export-cannot {
+    color: white;
+    background-color: #DC3545;
+    border-radius: 5px;
+    padding: 5px;
+    height: 100%;
+    display: block;
+}
+
+.duration-running::before {
+    content: "Running";
+}
+
+.duration-running {
+    font-family: "Roboto", sans-serif;
+    font-weight: bold;
+    color: black;
+    background-color: #FFC107;
+    border-radius: 5px;
+    padding: 5px;
+    height: 100%;
+    display: block;
+}

@@ -44,13 +44,13 @@
     flex-basis: 100%;
 }
 
-.dropbtn {
-}
-
 .dropdown {
     position: relative;
     display: inline-block;
-    min-width: 130px;
+}
+
+#period-button {
+    margin-right: 10px;
 }
 
 #collapse-button {
@@ -61,9 +61,13 @@
     display: none;
     position: absolute;
     background-color: #f9f9f9;
-    min-width: 160px;
+    white-space: nowrap;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     z-index: 1;
+}
+.dropdown-content-right {
+    right: 0;
+    left: auto;
 }
 
 .dropdown-content .dropdown-content-menu {
@@ -172,7 +176,7 @@
 
 .taskSummary-header p {
     margin: 0px;
-    white-space: pre;
+    white-space: pre-wrap;
 }
 .taskSummary-header .badge {
     margin-left: 5px;
@@ -188,13 +192,10 @@
 }
 .time-entry-comments p {
     margin: 0px;
-    white-space: pre;
+    white-space: pre-wrap;
 }
 
 .time-entry td .duration {
-    font-size: 0.7em;
-}
-.time-entry td .export {
     font-size: 0.7em;
 }
 
@@ -206,21 +207,10 @@
     padding-right: 5px;
 }
 
-.export {
-    margin-right: 5px;
-    font-size: 0.9em;
-}
-.export-done {
-    display: none;
-}
-.export button {
-    font-size: 0.9em;
-}
-
 .duration {
     display: flex;
     flex-wrap: nowrap;
-    align-items: center;
+    align-items: stretch;
     border: 1px solid darkgray;
     border-radius: 5px;
     margin-right: 5px;
@@ -258,7 +248,7 @@
     text-align: center;
 }
 .duration-link:hover {
-    background-color: #157347;
+    background-color: green;
 }
 
 .duration-minutes {
@@ -273,7 +263,7 @@
     flex-grow: 1;
 }
 .duration-decimal::after {
-    content: "\00a0h"; /* &nbsp;*/
+    content: "\00a0h"; /* &nbsp; and an "h" for "hours" */
 }
 
 .bi {
@@ -290,6 +280,15 @@
 
 .bi-refresh {
     background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-arrow-clockwise" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/></svg>');
+}
+
+.enddate-now {
+    font-family: "Roboto", sans-serif;
+    font-weight: bold;
+    color: black;
+    background-color: #FFC107;
+    padding-left: 2px;
+    padding-right: 2px;
 }
 
 .day-header-day {

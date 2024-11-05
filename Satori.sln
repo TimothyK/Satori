@@ -30,7 +30,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Satori", "Satori\Satori.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Satori.Converters", "Satori.Converters\Satori.Converters.csproj", "{ACAD7190-91C9-479F-881C-ABB89A755895}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Satori.Converters.Tests", "Satori.Converters.Tests\Satori.Converters.Tests.csproj", "{021D5FD2-BD0F-4BA7-87D1-5513A5EC8F70}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Satori.Converters.Tests", "Satori.Converters.Tests\Satori.Converters.Tests.csproj", "{021D5FD2-BD0F-4BA7-87D1-5513A5EC8F70}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
