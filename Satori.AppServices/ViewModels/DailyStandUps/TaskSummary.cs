@@ -23,7 +23,7 @@ public class TaskSummary
     public TimeSpan TotalTime { get; set; }
 
     public bool NeedsEstimate { get; init; }
-    public TimeSpan? TimeRemaining { get; init; }
+    public TimeSpan? TimeRemaining { get; set; }
 
     public string? Accomplishments { get; set; }
     public string? Impediments { get; set; }

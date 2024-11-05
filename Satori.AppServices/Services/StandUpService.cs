@@ -470,18 +470,23 @@ public partial class StandUpService(
         }
     }
 
-    private static void ResetTimeRemaining(TimeEntry[] timeEntries)
+    public static void ResetTimeRemaining(TimeEntry[] timeEntries)
     {
         foreach (var entry in timeEntries.Where(x => x.Task?.State != ScrumState.Done))
         {
             var unexported = timeEntries
                 .Where(x => x.Task?.Id == entry.Task?.Id)
                 .Where(x => !x.Exported)
-                .SelectWhereHasValue(x => x.End - x.Begin)
+                .Select(x => x.TotalTime)
                 .Sum();
 
             var estimate = entry.Task?.RemainingWork ?? entry.Task?.OriginalEstimate;
             entry.TimeRemaining = estimate - unexported;
+
+            if (entry.ParentTaskSummary != null)
+            {
+                entry.ParentTaskSummary.TimeRemaining = entry.TimeRemaining;
+            }
         }
     }
     

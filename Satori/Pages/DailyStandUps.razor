@@ -493,6 +493,16 @@
 
         RunningTimeEntry.TotalTime = DateTimeOffset.Now - RunningTimeEntry.Begin;
 
+        if (RunningTimeEntry.Task?.RemainingWork != null && RunningTimeEntry.Task?.State != ScrumState.Done)
+        {
+            var task = RunningTimeEntry.Task;
+            var timeEntries = StandUpDays
+                .SelectMany(d => d.TimeEntries)
+                .Where(timeEntry => timeEntry.Task == task)
+                .ToArray();
+            StandUpService.ResetTimeRemaining(timeEntries);
+        }
+
         var taskSummary = RunningTimeEntry.ParentTaskSummary ?? throw new InvalidOperationException();
         taskSummary.TotalTime = taskSummary.TimeEntries.Select(e => e.TotalTime).Sum();
 
