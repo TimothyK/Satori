@@ -2,13 +2,14 @@
 
 namespace Satori.AppServices.ViewModels.DailyStandUps;
 
-public class TaskSummary
+public class TaskSummary : ISummary
 {
     public WorkItem? Task { get; init; }
 
     public required ActivitySummary ParentActivitySummary { get; init; }
 
     public required TimeEntry[] TimeEntries { get; set; }
+    IEnumerable<TimeEntry> ISummary.TimeEntries => TimeEntries;
 
     /// <summary>
     /// For the UI to control if the section is collapsed or expanded

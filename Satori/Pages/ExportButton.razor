@@ -1,0 +1,52 @@
+﻿@using Satori.AppServices.Services
+@using Satori.AppServices.ViewModels.DailyStandUps
+@inject StandUpService StandUpService
+
+<div class="export @(Summary.AllExported ? "export-done" : "") @(Summary.CanExport ? "export-enabled" : "")">
+    @if (Summary.AllExported)
+    {
+        <span class="badge bg-secondary">Exported</span>
+    }
+    else if (Summary.IsRunning)
+    {
+        <span class="duration-running"></span>
+    }
+    else if (Summary.CanExport)
+    {
+        <button @onclick="async () => await ExportAsync(Summary)">Export</button>
+    }
+    else
+    {
+        <span class="export-cannot"></span>
+    }
+</div>
+
+@code {
+    [Parameter] 
+    public required ISummary Summary { get; set; }
+    private static bool _isExporting;
+    [Parameter]
+    public EventCallback OnExported { get; set; }
+
+
+    private async Task ExportAsync(ISummary summary)
+    {
+        if (_isExporting)
+        {
+            return;
+        }
+
+        _isExporting = true;
+        try
+        {
+            await StandUpService.ExportAsync(summary.TimeEntries.Where(x => x.CanExport).ToArray());
+        }
+        finally
+        {
+            _isExporting = false;
+        }
+
+        await OnExported.InvokeAsync();
+    }
+
+}

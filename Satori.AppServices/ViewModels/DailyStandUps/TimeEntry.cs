@@ -1,8 +1,9 @@
-﻿using Satori.AppServices.ViewModels.WorkItems;
+﻿using CodeMonkeyProjectiles.Linq;
+using Satori.AppServices.ViewModels.WorkItems;
 
 namespace Satori.AppServices.ViewModels.DailyStandUps;
 
-public class TimeEntry
+public class TimeEntry : ISummary
 {
     public int Id { get; init; }
 
@@ -12,6 +13,9 @@ public class TimeEntry
     public DateTimeOffset Begin { get; init; }
     public DateTimeOffset? End { get; init; }
     
+    IEnumerable<TimeEntry> ISummary.TimeEntries => this.Yield();
+    bool ISummary.AllExported => Exported;
+
     public TimeSpan TotalTime { get; set; }
     public bool Exported { get; internal set; }
     public bool CanExport { get; internal set; }
