@@ -44,13 +44,13 @@
     flex-basis: 100%;
 }
 
-.dropbtn {
-}
-
 .dropdown {
     position: relative;
     display: inline-block;
-    min-width: 130px;
+}
+
+#period-button {
+    margin-right: 10px;
 }
 
 #collapse-button {
@@ -61,9 +61,13 @@
     display: none;
     position: absolute;
     background-color: #f9f9f9;
-    min-width: 160px;
+    white-space: nowrap;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     z-index: 1;
+}
+.dropdown-content-right {
+    right: 0;
+    left: auto;
 }
 
 .dropdown-content .dropdown-content-menu {

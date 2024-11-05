@@ -22,7 +22,7 @@
 
 <div class="filter-row">
     <div class="filter-label">Date Range:</div>
-    <div class="dropdown">
+    <div class="dropdown" id="period-button">
         <button class="btn-header dropbtn">@DateSelector.PeriodText ▾</button>
         <div class="dropdown-content">
             <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriod(Period.Today)">Today</div>
@@ -46,7 +46,7 @@
     </div>
     <div class="dropdown" id="collapse-button">
         <button class="btn-header dropbtn">Collapse ▾</button>
-        <div class="dropdown-content">
+        <div class="dropdown-content dropdown-content-right">
             <div class="dropdown-content-menu" @onclick="CollapseAll">All</div>
             <div class="dropdown-content-menu" @onclick="CollapseProjects">Projects</div>
             <div class="dropdown-content-menu" @onclick="CollapseActivities">Activities</div>
