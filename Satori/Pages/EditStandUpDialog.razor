@@ -1,24 +1,101 @@
-﻿@using Satori.AppServices.ViewModels.DailyStandUps
+﻿@using System.Diagnostics.CodeAnalysis
+@using Satori.AppServices.Extensions
+@using Satori.AppServices.ViewModels.DailyStandUps
 @using Satori.Utilities
-<div class="edit-button @EditButtonVisible">
+<div class="edit-button @EditButtonVisible" @onclick="ShowDialog">
     <span class="bi bi-pencil-square"></span>
 </div>
 
+<!-- Dialogs -->
+<div class="dialog-modal-background @DialogVisible">
+    <div class="dialog-form">
+        <div class="dialog-title">
+            <span class="dialog-close" @onclick="CloseClick">&times;</span>
+            Edit Time @(TimeEntries.Length == 1 ? "Entry" : "Entries")
+        </div>
+        <div class="dialog-body">
+            <div class="alert alert-dismissible fade show hidden" role="alert">
+                Error Message
+            </div>
+            <div>
+                <table>
+                    <tr>
+                        @foreach (var entry in TimeEntries)
+                        {
+                            <td>@entry.Begin.ToString("HH:mm")</td>
+                        }
+                    </tr>
+                    <tr>
+                        @foreach (var entry in TimeEntries)
+                        {
+                            <td>@entry.End?.ToString("HH:mm")</td>
+                        }
+                    </tr>
+                    <tr>
+                        @foreach (var entry in TimeEntries)
+                        {
+                            <td>@entry.TotalTime.ToString(@"hh\:mm")</td>
+                        }
+                    </tr>
+                    <tr>
+                        @foreach (var entry in TimeEntries)
+                        {
+                            <td>@entry.TotalTime.TotalHours.ToNearest(0.05)&nbsp;h</td>
+                        }
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="dialog-buttonbar">
+            <button type="button" class="btn btn-outline-primary btn-priority" @onclick="SaveClick" title="Save changes">Save</button>
+            <button type="button" class="btn btn-outline-secondary btn-priority" @onclick="CloseClick" title="Exit with no changes">Cancel</button>
+        </div>
+    </div>
+</div>
 
 @code {
-    [Parameter] 
-    public required TimeEntry[] TimeEntries { get; set; }
+    private TimeEntry[] _timeEntries;
+
+    [Parameter]
+    public required TimeEntry[] TimeEntries
+    {
+        get => _timeEntries;
+        [MemberNotNull(nameof(_timeEntries))]
+        set => _timeEntries = value
+            .Where(t => !t.Exported)
+            .OrderBy(t => t.Begin)
+            .ToArray();
+    }
 
     [Parameter]
     public EventCallback OnSaved { get; set; }
 
     public VisibleCssClass EditButtonVisible { get; set; } = VisibleCssClass.Hidden;
+    public VisibleCssClass DialogVisible { get; set; } = VisibleCssClass.Hidden;
 
     protected override Task OnInitializedAsync()
     {
-        EditButtonVisible = TimeEntries.Any(t => !t.Exported);
+        EditButtonVisible = TimeEntries.Any();
 
         return base.OnInitializedAsync();
+    }
+
+    private void CloseClick()
+    {
+        DialogVisible = VisibleCssClass.Hidden;
+    }
+
+    private Task SaveClick()
+    {
+        //TODO: Save changes
+
+        DialogVisible = VisibleCssClass.Hidden;
+        return Task.CompletedTask;
+    }
+
+    private void ShowDialog()
+    {
+        DialogVisible = VisibleCssClass.Visible;
     }
 
 }
