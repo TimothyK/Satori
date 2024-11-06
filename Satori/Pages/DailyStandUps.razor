@@ -133,6 +133,7 @@
                 <div class="taskSummary-header @(day.IsCollapsed || project.IsCollapsed || activity.IsCollapsed ? "hidden" : "")">
                     <div class="duration">
                         <div class="duration-caret"><span class="caret @(taskSummary.IsCollapsed ? "" : "caret-down")" @onclick="() => ToggleCollapsed(taskSummary)"></span></div>
+                        <EditStandUpDialog TimeEntries="@taskSummary.TimeEntries" OnSaved="StateHasChanged"></EditStandUpDialog>
                         <div class="duration-minutes">
                             <span class="">@taskSummary.TotalTime.ToString(@"hh\:mm")</span>
                         </div>
@@ -253,6 +254,7 @@
                             </td>
                             <td>
                                 <div class="duration">
+                                    <EditStandUpDialog TimeEntries="@entry.Yield().ToArray()" OnSaved="StateHasChanged"></EditStandUpDialog>
                                     <div class="duration-minutes">
                                         <span class="">@entry.TotalTime.ToString(@"hh\:mm")</span>
                                     </div>

@@ -1,0 +1,13 @@
+﻿@using Satori.AppServices.ViewModels.DailyStandUps
+<div class="edit-button">
+    <span class="bi bi-pencil-square"></span>
+</div>
+
+
+@code {
+    [Parameter] 
+    public required TimeEntry[] TimeEntries { get; set; }
+
+    [Parameter]
+    public EventCallback OnSaved { get; set; }
+}
