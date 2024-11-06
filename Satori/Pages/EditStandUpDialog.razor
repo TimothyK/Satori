@@ -1,5 +1,6 @@
 ﻿@using Satori.AppServices.ViewModels.DailyStandUps
-<div class="edit-button">
+@using Satori.Utilities
+<div class="edit-button @EditButtonVisible">
     <span class="bi bi-pencil-square"></span>
 </div>
 
@@ -10,4 +11,14 @@
 
     [Parameter]
     public EventCallback OnSaved { get; set; }
+
+    public VisibleCssClass EditButtonVisible { get; set; } = VisibleCssClass.Hidden;
+
+    protected override Task OnInitializedAsync()
+    {
+        EditButtonVisible = TimeEntries.Any(t => !t.Exported);
+
+        return base.OnInitializedAsync();
+    }
+
 }
