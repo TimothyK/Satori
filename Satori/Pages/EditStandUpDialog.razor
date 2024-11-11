@@ -2,7 +2,13 @@
 @using Satori.AppServices.Extensions
 @using Satori.AppServices.ViewModels.DailyStandUps
 @using Satori.Utilities
-<div class="edit-button @EditButtonVisible" @onclick="ShowDialog">
+
+@if(TimeEntries.Length == 0)
+{
+    return;
+}
+
+<div class="edit-button" @onclick="ShowDialog">
     <span class="bi bi-pencil-square"></span>
 </div>
 
@@ -22,27 +28,48 @@
                     <tr>
                         @foreach (var entry in TimeEntries)
                         {
-                            <td>@entry.Begin.ToString("HH:mm")</td>
+                            <td class="time-value">
+                                @entry.Begin.ToString("HH:mm") 
+                                to
+                                @if (@entry.End == null)
+                                {
+                                    <span class="enddate-now">now</span>
+                                }
+                                else
+                                {
+                                    @entry.End?.ToString("HH:mm")
+                                }
+                            </td>
                         }
+                        <td><div class="date-header">@TimeEntries.First().Begin.ToString("D")</div></td>
                     </tr>
                     <tr>
                         @foreach (var entry in TimeEntries)
                         {
-                            <td>@entry.End?.ToString("HH:mm")</td>
+                            <td>
+                                <div class="duration">
+                                    <div class="duration-minutes">@entry.TotalTime.ToString(@"hh\:mm")</div>
+                                    <div class="duration-decimal">@entry.TotalTime.TotalHours.ToNearest(0.05)</div>
+                                </div>
+                            </td>
                         }
+                        <td>
+                            <div class="activity-header">
+                                <div class="activity-text">
+                                    <div class="customer-name">@TimeEntries.First().ParentActivitySummary.ParentProjectSummary.CustomerName</div>
+                                    <div class="project-name">@TimeEntries.First().ParentActivitySummary.ParentProjectSummary.ProjectName</div>
+                                    <div class="activity-name">@TimeEntries.First().ParentActivitySummary.ActivityName</div>
+                                </div>
+                                <div class="customer-logo">
+                                    @if (TimeEntries.First().ParentActivitySummary.ParentProjectSummary.CustomerUrl != null)
+                                    {
+                                        <img src="@TimeEntries.First().ParentActivitySummary.ParentProjectSummary.CustomerUrl" alt="@TimeEntries.First().ParentActivitySummary.ParentProjectSummary.CustomerName" title="@TimeEntries.First().ParentActivitySummary.ParentProjectSummary.CustomerName" />
+                                    }
+                                </div>
+                            </div>
+                        </td>
                     </tr>
-                    <tr>
-                        @foreach (var entry in TimeEntries)
-                        {
-                            <td>@entry.TotalTime.ToString(@"hh\:mm")</td>
-                        }
-                    </tr>
-                    <tr>
-                        @foreach (var entry in TimeEntries)
-                        {
-                            <td>@entry.TotalTime.TotalHours.ToNearest(0.05)&nbsp;h</td>
-                        }
-                    </tr>
+
                 </table>
             </div>
         </div>
@@ -70,15 +97,7 @@
     [Parameter]
     public EventCallback OnSaved { get; set; }
 
-    public VisibleCssClass EditButtonVisible { get; set; } = VisibleCssClass.Hidden;
     public VisibleCssClass DialogVisible { get; set; } = VisibleCssClass.Hidden;
-
-    protected override Task OnInitializedAsync()
-    {
-        EditButtonVisible = TimeEntries.Any();
-
-        return base.OnInitializedAsync();
-    }
 
     private void CloseClick()
     {

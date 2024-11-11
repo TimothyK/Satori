@@ -39,8 +39,8 @@
     margin-top: 75px;
     background-color: white;
     border: 2px solid black;
-    left: 40%;
-    width: 50%;
+    left: 10%;
+    width: 85%;
     font-size: 1.0rem;
 }
 
@@ -73,4 +73,85 @@
     padding: 5px;
     text-align: right;
     border-top: 1px ridge lightgray;
+}
+
+
+
+table {
+    width: 100%;
+}
+table, th, td {
+    border: 1px solid;
+    border-color: lightgray;
+    border-collapse: collapse;
+    vertical-align: top;
+}
+table td:last-child {
+    width: 100%;
+}
+
+.time-value {
+    font-family: "Roboto", sans-serif;
+    font-weight: bold;
+    font-size: 0.6em;
+    padding: 5px;
+}
+.enddate-now {
+    color: black;
+    background-color: #FFC107;
+    padding-left: 2px;
+    padding-right: 2px;
+}
+
+.duration {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    border: 1px solid darkgray;
+    border-radius: 2px;
+    align-self: flex-start;
+    font-size: 0.6em;
+}
+
+.duration-minutes {
+    font-family: "Roboto", sans-serif;
+    font-weight: bold;
+    padding: 2px;
+    flex-grow: 1;
+}
+.duration-decimal {
+    background-color: lightgray;
+    padding: 2px;
+    flex-grow: 1;
+}
+.duration-decimal::after {
+    content: "\00a0h"; /* &nbsp; and an "h" for "hours" */
+}
+
+.date-header {
+    font-weight: bold;
+    font-size: 1.3em;
+    width: 100%;
+    text-align: right;
+}
+
+.activity-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100%;
+    align-items: start;
+}
+.customer-logo {
+    margin: 5px;
+}
+.customer-logo img {
+    width: 72px;
+    height: 72px;
+    margin-left: 5px;
+}
+.activity-text {
+    font-weight: bold;
+    text-align: right;
 }
