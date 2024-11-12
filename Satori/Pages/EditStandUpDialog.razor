@@ -56,19 +56,32 @@
                         <td>
                             <div class="activity-header">
                                 <div class="activity-text">
-                                    <div class="customer-name">@TimeEntries.First().ParentActivitySummary.ParentProjectSummary.CustomerName</div>
-                                    <div class="project-name">@TimeEntries.First().ParentActivitySummary.ParentProjectSummary.ProjectName</div>
-                                    <div class="activity-name">@TimeEntries.First().ParentActivitySummary.ActivityName</div>
+                                    <div class="customer-name">@Project.CustomerName</div>
+                                    <div class="project-name">@Project.ProjectName</div>
+                                    <div class="activity-name">@Activity.ActivityName</div>
                                 </div>
                                 <div class="customer-logo">
-                                    @if (TimeEntries.First().ParentActivitySummary.ParentProjectSummary.CustomerUrl != null)
+                                    @if (Project.CustomerUrl != null)
                                     {
-                                        <img src="@TimeEntries.First().ParentActivitySummary.ParentProjectSummary.CustomerUrl" alt="@TimeEntries.First().ParentActivitySummary.ParentProjectSummary.CustomerName" title="@TimeEntries.First().ParentActivitySummary.ParentProjectSummary.CustomerName" />
+                                        <img src="@Project.CustomerUrl" alt="@Project.CustomerName" title="@Project.CustomerName" />
                                     }
                                 </div>
                             </div>
                         </td>
                     </tr>
+                    @foreach (var comment in Comments)
+                    {
+                        <tr>
+                            @foreach (var entry in TimeEntries)
+                            {
+                                <td class="@comment.IsActive[entry]"></td>
+                            }
+                            <td>
+                                @comment.Type.Icon
+                                <input type="text" value="@comment.Text"/>
+                            </td>
+                        </tr>
+                    }
 
                 </table>
             </div>
@@ -97,6 +110,7 @@
     [Parameter]
     public EventCallback OnSaved { get; set; }
 
+    
     public VisibleCssClass DialogVisible { get; set; } = VisibleCssClass.Hidden;
 
     private void CloseClick()
