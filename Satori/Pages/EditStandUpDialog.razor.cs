@@ -1,6 +1,5 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Satori.AppServices.ViewModels.DailyStandUps;
-using Satori.AppServices.ViewModels.WorkItems;
 using Satori.Utilities;
 
 namespace Satori.Pages

@@ -74,11 +74,15 @@
                         <tr>
                             @foreach (var entry in TimeEntries)
                             {
-                                <td class="@comment.IsActive[entry]"></td>
+                                <td>
+                                    <div class="comment-toggle @comment.IsActive[entry]" @onclick="() => comment.ToggleActive(entry)"></div>
+                                </td>
                             }
                             <td>
-                                @comment.Type.Icon
-                                <input type="text" value="@comment.Text"/>
+                                <div class="comment">
+                                    <div class="comment-type">@comment.Type.Icon</div>
+                                    <div class="comment-box"><input type="text" placeholder="@comment.Type.PlaceholderText" @bind="comment.Text" /></div>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -110,11 +114,15 @@
     [Parameter]
     public EventCallback OnSaved { get; set; }
 
-    
+
     public VisibleCssClass DialogVisible { get; set; } = VisibleCssClass.Hidden;
 
     private void CloseClick()
     {
+        //On cancel - reset the ViewModel
+        Comments = BuildComments();
+
+        //Close the dialog
         DialogVisible = VisibleCssClass.Hidden;
     }
 
