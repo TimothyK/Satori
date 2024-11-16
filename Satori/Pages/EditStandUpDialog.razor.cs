@@ -1,4 +1,5 @@
 ﻿using CodeMonkeyProjectiles.Linq;
+using Microsoft.AspNetCore.Components;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.Utilities;
 
@@ -64,6 +65,26 @@ namespace Satori.Pages
                 .SelectWhereHasValue(x => string.IsNullOrWhiteSpace(x) ? null : x.Trim())
                 .Select(x => (type, x));
         }
+
+        private void AddComment(CommentType type)
+        {
+            var comment = new CommentViewModel(type, string.Empty, TimeEntries, TimeEntries.Reverse().Take(1));
+            FocusRequest = comment;
+            Comments.Add(comment);
+        }
+
+        private CommentViewModel? FocusRequest { get; set; }
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (FocusRequest != null)
+            {
+                await FocusRequest.TextBox.FocusAsync();
+                FocusRequest = null;
+            }
+
+            await base.OnAfterRenderAsync(firstRender);
+        }
     }
 
     internal class CommentViewModel
@@ -105,6 +126,8 @@ namespace Satori.Pages
                 }
             }
         }
+
+        public ElementReference TextBox;
     }
 
     public class SelectionActiveCssClass : CssClass
@@ -189,6 +212,21 @@ namespace Satori.Pages
         public string PlaceholderText => PlaceholderTextMap[this];
 
         #endregion PlaceholderText
+
+        #region Add Button Label
+
+        private static readonly Dictionary<CommentType, string> AddButtonLabelMap = new()
+        {
+            {Other, "General Comment"},
+            {Accomplishment, "Achievement"},
+            {Impediment, "Impediment"},
+            {Learning, "Today I Learned"},
+            {WorkItem, "Azure DevOps Work Item"}
+        };
+
+        public string AddButtonLabel => AddButtonLabelMap[this];
+
+        #endregion Add Button Label
 
         #region GetComment
 
