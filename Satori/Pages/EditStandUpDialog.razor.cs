@@ -84,6 +84,26 @@ namespace Satori.Pages
         public void ToggleActive(TimeEntry timeEntry)
         {
             IsActive[timeEntry] = IsActive[timeEntry].Not;
+
+            MarkAsDeleted();
+        }
+
+        private void MarkAsDeleted()
+        {
+            if (IsActive.Values.Any(value => value == SelectionActiveCssClass.Activated))
+            {
+                foreach (var kvp in IsActive.Where(kvp => kvp.Value == SelectionActiveCssClass.ToBeDeleted))
+                {
+                    IsActive[kvp.Key] = SelectionActiveCssClass.Deactivated;
+                }
+            }
+            else
+            {
+                foreach (var kvp in IsActive)
+                {
+                    IsActive[kvp.Key] = SelectionActiveCssClass.ToBeDeleted;
+                }
+            }
         }
     }
 
@@ -93,6 +113,7 @@ namespace Satori.Pages
 
         public static SelectionActiveCssClass Activated { get; } = new("selection-activated");
         public static SelectionActiveCssClass Deactivated { get; } = new("selection-deactivated");
+        public static SelectionActiveCssClass ToBeDeleted { get; } = new("selection-delete");
 
         public SelectionActiveCssClass Not => this == Activated ? Deactivated : Activated;
 

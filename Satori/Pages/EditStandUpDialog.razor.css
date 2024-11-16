@@ -172,6 +172,9 @@ table td:last-child {
 .selection-activated::after {
     content: "✔️";
 }
+.selection-delete::after {
+    content: "❌";
+}
 
 
 .comment {
