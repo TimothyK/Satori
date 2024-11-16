@@ -80,15 +80,22 @@
                                 </td>
                             }
                             <td>
-                                <div class="comment">
-                                    <div class="comment-type">@comment.Type.Icon</div>
-                                    <div class="comment-box"><input type="text" @ref="comment.TextBox" placeholder="@comment.Type.PlaceholderText" @bind="comment.Text" /></div>
-                                </div>
+                                @if (comment is WorkItemCommentViewModel workItemComment)
+                                {
+                                    <EditWorkItem ViewModel="workItemComment"></EditWorkItem>
+                                }
+                                else
+                                {
+                                    <div class="comment">
+                                        <div class="comment-type">@comment.Type.Icon</div>
+                                        <div class="comment-box"><input type="text" @ref="comment.TextBox" placeholder="@comment.Type.PlaceholderText" @bind="comment.Text"/></div>
+                                    </div>
+                                }
                             </td>
                         </tr>
                     }
                 </table>
-                @foreach (var type in CommentType.All().Except(CommentType.WorkItem.Yield()))
+                @foreach (var type in CommentType.All())
                 {
                     <button class="btn-add-comment" @onclick="() => AddComment(type)">
                         <span class="add-button-icon">@type.Icon</span> Add @type.AddButtonLabel
