@@ -15,6 +15,11 @@ public partial class EditStandUpDialog
 
     protected override void OnParametersSet()
     {
+        TimeEntries = TimeEntries
+            .Where(t => !t.Exported)
+            .OrderBy(t => t.Begin)
+            .ToArray();
+
         if (TimeEntries.Length == 0)
         {
             return;

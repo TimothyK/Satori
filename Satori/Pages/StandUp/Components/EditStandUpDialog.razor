@@ -112,18 +112,8 @@
 </div>
 
 @code {
-    private TimeEntry[] _timeEntries;
-
     [Parameter]
-    public required TimeEntry[] TimeEntries
-    {
-        get => _timeEntries;
-        [MemberNotNull(nameof(_timeEntries))]
-        set => _timeEntries = value
-            .Where(t => !t.Exported)
-            .OrderBy(t => t.Begin)
-            .ToArray();
-    }
+    public required TimeEntry[] TimeEntries { get; set; }
 
     [Parameter]
     public EventCallback OnSaved { get; set; }
