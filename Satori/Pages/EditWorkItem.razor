@@ -1,6 +1,4 @@
-﻿@using CodeMonkeyProjectiles.Linq
-@using Satori.AppServices.Services
-@using Satori.AppServices.ViewModels
+﻿@using Satori.AppServices.Services
 @using Satori.AppServices.ViewModels.WorkItems
 @inject IJSRuntime JsRuntime
 @inject UserService UserService
@@ -10,10 +8,10 @@
 {
     <div class="add-row">
         <div class="comment-box">
-            <input type="text" @ref="ViewModel.TextBox" placeholder="@ViewModel.Type.PlaceholderText" @bind="ViewModel.WorkItemIdToAdd" @onkeyup="AddWorkItemKeyUp" />
+            <input type="text" @ref="ViewModel.TextBox" placeholder="@ViewModel.Type.PlaceholderText" @bind="WorkItemInput.TextInput" @onkeyup="AddWorkItemKeyUp" />
         </div>
         <button class="add-button" @onclick="AddWorkItem">Add</button>
-        <div class="validation-error">@ViewModel.WorkItemIdToAddValidationErrorMessage</div>
+        <div class="validation-error">@WorkItemInput.ValidationErrorMessage</div>
     </div>
 }
 else
@@ -64,54 +62,20 @@ else
                 }
             }
         }
-
-        @*                 
-                if (taskSummary.NeedsEstimate)
-                {
-                    <span class="badge bg-danger">Needs Estimate</span>
-                }
-                else
-                {
-                    if (taskSummary.TimeRemaining != null)
-                    {
-                        <span class="badge @(taskSummary.TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@taskSummary.TimeRemaining.Value.TotalHours.ToNearest(0.1) h</span>
-                    }
-                }
-                *@
     }
-
-
-}
-
-@code {
-    [Parameter] public required WorkItemCommentViewModel ViewModel { get; set; }
-
-    private Person CurrentUser { get; set; } = Person.Empty;
-
-    protected override async Task OnInitializedAsync()
+    @*                 
+    if (taskSummary.NeedsEstimate)
     {
-        CurrentUser = await UserService.GetCurrentUserAsync();
-
-        await base.OnInitializedAsync();
+        <span class="badge bg-danger">Needs Estimate</span>
     }
-
-    private void AddWorkItemKeyUp(KeyboardEventArgs e)
+    else
     {
-        if (e.Code.IsIn("Enter", "NumpadEnter"))
+        if (taskSummary.TimeRemaining != null)
         {
-            AddWorkItem();
+            <span class="badge @(taskSummary.TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@taskSummary.TimeRemaining.Value.TotalHours.ToNearest(0.1) h</span>
         }
     }
-
-    private void AddWorkItem()
-    {
-        var defaultTimeEntry = ViewModel.IsActive.Keys.Last();
-        ViewModel.ToggleActive(defaultTimeEntry);
-    }
-
-    private void OpenWorkItem(WorkItem workItem)
-    {
-        JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
-    }
+    *@
 
 }
+
