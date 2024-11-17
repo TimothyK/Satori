@@ -11,7 +11,7 @@ namespace Satori.Pages
             CommentType.WorkItem
             , CommentType.WorkItem.GetComment(timeEntries.FirstOrDefault(entry => entry.Task == workItem))
             , timeEntries
-            , timeEntries.Where(entry => entry.Task == workItem)
+            , timeEntries.Where(entry => entry.Task == workItem).DefaultIfEmpty(timeEntries.Reverse().First())
         )
     {
         public WorkItem? WorkItem { get; set; } = workItem;
