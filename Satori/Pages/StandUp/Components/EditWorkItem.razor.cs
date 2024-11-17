@@ -1,4 +1,5 @@
-﻿using CodeMonkeyProjectiles.Linq;
+﻿using System.ComponentModel.DataAnnotations;
+using CodeMonkeyProjectiles.Linq;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
@@ -98,14 +99,29 @@ public partial class EditWorkItem
 
 }
 
-public class WorkItemCommentViewModel(WorkItem? workItem, TimeEntry[] timeEntries)
-    : CommentViewModel(
-        CommentType.WorkItem
-        , CommentType.WorkItem.GetComment(timeEntries.FirstOrDefault(entry => entry.Task == workItem))
-        , timeEntries
-        , timeEntries.Where(entry => entry.Task == workItem)
-    )
+public class WorkItemCommentViewModel : CommentViewModel
 {
+    private WorkItemCommentViewModel(WorkItem? workItem, TimeEntry[] allTimeEntries, IEnumerable<TimeEntry> activeTimeEntries) 
+        : base(
+            CommentType.WorkItem
+            , CommentType.WorkItem.GetComment(allTimeEntries.FirstOrDefault(entry => entry.Task == workItem))
+            , allTimeEntries
+            , activeTimeEntries)
+    {
+        WorkItem = workItem;
+    }
+
+    public static WorkItemCommentViewModel FromNew(TimeEntry[] timeEntries)
+    {
+        var vm = new WorkItemCommentViewModel(null, timeEntries, []);
+        return vm;
+    }
+    public static WorkItemCommentViewModel FromExisting(WorkItem workItem, TimeEntry[] timeEntries)
+    {
+        var vm = new WorkItemCommentViewModel(workItem, timeEntries, timeEntries.Where(entry => entry.Task == workItem));
+        return vm;
+    }
+
     public event EventHandler<CancelEventArgs>? WorkItemActivating;
     public event EventHandler? WorkItemActivated;
 
@@ -145,7 +161,7 @@ public class WorkItemCommentViewModel(WorkItem? workItem, TimeEntry[] timeEntrie
         }
     }
 
-    public WorkItem? WorkItem { get; set; } = workItem;
+    public WorkItem? WorkItem { get; set; }
 }
 
 public class CancelEventArgs : EventArgs

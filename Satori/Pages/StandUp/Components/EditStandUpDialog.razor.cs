@@ -39,7 +39,11 @@ public partial class EditStandUpDialog
         return TimeEntries
             .SelectWhereHasValue(entry => entry.Task)
             .Distinct()
-            .Select(workItem => new WorkItemCommentViewModel(workItem, TimeEntries).With(x => x.WorkItemActivated += OnWorkItemActivated))
+            .Select(workItem => WorkItemCommentViewModel
+                .FromExisting(
+                    workItem ?? throw new InvalidOperationException()
+                    , TimeEntries
+                ).With(x => x.WorkItemActivated += OnWorkItemActivated))
             .ToList();
     }
 
@@ -64,7 +68,7 @@ public partial class EditStandUpDialog
             .GroupBy(
                 map => new { map.Type, map.Text }
                 , map => map.TimeEntry
-                , (key, g) => new CommentViewModel(key.Type, key.Text, TimeEntries, g))
+                , (key, g) => CommentViewModel.FromExisting(key.Type, key.Text, TimeEntries, g))
             .ToList();
     }
 
@@ -85,9 +89,13 @@ public partial class EditStandUpDialog
     private void AddComment(CommentType type)
     {
         var comment = type == CommentType.WorkItem
-            ? new WorkItemCommentViewModel(null, TimeEntries).With(x => x.WorkItemActivated += OnWorkItemActivated)
-            : new CommentViewModel(type, string.Empty, TimeEntries, TimeEntries.Reverse().Take(1));
-        OnWorkItemActivated(comment, EventArgs.Empty);
+            ? WorkItemCommentViewModel.FromNew(TimeEntries).With(x => x.WorkItemActivated += OnWorkItemActivated)
+            : CommentViewModel.FromNew(type, TimeEntries);
+        if (comment is WorkItemCommentViewModel)
+        {
+            OnWorkItemActivated(comment, EventArgs.Empty);
+        }
+
         Comments.Add(comment);
         FocusRequest = comment;
     }
@@ -130,13 +138,24 @@ public partial class EditStandUpDialog
 
 public class CommentViewModel
 {
-    public CommentViewModel(CommentType type, string? text, IEnumerable<TimeEntry> allTimeEntries,
+    protected CommentViewModel(CommentType type, string? text, IEnumerable<TimeEntry> allTimeEntries,
         IEnumerable<TimeEntry> activeTimeEntries)
     {
         Type = type;
         Text = text;
 
         IsActive = allTimeEntries.ToDictionary(t => t, t => (SelectionActiveCssClass)activeTimeEntries.Contains(t));
+    }
+
+    public static CommentViewModel FromNew(CommentType type, TimeEntry[] timeEntries)
+    {
+        var comment = new CommentViewModel(type, null, timeEntries, timeEntries.Reverse().Take(1));
+        return comment;
+    }
+    public static CommentViewModel FromExisting(CommentType type, string text, TimeEntry[] allTimeEntries, IEnumerable<TimeEntry> activeTimeEntries)
+    {
+        var comment = new CommentViewModel(type, text, allTimeEntries, activeTimeEntries);
+        return comment;
     }
 
     public CommentType Type { get; set; }
