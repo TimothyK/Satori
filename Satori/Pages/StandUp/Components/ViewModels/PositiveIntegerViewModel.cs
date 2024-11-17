@@ -1,4 +1,4 @@
-﻿namespace Satori.Pages.ViewModels;
+﻿namespace Satori.Pages.StandUp.Components.ViewModels;
 
 public class PositiveIntegerViewModel
 {

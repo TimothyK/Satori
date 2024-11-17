@@ -5,9 +5,9 @@ using Microsoft.JSInterop;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.AppServices.ViewModels.WorkItems;
-using Satori.Pages.ViewModels;
+using Satori.Pages.StandUp.Components.ViewModels;
 
-namespace Satori.Pages;
+namespace Satori.Pages.StandUp.Components;
 
 public partial class EditWorkItem
 {

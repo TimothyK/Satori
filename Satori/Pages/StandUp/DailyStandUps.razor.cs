@@ -1,7 +1,7 @@
 ﻿using Satori.AppServices.Services;
 using Satori.AppServices.ViewModels.DailyStandUps;
 
-namespace Satori.Pages;
+namespace Satori.Pages.StandUp;
 
 public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? standUpService)
 {

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.Utilities;
 
-namespace Satori.Pages;
+namespace Satori.Pages.StandUp.Components;
 
 public partial class EditStandUpDialog
 {
