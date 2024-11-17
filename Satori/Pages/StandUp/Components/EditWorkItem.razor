@@ -19,13 +19,13 @@ else
     <div class="work-item-row">
         @if (ViewModel.WorkItem.Type == WorkItemType.Task && ViewModel.WorkItem.Parent != null)
         {
-            <span class="work-item @ViewModel.WorkItem.Parent.Type.CssClass cell-link" @onclick="() => OpenWorkItem(ViewModel.WorkItem.Parent)" title="Open D#@ViewModel.WorkItem.Parent.Id">
+            <span class="work-item @ViewModel.WorkItem.Parent.Type.CssClass cell-link" @onclick="async () => await OpenWorkItemAsync(ViewModel.WorkItem.Parent)" title="Open D#@ViewModel.WorkItem.Parent.Id">
                 <span class="work-item-id">@ViewModel.WorkItem.Parent.Id</span>
                 @ViewModel.WorkItem.Parent.Title
             </span>
         }
 
-        <span class="work-item @ViewModel.WorkItem.Type.CssClass cell-link" @onclick="() => OpenWorkItem(ViewModel.WorkItem)" title="Open D#@ViewModel.WorkItem.Id">
+        <span class="work-item @ViewModel.WorkItem.Type.CssClass cell-link" @onclick="async () => await OpenWorkItemAsync(ViewModel.WorkItem)" title="Open D#@ViewModel.WorkItem.Id">
             @if (ViewModel.WorkItem.AssignedTo != CurrentUser && ViewModel.WorkItem.Type == WorkItemType.Task)
             {
                 <div class="avatar-cell">

@@ -88,12 +88,10 @@ public partial class EditWorkItem
     }
 
     #endregion Add Work Item
-
-
-
-    private void OpenWorkItem(WorkItem workItem)
+    
+    private async Task OpenWorkItemAsync(WorkItem workItem)
     {
-        JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
+        await JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
     }
 
 }
