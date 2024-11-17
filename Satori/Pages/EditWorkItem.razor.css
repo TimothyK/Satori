@@ -17,37 +17,8 @@
     cursor: pointer;
 }
 
-.work-item {
-    border-left: solid 5px;
-    margin-left: 5px;
-    padding-left: 3px;
+.work-item-row {
     display: flex;
+    flex-wrap: wrap;
 }
 
-.work-item-epic {
-    border-left-color: #E06C00;
-}
-
-.work-item-feature {
-    border-left-color: #773B93;
-}
-
-.work-item-pbi {
-    border-left-color: #009CCC;
-}
-
-.work-item-bug {
-    border-left-color: #CC293D;
-}
-
-.work-item-impediment {
-    border-left-color: #B4009E;
-}
-
-.work-item-task {
-    border-left-color: #F2CB1D;
-}
-
-.work-item-unknown {
-    border-left-color: gray;
-}

@@ -67,35 +67,25 @@
 }
 
 .work-item {
-    border-left: solid 5px;
-    padding-left: 3px;
     font-size: 0.8em;
 }
-.work-item-epic {
-    border-left-color: #E06C00;
+
+.project-id {
+    font-weight: bold;
+    margin-right: 5px;
 }
-.work-item-feature {
-    border-left-color: #773B93;
+
+.project-id::before {
+    content: "P#";
+    font-size: 0.75em;
+    vertical-align: top;
 }
-.work-item-pbi {
-    border-left-color: #009CCC;
-}
-.work-item-bug {
-    border-left-color: #CC293D;
-}
-.work-item-impediment {
-    border-left-color: #B4009E;
-}
-.work-item-task {
-    border-left-color: #F2CB1D;
-}
-.work-item-unknown {
-    border-left-color: gray;
-}
+
 
 .project-code {
     border-left: solid 5px black;
     padding-left: 3px;
+    margin-left: 5px;
     font-size: 0.8em;
 }
 

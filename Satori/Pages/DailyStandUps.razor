@@ -149,7 +149,7 @@
                                 @if (taskSummary.Task.Type == WorkItemType.Task && taskSummary.Task.Parent != null)
                                 {
                                     <span class="work-item @taskSummary.Task.Parent.Type.CssClass cell-link" @onclick="() => OpenWorkItem(taskSummary.Task.Parent)" title="Open D#@taskSummary.Task.Parent.Id">
-                                        D#@taskSummary.Task.Parent.Id
+                                        <span class="work-item-id">@taskSummary.Task.Parent.Id</span>
                                         @taskSummary.Task.Parent.Title
                                     </span>
                                 }
@@ -165,7 +165,7 @@
                                     }
                                     @if (taskSummary.Task.Parent == null || taskSummary.Task.Type != WorkItemType.Task)
                                     {
-                                        <label>D#@taskSummary.Task.Id&nbsp;</label>
+                                        <label><span class="work-item-id">@taskSummary.Task.Id</span>&nbsp;</label>
                                     }
                                     @taskSummary.Task.Title
 

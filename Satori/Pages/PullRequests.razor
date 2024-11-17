@@ -52,13 +52,13 @@ else
                         @foreach (var workItem in pullRequest.WorkItems)
                         {
                             <div class="work-item @workItem.Type.CssClass cell-link" @onclick="() => OpenWorkItem(workItem)" title="Open D#@(workItem.Id)">
-                                D#@workItem.Id @workItem.Title
+                                <span class="work-item-id">@workItem.Id</span> @workItem.Title
                             </div>
                         }
                         @foreach (var projectCode in pullRequest.WorkItems.SelectWhereHasValue(wi => wi.ProjectCode).Distinct())
                         {
                             <div class="project-code">
-                                P#@projectCode
+                                <span class="project-id">@projectCode</span>
                             </div>
                         }
                         @foreach (var label in pullRequest.Labels)

@@ -7,18 +7,22 @@
 
 @if (ViewModel.WorkItem == null)
 {
-    <span>D#</span>
-    <div class="comment-box"><input type="text" @ref="ViewModel.TextBox" placeholder="@ViewModel.Type.PlaceholderText" @bind="_addInput"/></div>
-    <button class="add-button" @onclick="AddWorkItem">Add</button>
+    <div class="add-row">
+        <div>D#</div>
+        <div class="comment-box"><input type="text" @ref="ViewModel.TextBox" placeholder="@ViewModel.Type.PlaceholderText" @bind="_addInput" /></div>
+        <button class="add-button" @onclick="AddWorkItem">Add</button>
+    </div>
 }
 else
 {
-    @if (ViewModel.WorkItem.Type == WorkItemType.Task && ViewModel.WorkItem.Parent != null)
-    {
-        <span class="work-item @ViewModel.WorkItem.Parent.Type.CssClass cell-link" @onclick="() => OpenWorkItem(ViewModel.WorkItem.Parent)" title="Open D#@ViewModel.WorkItem.Parent.Id">
-            D#@ViewModel.WorkItem.Parent.Id
-            @ViewModel.WorkItem.Parent.Title
-        </span>
+    <div class="work-item-row">
+        @if (ViewModel.WorkItem.Type == WorkItemType.Task && ViewModel.WorkItem.Parent != null)
+        {
+            <span class="work-item @ViewModel.WorkItem.Parent.Type.CssClass cell-link" @onclick="() => OpenWorkItem(ViewModel.WorkItem.Parent)" title="Open D#@ViewModel.WorkItem.Parent.Id">
+                <span class="work-item-id">@ViewModel.WorkItem.Parent.Id</span>
+                @ViewModel.WorkItem.Parent.Title
+            </span>
+        }
 
         <span class="work-item @ViewModel.WorkItem.Type.CssClass cell-link" @onclick="() => OpenWorkItem(ViewModel.WorkItem)" title="Open D#@ViewModel.WorkItem.Id">
             @if (ViewModel.WorkItem.AssignedTo != CurrentUser && ViewModel.WorkItem.Type == WorkItemType.Task)
@@ -31,32 +35,34 @@ else
             }
             @if (ViewModel.WorkItem.Parent == null || ViewModel.WorkItem.Type != WorkItemType.Task)
             {
-                <label>D#@ViewModel.WorkItem.Id&nbsp;</label>
+                <label><span class="work-item-id">@ViewModel.WorkItem.Id</span>&nbsp;</label>
             }
             @ViewModel.WorkItem.Title
+        </span>
+    </div>
 
-            @if (ViewModel.WorkItem.Type == WorkItemType.Task)
+    @if (ViewModel.WorkItem.Type == WorkItemType.Task)
+    {
+        if (ViewModel.WorkItem.State == ScrumState.Done)
+        {
+            <span class="badge bg-success">✔️ Done</span>
+        }
+        else
+        {
+            if (ViewModel.WorkItem.State == ScrumState.Removed)
             {
-                if (ViewModel.WorkItem.State == ScrumState.Done)
+                <span class="badge bg-success">✔ Removed</span>
+            }
+            else
+            {
+                if (ViewModel.WorkItem.State == ScrumState.ToDo)
                 {
-                    <span class="badge bg-success">✔️ Done</span>
+                    <span class="badge bg-danger">To Do</span>
                 }
-                else
-                {
-                    if (ViewModel.WorkItem.State == ScrumState.Removed)
-                    {
-                        <span class="badge bg-success">✔ Removed</span>
-                    }
-                    else
-                    {
-                        if (ViewModel.WorkItem.State == ScrumState.ToDo)
-                        {
-                            <span class="badge bg-danger">To Do</span>
-                        }
-                    }
-                }
+            }
+        }
 
-                @*                 
+        @*                 
                 if (taskSummary.NeedsEstimate)
                 {
                     <span class="badge bg-danger">Needs Estimate</span>
@@ -69,10 +75,9 @@ else
                     }
                 }
                 *@
-            }
-        </span>
-
     }
+
+
 }
 
 @code {
