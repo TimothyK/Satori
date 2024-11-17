@@ -10,9 +10,10 @@
 {
     <div class="add-row">
         <div class="comment-box">
-            <input type="text" @ref="ViewModel.TextBox" placeholder="@ViewModel.Type.PlaceholderText" @bind="_addInput" @onkeyup="AddWorkItemKeyUp"/>
+            <input type="text" @ref="ViewModel.TextBox" placeholder="@ViewModel.Type.PlaceholderText" @bind="ViewModel.WorkItemIdToAdd" @onkeyup="AddWorkItemKeyUp" />
         </div>
         <button class="add-button" @onclick="AddWorkItem">Add</button>
+        <div class="validation-error">@ViewModel.WorkItemIdToAddValidationErrorMessage</div>
     </div>
 }
 else
@@ -86,7 +87,6 @@ else
     [Parameter] public required WorkItemCommentViewModel ViewModel { get; set; }
 
     private Person CurrentUser { get; set; } = Person.Empty;
-    private string _addInput { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -103,10 +103,10 @@ else
         }
     }
 
-    private Task AddWorkItem()
+    private void AddWorkItem()
     {
-        //TODO: Look up work item, validate, add to ViewModel, hide add button.
-        return Task.CompletedTask;
+        var defaultTimeEntry = ViewModel.IsActive.Keys.Last();
+        ViewModel.ToggleActive(defaultTimeEntry);
     }
 
     private void OpenWorkItem(WorkItem workItem)
