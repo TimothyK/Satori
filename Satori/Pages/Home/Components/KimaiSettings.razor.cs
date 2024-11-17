@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Satori.Kimai;
 using Satori.Utilities;
 
-namespace Satori.Pages.ConfigSettings;
+namespace Satori.Pages.Home.Components;
 
 public partial class KimaiSettings
 {

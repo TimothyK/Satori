@@ -2,7 +2,7 @@
 using Satori.MessageQueues;
 using Satori.Utilities;
 
-namespace Satori.Pages.ConfigSettings
+namespace Satori.Pages.Home.Components
 {
     public partial class MessageQueueSettings
     {

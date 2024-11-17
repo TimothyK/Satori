@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Satori.AzureDevOps;
 using Satori.Utilities;
 
-namespace Satori.Pages.ConfigSettings
+namespace Satori.Pages.Home.Components
 {
     public partial class AzureDevOpsSettings
     {
