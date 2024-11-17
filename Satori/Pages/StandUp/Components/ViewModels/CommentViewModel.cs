@@ -29,7 +29,7 @@ public class CommentViewModel
     public CommentType Type { get; set; }
     public string? Text { get; set; }
 
-    public Dictionary<TimeEntry, SelectionActiveCssClass> IsActive { get; private set; }
+    public Dictionary<TimeEntry, SelectionActiveCssClass> IsActive { get; }
 
     public virtual void ToggleActive(TimeEntry timeEntry)
     {
