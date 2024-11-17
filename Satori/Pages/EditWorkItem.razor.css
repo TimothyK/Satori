@@ -1,4 +1,23 @@
-﻿.avatar-cell {
+﻿.add-row {
+    display: flex;
+    align-items: center;
+}
+.add-row .comment-box::before{
+    content: "D#";
+    font-size: 0.75em;
+    vertical-align: top;
+    margin-right: 3px;
+    font-weight: bold;
+}
+.add-row button {
+    border-radius: 5px;
+    background-color: white;
+}
+.add-row button::before {
+    content: "➕";
+}
+
+.avatar-cell {
     position: relative;
     text-align: left;
     margin-right: 8px;

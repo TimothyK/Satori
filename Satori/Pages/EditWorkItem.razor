@@ -1,4 +1,5 @@
-﻿@using Satori.AppServices.Services
+﻿@using CodeMonkeyProjectiles.Linq
+@using Satori.AppServices.Services
 @using Satori.AppServices.ViewModels
 @using Satori.AppServices.ViewModels.WorkItems
 @inject IJSRuntime JsRuntime
@@ -8,8 +9,9 @@
 @if (ViewModel.WorkItem == null)
 {
     <div class="add-row">
-        <div>D#</div>
-        <div class="comment-box"><input type="text" @ref="ViewModel.TextBox" placeholder="@ViewModel.Type.PlaceholderText" @bind="_addInput" /></div>
+        <div class="comment-box">
+            <input type="text" @ref="ViewModel.TextBox" placeholder="@ViewModel.Type.PlaceholderText" @bind="_addInput" @onkeyup="AddWorkItemKeyUp"/>
+        </div>
         <button class="add-button" @onclick="AddWorkItem">Add</button>
     </div>
 }
@@ -29,8 +31,8 @@ else
             {
                 <div class="avatar-cell">
                     <img src="@ViewModel.WorkItem.AssignedTo.AvatarUrl"
-                         alt="@ViewModel.WorkItem.AssignedTo.DisplayName"
-                         title="@ViewModel.WorkItem.AssignedTo.DisplayName" />
+                    alt="@ViewModel.WorkItem.AssignedTo.DisplayName"
+                    title="@ViewModel.WorkItem.AssignedTo.DisplayName" />
                 </div>
             }
             @if (ViewModel.WorkItem.Parent == null || ViewModel.WorkItem.Type != WorkItemType.Task)
@@ -90,12 +92,20 @@ else
     {
         CurrentUser = await UserService.GetCurrentUserAsync();
 
-
         await base.OnInitializedAsync();
+    }
+
+    private void AddWorkItemKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Code.IsIn("Enter", "NumpadEnter"))
+        {
+            AddWorkItem();
+        }
     }
 
     private Task AddWorkItem()
     {
+        //TODO: Look up work item, validate, add to ViewModel, hide add button.
         return Task.CompletedTask;
     }
 

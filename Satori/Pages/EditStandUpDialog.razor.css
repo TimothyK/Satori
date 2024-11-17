@@ -183,6 +183,7 @@ table td:last-child {
 .comment {
     display: flex;
     flex-wrap: nowrap;
+    align-items: center;
 }
 .comment-box {
     flex-grow: 1;
