@@ -77,7 +77,7 @@
                             @foreach (var entry in TimeEntries)
                             {
                                 <td>
-                                    <div class="comment-toggle @comment.IsActive[entry]" @onclick="() => comment.ToggleActive(entry)"></div>
+                                    <div class="comment-toggle @comment.IsActive[entry]" @onclick="() => comment.ToggleActiveAsync(entry)"></div>
                                 </td>
                             }
                             <td>

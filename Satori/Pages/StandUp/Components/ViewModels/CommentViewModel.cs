@@ -31,11 +31,13 @@ public class CommentViewModel
 
     public Dictionary<TimeEntry, SelectionActiveCssClass> IsActive { get; }
 
-    public virtual void ToggleActive(TimeEntry timeEntry)
+    public virtual Task ToggleActiveAsync(TimeEntry timeEntry)
     {
         IsActive[timeEntry] = IsActive[timeEntry].Not;
 
         MarkAsDeleted();
+
+        return Task.CompletedTask;
     }
 
     private void MarkAsDeleted()

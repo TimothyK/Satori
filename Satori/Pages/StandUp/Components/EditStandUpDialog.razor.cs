@@ -49,7 +49,7 @@ public partial class EditStandUpDialog
                 .FromExisting(
                     workItem ?? throw new InvalidOperationException()
                     , TimeEntries
-                ).With(x => x.WorkItemActivated += OnWorkItemActivated))
+                ).With(x => x.WorkItemActivatedAsync += OnWorkItemActivatedAsync))
             .ToList();
     }
 
@@ -95,18 +95,14 @@ public partial class EditStandUpDialog
     private void AddComment(CommentType type)
     {
         var comment = type == CommentType.WorkItem
-            ? WorkItemCommentViewModel.FromNew(TimeEntries).With(x => x.WorkItemActivated += OnWorkItemActivated)
+            ? WorkItemCommentViewModel.FromNew(TimeEntries).With(x => x.WorkItemActivatedAsync += OnWorkItemActivatedAsync)
             : CommentViewModel.FromNew(type, TimeEntries);
-        if (comment is WorkItemCommentViewModel)
-        {
-            OnWorkItemActivated(comment, EventArgs.Empty);
-        }
 
         Comments.Add(comment);
         FocusRequest = comment;
     }
 
-    private void OnWorkItemActivated(object? sender, EventArgs e)
+    private async Task OnWorkItemActivatedAsync(object? sender, EventArgs e)
     {
         var workItem = sender as WorkItemCommentViewModel 
                        ?? throw new ArgumentException($"value should be a {nameof(WorkItemCommentViewModel)}", nameof(sender));
@@ -121,7 +117,7 @@ public partial class EditStandUpDialog
             {
                 if (workItem.IsActive[entry] && other.IsActive[entry])
                 {
-                    other.ToggleActive(entry);
+                    await other.ToggleActiveAsync(entry);
                 }
             }
         }

@@ -2,15 +2,15 @@
 @using Satori.AppServices.ViewModels.WorkItems
 @inject IJSRuntime JsRuntime
 @inject UserService UserService
-
+@inject StandUpService StandUpService
 
 @if (ViewModel.WorkItem == null)
 {
     <div class="add-row">
         <div class="comment-box">
-            <input type="text" @ref="ViewModel.TextBox" placeholder="@ViewModel.Type.PlaceholderText" @bind="WorkItemInput.TextInput" @onkeyup="AddWorkItemKeyUp" />
+            <input type="text" @ref="ViewModel.TextBox" placeholder="@ViewModel.Type.PlaceholderText" @bind="WorkItemInput.TextInput" @onkeyup="AddWorkItemKeyUpAsync" />
         </div>
-        <button class="add-button" @onclick="AddWorkItem">Add</button>
+        <button class="add-button" @onclick="AddWorkItemAsync">Add</button>
         <div class="validation-error">@WorkItemInput.ValidationErrorMessage</div>
     </div>
 }

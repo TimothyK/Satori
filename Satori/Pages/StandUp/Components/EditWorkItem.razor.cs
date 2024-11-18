@@ -24,7 +24,7 @@ public partial class EditWorkItem
 
     protected override void OnParametersSet()
     {
-        ViewModel.WorkItemActivating += ActivatingWorkItem;
+        ViewModel.WorkItemActivatingAsync += ActivatingWorkItemAsync;
         base.OnParametersSet();
     }
 
@@ -32,7 +32,7 @@ public partial class EditWorkItem
 
     private PositiveIntegerViewModel WorkItemInput { get; set; } = new();
 
-    private void ActivatingWorkItem(object? sender, CancelEventArgs e)
+    private async Task ActivatingWorkItemAsync(object? sender, CancelEventArgs e)
     {
         if (sender != ViewModel) throw new InvalidOperationException();
 
@@ -41,26 +41,26 @@ public partial class EditWorkItem
             return;
         }
 
-        e.Cancel = !SetWorkItem();
+        e.Cancel = !await SetWorkItemAsync();
     }
 
-    private void AddWorkItemKeyUp(KeyboardEventArgs e)
+    private async Task AddWorkItemKeyUpAsync(KeyboardEventArgs e)
     {
         if (e.Code.IsIn("Enter", "NumpadEnter"))
         {
-            AddWorkItem();
+            await AddWorkItemAsync();
         }
     }
 
-    private void AddWorkItem()
+    private async Task AddWorkItemAsync()
     {
-        if (!SetWorkItem())
+        if (!await SetWorkItemAsync())
         {
             return;
         }
 
         var defaultTimeEntry = ViewModel.IsActive.Keys.Last();
-        ViewModel.ToggleActive(defaultTimeEntry);
+        await ViewModel.ToggleActiveAsync(defaultTimeEntry);
     }
 
     /// <summary>
@@ -70,7 +70,7 @@ public partial class EditWorkItem
     /// </summary>
     /// <returns>True if the ViewModel.WorkItem is set successfully</returns>
     /// <exception cref="InvalidOperationException"></exception>
-    private bool SetWorkItem()
+    private async Task<bool> SetWorkItemAsync()
     {
         if (ViewModel.WorkItem != null)
         {

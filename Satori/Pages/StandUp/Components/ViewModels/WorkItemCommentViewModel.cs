@@ -1,4 +1,5 @@
-﻿using Satori.AppServices.ViewModels.DailyStandUps;
+﻿using Microsoft.VisualStudio.Threading;
+using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.Pages.StandUp.Components.ViewModels.Models;
 
@@ -27,42 +28,48 @@ public class WorkItemCommentViewModel : CommentViewModel
         return vm;
     }
 
-    public event EventHandler<CancelEventArgs>? WorkItemActivating;
-    public event EventHandler? WorkItemActivated;
+    public event AsyncEventHandler<CancelEventArgs>? WorkItemActivatingAsync;
+    public event AsyncEventHandler? WorkItemActivatedAsync;
 
-    protected virtual CancelEventArgs OnWorkItemActivating()
+    protected virtual async Task<CancelEventArgs> OnWorkItemActivatingAsync()
     {
         var e = new CancelEventArgs();
-        WorkItemActivating?.Invoke(this, e);
+        if (WorkItemActivatingAsync != null)
+        {
+            await WorkItemActivatingAsync.InvokeAsync(this, e);
+        }
         return e;
     }
 
-    protected virtual void OnWorkItemActivated()
+    protected virtual async Task OnWorkItemActivatedAsync()
     {
-        WorkItemActivated?.Invoke(this, EventArgs.Empty);
+        if (WorkItemActivatedAsync != null)
+        {
+            await WorkItemActivatedAsync.InvokeAsync(this, EventArgs.Empty);
+        }
     }
 
     /// <summary>
     /// The ToggleActive button also serves as the Add button to add a new work item.
-    /// The Add functionality is handled by <see cref="OnWorkItemActivating"/>.
+    /// The Add functionality is handled by <see cref="OnWorkItemActivatingAsync"/>.
     /// </summary>
     /// <param name="timeEntry"></param>
-    public override void ToggleActive(TimeEntry timeEntry)
+    public override async Task ToggleActiveAsync(TimeEntry timeEntry)
     {
         if (!IsActive[timeEntry])
         {
-            var e = OnWorkItemActivating();
+            var e = await OnWorkItemActivatingAsync();
             if (e.Cancel)
             {
                 return;
             }
         }
 
-        base.ToggleActive(timeEntry);
+        await base.ToggleActiveAsync(timeEntry);
 
         if (IsActive[timeEntry])
         {
-            OnWorkItemActivated();
+            await OnWorkItemActivatedAsync();
         }
     }
 
