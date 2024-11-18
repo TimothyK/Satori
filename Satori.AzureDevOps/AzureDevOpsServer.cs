@@ -257,6 +257,11 @@ public class AzureDevOpsServer(
 
     private void AddAuthHeader(HttpRequestMessage request)
     {
+        if (!ConnectionSettings.Enabled)
+        {
+            throw new InvalidOperationException("Azure DevOps is not enabled.  Check settings on Home page.");
+        }
+
         var userNamePasswordPair = $":{ConnectionSettings.PersonalAccessToken}";
         var cred = Convert.ToBase64String(Encoding.ASCII.GetBytes(userNamePasswordPair));
         request.Headers.Add("Authorization", $"Basic {cred}");

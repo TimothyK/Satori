@@ -2,6 +2,7 @@
 using Flurl;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Models;
+using Satori.AzureDevOps.Tests.Globals;
 using Satori.AzureDevOps.Tests.WorkItems.SampleFiles;
 using Shouldly;
 
@@ -14,7 +15,7 @@ public class WorkItemTests
 
     #region Arrange
 
-    private readonly ConnectionSettings _connectionSettings = Globals.Services.Scope.Resolve<ConnectionSettings>();
+    private readonly ConnectionSettings _connectionSettings = Services.Scope.Resolve<ConnectionSettings>();
 
     private Url GetWorkItemUrl(params int[] workItemIds) =>
         _connectionSettings.Url
@@ -23,7 +24,7 @@ public class WorkItemTests
             .AppendQueryParam("$expand", "all")
             .AppendQueryParam("api-version", "6.0");
 
-    private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
+    private readonly MockHttpMessageHandler _mockHttp = Services.Scope.Resolve<MockHttpMessageHandler>();
 
     private void SetResponse(Url url, string response)
     {
@@ -36,7 +37,7 @@ public class WorkItemTests
 
     private static WorkItem[] GetWorkItems(int workItemId)
     {
-        var srv = Globals.Services.Scope.Resolve<IAzureDevOpsServer>();
+        var srv = Services.Scope.Resolve<IAzureDevOpsServer>();
         return srv.GetWorkItemsAsync(workItemId).Result;
     }
 
@@ -82,14 +83,37 @@ public class WorkItemTests
     public void ASmokeTest() => SingleWorkItem().Id.ShouldBe(SingleWorkItemId);
 
     [TestMethod]
+    public void AzureDisabled_ThrowsInvalidOp()
+    {
+        //Arrange
+        var factory = Services.Scope.Resolve<ConnectionSettingsFactory>();
+        var connectionSettings = new ConnectionSettings()
+        {
+            Enabled = false,
+            Url = new Uri("http://devops.test/Org"),
+            PersonalAccessToken = "test"
+        };
+        factory.ConnectionSettings = connectionSettings;
+
+        //Act
+        var ex = Should.Throw<AggregateException>(() => SingleWorkItem());
+
+        //Assert
+        ex.InnerExceptions.Count.ShouldBe(1);
+        var innerException = ex.InnerExceptions.Single();
+        innerException.ShouldBeOfType<InvalidOperationException>();
+        innerException.Message.ShouldBe("Azure DevOps is not enabled.  Check settings on Home page.");
+    }
+
+    [TestMethod]
     public void NoWorkItems_DoesNotCallWebApi()
     {
         //Arrange
         _mockHttp.Fallback.Throw(new Exception("Should not call the web API"));
 
         //Act
-        var srv = Globals.Services.Scope.Resolve<IAzureDevOpsServer>();
-        var workItems = srv.GetWorkItemsAsync([]).Result;
+        var srv = Services.Scope.Resolve<IAzureDevOpsServer>();
+        var workItems = srv.GetWorkItemsAsync().Result;
 
         //Assert
         workItems.ShouldBeEmpty();

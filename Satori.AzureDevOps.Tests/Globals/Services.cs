@@ -11,12 +11,9 @@ internal static class Services
     {
         var builder = new ContainerBuilder();
 
-        var connectionSettings =  new ConnectionSettings
-        {
-            Url = new Uri("http://devops.test/Org"),
-            PersonalAccessToken = "test"
-        };
-        builder.Register(_ => connectionSettings).As<ConnectionSettings>();
+        var connectionSettingsFactory = new ConnectionSettingsFactory();
+        builder.Register(_ => connectionSettingsFactory).As<ConnectionSettingsFactory>();
+        builder.Register(_ => connectionSettingsFactory.GetConnectionSettings()).As<ConnectionSettings>();
 
         var mockHttp = new MockHttpMessageHandler();
         builder.Register(_ => mockHttp).As<MockHttpMessageHandler>();
