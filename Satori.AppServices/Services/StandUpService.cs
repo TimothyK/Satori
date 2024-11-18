@@ -430,6 +430,24 @@ public partial class StandUpService(
         return workItems;
     }
 
+    public async Task<WorkItem?> GetWorkItemAsync(int workItemId)
+    {
+        var workItems = await GetWorkItemsAsync([workItemId]);
+        var workItem = workItems.FirstOrDefault();
+        if (workItem == null)
+        {
+            return null;
+        }
+
+        if (workItem.Type == WorkItemType.Task && workItem.Parent != null && workItem.Parent.Type == WorkItemType.Unknown)
+        {
+            var parent = await GetWorkItemAsync(workItem.Parent.Id);
+            workItem.Parent = parent;
+        }
+
+        return workItem;
+    }
+
     private async Task<IEnumerable<WorkItem>> GetWorkItemsAsync(IEnumerable<int> workItemIds) =>
         await GetWorkItemsAsync(workItemIds.ToArray());
 

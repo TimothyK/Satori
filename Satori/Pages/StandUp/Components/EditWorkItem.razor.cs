@@ -82,8 +82,14 @@ public partial class EditWorkItem
             return false;
         }
         
-        //TODO: Lookup work item in AzDO
+        var workItem = await StandUpService.GetWorkItemAsync(workItemId);
+        if (workItem == null)
+        {
+            WorkItemInput.ValidationErrorMessage = "Work item not found";
+            return false;
+        }
 
+        ViewModel.WorkItem = workItem;
         return true;
     }
 
