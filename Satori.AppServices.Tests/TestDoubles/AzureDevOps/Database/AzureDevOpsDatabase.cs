@@ -111,7 +111,7 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
         return iteration;
     }
 
-    public WorkItemRelation[] GetWorkItemsForIteration(IterationId iteration)
+    public WorkItemLink[] GetWorkItemsForIteration(IterationId iteration)
     {
         var workItems = _workItems
             .Where(wi => wi.Fields.IterationPath == iteration.IterationPath && wi.Fields.ProjectName == iteration.ProjectName).ToArray();
@@ -120,18 +120,18 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
 
         return workItems.Union(parents)
             .Where(wi => wi != null).Select(wi => wi ?? throw new ArgumentNullException(nameof(wi)))
-            .Select(wi => new WorkItemRelation()
+            .Select(wi => new WorkItemLink()
             {
                 Source = GetParentSource(wi),
-                Target = new WorkItemId() { Id = wi.Id }
+                Target = new WorkItemReference() { Id = wi.Id }
             })
             .ToArray();
 
-        WorkItemId? GetParentSource(WorkItem childWorkItem)
+        WorkItemReference? GetParentSource(WorkItem childWorkItem)
         {
             if (_parentWorkItemId.TryGetValue(childWorkItem.Id, out var parentId))
             {
-                return new WorkItemId() { Id = parentId };
+                return new WorkItemReference() { Id = parentId };
             }
 
             return null;

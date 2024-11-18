@@ -50,9 +50,9 @@ public class WorkItemRelationTests
 
     #region Act
 
-    private WorkItemRelation[] GetIterationWorkItems() => GetIterationWorkItems(Iterations.Simple);
+    private WorkItemLink[] GetIterationWorkItems() => GetIterationWorkItems(Iterations.Simple);
 
-    private WorkItemRelation[] GetIterationWorkItems(IterationId iteration)
+    private WorkItemLink[] GetIterationWorkItems(IterationId iteration)
     {
         //Arrange
         var srv = Globals.Services.Scope.Resolve<IAzureDevOpsServer>();

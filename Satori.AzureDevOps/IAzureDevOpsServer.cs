@@ -22,7 +22,7 @@ public interface IAzureDevOpsServer
 
     Task<Team[]> GetTeamsAsync();
     Task<Iteration?> GetCurrentIterationAsync(Team team);
-    Task<WorkItemRelation[]> GetIterationWorkItemsAsync(IterationId iteration);
+    Task<WorkItemLink[]> GetIterationWorkItemsAsync(IterationId iteration);
 
     /// <summary>
     /// Reorder priority of work items

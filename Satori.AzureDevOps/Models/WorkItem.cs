@@ -71,7 +71,7 @@ public class WorkItemFields
     public double BacklogPriority { get; set; }
 
     /// <summary>
-    /// Available on PBI & 🐛
+    /// Available on PBI & Bug
     /// </summary>
     [JsonPropertyName("Custom.ProjectCode")]
     public string? ProjectCode { get; set; }
@@ -82,22 +82,22 @@ public class WorkItemFields
     [JsonPropertyName("System.Description")]
     public string? Description { get; set; }
     /// <summary>
-    /// 🐛 - System information of the environment that the issue is reproducible in.  Program version numbers, path to DB backup, Shipment/Sample IDs, etc.
+    /// Bug - System information of the environment that the issue is reproducible in.  Program version numbers, path to DB backup, Shipment/Sample IDs, etc.
     /// </summary>
     [JsonPropertyName("Microsoft.VSTS.TCM.SystemInfo")]
     public string? SystemInfo { get; set; }
     /// <summary>
-    /// 🐛 Reproduction steps
+    /// Bug Reproduction steps
     /// </summary>
     [JsonPropertyName("Microsoft.VSTS.TCM.ReproSteps")]
     public string? ReproSteps { get; set; }
     /// <summary>
-    /// 🐛 Observed Result
+    /// Bug Observed Result
     /// </summary>
     [JsonPropertyName("Custom.ObservedBehavior")]
     public string? ObservedBehavior { get; set; }
     /// <summary>
-    /// 🐛, PBI, Feature, Epic, but not Task.   Expected Result on a 🐛.  
+    /// Bug, PBI, Feature, Epic, but not Task.   Expected Result on a Bug.  
     /// </summary>
     [JsonPropertyName("Microsoft.VSTS.Common.AcceptanceCriteria")]
     public string? AcceptanceCriteria { get; set; }
@@ -107,7 +107,7 @@ public class WorkItemFields
     [JsonPropertyName("Custom.UserStory")]
     public string? UserStory { get; set; }
     /// <summary>
-    /// 🐛 - Impact.
+    /// Bug - Impact.
     /// </summary>
     /// <seealso cref="ImpactAssessment"/>
     [JsonPropertyName("Custom.Impact")]
@@ -119,13 +119,13 @@ public class WorkItemFields
     [JsonPropertyName("Microsoft.VSTS.CMMI.ImpactAssessmentHtml")]
     public string? ImpactAssessment { get; set; }
     /// <summary>
-    /// PBI - Enhancement.  Like <see cref="ProposedFix"/> on a 🐛
+    /// PBI - Enhancement.  Like <see cref="ProposedFix"/> on a Bug
     /// </summary>
     /// <seealso cref="ProposedFix"/>
     [JsonPropertyName("Custom.Enhancement")]
     public string? Enhancement { get; set; }
     /// <summary>
-    /// 🐛 - Proposed Fix
+    /// Bug - Proposed Fix
     /// </summary>
     /// <seealso cref="Enhancement"/>
     [JsonPropertyName("Microsoft.VSTS.CMMI.ProposedFix")]

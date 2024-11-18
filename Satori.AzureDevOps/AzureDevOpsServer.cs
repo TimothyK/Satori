@@ -161,7 +161,17 @@ public class AzureDevOpsServer(
         return iteration;
     }
 
-    public async Task<WorkItemRelation[]> GetIterationWorkItemsAsync(IterationId iteration)
+    /// <summary>
+    /// Return the work items linked to an iteration.
+    /// </summary>
+    /// <param name="iteration"></param>
+    /// <returns></returns>
+    /// <remarks>
+    /// <para>
+    /// https://learn.microsoft.com/en-us/rest/api/azure/devops/work/iterations/get-iteration-work-items?view=azure-devops-rest-6.0&tabs=HTTP
+    /// </para>
+    /// </remarks>
+    public async Task<WorkItemLink[]> GetIterationWorkItemsAsync(IterationId iteration)
     {
         var url = ConnectionSettings.Url
             .AppendPathSegments(iteration.ProjectName, iteration.TeamName)
@@ -171,7 +181,7 @@ public class AzureDevOpsServer(
             .AppendPathSegment("workItems")
             .AppendQueryParam("api-version", "6.1-preview");
 
-        var root = await GetAsync<WorkItemRelationRoot>(url);
+        var root = await GetAsync<IterationWorkItems>(url);
         return root.WorkItemRelations;
     }
 
