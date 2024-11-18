@@ -1,8 +1,10 @@
 ﻿@using Satori.AppServices.Extensions
+@using Satori.AppServices.Models
 @using Satori.AppServices.ViewModels.DailyStandUps
 @using Satori.Pages.StandUp.Components.ViewModels
-@using Satori.Pages.StandUp.Components.ViewModels.Models
 @using Satori.Utilities
+
+@inject IConnectionSettingsStore ConnectionSettingsStore
 
 @if(TimeEntries.Length == 0)
 {
@@ -95,7 +97,7 @@
                         </tr>
                     }
                 </table>
-                @foreach (var type in CommentType.All())
+                @foreach (var type in AllCommentTypes())
                 {
                     <button class="btn-add-comment" @onclick="() => AddComment(type)">
                         <span class="add-button-icon">@type.Icon</span> Add @type.AddButtonLabel

@@ -136,4 +136,17 @@ public partial class EditStandUpDialog
 
         await base.OnAfterRenderAsync(firstRender);
     }
+
+    private IEnumerable<CommentType> AllCommentTypes()
+    {
+        var disabledTypes = new List<CommentType>();
+
+        var azureDevOpsEnabled = ConnectionSettingsStore.GetAzureDevOpsSettings().Enabled;
+        if (!azureDevOpsEnabled)
+        {
+            disabledTypes.Add(CommentType.WorkItem);
+        }
+
+        return CommentType.All().Except(disabledTypes);
+    }
 }
