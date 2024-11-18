@@ -93,10 +93,13 @@ public class WorkItemTests
             Url = new Uri("http://devops.test/Org"),
             PersonalAccessToken = "test"
         };
-        factory.ConnectionSettings = connectionSettings;
 
         //Act
-        var ex = Should.Throw<AggregateException>(() => SingleWorkItem());
+        AggregateException ex;
+        using (factory.Set(connectionSettings))
+        {
+            ex = Should.Throw<AggregateException>(() => SingleWorkItem());
+        }
 
         //Assert
         ex.InnerExceptions.Count.ShouldBe(1);
