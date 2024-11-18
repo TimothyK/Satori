@@ -1,5 +1,4 @@
-﻿@using System.Diagnostics.CodeAnalysis
-@using Satori.AppServices.Extensions
+﻿@using Satori.AppServices.Extensions
 @using Satori.AppServices.ViewModels.DailyStandUps
 @using Satori.Pages.StandUp.Components.ViewModels
 @using Satori.Pages.StandUp.Components.ViewModels.Models
@@ -33,7 +32,7 @@
                             <td class="time-value">
                                 @entry.Begin.ToString("HH:mm") 
                                 to
-                                @if (@entry.End == null)
+                                @if (entry.End == null)
                                 {
                                     <span class="enddate-now">now</span>
                                 }
