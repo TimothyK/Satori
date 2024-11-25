@@ -5,6 +5,15 @@ namespace Satori.AzureDevOps.Models;
 
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global
+
+/// <summary>
+/// A work item (PBI, Bug, Feature, Epic, Task, etc)
+/// </summary>
+/// <remarks>
+/// <para>
+/// https://learn.microsoft.com/en-us/rest/api/azure/devops/wit/work-items/list?view=azure-devops-rest-6.0&tabs=HTTP#workitem
+/// </para>
+/// </remarks>
 public class WorkItem
 {
     [JsonPropertyName("id")]
@@ -13,6 +22,8 @@ public class WorkItem
     public int Rev { get; set; }
     [JsonPropertyName("fields")]
     public required WorkItemFields Fields { get; set; }
+    [JsonPropertyName("relations")]
+    public WorkItemRelation[] Relations { get; set; }
     [JsonPropertyName("url")]
     public required string Url { get; set; }
 }
@@ -33,7 +44,7 @@ public class WorkItemFields
     public string? SystemReason { get; set; }
     [JsonPropertyName("System.AssignedTo")]
     public User? AssignedTo { get; set; }
-    [JsonPropertyName("System.CreatedDate")] 
+    [JsonPropertyName("System.CreatedDate")]
     public DateTimeOffset SystemCreatedDate { get; set; }
     [JsonPropertyName("System.CreatedBy")]
     public required User CreatedBy { get; set; }
@@ -43,7 +54,7 @@ public class WorkItemFields
     public required User SystemChangedBy { get; set; }
     [JsonPropertyName("System.CommentCount")]
     public int CommentCount { get; set; }
-    
+
     [JsonPropertyName("System.Title")]
     public required string Title { get; set; }
 
@@ -134,4 +145,21 @@ public class WorkItemFields
     [JsonPropertyName("System.Parent")]
     public int? Parent { get; set; }
 
+}
+
+
+/// <summary>
+/// All relations to a work item.
+/// </summary>
+/// <remarks><para>
+/// https://learn.microsoft.com/en-us/rest/api/azure/devops/wit/work-items/list?view=azure-devops-rest-6.0&tabs=HTTP#workitemrelation
+/// </para></remarks>
+public class WorkItemRelation
+{
+    [JsonPropertyName("attributes")]
+    public required Dictionary<string, object> Attributes { get; set; }
+    [JsonPropertyName("rel")]
+    public required string RelationType { get; set; }
+    [JsonPropertyName("url")]
+    public required string Url { get; set; }
 }

@@ -224,4 +224,19 @@ public class WorkItemTests
 
     [TestMethod]
     public void Parent() => SingleWorkItem(ExpandedWorkItemId).Fields.Parent.ShouldBe(12344);
+
+    
+    [TestMethod]
+    public void ParentViaRelations()
+    {
+        //Act
+        var workItem = SingleWorkItem(ExpandedWorkItemId);
+
+        //Assert
+        workItem.Relations.ShouldNotBeNull();
+        var parentRelation = workItem.Relations.SingleOrDefault(r => r.RelationType == "System.LinkTypes.Hierarchy-Reverse");
+        parentRelation.ShouldNotBeNull();
+        parentRelation.Url.ShouldEndWith("/12344");
+        parentRelation.Attributes["name"].ToString().ShouldBe("Parent");
+    }
 }
