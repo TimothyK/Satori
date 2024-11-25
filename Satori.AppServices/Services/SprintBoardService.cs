@@ -114,8 +114,8 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServe
     {
         var iteration = (IterationId)sprint;
 
-        var relations = await azureDevOpsServer.GetIterationWorkItemsAsync(iteration);
-        var workItemIds = relations.Select(x => x.Target.Id);
+        var links = await azureDevOpsServer.GetIterationWorkItemsAsync(iteration);
+        var workItemIds = links.Select(x => x.Target.Id);
         var items = await azureDevOpsServer.GetWorkItemsAsync(workItemIds);
         var iterationWorkItems = items.Select(wi => wi.ToViewModel()).ToList();
         foreach (var workItem in iterationWorkItems.OrderBy(wi => wi.AbsolutePriority))
@@ -127,12 +127,12 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServe
         var iterationBoardItems = iterationWorkItems
             .Where(wi => wi.Type.IsIn(WorkItemType.BoardTypes))
             .ToDictionary(wi => wi.Id, wi => wi);
-        foreach (var relation in relations.Where(r => r.Source != null))
+        foreach (var link in links.Where(r => r.Source != null))
         {
-            var parentWorkItemId = relation.Source?.Id ?? throw new InvalidOperationException();
+            var parentWorkItemId = link.Source?.Id ?? throw new InvalidOperationException();
             var parent = iterationBoardItems[parentWorkItemId];
 
-            if (iterationTasks.TryGetValue(relation.Target.Id, out var task))
+            if (iterationTasks.TryGetValue(link.Target.Id, out var task))
             {
                 task.Parent = parent;
                 parent.Children.Add(task);
