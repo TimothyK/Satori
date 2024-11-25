@@ -1,6 +1,9 @@
-﻿using Flurl;
+﻿using System.Diagnostics.CodeAnalysis;
+using Flurl;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.WorkItems;
+using Satori.AzureDevOps.Models;
+using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.Services.Converters
 {
@@ -45,11 +48,21 @@ namespace Satori.AppServices.Services.Converters
                 Url = UriParser.GetAzureDevOpsOrgUrl(wi.Url)
                     .AppendPathSegment("_workItems/edit")
                     .AppendPathSegment(id),
+                Children = GetChildren(wi.Relations),
             };
 
             return workItem;
         }
 
+        private static List<WorkItem> GetChildren(List<WorkItemRelation> relations)
+        {
+            return relations
+                .Where(r => r.RelationType == "System.LinkTypes.Hierarchy-Forward")
+                .Select(r => CreateWorkItemPlaceholder(int.Parse(r.Url.Split('/').Last()), UriParser.GetAzureDevOpsOrgUrl(r.Url)))
+                .ToList();
+        }
+
+        [return: NotNullIfNotNull(nameof(workItemId))]
         private static WorkItem? CreateWorkItemPlaceholder(int? workItemId, Uri azureDevOpsOrgUrl)
         {
             if (workItemId == null)

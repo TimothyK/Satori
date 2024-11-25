@@ -63,11 +63,53 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
         if (linkType == LinkType.IsParentOf)
         {
             _parentWorkItemId[rightWorkItem.Id] = leftWorkItem.Id;
+            rightWorkItem.Fields.Parent = leftWorkItem.Id;
+            rightWorkItem.Relations.Add(new WorkItemRelation
+            {
+                Attributes = new Dictionary<string, object>()
+                {
+                    { "isLocked", false },
+                    { "name", "Parent" }
+                },
+                RelationType = "System.LinkTypes.Hierarchy-Reverse",
+                Url = $"http://devops.test/Org/{leftWorkItem.Fields.ProjectName}/_apis/wit/workItems/{leftWorkItem.Id}"
+            });
+            leftWorkItem.Relations.Add(new WorkItemRelation
+            {
+                Attributes = new Dictionary<string, object>()
+                {
+                    { "isLocked", false },
+                    { "name", "Child" }
+                },
+                RelationType = "System.LinkTypes.Hierarchy-Forward",
+                Url = $"http://devops.test/Org/{rightWorkItem.Fields.ProjectName}/_apis/wit/workItems/{rightWorkItem.Id}"
+            });
             return;
         }
         if (linkType == LinkType.IsChildOf)
         {
             _parentWorkItemId[leftWorkItem.Id] = rightWorkItem.Id;
+            leftWorkItem.Fields.Parent = rightWorkItem.Id;
+            leftWorkItem.Relations.Add(new WorkItemRelation
+            {
+                Attributes = new Dictionary<string, object>()
+                {
+                    { "isLocked", false },
+                    { "name", "Parent" }
+                },
+                RelationType = "System.LinkTypes.Hierarchy-Reverse",
+                Url = $"http://devops.test/Org/{rightWorkItem.Fields.ProjectName}/_apis/wit/workItems/{rightWorkItem.Id}"
+            });
+            rightWorkItem.Relations.Add(new WorkItemRelation
+            {
+                Attributes = new Dictionary<string, object>()
+                {
+                    { "isLocked", false },
+                    { "name", "Child" }
+                },
+                RelationType = "System.LinkTypes.Hierarchy-Forward",
+                Url = $"http://devops.test/Org/{leftWorkItem.Fields.ProjectName}/_apis/wit/workItems/{leftWorkItem.Id}"
+            });
             return;
         }
 

@@ -32,6 +32,7 @@ internal class WorkItemBuilder
             workItem.Fields.AssignedTo.ImageUrl = $"http://devops.test/Org/_api/_common/identityImage?id={workItem.Fields.AssignedTo.Id}";
         }
         workItem.Fields.CreatedBy.ImageUrl = $"http://devops.test/Org/_api/_common/identityImage?id={workItem.Fields.CreatedBy.Id}";
+        workItem.Relations = [];
         return workItem;
     }
 
@@ -55,7 +56,6 @@ internal class WorkItemBuilder
     }
     public WorkItemBuilder AddChild(WorkItem child)
     {
-        child.Fields.Parent = WorkItem.Id;
         _database.AddWorkItem(child);
         _database.AddWorkItemLink(WorkItem, LinkType.IsParentOf, child);
 

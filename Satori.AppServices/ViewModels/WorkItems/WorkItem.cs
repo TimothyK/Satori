@@ -22,7 +22,7 @@ public class WorkItem
     public string? ProjectCode { get; init; }
 
     public WorkItem? Parent { get; set; }
-    public List<WorkItem> Children { get; } = [];
+    public List<WorkItem> Children { get; init; } = [];
     public Sprint? Sprint { get; set; }
     public int? SprintPriority { get; set; }
     public double AbsolutePriority { get; internal set; }

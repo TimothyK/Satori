@@ -22,8 +22,8 @@ public class WorkItem
     public int Rev { get; set; }
     [JsonPropertyName("fields")]
     public required WorkItemFields Fields { get; set; }
-    [JsonPropertyName("relations")]
-    public WorkItemRelation[] Relations { get; set; }
+    [JsonPropertyName("relations")] 
+    public List<WorkItemRelation> Relations { get; set; } = [];
     [JsonPropertyName("url")]
     public required string Url { get; set; }
 }

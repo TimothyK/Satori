@@ -120,6 +120,7 @@ public class SprintBoardService(IAzureDevOpsServer azureDevOpsServer, ITimeServe
         var iterationWorkItems = items.Select(wi => wi.ToViewModel()).ToList();
         foreach (var workItem in iterationWorkItems.OrderBy(wi => wi.AbsolutePriority))
         {
+            workItem.Children.Clear();
             workItem.Sprint = sprint;
         }
 
