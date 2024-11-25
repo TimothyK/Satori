@@ -6,8 +6,11 @@ using Shouldly;
 
 namespace Satori.AzureDevOps.Tests.WorkItems;
 
+/// <summary>
+/// Tests the Work Items that are linked to an iteration.
+/// </summary>
 [TestClass]
-public class WorkItemRelationTests
+public class WorkItemLinkTests
 {
     #region Helpers
 
