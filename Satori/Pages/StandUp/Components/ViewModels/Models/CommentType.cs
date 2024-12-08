@@ -62,7 +62,7 @@ public class CommentType
     {
         { Other, "Describe the subtask worked on" },
         { Accomplishment, "Achievements, decisions made, documentation added" },
-        { Impediment, "Blockers, either needing help or speed bumps" },
+        { Impediment, "Blockers, either needing help or speed bumps already resolved" },
         {
             Learning,
             "Today I Learned.  Like accomplishments but you're smarter.  Share with the team to make them smarter too or help identify training gaps"
