@@ -35,10 +35,10 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
     private async Task<TimeEntry[]> GetTimesAsync()
     {
         var today = Today;
-        var days = await Server.GetStandUpDaysAsync(today.AddDays(-6), today);
-        await Server.GetWorkItemsAsync(days);
+        var period = await Server.GetStandUpPeriodAsync(today.AddDays(-6), today);
+        await Server.GetWorkItemsAsync(period);
         
-        return days.SelectMany(day => day.Projects.SelectMany(project => project.Activities.SelectMany(activity => activity.TimeEntries)))
+        return period.Days.SelectMany(day => day.Projects.SelectMany(project => project.Activities.SelectMany(activity => activity.TimeEntries)))
             .ToArray();
     }
 

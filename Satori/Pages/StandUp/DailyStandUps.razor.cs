@@ -68,15 +68,15 @@ public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? sta
     {
         if (standUpService == null)
         {
-            OnDateChanged([]);
+            OnDateChanged(PeriodSummary.CreateEmpty());
             return;
         }
 
-        var days = await standUpService.GetStandUpDaysAsync(BeginDate, EndDate);
-        OnDateChanged(days);
+        var period = await standUpService.GetStandUpPeriodAsync(BeginDate, EndDate);
+        OnDateChanged(period);
 
         await Task.Yield();
-        await standUpService.GetWorkItemsAsync(days);
+        await standUpService.GetWorkItemsAsync(period);
     }
 
     private void OnDateChanging()
@@ -84,7 +84,7 @@ public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? sta
         DateChanging?.Invoke(this, EventArgs.Empty);
     }
 
-    private void OnDateChanged(StandUpDay[] days)
+    private void OnDateChanged(PeriodSummary days)
     {
         DateChanged?.Invoke(this, new DateChangedEventArgs(days));
     }
@@ -178,7 +178,7 @@ public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? sta
 
 }
 
-public class DateChangedEventArgs(StandUpDay[] standUpDays) : EventArgs
+public class DateChangedEventArgs(PeriodSummary period) : EventArgs
 {
-    public StandUpDay[] StandUpDays { get; } = standUpDays;
+    public PeriodSummary Period { get; } = period;
 }

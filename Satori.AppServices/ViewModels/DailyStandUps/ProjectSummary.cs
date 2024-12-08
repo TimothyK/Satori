@@ -5,7 +5,7 @@ public class ProjectSummary : ISummary
     public int ProjectId { get; init; }
     public required string ProjectName { get; init; }
 
-    public required StandUpDay ParentDay { get; init; }
+    public required DaySummary ParentDay { get; init; }
 
     public int CustomerId { get; init; }
     public required string CustomerName { get; init; }

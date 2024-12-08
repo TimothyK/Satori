@@ -128,9 +128,9 @@ public abstract class DailyStandUpTests
 
     #region Act
 
-    protected async Task<StandUpDay[]> GetStandUpDaysAsync(DateOnly begin, DateOnly end)
+    protected async Task<PeriodSummary> GetPeriodAsync(DateOnly begin, DateOnly end)
     {
-        return await Server.GetStandUpDaysAsync(begin, end);
+        return await Server.GetStandUpPeriodAsync(begin, end);
     }
 
     #endregion Act

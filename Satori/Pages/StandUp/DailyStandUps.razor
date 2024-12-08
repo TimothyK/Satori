@@ -26,15 +26,15 @@
     <div class="dropdown" id="period-button">
         <button class="btn-header dropbtn">@DateSelector.PeriodText ▾</button>
         <div class="dropdown-content">
-            <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriod(Period.Today)">Today</div>
-            <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriod(Period.LastTwoDays)">Last 2 Days</div>
-            <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriod(Period.WorkWeek)">Work Week</div>
-            <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriod(Period.LastSevenDays)">Last 7 Days</div>
+            <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriod(AppServices.ViewModels.DailyStandUps.Period.Today)">Today</div>
+            <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriod(AppServices.ViewModels.DailyStandUps.Period.LastTwoDays)">Last 2 Days</div>
+            <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriod(AppServices.ViewModels.DailyStandUps.Period.WorkWeek)">Work Week</div>
+            <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriod(AppServices.ViewModels.DailyStandUps.Period.LastSevenDays)">Last 7 Days</div>
         </div>
     </div>
     <div class="duration">
         <div class="duration-decimal">
-            <span class="">@PeriodTotal.TotalHours.ToNearest(0.05)</span>
+            <span class="">@Period.TotalTime.TotalHours.ToNearest(0.05)</span>
         </div>
     </div>
     <div>
@@ -57,7 +57,7 @@
     </div>
 </div>
 
-@foreach (var day in StandUpDays)
+@foreach (var day in Period.Days)
 {
     <div class="day-header">
         <div class="duration">
@@ -304,8 +304,7 @@
 
     private Person CurrentUser { get; set; } = Person.Empty;
     private DateSelectorViewModel DateSelector { get; set; } = new(Person.Empty.FirstDayOfWeek, standUpService: null);
-    private StandUpDay[] StandUpDays { get; set; } = [];
-    private TimeSpan PeriodTotal { get; set; } = TimeSpan.Zero;
+    private PeriodSummary Period { get; set; } = PeriodSummary.CreateEmpty();
     private Timer? RunningTimeEntryTimer { get; set; } 
     private TimeEntry? RunningTimeEntry { get; set; }
 
@@ -351,7 +350,7 @@
     private void DateChanging(object? sender, EventArgs eventArgs)
     {
         InLoading = LoadingStatusLabel.InLoading;
-        StandUpDays = [];
+        Period = PeriodSummary.CreateEmpty();
 
         if (CurrentPeriod == DateSelector.Period)
         {
@@ -375,9 +374,9 @@
 
     private void DateChanged(object? sender, DateChangedEventArgs eventArgs)
     {
-        StandUpDays = eventArgs.StandUpDays;
+        Period = eventArgs.Period;
 
-        RunningTimeEntry = StandUpDays
+        RunningTimeEntry = Period.Days
             .SelectMany(d => d.Projects)
             .SelectMany(p => p.Activities)
             .SelectMany(a => a.TimeEntries)
@@ -388,7 +387,6 @@
         RunningTimeEntryTimer.Enabled = RunningTimeEntry != null;
         RefreshTotalTimes();
 
-        PeriodTotal = StandUpDays.Select(d => d.TotalTime).Sum();
         InLoading = LoadingStatusLabel.FinishedLoading;
     }
 
@@ -414,8 +412,7 @@
         if (RunningTimeEntry.Task?.RemainingWork != null && RunningTimeEntry.Task?.State != ScrumState.Done)
         {
             var task = RunningTimeEntry.Task;
-            var timeEntries = StandUpDays
-                .SelectMany(d => d.TimeEntries)
+            var timeEntries = Period.TimeEntries
                 .Where(timeEntry => timeEntry.Task == task)
                 .ToArray();
             StandUpService.ResetTimeRemaining(timeEntries);
@@ -433,7 +430,8 @@
         var daySummary = projectSummary.ParentDay;
         daySummary.TotalTime = daySummary.Projects.Select(p => p.TotalTime).Sum();
 
-        PeriodTotal = StandUpDays.Select(d => d.TotalTime).Sum();
+        var periodSummary = daySummary.ParentPeriod;
+        periodSummary.TotalTime = periodSummary.Days.Select(d => d.TotalTime).Sum();
     }
 
 
@@ -444,7 +442,7 @@
 
     #region Collapse
 
-    private static void ToggleCollapsed(StandUpDay day)
+    private static void ToggleCollapsed(DaySummary day)
     {
         day.IsCollapsed = !day.IsCollapsed;
     }
@@ -463,7 +461,7 @@
     
     private void CollapseAll()
     {
-        foreach (var node in StandUpDays)
+        foreach (var node in Period.Days)
         {
             node.IsCollapsed = true;
         }
@@ -471,7 +469,7 @@
 
     private void CollapseProjects()
     {
-        foreach (var day in StandUpDays)
+        foreach (var day in Period.Days)
         {
             day.IsCollapsed = false;
             foreach (var project in day.Projects)
@@ -483,7 +481,7 @@
 
     private void CollapseActivities()
     {
-        foreach (var day in StandUpDays)
+        foreach (var day in Period.Days)
         {
             day.IsCollapsed = false;
             foreach (var project in day.Projects)
@@ -499,7 +497,7 @@
 
     private void CollapseTasks()
     {
-        foreach (var day in StandUpDays)
+        foreach (var day in Period.Days)
         {
             day.IsCollapsed = false;
             foreach (var project in day.Projects)
@@ -519,7 +517,7 @@
 
     private void CollapseNone()
     {
-        foreach (var day in StandUpDays)
+        foreach (var day in Period.Days)
         {
             day.IsCollapsed = false;
             foreach(var project in day.Projects)

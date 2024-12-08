@@ -33,12 +33,12 @@ public class ExportDailyStandUpTests : DailyStandUpTests
     
     private KimaiTimeEntry BuildTimeEntry() => BuildTimeEntry(ActivityUnderTest, Today);
 
-    private async Task<StandUpDay> GetDayAsync()
+    private async Task<DaySummary> GetDayAsync()
     {
-        var days = await Server.GetStandUpDaysAsync(Today, Today);
-        await Server.GetWorkItemsAsync(days);
+        var period = await Server.GetStandUpPeriodAsync(Today, Today);
+        await Server.GetWorkItemsAsync(period);
 
-        return days.Single(day => day.Date == Today);
+        return period.Days.Single(day => day.Date == Today);
     }
 
     private WorkItem BuildTask()
@@ -371,6 +371,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         entry.ParentActivitySummary.CanExport.ShouldBeFalse();
         entry.ParentActivitySummary.ParentProjectSummary.CanExport.ShouldBeFalse();
         entry.ParentActivitySummary.ParentProjectSummary.ParentDay.CanExport.ShouldBeFalse();
+        entry.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod.CanExport.ShouldBeFalse();
     }
     
     [TestMethod]
@@ -433,6 +434,9 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         entry1.ParentActivitySummary.ParentProjectSummary.CanExport.ShouldBeTrue();
         entry1.ParentActivitySummary.ParentProjectSummary.AllExported.ShouldBeFalse();
         entry1.ParentActivitySummary.ParentProjectSummary.ParentDay.CanExport.ShouldBeTrue();
+        entry1.ParentActivitySummary.ParentProjectSummary.ParentDay.AllExported.ShouldBeFalse();
+        entry1.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod.CanExport.ShouldBeTrue();
+        entry1.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod.AllExported.ShouldBeFalse();
 
         var entry3 = entries.Single(x => x.Id == kimaiEntry3.Id);
         entry3.CanExport.ShouldBeFalse();
@@ -445,6 +449,9 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         entry3.ParentActivitySummary.ParentProjectSummary.CanExport.ShouldBeFalse();
         entry3.ParentActivitySummary.ParentProjectSummary.AllExported.ShouldBeTrue();
         entry3.ParentActivitySummary.ParentProjectSummary.ParentDay.CanExport.ShouldBeTrue();
+        entry3.ParentActivitySummary.ParentProjectSummary.ParentDay.AllExported.ShouldBeFalse();
+        entry3.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod.CanExport.ShouldBeTrue();
+        entry3.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod.AllExported.ShouldBeFalse();
     }
 
     #endregion Parent Updated

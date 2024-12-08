@@ -2,6 +2,7 @@
 using Flurl;
 using Satori.AppServices.Tests.Extensions;
 using Satori.AppServices.Tests.TestDoubles;
+using Satori.AppServices.ViewModels.DailyStandUps;
 using Shouldly;
 
 namespace Satori.AppServices.Tests.DailyStandUps;
@@ -9,6 +10,21 @@ namespace Satori.AppServices.Tests.DailyStandUps;
 [TestClass]
 public class SummaryDailyStandUpTests : DailyStandUpTests
 {
+    #region Helpers
+
+    #region Act
+
+    private async Task<DaySummary> GetDayAsync(DateOnly day)
+    {
+        var period = await GetPeriodAsync(day, day);
+        period.Days.Count.ShouldBe(1);
+        return period.Days.Single();
+    }
+
+    #endregion Act
+
+    #endregion Helpers
+
     [TestMethod]
     public async Task ASmokeTest()
     {
@@ -18,11 +34,9 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         entry.End.ShouldNotBeNull();
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days.Length.ShouldBe(1);
-        var day = days.Single();
         day.Date.ShouldBe(today);
         day.TotalTime.ShouldBe(entry.End.Value - entry.Begin);
     }
@@ -31,7 +45,7 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
     public void InvalidDateRange_ThrowsException()
     {
         var today = DateOnly.FromDateTime(DateTime.Today);
-        Should.ThrowAsync<ArgumentException>(() => GetStandUpDaysAsync(today, today.AddDays(-1)));
+        Should.ThrowAsync<ArgumentException>(() => GetPeriodAsync(today, today.AddDays(-1)));
     }
 
     [TestMethod]
@@ -43,10 +57,10 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         entry.End = null;
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days.Single().TotalTime.ShouldBe(TimeSpan.Zero);
+        day.TotalTime.ShouldBe(TimeSpan.Zero);
     }
 
     [TestMethod]
@@ -58,12 +72,11 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         BuildTimeEntry(today);
 
         //Act
-        var days = await GetStandUpDaysAsync(yesterday, yesterday);
+        var day = await GetDayAsync(yesterday);
 
         //Assert
-        days.Length.ShouldBe(1);
-        days.Single().Date.ShouldBe(yesterday);
-        days.Single().TotalTime.ShouldBe(TimeSpan.Zero);
+        day.Date.ShouldBe(yesterday);
+        day.TotalTime.ShouldBe(TimeSpan.Zero);
     }
 
 
@@ -79,7 +92,7 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         Kimai.ExpectedPageSize = ExpectedPageSize + 1;
 
         //Act
-        Should.ThrowAsync<ShouldAssertException>(() => GetStandUpDaysAsync(today, today));
+        Should.ThrowAsync<ShouldAssertException>(() => GetPeriodAsync(today, today));
     }
 
     [TestMethod]
@@ -95,10 +108,10 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         Kimai.ExpectedPageSize = ExpectedPageSize;
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days.Single().TotalTime.ShouldBe(TimeSpan.FromMinutes(expectedTime));
+        day.TotalTime.ShouldBe(TimeSpan.FromMinutes(expectedTime));
     }
 
     /// <summary>
@@ -119,10 +132,10 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         Kimai.ExpectedPageSize = ExpectedPageSize;
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days.Single().TotalTime.ShouldBe(TimeSpan.FromMinutes(expectedTime));
+        day.TotalTime.ShouldBe(TimeSpan.FromMinutes(expectedTime));
     }
 
     #endregion Page Size
@@ -138,10 +151,11 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         BuildTimeEntry(today).Exported = true;
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days.Single().AllExported.ShouldBeTrue();
+        day.AllExported.ShouldBeTrue();
+        day.ParentPeriod.AllExported.ShouldBeTrue();
     }
 
     [TestMethod]
@@ -153,10 +167,11 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         BuildTimeEntry(today).Exported = false;
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days.Single().AllExported.ShouldBeFalse();
+        day.AllExported.ShouldBeFalse();
+        day.ParentPeriod.AllExported.ShouldBeFalse();
     }
 
     [TestMethod]
@@ -167,10 +182,10 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         BuildTimeEntry(today).Exported = true;
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days.Single().CanExport.ShouldBeFalse();
+        day.CanExport.ShouldBeFalse();
     }
 
     [TestMethod]
@@ -181,10 +196,10 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         BuildTimeEntry(today).Exported = false;
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days.Single().CanExport.ShouldBeTrue();
+        day.CanExport.ShouldBeTrue();
     }
 
     [TestMethod]
@@ -201,11 +216,11 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         });
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days.Single().AllExported.ShouldBeFalse();
-        days.Single().CanExport.ShouldBeFalse();
+        day.AllExported.ShouldBeFalse();
+        day.CanExport.ShouldBeFalse();
     }
 
     [TestMethod]
@@ -222,11 +237,11 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         });
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days.Single().AllExported.ShouldBeFalse();
-        days.Single().CanExport.ShouldBeFalse();
+        day.AllExported.ShouldBeFalse();
+        day.CanExport.ShouldBeFalse();
     }
 
     [TestMethod]
@@ -249,11 +264,11 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         });
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days.Single().AllExported.ShouldBeFalse();
-        days.Single().CanExport.ShouldBeFalse();
+        day.AllExported.ShouldBeFalse();
+        day.CanExport.ShouldBeFalse();
     }
 
     [TestMethod]
@@ -276,11 +291,11 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         });
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days.Single().AllExported.ShouldBeFalse();
-        days.Single().CanExport.ShouldBeFalse();
+        day.AllExported.ShouldBeFalse();
+        day.CanExport.ShouldBeFalse();
     }
 
     [TestMethod]
@@ -308,11 +323,11 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         });
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days.Single().AllExported.ShouldBeFalse();
-        days.Single().CanExport.ShouldBeFalse();
+        day.AllExported.ShouldBeFalse();
+        day.CanExport.ShouldBeFalse();
     }
 
     #endregion Exported
@@ -325,11 +340,9 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         BuildTimeEntry(today);
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days.Length.ShouldBe(1);
-        var day = days.Single();
         var expected = Kimai.BaseUrl
                 .AppendPathSegments(DefaultUser.Language, "timesheet")
                 .AppendQueryParam("daterange", $"{today:O} - {today:O}")
@@ -357,12 +370,35 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         BuildTimeEntry(today, TimeSpan.FromMinutes(20));
 
         //Act
-        var days = await GetStandUpDaysAsync(yesterday, today);
+        var period = await GetPeriodAsync(yesterday, today);
 
         //Assert
-        days.Length.ShouldBe(2);
-        days.Single(day => day.Date == yesterday).TotalTime.ShouldBe(TimeSpan.FromMinutes(10));
-        days.Single(day => day.Date == today).TotalTime.ShouldBe(TimeSpan.FromMinutes(35));
+        period.Days.Count.ShouldBe(2);
+        period.Days.Single(day => day.Date == yesterday).TotalTime.ShouldBe(TimeSpan.FromMinutes(10));
+        period.Days.Single(day => day.Date == today).TotalTime.ShouldBe(TimeSpan.FromMinutes(35));
+    }
+    
+    [TestMethod]
+    public async Task MultipleDays_ExportFlagsSet()
+    {
+        //Arrange
+        var today = Today;
+        var yesterday = today.AddDays(-1);
+        BuildTimeEntry(yesterday, TimeSpan.FromMinutes(10)).With(t => t.Exported = true);
+        BuildTimeEntry(today, TimeSpan.FromMinutes(15));
+        BuildTimeEntry(today, TimeSpan.FromMinutes(20));
+
+        //Act
+        var period = await GetPeriodAsync(yesterday, today);
+
+        //Assert
+        period.Days.Count.ShouldBe(2);
+        period.Days.Single(day => day.Date == yesterday).AllExported.ShouldBeTrue();
+        period.Days.Single(day => day.Date == yesterday).CanExport.ShouldBeFalse();
+        period.Days.Single(day => day.Date == today).AllExported.ShouldBeFalse();
+        period.Days.Single(day => day.Date == today).CanExport.ShouldBeTrue();
+        period.AllExported.ShouldBeFalse();
+        period.CanExport.ShouldBeTrue();
     }
 
     [TestMethod]
@@ -376,13 +412,13 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         BuildTimeEntry(today, TimeSpan.FromMinutes(20));
 
         //Act
-        var days = await GetStandUpDaysAsync(yesterdayEve, today);
+        var period = await GetPeriodAsync(yesterdayEve, today);
 
         //Assert
-        days.Length.ShouldBe(3);
-        days.Single(day => day.Date == yesterdayEve).TotalTime.ShouldBe(TimeSpan.FromMinutes(10));
-        days.Single(day => day.Date == yesterday).TotalTime.ShouldBe(TimeSpan.Zero);
-        days.Single(day => day.Date == today).TotalTime.ShouldBe(TimeSpan.FromMinutes(20));
+        period.Days.Count.ShouldBe(3);
+        period.Days.Single(day => day.Date == yesterdayEve).TotalTime.ShouldBe(TimeSpan.FromMinutes(10));
+        period.Days.Single(day => day.Date == yesterday).TotalTime.ShouldBe(TimeSpan.Zero);
+        period.Days.Single(day => day.Date == today).TotalTime.ShouldBe(TimeSpan.FromMinutes(20));
     }
 
     [TestMethod]
@@ -396,27 +432,27 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         BuildTimeEntry(today, TimeSpan.FromMinutes(20));
 
         //Act
-        var days = await GetStandUpDaysAsync(yesterdayEve, today);
+        var period = await GetPeriodAsync(yesterdayEve, today);
 
         //Assert
-        days.Length.ShouldBe(3);
-        days[0].Date.ShouldBe(today);
-        days[1].Date.ShouldBe(yesterday);
-        days[2].Date.ShouldBe(yesterdayEve);
+        period.Days.Count.ShouldBe(3);
+        period.Days[0].Date.ShouldBe(today);
+        period.Days[1].Date.ShouldBe(yesterday);
+        period.Days[2].Date.ShouldBe(yesterdayEve);
     }
 
     [TestMethod]
     public void LimitDateRange()
     {
         var today = Today;
-        Should.ThrowAsync<ArgumentException>(() => GetStandUpDaysAsync(today.AddDays(-7), today));
+        Should.ThrowAsync<ArgumentException>(() => GetPeriodAsync(today.AddDays(-7), today));
     }
 
     [TestMethod]
     public void AllowMaxOneWeek()
     {
         var today = Today;
-        Should.NotThrowAsync(() => GetStandUpDaysAsync(today.AddDays(-6), today));
+        Should.NotThrowAsync(() => GetPeriodAsync(today.AddDays(-6), today));
     }
 
     [TestMethod]
@@ -429,11 +465,11 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         BuildTimeEntry(tomorrow, TimeSpan.FromMinutes(10));
 
         //Act
-        var days = await GetStandUpDaysAsync(today, tomorrow);
+        var period = await GetPeriodAsync(today, tomorrow);
 
         //Assert
-        days.Length.ShouldBe(1);
-        days.Single(day => day.Date == today).TotalTime.ShouldBe(TimeSpan.FromMinutes(20));
+        period.Days.Count.ShouldBe(1);
+        period.Days.Single(day => day.Date == today).TotalTime.ShouldBe(TimeSpan.FromMinutes(20));
     }
 
     #endregion Multiple Days
@@ -447,10 +483,10 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         var today = Today;
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days[0].Projects.ShouldBeEmpty();
+        day.Projects.ShouldBeEmpty();
     }
 
     [TestMethod]
@@ -461,11 +497,11 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         var entry = BuildTimeEntry(today, TimeSpan.FromMinutes(24));
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days[0].Projects.Length.ShouldBe(1);
-        var project = days[0].Projects.Single();
+        day.Projects.Length.ShouldBe(1);
+        var project = day.Projects.Single();
         project.ProjectId.ShouldBe(entry.Project.Id);
         project.ProjectName.ShouldBe(entry.Project.Name);
         project.CustomerId.ShouldBe(entry.Project.Customer.Id);
@@ -481,11 +517,11 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
             .Project.Customer.Comment = "Parent Company is Acme Inc.   [Logo](https://example.test/img)";
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days[0].Projects.Length.ShouldBe(1);
-        var project = days[0].Projects.Single();
+        day.Projects.Length.ShouldBe(1);
+        var project = day.Projects.Single();
         project.CustomerUrl.ShouldNotBeNull();
         project.CustomerUrl.ToString().ShouldBe("https://example.test/img");
     }
@@ -499,11 +535,11 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
             .Project.Customer.Comment = "Parent Company is Acme Inc.";
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days[0].Projects.Length.ShouldBe(1);
-        var project = days[0].Projects.Single();
+        day.Projects.Length.ShouldBe(1);
+        var project = day.Projects.Single();
         project.CustomerUrl.ShouldBeNull();
     }
     
@@ -516,11 +552,11 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
             .Project.Customer.Comment = "[Logo](ftp:/missingSlashInvalid/)";
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days[0].Projects.Length.ShouldBe(1);
-        var project = days[0].Projects.Single();
+        day.Projects.Length.ShouldBe(1);
+        var project = day.Projects.Single();
         project.CustomerUrl.ShouldBeNull();
     }
     
@@ -533,10 +569,10 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
             .Project.Customer.Name = "Code Monkey Projectiles (CMP)";
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days[0].Projects.Single().CustomerAcronym.ShouldBe("CMP");
+        day.Projects.Single().CustomerAcronym.ShouldBe("CMP");
     }
     
     [TestMethod]
@@ -548,10 +584,10 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
             .Project.Customer.Name = "Code Monkey Projectiles";
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days[0].Projects.Single().CustomerAcronym.ShouldBeNull();
+        day.Projects.Single().CustomerAcronym.ShouldBeNull();
     }
 
     [TestMethod]
@@ -567,15 +603,14 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         BuildTimeEntry(project2Activity2, today, TimeSpan.FromMinutes(15));
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days.Length.ShouldBe(1);
-        days[0].Projects.Length.ShouldBe(2);
-        days[0].Projects[0].ProjectId.ShouldBe(project2Activity1.Project.Id);
-        days[0].Projects[0].TotalTime.ShouldBe(TimeSpan.FromMinutes(35));
-        days[0].Projects[1].ProjectId.ShouldBe(project1Activity.Project.Id);
-        days[0].Projects[1].TotalTime.ShouldBe(TimeSpan.FromMinutes(10));
+        day.Projects.Length.ShouldBe(2);
+        day.Projects[0].ProjectId.ShouldBe(project2Activity1.Project.Id);
+        day.Projects[0].TotalTime.ShouldBe(TimeSpan.FromMinutes(35));
+        day.Projects[1].ProjectId.ShouldBe(project1Activity.Project.Id);
+        day.Projects[1].TotalTime.ShouldBe(TimeSpan.FromMinutes(10));
     }
 
     [TestMethod]
@@ -591,15 +626,14 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         BuildTimeEntry(project2Activity2, today, TimeSpan.FromMinutes(15));
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days.Length.ShouldBe(1);
-        days[0].Projects.Length.ShouldBe(2);
-        days[0].Projects[0].ProjectId.ShouldBe(project1Activity.Project.Id);
-        days[0].Projects[0].TotalTime.ShouldBe(TimeSpan.FromMinutes(60));
-        days[0].Projects[1].ProjectId.ShouldBe(project2Activity1.Project.Id);
-        days[0].Projects[1].TotalTime.ShouldBe(TimeSpan.FromMinutes(35));
+        day.Projects.Length.ShouldBe(2);
+        day.Projects[0].ProjectId.ShouldBe(project1Activity.Project.Id);
+        day.Projects[0].TotalTime.ShouldBe(TimeSpan.FromMinutes(60));
+        day.Projects[1].ProjectId.ShouldBe(project2Activity1.Project.Id);
+        day.Projects[1].TotalTime.ShouldBe(TimeSpan.FromMinutes(35));
     }
 
     [TestMethod]
@@ -615,15 +649,14 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         BuildTimeEntry(project2Activity2, today, TimeSpan.FromMinutes(15)).Exported = false;
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days.Length.ShouldBe(1);
-        days[0].Projects.Length.ShouldBe(2);
-        days[0].Projects[0].AllExported.ShouldBeTrue();
-        days[0].Projects[0].CanExport.ShouldBeFalse();
-        days[0].Projects[1].AllExported.ShouldBeFalse();
-        days[0].Projects[1].CanExport.ShouldBeTrue();
+        day.Projects.Length.ShouldBe(2);
+        day.Projects[0].AllExported.ShouldBeTrue();
+        day.Projects[0].CanExport.ShouldBeFalse();
+        day.Projects[1].AllExported.ShouldBeFalse();
+        day.Projects[1].CanExport.ShouldBeTrue();
     }
 
     [TestMethod]
@@ -634,7 +667,7 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         var entry = BuildTimeEntry(today);
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
         var expected = Kimai.BaseUrl
@@ -649,7 +682,7 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
             .AppendQueryParam("performSearch", "performSearch")
             .AppendQueryParam("projects[]", entry.Project.Id)
             .ToUri();
-        days[0].Projects[0].Url.ShouldBe(expected);
+        day.Projects[0].Url.ShouldBe(expected);
     }
 
     #endregion Projects
@@ -669,27 +702,26 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         BuildTimeEntry(activities[2], today, TimeSpan.FromMinutes(35)).Exported = false;
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var day = await GetDayAsync(today);
 
         //Assert
-        days.Length.ShouldBe(1);
-        days[0].Projects[0].Activities.Length.ShouldBe(3);
-        days[0].Projects[0].Activities[0].ActivityId.ShouldBe(activities[2].Id);
-        days[0].Projects[0].Activities[0].ActivityName.ShouldBe(activities[2].Name);
-        days[0].Projects[0].Activities[0].ActivityDescription.ShouldBe(activities[2].Comment);
-        days[0].Projects[0].Activities[0].TotalTime.ShouldBe(TimeSpan.FromMinutes(50));
-        days[0].Projects[0].Activities[0].AllExported.ShouldBeFalse();
-        days[0].Projects[0].Activities[0].CanExport.ShouldBeTrue();
+        day.Projects[0].Activities.Length.ShouldBe(3);
+        day.Projects[0].Activities[0].ActivityId.ShouldBe(activities[2].Id);
+        day.Projects[0].Activities[0].ActivityName.ShouldBe(activities[2].Name);
+        day.Projects[0].Activities[0].ActivityDescription.ShouldBe(activities[2].Comment);
+        day.Projects[0].Activities[0].TotalTime.ShouldBe(TimeSpan.FromMinutes(50));
+        day.Projects[0].Activities[0].AllExported.ShouldBeFalse();
+        day.Projects[0].Activities[0].CanExport.ShouldBeTrue();
 
-        days[0].Projects[0].Activities[1].ActivityId.ShouldBe(activities[0].Id);
-        days[0].Projects[0].Activities[1].TotalTime.ShouldBe(TimeSpan.FromMinutes(20));
-        days[0].Projects[0].Activities[1].AllExported.ShouldBeTrue();
-        days[0].Projects[0].Activities[1].CanExport.ShouldBeFalse();
+        day.Projects[0].Activities[1].ActivityId.ShouldBe(activities[0].Id);
+        day.Projects[0].Activities[1].TotalTime.ShouldBe(TimeSpan.FromMinutes(20));
+        day.Projects[0].Activities[1].AllExported.ShouldBeTrue();
+        day.Projects[0].Activities[1].CanExport.ShouldBeFalse();
 
-        days[0].Projects[0].Activities[2].ActivityId.ShouldBe(activities[1].Id);
-        days[0].Projects[0].Activities[2].TotalTime.ShouldBe(TimeSpan.FromMinutes(10));
-        days[0].Projects[0].Activities[2].AllExported.ShouldBeFalse();
-        days[0].Projects[0].Activities[2].CanExport.ShouldBeTrue();
+        day.Projects[0].Activities[2].ActivityId.ShouldBe(activities[1].Id);
+        day.Projects[0].Activities[2].TotalTime.ShouldBe(TimeSpan.FromMinutes(10));
+        day.Projects[0].Activities[2].AllExported.ShouldBeFalse();
+        day.Projects[0].Activities[2].CanExport.ShouldBeTrue();
 
 
         var expected = Kimai.BaseUrl
@@ -705,7 +737,7 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
             .AppendQueryParam("projects[]", activities[1].Project.Id)
             .AppendQueryParam("activities[]", activities[1].Id)
             .ToUri();
-        days[0].Projects[0].Activities[2].Url.ShouldBe(expected);
+        day.Projects[0].Activities[2].Url.ShouldBe(expected);
     }
 
     #endregion Activities

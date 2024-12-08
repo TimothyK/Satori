@@ -34,9 +34,9 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
     private async Task<TimeEntry[]> GetTimesAsync()
     {
         var today = Today;
-        var days = await GetStandUpDaysAsync(today.AddDays(-6), today);
+        var period = await GetPeriodAsync(today.AddDays(-6), today);
 
-        return days.SelectMany(day => day.Projects.SelectMany(project => project.Activities.SelectMany(activity => activity.TimeEntries)))
+        return period.Days.SelectMany(day => day.Projects.SelectMany(project => project.Activities.SelectMany(activity => activity.TimeEntries)))
             .ToArray();
     }
 
@@ -187,10 +187,10 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
         kimaiEntry2.End = kimaiEntry2.Begin.Add(TimeSpan.FromMinutes(30));
 
         //Act
-        var days = await GetStandUpDaysAsync(today, today);
+        var period = await GetPeriodAsync(today, today);
 
         //Assert
-        var entries = days.Single().Projects.Single().Activities.Single().TimeEntries;
+        var entries = period.Days.Single().Projects.Single().Activities.Single().TimeEntries;
         entries[0].Id.ShouldBe(kimaiEntry2.Id);
         entries[1].Id.ShouldBe(kimaiEntry3.Id);
         entries[2].Id.ShouldBe(kimaiEntry1.Id);

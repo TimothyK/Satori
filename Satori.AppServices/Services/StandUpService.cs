@@ -30,7 +30,7 @@ public partial class StandUpService(
 {
     #region GetStandUpDaysAsync
 
-    public async Task<StandUpDay[]> GetStandUpDaysAsync(DateOnly begin, DateOnly end)
+    public async Task<PeriodSummary> GetStandUpPeriodAsync(DateOnly begin, DateOnly end)
     {
         var today = DateOnly.FromDateTime(DateTime.Today);
         if (today < end)
@@ -56,13 +56,21 @@ public partial class StandUpService(
         var url = kimai.BaseUrl.AppendPathSegments(language, "timesheet");
 
         var timeSheet = getTimeSheetTask.Result;
-        var days = timeSheet.GroupBy(GetDateOnly);
-        var standUpDays = days.Select(entries => ToDayViewModel(entries, url)).ToList();
-
+        var period = new PeriodSummary()
+        {
+            TotalTime = GetDuration(timeSheet),
+            AllExported = GetAllExported(timeSheet),
+            CanExport = GetCanExport(timeSheet),
+            IsRunning = GetIsRunning(timeSheet),
+        };
+        foreach (var entries in timeSheet.GroupBy(GetDateOnly))
+        {
+            AddDayViewModel(period, entries, url);
+        }
         var allDays = Enumerable.Range(0, daysInRange).Select(begin.AddDays);
-        AddMissingDays(standUpDays, allDays, url);
+        AddMissingDays(period, allDays, url);
 
-        return standUpDays.OrderByDescending(day => day.Date).ToArray();
+        return period;
     }
 
     private async Task<List<KimaiTimeEntry>> GetTimeSheetAsync(DateOnly begin, DateOnly end)
@@ -96,17 +104,19 @@ public partial class StandUpService(
         return timeSheet;
     }
 
-    private void AddMissingDays(List<StandUpDay> standUpDays, IEnumerable<DateOnly> allDays, Url url)
+    private void AddMissingDays(PeriodSummary period, IEnumerable<DateOnly> allDays, Url url)
     {
-        standUpDays.AddRange( 
-            allDays
-                .Where(d => d.IsNotIn(standUpDays.Select(x => x.Date)))
-                .Select(d => new NullGroup<DateOnly, KimaiTimeEntry>(d))
-                .Select(g => ToDayViewModel(g, url))
-        );
+        var missingDays = allDays
+            .Where(d => d.IsNotIn(period.Days.Select(x => x.Date)));
+
+        foreach (var day in missingDays)
+        {
+            var timeEntryGroup = new NullGroup<DateOnly, KimaiTimeEntry>(day);
+            AddDayViewModel(period, timeEntryGroup, url);
+        }
     }
 
-    private StandUpDay ToDayViewModel(IGrouping<DateOnly, KimaiTimeEntry> entries, Url url)
+    private void AddDayViewModel(PeriodSummary period, IGrouping<DateOnly, KimaiTimeEntry> entries, Url url)
     {
         var uri = url.ToUri()
             // ReSharper disable once StringLiteralTypo
@@ -120,9 +130,10 @@ public partial class StandUpService(
             .AppendQueryParam("performSearch", "performSearch")
             .ToUri();
 
-        return new StandUpDay()
+        var day = new DaySummary()
         {
             Date = entries.Key,
+            ParentPeriod = period,
             TotalTime = GetDuration(entries),
             AllExported = GetAllExported(entries),
             CanExport = GetCanExport(entries),
@@ -130,9 +141,15 @@ public partial class StandUpService(
             Url = uri,
             Projects = [],
         }.With(day => day.Projects = ToProjectsViewModel(entries, uri, day));
+
+        var days = period.Days.ToList();
+        days.Add(day);
+        days = days.OrderByDescending(d => d.Date).ToList();
+        var index = days.IndexOf(day);
+        period.Days.Insert(index, day);
     }
 
-    private ProjectSummary[] ToProjectsViewModel(IEnumerable<KimaiTimeEntry> entries, Url url, StandUpDay day)
+    private ProjectSummary[] ToProjectsViewModel(IEnumerable<KimaiTimeEntry> entries, Url url, DaySummary day)
     {
         var groups = entries.GroupBy(entry => new
         {
@@ -365,9 +382,9 @@ public partial class StandUpService(
 
     #region GetWorkItemsAsync
 
-    public async Task GetWorkItemsAsync(StandUpDay[] days)
+    public async Task GetWorkItemsAsync(PeriodSummary period)
     {
-        var activitySummaries = days
+        var activitySummaries = period.Days
             .SelectMany(day => day.Projects)
             .SelectMany(p => p.Activities)
             .ToArray();
@@ -631,6 +648,11 @@ public partial class StandUpService(
         {
             day.AllExported = day.Projects.All(x => x.AllExported);
             day.CanExport = day.Projects.Any(x => x.CanExport);
+        }
+        foreach (var period in exportableEntries.Select(entry => entry.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod).Distinct())
+        {
+            period.AllExported = period.Days.All(x => x.AllExported);
+            period.CanExport = period.Days.Any(x => x.CanExport);
         }
     }
 

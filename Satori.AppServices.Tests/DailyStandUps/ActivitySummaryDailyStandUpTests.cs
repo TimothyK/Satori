@@ -34,10 +34,10 @@ public class ActivitySummaryDailyStandUpTests : DailyStandUpTests
 
     private async Task<ActivitySummary> GetActivitySummaryAsync()
     {
-        var days = await Server.GetStandUpDaysAsync(Today, Today);
-        await Server.GetWorkItemsAsync(days);
+        var period = await Server.GetStandUpPeriodAsync(Today, Today);
+        await Server.GetWorkItemsAsync(period);
 
-        var activitySummary = days
+        var activitySummary = period.Days
             .Single(day => day.Date == Today)
             .Projects
             .SelectMany(p => p.Activities)

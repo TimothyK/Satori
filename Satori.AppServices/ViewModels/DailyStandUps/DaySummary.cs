@@ -1,9 +1,10 @@
 ﻿namespace Satori.AppServices.ViewModels.DailyStandUps;
 
-public class StandUpDay : ISummary
+public class DaySummary : ISummary
 {
     public DateOnly Date { get; internal init; }
 
+    public required PeriodSummary ParentPeriod { get; init; }
     public required ProjectSummary[] Projects { get; set; }
     public IEnumerable<TimeEntry> TimeEntries => Projects.SelectMany(p => p.TimeEntries);
 
