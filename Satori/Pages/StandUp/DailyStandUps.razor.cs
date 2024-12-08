@@ -32,7 +32,7 @@ public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? sta
             Period.LastSevenDays => today.AddDays(-6),
             _ => throw new ArgumentOutOfRangeException(nameof(period), period, "Unknown enum value")
         };
-        await SetBeginDate(beginDate);
+        await SetBeginDateAsync(beginDate);
     }
 
     private void SetPeriod(Period period)
@@ -48,7 +48,7 @@ public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? sta
         };
     }
 
-    private async Task SetBeginDate(DateOnly beginDate)
+    private async Task SetBeginDateAsync(DateOnly beginDate)
     {
         BeginDate = beginDate;
 
@@ -99,7 +99,7 @@ public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? sta
         return date;
     }
 
-    public async Task DecrementPeriod()
+    public async Task DecrementPeriodAsync()
     {
         switch (Period)
         {
@@ -110,7 +110,7 @@ public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? sta
                 if (BeginDate < GetStartOfWeek(Today))
                 {
                     SetPeriod(Period.WorkWeek);
-                    await SetBeginDate(GetStartOfWeek(BeginDate));
+                    await SetBeginDateAsync(GetStartOfWeek(BeginDate));
                 }
                 else
                 {
@@ -124,19 +124,19 @@ public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? sta
                 }
                 else
                 {
-                    await SetBeginDate(BeginDate.AddDays(-7));
+                    await SetBeginDateAsync(BeginDate.AddDays(-7));
                 }
                 break;
             case Period.LastSevenDays:
                 SetPeriod(Period.WorkWeek);
-                await SetBeginDate(GetStartOfWeek(BeginDate));
+                await SetBeginDateAsync(GetStartOfWeek(BeginDate));
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(Period), Period, "Unknown enum value");
         }
     }
 
-    public async Task IncrementPeriod()
+    public async Task IncrementPeriodAsync()
     {
         switch (Period)
         {
@@ -157,7 +157,7 @@ public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? sta
                 }
                 else
                 {
-                    await SetBeginDate(BeginDate.AddDays(7));
+                    await SetBeginDateAsync(BeginDate.AddDays(7));
                 }
                 break;
             case Period.LastSevenDays:
