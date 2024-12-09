@@ -1,4 +1,5 @@
-﻿@using Satori.AppServices.Extensions
+﻿@using CodeMonkeyProjectiles.Linq
+@using Satori.AppServices.Extensions
 @using Satori.AppServices.Services
 @using Satori.AppServices.ViewModels.WorkItems
 @inject IJSRuntime JsRuntime
@@ -31,8 +32,8 @@ else
             {
                 <div class="avatar-cell">
                     <img src="@ViewModel.WorkItem.AssignedTo.AvatarUrl"
-                    alt="@ViewModel.WorkItem.AssignedTo.DisplayName"
-                    title="@ViewModel.WorkItem.AssignedTo.DisplayName" />
+                         alt="@ViewModel.WorkItem.AssignedTo.DisplayName"
+                         title="@ViewModel.WorkItem.AssignedTo.DisplayName" />
                 </div>
             }
             @if (ViewModel.WorkItem.Parent == null || ViewModel.WorkItem.Type != WorkItemType.Task)
@@ -43,15 +44,15 @@ else
         </span>
         @if (ViewModel.WorkItem.Type == WorkItemType.Task)
         {
-            if (ViewModel.WorkItem.State == ScrumState.Done)
+            if (ViewModel.State == ScrumState.Done)
             {
                 <span class="badge bg-success">✔️ Done</span>
             }
-            else if (ViewModel.WorkItem.State == ScrumState.Removed)
+            else if (ViewModel.State == ScrumState.Removed)
             {
                 <span class="badge bg-success">✔ Removed</span>
             }
-            else if (ViewModel.WorkItem.State == ScrumState.ToDo)
+            else if (ViewModel.State == ScrumState.ToDo)
             {
                 <span class="badge bg-danger">To Do</span>
             }
@@ -67,6 +68,25 @@ else
             }
         }
     </div>
-
+    @if (ViewModel.WorkItem.Type == WorkItemType.Task)
+    {
+        <div class="update-task-row">
+            <div class="update-state">
+                <span>Change State:</span>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-secondary @(ViewModel.State == ScrumState.ToDo ? "active" : "")" @onclick="() => ViewModel.SetState(ScrumState.ToDo)">To Do</button>
+                    <button type="button" class="btn btn-outline-secondary @(ViewModel.State == ScrumState.InProgress ? "active" : "" )" @onclick="() => ViewModel.SetState(ScrumState.InProgress)">In Progress</button>
+                    <button type="button" class="btn btn-outline-secondary @(ViewModel.State == ScrumState.Done ? "active" : "")" @onclick="() => ViewModel.SetState(ScrumState.Done)">Done</button>
+                </div>
+            </div>
+            @if (ViewModel.State.IsIn(ScrumState.ToDo, ScrumState.InProgress))
+            {
+                <div class="update-remaining">
+                    <span>Change Remaining:</span>
+                    <input type="number" step="0.5" min="0" @bind="ViewModel.TimeRemainingInput" /><span>&nbsp;h</span>
+                </div>
+            }
+        </div>
+    }
 }
 

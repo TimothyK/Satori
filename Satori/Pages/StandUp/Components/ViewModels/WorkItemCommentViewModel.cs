@@ -1,5 +1,6 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Microsoft.VisualStudio.Threading;
+using Satori.AppServices.Extensions;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.Pages.StandUp.Components.ViewModels.Models;
@@ -19,6 +20,7 @@ public class WorkItemCommentViewModel : CommentViewModel
             , activeTimeEntries)
     {
         WorkItem = workItem;
+        State = workItem?.State ?? ScrumState.Unknown;
 
         UnexportedTime = workItem == null ? TimeSpan.Zero 
             : period.Days
@@ -30,6 +32,7 @@ public class WorkItemCommentViewModel : CommentViewModel
                 .Select(entry => entry.TotalTime)
                 .Sum();
         SetTimeRemaining();
+        TimeRemainingInput = TimeRemaining?.TotalHours.ToNearest(0.1) ?? 0.0;
     }
 
     public static WorkItemCommentViewModel FromNew(TimeEntry[] timeEntries, PeriodSummary period)
@@ -46,6 +49,20 @@ public class WorkItemCommentViewModel : CommentViewModel
     #endregion
 
     public WorkItem? WorkItem { get; set; }
+
+    #region State
+
+    public ScrumState State { get; set; }
+
+    public void SetState(ScrumState state)
+    {
+        State = state;
+        SetTimeRemaining();
+    }
+
+    public double TimeRemainingInput { get; set; }
+
+    #endregion State
 
     #region TimeRemaining
 
@@ -65,7 +82,7 @@ public class WorkItemCommentViewModel : CommentViewModel
 
     private void SetTimeRemaining()
     {
-        if (WorkItem == null || WorkItem.State.IsIn(ScrumState.Done, ScrumState.Removed))
+        if (State.IsNotIn(ScrumState.ToDo, ScrumState.InProgress))
         {
             TimeRemaining = null;
             return;
@@ -76,7 +93,12 @@ public class WorkItemCommentViewModel : CommentViewModel
             .Select(entry => entry.TotalTime)
             .Sum();
 
-        TimeRemaining = WorkItem.RemainingWork - UnexportedTime - selectedTime;
+        var updateInput = Math.Abs((TimeRemaining?.TotalHours ?? 0.0) - TimeRemainingInput) < 0.1;
+        TimeRemaining = WorkItem?.RemainingWork - UnexportedTime - selectedTime;
+        if (updateInput)
+        {
+            TimeRemainingInput = TimeRemaining?.TotalHours.ToNearest(0.1) ?? 0.0;
+        }
     }
 
     #endregion TimeRemaining
