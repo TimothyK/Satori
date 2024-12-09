@@ -15,6 +15,11 @@
     <span class="bi bi-pencil-square"></span>
 </div>
 
+@if (!DialogVisible)
+{
+    return;
+}
+
 <!-- Dialogs -->
 <div class="dialog-modal-background @DialogVisible">
     <div class="dialog-form">

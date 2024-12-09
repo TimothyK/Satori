@@ -39,5 +39,9 @@
 .work-item-row {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
 }
 
+.badge {
+    margin-left: 5px;
+}

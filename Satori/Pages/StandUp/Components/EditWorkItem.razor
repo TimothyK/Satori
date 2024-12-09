@@ -1,4 +1,5 @@
-﻿@using Satori.AppServices.Services
+﻿@using Satori.AppServices.Extensions
+@using Satori.AppServices.Services
 @using Satori.AppServices.ViewModels.WorkItems
 @inject IJSRuntime JsRuntime
 @inject UserService UserService
@@ -40,42 +41,32 @@ else
             }
             @ViewModel.WorkItem.Title
         </span>
-    </div>
-
-    @if (ViewModel.WorkItem.Type == WorkItemType.Task)
-    {
-        if (ViewModel.WorkItem.State == ScrumState.Done)
+        @if (ViewModel.WorkItem.Type == WorkItemType.Task)
         {
-            <span class="badge bg-success">✔️ Done</span>
-        }
-        else
-        {
-            if (ViewModel.WorkItem.State == ScrumState.Removed)
+            if (ViewModel.WorkItem.State == ScrumState.Done)
+            {
+                <span class="badge bg-success">✔️ Done</span>
+            }
+            else if (ViewModel.WorkItem.State == ScrumState.Removed)
             {
                 <span class="badge bg-success">✔ Removed</span>
             }
-            else
+            else if (ViewModel.WorkItem.State == ScrumState.ToDo)
             {
-                if (ViewModel.WorkItem.State == ScrumState.ToDo)
-                {
-                    <span class="badge bg-danger">To Do</span>
-                }
+                <span class="badge bg-danger">To Do</span>
+            }
+
+            if (ViewModel.WorkItem.OriginalEstimate == null)
+            {
+                <span class="badge bg-danger">Needs Estimate</span>
+            }
+
+            if (ViewModel.TimeRemaining != null)
+            {
+                <span class="badge @(ViewModel.TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@ViewModel.TimeRemaining.Value.TotalHours.ToNearest(0.1) h</span>
             }
         }
-    }
-    @*                 
-    if (taskSummary.NeedsEstimate)
-    {
-        <span class="badge bg-danger">Needs Estimate</span>
-    }
-    else
-    {
-        if (taskSummary.TimeRemaining != null)
-        {
-            <span class="badge @(taskSummary.TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@taskSummary.TimeRemaining.Value.TotalHours.ToNearest(0.1) h</span>
-        }
-    }
-    *@
+    </div>
 
 }
 

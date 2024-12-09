@@ -10,6 +10,7 @@ public partial class EditStandUpDialog
 {
     private ActivitySummary Activity { get; set; } = null!;
     private ProjectSummary Project { get; set; } = null!;
+    private PeriodSummary Period => Project.ParentDay.ParentPeriod;
 
     private List<CommentViewModel> Comments { get; set; } = null!;
 
@@ -49,6 +50,7 @@ public partial class EditStandUpDialog
                 .FromExisting(
                     workItem ?? throw new InvalidOperationException()
                     , TimeEntries
+                    , Period
                 ).With(x => x.WorkItemActivatedAsync += OnWorkItemActivatedAsync))
             .ToList();
     }
@@ -95,7 +97,7 @@ public partial class EditStandUpDialog
     private void AddComment(CommentType type)
     {
         var comment = type == CommentType.WorkItem
-            ? WorkItemCommentViewModel.FromNew(TimeEntries).With(x => x.WorkItemActivatedAsync += OnWorkItemActivatedAsync)
+            ? WorkItemCommentViewModel.FromNew(TimeEntries, Period).With(x => x.WorkItemActivatedAsync += OnWorkItemActivatedAsync)
             : CommentViewModel.FromNew(type, TimeEntries);
 
         Comments.Add(comment);
