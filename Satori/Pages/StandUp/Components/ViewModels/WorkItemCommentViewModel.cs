@@ -43,6 +43,8 @@ public class WorkItemCommentViewModel : CommentViewModel
 
     #endregion
 
+    #region WorkItem
+
     public WorkItem? WorkItem { get; private set; }
 
     public void SetWorkItem(WorkItem workItem)
@@ -64,6 +66,8 @@ public class WorkItemCommentViewModel : CommentViewModel
         SetTimeRemaining();
         TimeRemainingInput = TimeRemaining?.TotalHours.ToNearest(0.1) ?? 0.0;
     }
+
+    #endregion WorkItem
 
     #region State
 
@@ -167,4 +171,6 @@ public class WorkItemCommentViewModel : CommentViewModel
     }
 
     #endregion
+
+
 }

@@ -94,6 +94,21 @@ public partial class EditWorkItem
     }
 
     #endregion Add Work Item
+
+    public async Task SetWorkItemToParentAsync()
+    {
+        var parent = ViewModel.WorkItem?.Parent ?? throw new InvalidOperationException();
+        parent = await StandUpService.GetWorkItemAsync(parent.Id);
+        if (parent == null)
+        {
+            //This should never happen
+            ViewModel.WorkItem.Parent = null;  
+        }
+        else
+        {
+            ViewModel.SetWorkItem(parent);
+        }
+    }
     
     private async Task OpenWorkItemAsync(WorkItem workItem)
     {

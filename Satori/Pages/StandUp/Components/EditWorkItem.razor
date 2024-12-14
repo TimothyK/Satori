@@ -70,7 +70,7 @@ else
         @if (ViewModel.WorkItem.Parent != null)
         {
             <div class="parent-selector">
-                <button type="button" title="Reassign parent D#@ViewModel.WorkItem.Parent.Id"><span class="bi bi-arrow-90deg-up"></span></button>
+                <button type="button" title="Reassign parent D#@ViewModel.WorkItem.Parent.Id" @onclick="SetWorkItemToParentAsync"><span class="bi bi-arrow-90deg-up"></span></button>
             </div>
         }
     </div>
