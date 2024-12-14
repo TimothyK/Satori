@@ -67,6 +67,12 @@ else
                 <span class="badge @(ViewModel.TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@ViewModel.TimeRemaining.Value.TotalHours.ToNearest(0.1) h</span>
             }
         }
+        @if (ViewModel.WorkItem.Parent != null)
+        {
+            <div class="parent-selector">
+                <button type="button" title="Reassign parent D#@ViewModel.WorkItem.Parent.Id"><span class="bi bi-arrow-90deg-up"></span></button>
+            </div>
+        }
     </div>
     @if (ViewModel.WorkItem.Type == WorkItemType.Task)
     {

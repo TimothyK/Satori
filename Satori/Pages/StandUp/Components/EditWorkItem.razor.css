@@ -64,3 +64,30 @@
     width: 80px;
     font-size: 0.9em;
 }
+
+.parent-selector {
+    margin-left: auto;
+}
+.parent-selector button {
+    margin: 5px;
+    border: 1px solid black;
+    background-color: white;
+    border-radius: 5px;
+}
+.parent-selector button:hover {
+    background-color: darkgrey;
+    color: white;
+}
+
+
+.bi {
+    display: inline-block;
+    position: relative;
+    width: 1.0em;
+    height: 1.0em;
+    background-size: cover;
+}
+
+.bi-arrow-90deg-up {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-90deg-up" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.854 1.146a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L4 2.707V12.5A2.5 2.5 0 0 0 6.5 15h8a.5.5 0 0 0 0-1h-8A1.5 1.5 0 0 1 5 12.5V2.707l3.146 3.147a.5.5 0 1 0 .708-.708z"/></svg>');
+}
