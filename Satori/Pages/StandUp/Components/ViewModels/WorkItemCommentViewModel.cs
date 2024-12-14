@@ -10,6 +10,8 @@ namespace Satori.Pages.StandUp.Components.ViewModels;
 
 public class WorkItemCommentViewModel : CommentViewModel
 {
+    private readonly PeriodSummary _period;
+
     #region Constructors
 
     private WorkItemCommentViewModel(WorkItem? workItem, TimeEntry[] allTimeEntries, IEnumerable<TimeEntry> activeTimeEntries, PeriodSummary period)
@@ -19,20 +21,13 @@ public class WorkItemCommentViewModel : CommentViewModel
             , allTimeEntries
             , activeTimeEntries)
     {
-        WorkItem = workItem;
-        State = workItem?.State ?? ScrumState.Unknown;
+        _period = period;
 
-        UnexportedTime = workItem == null ? TimeSpan.Zero 
-            : period.Days
-                .Where(day => !day.AllExported)
-                .SelectMany(day => day.TimeEntries)
-                .Except(EntriesUnderEdit)
-                .Where(entry => entry.Task?.Id == workItem.Id)
-                .Where(entry => !entry.Exported)
-                .Select(entry => entry.TotalTime)
-                .Sum();
-        SetTimeRemaining();
-        TimeRemainingInput = TimeRemaining?.TotalHours.ToNearest(0.1) ?? 0.0;
+
+        if (workItem != null)
+        {
+            SetWorkItem(workItem);
+        }
     }
 
     public static WorkItemCommentViewModel FromNew(TimeEntry[] timeEntries, PeriodSummary period)
@@ -48,11 +43,31 @@ public class WorkItemCommentViewModel : CommentViewModel
 
     #endregion
 
-    public WorkItem? WorkItem { get; set; }
+    public WorkItem? WorkItem { get; private set; }
+
+    public void SetWorkItem(WorkItem workItem)
+    {
+        WorkItem = workItem;
+
+        State = workItem.State;
+
+        UnexportedTime =  
+            _period.Days
+                .Where(day => !day.AllExported)
+                .SelectMany(day => day.TimeEntries)
+                .Except(EntriesUnderEdit)
+                .Where(entry => entry.Task?.Id == workItem.Id)
+                .Where(entry => !entry.Exported)
+                .Select(entry => entry.TotalTime)
+                .Sum();
+
+        SetTimeRemaining();
+        TimeRemainingInput = TimeRemaining?.TotalHours.ToNearest(0.1) ?? 0.0;
+    }
 
     #region State
 
-    public ScrumState State { get; set; }
+    public ScrumState State { get; set; } = ScrumState.Unknown;
 
     public void SetState(ScrumState state)
     {
@@ -76,7 +91,7 @@ public class WorkItemCommentViewModel : CommentViewModel
     /// This is a constant amount that should be removed from RemainingWork read from AzDO.
     /// </para>
     /// </remarks>
-    private TimeSpan UnexportedTime { get; }
+    private TimeSpan UnexportedTime { get; set; } = TimeSpan.Zero;
 
     public TimeSpan? TimeRemaining { get; set; }
 

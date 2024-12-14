@@ -89,7 +89,7 @@ public partial class EditWorkItem
             return false;
         }
 
-        ViewModel.WorkItem = workItem;
+        ViewModel.SetWorkItem(workItem);
         return true;
     }
 
