@@ -465,6 +465,34 @@ public partial class StandUpService(
         return workItem;
     }
 
+    /// <summary>
+    /// Loads the placeholder children work items
+    /// </summary>
+    /// <param name="workItem"></param>
+    /// <returns></returns>
+    public async Task GetChildWorkItemsAsync(WorkItem workItem)
+    {
+        var placeholderChildren = workItem.Children
+            .Where(wi => wi.Type == WorkItemType.Unknown)
+            .ToArray();
+        if (placeholderChildren.None())
+        {
+            return;
+        }
+
+        var children = (await GetWorkItemsAsync(placeholderChildren.Select(wi => wi.Id))).ToArray();
+        foreach (var placeholder in placeholderChildren)
+        {
+            workItem.Children.Remove(placeholder);
+        }
+        workItem.Children.AddRange(children);
+
+        foreach (var child in children)
+        {
+            child.Parent = workItem;
+        }
+    }
+
     private async Task<IEnumerable<WorkItem>> GetWorkItemsAsync(IEnumerable<int> workItemIds) =>
         await GetWorkItemsAsync(workItemIds.ToArray());
 

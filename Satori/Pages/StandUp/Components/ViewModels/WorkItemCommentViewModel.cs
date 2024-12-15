@@ -1,6 +1,7 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Microsoft.VisualStudio.Threading;
 using Satori.AppServices.Extensions;
+using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.Pages.StandUp.Components.ViewModels.Models;
@@ -66,6 +67,23 @@ public class WorkItemCommentViewModel : CommentViewModel
         SetTimeRemaining();
         TimeRemainingInput = TimeRemaining?.TotalHours.ToNearest(0.1) ?? 0.0;
     }
+
+    public IEnumerable<WorkItem> Children
+    {
+        get
+        {
+            if (WorkItem == null || WorkItem.Type == WorkItemType.Task)
+            {
+                return [];
+            }
+
+            return WorkItem.Children
+                .Where(t => t.Type != WorkItemType.Task || (t.AssignedTo == Person.Me && t.IterationPath == WorkItem.IterationPath))
+                .Where(t => t.Type == WorkItemType.Task || t.State < ScrumState.Done);
+        }
+    }
+
+    public ExpandableCssClass IsAddChildExpanded { get; set; } = ExpandableCssClass.Collapsed;
 
     #endregion WorkItem
 
