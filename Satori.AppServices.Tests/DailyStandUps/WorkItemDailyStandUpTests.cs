@@ -646,6 +646,51 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
     }
     #endregion NeedsEstimate
 
+    #region GetChildWorkItems
+
+    [TestMethod]
+    public async Task GetChildWorkItems_SmokeTest()
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem(out var workItem).AddChild(out var task);
+        var boardItem = await Server.GetWorkItemAsync(workItem.Id);
+        boardItem.ShouldNotBeNull();
+        boardItem.Children.Count.ShouldBe(1);
+        boardItem.Children.Single().Id.ShouldBe(task.Id);
+        boardItem.Children.Single().Type.ShouldBe(WorkItemType.Unknown);
+
+        //Act
+        await Server.GetChildWorkItemsAsync(boardItem);
+
+        //Assert
+        boardItem.Children.Single().Type.ShouldBe(WorkItemType.Task);
+        boardItem.Children.Single().Id.ShouldBe(task.Id);
+    }
+    
+    [TestMethod]
+    public async Task GetChildWorkItems_NoChildren_NoApiCallNeeded()
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem(out var workItem).AddChild(out var task);
+        var boardItem = await Server.GetWorkItemAsync(workItem.Id);
+        boardItem.ShouldNotBeNull();
+        boardItem.Children.Count.ShouldBe(1);
+        boardItem.Children.Single().Id.ShouldBe(task.Id);
+        boardItem.Children.Single().Type.ShouldBe(WorkItemType.Unknown);
+
+        //First call to load the children
+        await Server.GetChildWorkItemsAsync(boardItem);
+
+        //Act - subsequent calls should not call the API
+        var wasCalled = false;
+        AzureDevOps.OnGetWorkItems = _ => wasCalled = true;
+        await Server.GetChildWorkItemsAsync(boardItem);
+
+        //Assert
+        wasCalled.ShouldBeFalse();
+    }
+
+    #endregion GetChildWorkItems
 }
 
 internal static class TimeEntryExtensions
