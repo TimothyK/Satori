@@ -6,6 +6,11 @@
 
 @inject IConnectionSettingsStore ConnectionSettingsStore
 
+@if (IsRelease())
+{
+    return; //Not Implement Yet - feature flag
+}
+
 @if(TimeEntries.Length == 0)
 {
     return;
@@ -147,6 +152,16 @@
     private void ShowDialog()
     {
         DialogVisible = VisibleCssClass.Visible;
+    }
+
+    private bool IsRelease()
+    {
+#if DEBUG
+        return false;
+#else
+        return true;
+#endif
+
     }
 
 }

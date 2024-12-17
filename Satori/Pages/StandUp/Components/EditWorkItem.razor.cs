@@ -89,12 +89,61 @@ public partial class EditWorkItem
             return false;
         }
 
-        ViewModel.SetWorkItem(workItem);
+        await SetWorkItemAsync(workItem);
         return true;
     }
 
     #endregion Add Work Item
-    
+
+    public async Task SetWorkItemAsync(WorkItem workItem)
+    {
+        if (workItem.Type == WorkItemType.Unknown)
+        {
+            workItem = await StandUpService.GetWorkItemAsync(workItem.Id) ?? throw new InvalidOperationException("Work Item is not known");
+        }
+        ViewModel.SetWorkItem(workItem);
+
+        await ShowChildrenAsync();
+    }
+
+    public async Task ToggleAddChildAsync()
+    {
+        if (ViewModel.WorkItem == null)
+        {
+            return;
+        }
+
+        await StandUpService.GetChildWorkItemsAsync(ViewModel.WorkItem);
+
+        ViewModel.IsAddChildExpanded= !ViewModel.IsAddChildExpanded;
+    }
+
+    public async Task ShowChildrenAsync()
+    {
+        if (ViewModel.WorkItem == null)
+        {
+            return;
+        }
+
+        await StandUpService.GetChildWorkItemsAsync(ViewModel.WorkItem);
+        ViewModel.IsAddChildExpanded = ExpandableCssClass.Expanded;
+    }
+
+    public async Task SetWorkItemToParentAsync()
+    {
+        var parent = ViewModel.WorkItem?.Parent ?? throw new InvalidOperationException();
+        parent = await StandUpService.GetWorkItemAsync(parent.Id);
+        if (parent == null)
+        {
+            //This should never happen
+            ViewModel.WorkItem.Parent = null;  
+        }
+        else
+        {
+            await SetWorkItemAsync(parent);
+        }
+    }
+
     private async Task OpenWorkItemAsync(WorkItem workItem)
     {
         await JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");

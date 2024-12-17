@@ -67,10 +67,17 @@ else
                 <span class="badge @(ViewModel.TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@ViewModel.TimeRemaining.Value.TotalHours.ToNearest(0.1) h</span>
             }
         }
+        <div class="flex-center-whitespace"></div>
+        @if (ViewModel.WorkItem.Type != WorkItemType.Task)
+        {
+            <div class="btn-add-child @ViewModel.IsAddChildExpanded">
+                <button type="button" @onclick="ToggleAddChildAsync"><span class="caret @ViewModel.IsAddChildExpanded"></span>Add Child...</button>
+            </div>
+        }
         @if (ViewModel.WorkItem.Parent != null)
         {
             <div class="parent-selector">
-                <button type="button" title="Reassign parent D#@ViewModel.WorkItem.Parent.Id"><span class="bi bi-arrow-90deg-up"></span></button>
+                <button type="button" title="Reassign parent D#@ViewModel.WorkItem.Parent.Id" @onclick="SetWorkItemToParentAsync"><span class="bi bi-arrow-90deg-up"></span></button>
             </div>
         }
     </div>
@@ -90,6 +97,25 @@ else
                 <div class="update-remaining">
                     <span>Change Remaining:</span>
                     <input type="number" step="0.5" min="0" @bind="ViewModel.TimeRemainingInput" /><span>&nbsp;h</span>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="add-child @ViewModel.IsAddChildExpanded">
+            @foreach (var child in ViewModel.Children)
+            {
+                <div class="flex-row">
+                    <button type="button" title="Set Work Item to D#@child.Id" @onclick="() => SetWorkItemAsync(child)">Set</button>
+                    <span class="work-item @child.Type.CssClass cell-link" @onclick="async () => await OpenWorkItemAsync(child)" title="Open D#@child.Id">
+                        <label><span class="work-item-id">@child.Id</span>&nbsp;</label>
+                        @child.Title
+                    </span>
+                    @if (child.State == ScrumState.Done)
+                    {
+                        <span class="badge bg-success">✔️ Done</span>
+                    }
                 </div>
             }
         </div>

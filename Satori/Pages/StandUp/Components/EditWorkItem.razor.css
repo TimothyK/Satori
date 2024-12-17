@@ -65,16 +65,38 @@
     font-size: 0.9em;
 }
 
-.parent-selector {
+.flex-center-whitespace {
     margin-left: auto;
 }
-.parent-selector button {
+
+.caret::before {
+    content: "\25B6";
+    color: black;
+    display: inline-block;
+    margin-left: 6px;
+    margin-right: 6px;
+}
+
+.caret.expanded::before {
+    transform: rotate(90deg);
+}
+.add-child.collapsed {
+    display: none;
+}
+.add-child .flex-row {
+    align-items: center;
+}
+.add-child button {
+    font-size: 0.8rem;
+}
+
+button {
     margin: 5px;
     border: 1px solid black;
     background-color: white;
     border-radius: 5px;
 }
-.parent-selector button:hover {
+button:hover {
     background-color: darkgrey;
     color: white;
 }

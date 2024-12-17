@@ -74,8 +74,10 @@ internal class TestAzureDevOpsServer
             .ReturnsAsync((PullRequestId pr) => GetWorkItemMap(pr));
 
         _mock.Setup(srv => srv.GetWorkItemsAsync(It.IsAny<IEnumerable<int>>()))
+            .Callback((IEnumerable<int> workItemIds) => CallOnGetWorkItems(workItemIds))
             .ReturnsAsync((IEnumerable<int> workItemIds) => GetWorkItems(workItemIds));
         _mock.Setup(srv => srv.GetWorkItemsAsync(It.IsAny<int[]>()))
+            .Callback((int[] workItemIds) => CallOnGetWorkItems(workItemIds))
             .ReturnsAsync((int[] workItemIds) => GetWorkItems(workItemIds));
 
         _mock.Setup(srv => srv.GetTeamsAsync())
@@ -103,6 +105,13 @@ internal class TestAzureDevOpsServer
             return _database.GetWorkItemsById(workItemIds).ToArray();
         }
     }
+
+    private void CallOnGetWorkItems(IEnumerable<int> workItemIds)
+    {
+        OnGetWorkItems?.Invoke(workItemIds);
+    }
+
+    public Action<IEnumerable<int>> OnGetWorkItems { get; set; }
 
     public bool Enabled { get; set; } = true;
 
