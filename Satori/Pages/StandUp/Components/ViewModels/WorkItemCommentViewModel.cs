@@ -97,11 +97,11 @@ public class WorkItemCommentViewModel : CommentViewModel
         SetTimeRemaining();
     }
 
-    public double TimeRemainingInput { get; set; }
-
     #endregion State
 
     #region TimeRemaining
+
+    public double TimeRemainingInput { get; set; }
 
     private IEnumerable<TimeEntry> EntriesUnderEdit => IsActive.Keys;
 
@@ -139,6 +139,16 @@ public class WorkItemCommentViewModel : CommentViewModel
     }
 
     #endregion TimeRemaining
+
+    #region Create New Task
+
+    public string? NewTaskTitleInput { get; set; }
+    public string? NewTaskTitleInputValidationErrorMessage { get; set; }
+    public double NewTaskEstimateInput { get; set; }
+    public string? NewTaskEstimateInputValidationErrorMessage { get; set; }
+    
+
+    #endregion Create New Task
 
     #region Activation
 
