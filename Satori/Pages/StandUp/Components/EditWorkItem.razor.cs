@@ -95,6 +95,8 @@ public partial class EditWorkItem
 
     #endregion Add Work Item
 
+    #region Select Child Task
+
     public async Task SetWorkItemAsync(WorkItem workItem)
     {
         if (workItem.Type == WorkItemType.Unknown)
@@ -149,4 +151,40 @@ public partial class EditWorkItem
         await JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
     }
 
+    #endregion Select Child Task
+
+    #region Create New Task
+
+    private async Task CreateTaskKeyUpAsync(KeyboardEventArgs e)
+    {
+        if (e.Code.IsIn("Enter", "NumpadEnter"))
+        {
+            await CreateTaskAsync();
+        }
+    }
+
+
+    public async Task CreateTaskAsync()
+    {
+        if (!ValidateNewTask())
+        {
+            return;
+        }
+
+
+    }
+
+    private bool ValidateNewTask()
+    {
+        ViewModel.NewTaskTitleInputValidationErrorMessage = 
+            string.IsNullOrWhiteSpace(ViewModel.NewTaskTitleInput) ? "Title is required" : null;
+
+        ViewModel.NewTaskEstimateInputValidationErrorMessage = 
+            ViewModel.NewTaskEstimateInput <= 0 ? "Estimate must be greater than 0" : null;
+
+        return string.IsNullOrEmpty(ViewModel.NewTaskTitleInputValidationErrorMessage)
+            && string.IsNullOrEmpty(ViewModel.NewTaskEstimateInputValidationErrorMessage);
+    }
+
+    #endregion Create New Task
 }

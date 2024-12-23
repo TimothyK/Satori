@@ -60,7 +60,7 @@
 .update-remaining {
     margin-left: 25px;
 }
-.update-remaining input[type=number] {
+.number-box {
     width: 80px;
     font-size: 0.9em;
 }
