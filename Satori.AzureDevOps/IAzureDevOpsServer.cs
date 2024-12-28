@@ -20,6 +20,14 @@ public interface IAzureDevOpsServer
     /// <returns></returns>
     Task<WorkItem> PatchWorkItemAsync(int id, IEnumerable<WorkItemPatchItem> items);
 
+    /// <summary>
+    /// Creates a new Task
+    /// </summary>
+    /// <param name="project"></param>
+    /// <param name="items"></param>
+    /// <returns></returns>
+    Task<WorkItem> PostWorkItemAsync(Project project, IEnumerable<WorkItemPatchItem> items);
+
     Task<Team[]> GetTeamsAsync();
     Task<Iteration?> GetCurrentIterationAsync(Team team);
     Task<WorkItemLink[]> GetIterationWorkItemsAsync(IterationId iteration);
