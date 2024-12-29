@@ -18,9 +18,9 @@ public class PostTests
 
     private readonly ConnectionSettings _connectionSettings = Globals.Services.Scope.Resolve<ConnectionSettings>();
 
-    private Url GetUrl(Project project) =>
+    private Url GetUrl(string projectName) =>
         _connectionSettings.Url
-            .AppendPathSegment(project.Id)
+            .AppendPathSegment(projectName)
             .AppendPathSegment("_apis/wit/workItems")
             .AppendPathSegment("$Task")
             .AppendQueryParam("$expand", "all")
@@ -28,16 +28,16 @@ public class PostTests
 
     private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
 
-    private static readonly Project Project = new() { Id = Guid.NewGuid(), Name = "Skunk Works" };
+    private const string ProjectName = "Skunk Works";
 
     #endregion Arrange
 
     #region Act
 
-    private async Task<WorkItem> PostWorkItemAsync(Project project, IEnumerable<WorkItemPatchItem> fields, Func<HttpRequestMessage, bool> verifyRequest)
+    private async Task<WorkItem> PostWorkItemAsync(string projectName, IEnumerable<WorkItemPatchItem> fields, Func<HttpRequestMessage, bool> verifyRequest)
     {
         //Arrange
-        var url = GetUrl(project);
+        var url = GetUrl(projectName);
         var response = GetPayload();
         _mockHttp.Clear();
         _mockHttp
@@ -47,7 +47,7 @@ public class PostTests
         var srv = Globals.Services.Scope.Resolve<IAzureDevOpsServer>();
 
         //Act
-        return await srv.PostWorkItemAsync(project, fields);
+        return await srv.PostWorkItemAsync(projectName, fields);
     }
 
     private static string GetPayload()
@@ -103,7 +103,7 @@ public class PostTests
         };
 
         //Act
-        var result = await PostWorkItemAsync(Project, fields, VerifyRequest);
+        var result = await PostWorkItemAsync(ProjectName, fields, VerifyRequest);
 
         //Assert
         result.ShouldNotBeNull();
@@ -145,7 +145,7 @@ public class PostTests
         };
 
         //Act
-        var result = await PostWorkItemAsync(Project, fields, VerifyRequest);
+        var result = await PostWorkItemAsync(ProjectName, fields, VerifyRequest);
 
         //Assert
         result.ShouldNotBeNull();

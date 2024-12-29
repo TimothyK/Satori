@@ -26,7 +26,7 @@ public interface IAzureDevOpsServer
     /// <param name="project"></param>
     /// <param name="items"></param>
     /// <returns></returns>
-    Task<WorkItem> PostWorkItemAsync(Project project, IEnumerable<WorkItemPatchItem> items);
+    Task<WorkItem> PostWorkItemAsync(string projectName, IEnumerable<WorkItemPatchItem> items);
 
     Task<Team[]> GetTeamsAsync();
     Task<Iteration?> GetCurrentIterationAsync(Team team);

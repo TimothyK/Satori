@@ -97,13 +97,13 @@ public class AzureDevOpsServer(
         return [.. results];
     }
 
-    public async Task<WorkItem> PostWorkItemAsync(Project project, IEnumerable<WorkItemPatchItem> items) =>
-        await PostWorkItemAsync(project, items as WorkItemPatchItem[] ?? items.ToArray());
+    public async Task<WorkItem> PostWorkItemAsync(string projectName, IEnumerable<WorkItemPatchItem> items) =>
+        await PostWorkItemAsync(projectName, items as WorkItemPatchItem[] ?? items.ToArray());
 
-    private async Task<WorkItem> PostWorkItemAsync(Project project, WorkItemPatchItem[] items)
+    private async Task<WorkItem> PostWorkItemAsync(string projectName, WorkItemPatchItem[] items)
     {
         var url = ConnectionSettings.Url
-            .AppendPathSegment(project.Id)
+            .AppendPathSegment(projectName)
             .AppendPathSegment("_apis/wit/workItems")
             .AppendPathSegment("$Task")
             .AppendQueryParam("$expand", "all")
