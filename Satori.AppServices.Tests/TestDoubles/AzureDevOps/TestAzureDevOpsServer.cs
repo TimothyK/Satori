@@ -111,7 +111,7 @@ internal class TestAzureDevOpsServer
         OnGetWorkItems?.Invoke(workItemIds);
     }
 
-    public Action<IEnumerable<int>> OnGetWorkItems { get; set; }
+    public Action<IEnumerable<int>>? OnGetWorkItems { get; set; }
 
     public bool Enabled { get; set; } = true;
 
