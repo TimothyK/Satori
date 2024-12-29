@@ -30,9 +30,11 @@ namespace Satori.AppServices.Services.Converters
             {
                 Id = id,
                 Title = wi.Fields.Title,
+                ProjectName = wi.Fields.ProjectName,
                 AssignedTo = wi.Fields.AssignedTo,
                 CreatedBy = wi.Fields.CreatedBy,
                 CreatedDate = wi.Fields.SystemCreatedDate,
+                AreaPath = wi.Fields.AreaPath,
                 IterationPath = wi.Fields.IterationPath ?? string.Empty,
                 AbsolutePriority = wi.Fields.BacklogPriority > 0.0 ? wi.Fields.BacklogPriority : double.MaxValue,
                 Type = WorkItemType.FromApiValue(wi.Fields.WorkItemType),
@@ -48,6 +50,7 @@ namespace Satori.AppServices.Services.Converters
                 Url = UriParser.GetAzureDevOpsOrgUrl(wi.Url)
                     .AppendPathSegment("_workItems/edit")
                     .AppendPathSegment(id),
+                ApiUrl = wi.Url,
                 Children = GetChildren(wi.Relations),
             };
 
@@ -74,9 +77,13 @@ namespace Satori.AppServices.Services.Converters
             {
                 Id = workItemId.Value,
                 Title = $"Work Item {workItemId}",
+                ProjectName = "TeamProject",
                 Url = azureDevOpsOrgUrl
                     .AppendPathSegment("_workItems/edit")
                     .AppendPathSegment(workItemId.Value),
+                ApiUrl = azureDevOpsOrgUrl
+                    .AppendPathSegment("_apis/wit/workItems")
+                    .AppendPathSegment(workItemId),
                 AssignedTo = Person.Empty,
                 CreatedBy = Person.Empty,
                 Type = WorkItemType.Unknown,

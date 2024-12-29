@@ -171,7 +171,12 @@ public partial class EditWorkItem
             return;
         }
 
+        var workItem = ViewModel.WorkItem ?? throw new InvalidOperationException("Work Item is undefined");
+        var title = ViewModel.NewTaskTitleInput ?? throw new InvalidOperationException("Title is undefined");
+        var estimate = ViewModel.NewTaskEstimateInput;
 
+        var task = await StandUpService.CreateTaskAsync(workItem, title, estimate);
+        await SetWorkItemAsync(task);
     }
 
     private bool ValidateNewTask()

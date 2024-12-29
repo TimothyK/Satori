@@ -6,10 +6,22 @@ public class WorkItem
 {
     public int Id { get; set; }
     public string? Title { get; init; }
+    /// <summary>
+    /// Azure DevOps Team Project name
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This value is often used in the URL after the Organization name.
+    /// e.g. https://dev.azure.com/{Organization}/{ProjectName}/...
+    /// </para>
+    /// </remarks>
+    public required string ProjectName { get; init; }
     public required string Url { get; init; }
+    public required string ApiUrl { get; init; }
     public required Person AssignedTo { get; init; }
     public required Person CreatedBy { get; init; }
     public DateTimeOffset CreatedDate { get; init; }
+    public string? AreaPath { get; init; }
     public string? IterationPath { get; init; }
     public required WorkItemType Type { get; init; }
     public required ScrumState State { get; init; }
@@ -19,6 +31,9 @@ public class WorkItem
     public TimeSpan? OriginalEstimate { get; init; }
     public TimeSpan? CompletedWork { get; set; }
     public TimeSpan? RemainingWork { get; set; }
+    /// <summary>
+    /// Azure DevOps custom extended property to track the Kimai project number
+    /// </summary>
     public string? ProjectCode { get; init; }
 
     public WorkItem? Parent { get; set; }

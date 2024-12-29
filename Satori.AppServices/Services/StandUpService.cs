@@ -13,9 +13,11 @@ using Satori.Kimai.Models;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using Satori.AzureDevOps.Models;
 using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
 using TimeEntry = Satori.AppServices.ViewModels.DailyStandUps.TimeEntry;
 using UriFormatException = System.UriFormatException;
+using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.Services;
 
@@ -339,7 +341,9 @@ public partial class StandUpService(
         {
             Id = id,
             Title = title.Trim(),
+            ProjectName = "TeamProject",
             Url = azureDevOps.ConnectionSettings.Url.AppendPathSegments("_workItems", "edit", id),
+            ApiUrl = azureDevOps.ConnectionSettings.Url.AppendPathSegments("_apis/wit/workItems", id),
             AssignedTo = Person.Empty,
             CreatedBy = Person.Empty,
             Type = WorkItemType.Unknown,
@@ -730,4 +734,61 @@ public partial class StandUpService(
     }
 
     #endregion Export
+
+    #region Create Task
+
+    public async Task<WorkItem> CreateTaskAsync(WorkItem parent, string title, double estimate)
+    {
+        var fields = await BuildFieldsAsync(parent, title, estimate);
+
+        var task = (await azureDevOps.PostWorkItemAsync(parent.ProjectName, fields)).ToViewModel();
+        task = await SetInProgressAsync(task);
+        
+        task.Parent = parent;
+        parent.Children.Add(task);
+
+        return task;
+    }
+
+    private async Task<List<WorkItemPatchItem>> BuildFieldsAsync(WorkItem parent, string title, double estimate)
+    {
+        var me = await userService.GetCurrentUserAsync();
+
+        var relation = new Dictionary<string, object>()
+        {
+            { "rel", "System.LinkTypes.Hierarchy-Reverse" },
+            { "url", parent.ApiUrl},
+        };
+
+        var fields = new List<WorkItemPatchItem>()
+        {
+            new() { Operation = Operation.Add, Path = "/fields/System.Title", Value = title },
+            new() { Operation = Operation.Add, Path = "/fields/System.AssignedTo", Value = me.DisplayName },
+            new() { Operation = Operation.Add, Path = "/fields/Microsoft.VSTS.Scheduling.OriginalEstimate", Value = estimate },
+            new() { Operation = Operation.Add, Path = "/fields/Microsoft.VSTS.Scheduling.RemainingWork", Value = estimate },
+            new() { Operation = Operation.Add, Path = "/relations/-", Value = relation },
+        };
+        if (!string.IsNullOrEmpty(parent.AreaPath))
+        {
+            fields.Add(new WorkItemPatchItem { Operation = Operation.Add, Path = "/fields/System.AreaPath", Value = parent.AreaPath });
+        }
+        if (!string.IsNullOrEmpty(parent.IterationPath))
+        {
+            fields.Add(new WorkItemPatchItem { Operation = Operation.Add, Path = "/fields/System.IterationPath", Value = parent.IterationPath });
+        }
+
+        return fields;
+    }
+
+    private async Task<WorkItem> SetInProgressAsync(WorkItem task)
+    {
+        var fields = new List<WorkItemPatchItem>()
+        {
+            new() { Operation = Operation.Add, Path = "/fields/System.State", Value = ScrumState.InProgress.ToApiValue() },
+        };
+
+        return (await azureDevOps.PatchWorkItemAsync(task.Id, fields)).ToViewModel();
+    }
+
+    #endregion Create Task
 }
