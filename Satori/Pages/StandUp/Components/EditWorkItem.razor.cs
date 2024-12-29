@@ -175,7 +175,7 @@ public partial class EditWorkItem
         var title = ViewModel.NewTaskTitleInput ?? throw new InvalidOperationException("Title is undefined");
         var estimate = ViewModel.NewTaskEstimateInput;
 
-        var task = await StandUpService.CreateTaskAsync(workItem, title, estimate);
+        var task = await WorkItemUpdateService.CreateTaskAsync(workItem, title, estimate);
         await SetWorkItemAsync(task);
     }
 
