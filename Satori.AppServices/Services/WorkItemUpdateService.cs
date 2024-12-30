@@ -1,4 +1,5 @@
-﻿using Satori.AppServices.Services.Converters;
+﻿using Satori.AppServices.Extensions;
+using Satori.AppServices.Services.Converters;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
@@ -36,6 +37,7 @@ public class WorkItemUpdateService(
             { "url", parent.ApiUrl},
         };
 
+        estimate = estimate.ToNearest(0.1);
         var fields = new List<WorkItemPatchItem>()
         {
             new() { Operation = Operation.Add, Path = "/fields/System.Title", Value = title },
@@ -61,6 +63,7 @@ public class WorkItemUpdateService(
         var fields = new List<WorkItemPatchItem>()
         {
             new() { Operation = Operation.Add, Path = "/fields/System.State", Value = ScrumState.InProgress.ToApiValue() },
+            new() { Operation = Operation.Test, Path = "/rev", Value = task.Rev },
         };
 
         return (await azureDevOps.PatchWorkItemAsync(task.Id, fields)).ToViewModel();

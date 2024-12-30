@@ -246,6 +246,22 @@ public class SprintWorkItemTests
     }
     
     [TestMethod]
+    public void Rev()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        var revision = RandomGenerator.Integer(100);
+        workItem.Rev = revision;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().Rev.ShouldBe(revision);
+    }
+
+    [TestMethod]
     public void AssignedTo()
     {
         //Arrange

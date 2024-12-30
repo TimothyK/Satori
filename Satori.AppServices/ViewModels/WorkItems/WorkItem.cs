@@ -5,6 +5,7 @@ namespace Satori.AppServices.ViewModels.WorkItems;
 public class WorkItem
 {
     public int Id { get; set; }
+    public int Rev { get; set; }
     public string? Title { get; init; }
     /// <summary>
     /// Azure DevOps Team Project name

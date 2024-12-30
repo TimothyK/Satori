@@ -19,11 +19,11 @@ public class LinkType
 
     #region Members
 
-    public static readonly LinkType IsParentOf = new(nameof(IsParentOf), "IsParentOf");
-    public static readonly LinkType IsChildOf = new(nameof(IsChildOf), "IsChildOf");
-    public static readonly LinkType IsRelatedTo = new(nameof(IsRelatedTo), "IsRelatedTo");
-    public static readonly LinkType IsSuccessorOf = new(nameof(IsSuccessorOf), "IsSuccessorOf");
-    public static readonly LinkType IsPredecessorOf = new(nameof(IsPredecessorOf), "IsPredecessorOf");
+    public static readonly LinkType IsParentOf = new(nameof(IsParentOf), "System.LinkTypes.Hierarchy-Forward");
+    public static readonly LinkType IsChildOf = new(nameof(IsChildOf), "System.LinkTypes.Hierarchy-Reverse");
+    public static readonly LinkType IsRelatedTo = new(nameof(IsRelatedTo), "TBD-IsRelatedTo");
+    public static readonly LinkType IsSuccessorOf = new(nameof(IsSuccessorOf), "TBD-IsSuccessorOf");
+    public static readonly LinkType IsPredecessorOf = new(nameof(IsPredecessorOf), "TBD-IsPredecessorOf");
     public static readonly LinkType Other = new(nameof(Other), "O");
 
     #endregion

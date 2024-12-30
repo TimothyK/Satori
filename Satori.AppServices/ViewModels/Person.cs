@@ -129,6 +129,14 @@ public class Person
         }
     }
 
+    public static Person? FromDisplayName(string displayName)
+    {
+        lock (PeopleLock)
+        {
+            return People.Values.SingleOrDefault(p => p.DisplayName == displayName);
+        }
+    }
+
     /// <summary>
     /// Gets a unique ID for a user.  This id is used for caching of the Person.  See <see cref="People"/>.
     /// </summary>
@@ -152,7 +160,7 @@ public class Person
         return azDoIdentity?.Id ?? IntToGuid(kimaiUser?.Id);
     }
 
-    public static Guid IntToGuid(int? value)
+    private static Guid IntToGuid(int? value)
     {
         if (value == null)
         {

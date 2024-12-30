@@ -7,8 +7,11 @@ using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 using Shouldly;
 using System.Reflection;
+using System.Security.Principal;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Satori.AppServices.ViewModels.WorkItems;
+using WorkItem = Satori.AzureDevOps.Models.WorkItem;
 
 namespace Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 
@@ -92,6 +95,9 @@ internal class TestAzureDevOpsServer
         _mock.Setup(srv => srv.PatchWorkItemAsync(It.IsAny<int>(), It.IsAny<IEnumerable<WorkItemPatchItem>>()))
             .ReturnsAsync((int id, IEnumerable<WorkItemPatchItem> items) => PatchWorkItems(id, items));
 
+        _mock.Setup(srv => srv.PostWorkItemAsync(It.IsAny<string>(), It.IsAny<IEnumerable<WorkItemPatchItem>>()))
+            .ReturnsAsync((string projectName, IEnumerable<WorkItemPatchItem> items) => PostWorkItems(projectName, items));
+
         return;
         IdMap[] GetWorkItemMap(PullRequestId pullRequest)
         {
@@ -119,6 +125,23 @@ internal class TestAzureDevOpsServer
 
     public Identity Identity { get; set; }
 
+    private WorkItem PostWorkItems(string projectName, IEnumerable<WorkItemPatchItem> postItems)
+    {
+        var builder = new AzureDevOpsDatabaseBuilder(_database);
+        builder.BuildWorkItem(out var workItem);
+        workItem.Fields.ProjectName = projectName;
+        workItem.Rev = 1;
+
+        var patchItems = postItems.ToList();
+        patchItems.Add(new WorkItemPatchItem
+        {
+            Operation = Operation.Test, 
+            Path = "/rev", 
+            Value = workItem.Rev
+        });
+
+        return PatchWorkItems(workItem.Id, patchItems);
+    }
 
     private WorkItem PatchWorkItems(int id, IEnumerable<WorkItemPatchItem> items)
     {
@@ -151,7 +174,30 @@ internal class TestAzureDevOpsServer
         return workItem;
     }
 
-    private static void PatchWorkItem(WorkItem workItem, WorkItemPatchItem item)
+    private void PatchWorkItem(WorkItem workItem, WorkItemPatchItem item)
+    {
+        try
+        {
+            if (item.Path.StartsWith("/fields/"))
+            {
+                PatchField(workItem, item);
+            }
+            else if (item.Path == "/relations/-")
+            {
+                PatchRelation(workItem, item);
+            }
+            else
+            {
+                throw new NotSupportedException($"Unsupported path {item.Path}");
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new NotSupportedException($"D#{workItem.Id} cannot have its {item.Path} property set to {item.Value}.  {ex.Message}", ex);
+        }
+    }
+
+    private static void PatchField(WorkItem workItem, WorkItemPatchItem item)
     {
         if (!item.Path.StartsWith("/fields/"))
         {
@@ -163,7 +209,74 @@ internal class TestAzureDevOpsServer
             .SingleOrDefault(p => p.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name == propertyName)
             ?? throw new InvalidOperationException($"Unknown path {item.Path}");
 
+        if (property.PropertyType == typeof(User))
+        {
+            var user = GetUser(item.Value.ToString());
+            property.SetValue(workItem.Fields, user);
+            return;
+        }
+
         property.SetValue(workItem.Fields, item.Value);
+    }
+
+    private static User? GetUser(string? userDisplayName)
+    {
+        if (string.IsNullOrEmpty(userDisplayName))
+        {
+            return null;
+        }
+
+        var person = Person.FromDisplayName(userDisplayName);
+        if (person == null)
+        {
+            throw new InvalidOperationException($"User {userDisplayName} is unknown");
+        }
+
+        var user = new User()
+        {
+            DisplayName = person.DisplayName,
+            Id = person.AzureDevOpsId,
+            ImageUrl = person.AvatarUrl.ToString(),
+            UniqueName = person.DomainLogin ?? string.Empty,
+            Url = "https://azureDevOps.test/Org/Id?id=" + person.AzureDevOpsId,
+        };
+        return user;
+    }
+
+    private void PatchRelation(WorkItem workItem, WorkItemPatchItem item)
+    {
+        var relationEnvelope =(Dictionary<string, object>) item.Value;
+
+        var linkType = LinkType.FromApiValue(relationEnvelope["rel"].ToString() ?? throw new InvalidOperationException("rel unknown"));
+        
+        var relatedWorkItemUrl = new Uri(relationEnvelope["url"].ToString() ?? throw new InvalidOperationException("url unknown"));
+        var relatedWorkItem = GetWorkItemFromUrl(relatedWorkItemUrl);
+
+        _database.AddWorkItemLink(workItem, linkType, relatedWorkItem);
+    }
+
+    private WorkItem GetWorkItemFromUrl(Uri relatedWorkItemUrl)
+    {
+        var relatedWorkItemId = GetLastPathSegment(relatedWorkItemUrl);
+
+        if (!int.TryParse(relatedWorkItemId, out var id))
+        {
+            throw new InvalidOperationException("Url does not end in an integer");
+        }
+
+        return _database.GetWorkItemsById(id.Yield()).SingleOrDefault() 
+               ?? throw new InvalidOperationException("Related work item ID not found");
+    }
+
+    public static string GetLastPathSegment(Uri uri)
+    {
+        var segments = uri.Segments;
+        if (segments.Length == 0)
+        {
+            throw new InvalidOperationException("The URI does not contain any path segments.");
+        }
+
+        return segments.Last().TrimEnd('/');
     }
 
     public IAzureDevOpsServer AsInterface() => _mock.Object;
