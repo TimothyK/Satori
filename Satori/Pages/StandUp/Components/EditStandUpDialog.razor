@@ -1,14 +1,12 @@
 ﻿@using Satori.AppServices.Extensions
 @using Satori.AppServices.Models
-@using Satori.AppServices.ViewModels.DailyStandUps
 @using Satori.Pages.StandUp.Components.ViewModels
-@using Satori.Utilities
 
 @inject IConnectionSettingsStore ConnectionSettingsStore
 
-@if (IsRelease())
+@if (IsFeatureFlagEnabled())
 {
-    return; //Not Implement Yet - feature flag
+    return; //Not 100% Implemented Yet
 }
 
 @if(TimeEntries.Length == 0)
@@ -116,52 +114,9 @@
             </div>
         </div>
         <div class="dialog-buttonbar">
-            <button type="button" class="btn btn-outline-primary btn-priority" @onclick="SaveClick" title="Save changes">Save</button>
+            <button type="button" class="btn btn-outline-primary btn-priority" @onclick="SaveClickAsync" title="Save changes">Save</button>
             <button type="button" class="btn btn-outline-secondary btn-priority" @onclick="CloseClick" title="Exit with no changes">Cancel</button>
         </div>
     </div>
 </div>
 
-@code {
-    [Parameter]
-    public required TimeEntry[] TimeEntries { get; set; }
-
-    [Parameter]
-    public EventCallback OnSaved { get; set; }
-
-
-    public VisibleCssClass DialogVisible { get; set; } = VisibleCssClass.Hidden;
-
-    private void CloseClick()
-    {
-        //On cancel - reset the ViewModel
-        Comments = BuildComments();
-
-        //Close the dialog
-        DialogVisible = VisibleCssClass.Hidden;
-    }
-
-    private Task SaveClick()
-    {
-        //TODO: Save changes
-
-        DialogVisible = VisibleCssClass.Hidden;
-        return Task.CompletedTask;
-    }
-
-    private void ShowDialog()
-    {
-        DialogVisible = VisibleCssClass.Visible;
-    }
-
-    private bool IsRelease()
-    {
-#if DEBUG
-        return false;
-#else
-        return true;
-#endif
-
-    }
-
-}

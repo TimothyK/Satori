@@ -3,11 +3,15 @@ using Microsoft.AspNetCore.Components;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.Pages.StandUp.Components.ViewModels;
 using Satori.Pages.StandUp.Components.ViewModels.Models;
+using Satori.Utilities;
 
 namespace Satori.Pages.StandUp.Components;
 
 public partial class EditStandUpDialog
 {
+    [Parameter]
+    public required TimeEntry[] TimeEntries { get; set; }
+
     private ActivitySummary Activity { get; set; } = null!;
     private ProjectSummary Project { get; set; } = null!;
     private PeriodSummary Period => Project.ParentDay.ParentPeriod;
@@ -94,6 +98,48 @@ public partial class EditStandUpDialog
             .Select(x => (type, x));
     }
 
+    #region Save/Close Dialog
+
+    [Parameter]
+    public EventCallback OnSaved { get; set; }
+
+    public VisibleCssClass DialogVisible { get; set; } = VisibleCssClass.Hidden;
+
+    private static bool IsFeatureFlagEnabled()
+    {
+#if DEBUG
+        return false;
+#else
+        return true;
+#endif
+    }
+
+    private void ShowDialog()
+    {
+        DialogVisible = VisibleCssClass.Visible;
+    }
+
+    private void CloseClick()
+    {
+        //On cancel - reset the ViewModel
+        Comments = BuildComments();
+
+        //Close the dialog
+        DialogVisible = VisibleCssClass.Hidden;
+    }
+
+    private Task SaveClickAsync()
+    {
+        //TODO: Save changes
+
+        DialogVisible = VisibleCssClass.Hidden;
+        return Task.CompletedTask;
+    }
+
+    #endregion Save/Close Dialog
+
+    #region Add Comment
+
     private void AddComment(CommentType type)
     {
         var comment = type == CommentType.WorkItem
@@ -138,6 +184,8 @@ public partial class EditStandUpDialog
 
         await base.OnAfterRenderAsync(firstRender);
     }
+
+    #endregion
 
     private IEnumerable<CommentType> AllCommentTypes()
     {
