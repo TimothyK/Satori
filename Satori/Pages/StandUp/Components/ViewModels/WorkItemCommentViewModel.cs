@@ -144,10 +144,7 @@ public class WorkItemCommentViewModel : CommentViewModel
 
     public string? NewTaskTitleInput { get; set; }
     public string? NewTaskTitleInputValidationErrorMessage { get; set; }
-    public double NewTaskEstimateInput { get; set; }
-    public string? NewTaskEstimateInputValidationErrorMessage { get; set; }
     
-
     #endregion Create New Task
 
     #region Activation

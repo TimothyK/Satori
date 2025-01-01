@@ -173,7 +173,13 @@ public partial class EditWorkItem
 
         var workItem = ViewModel.WorkItem ?? throw new InvalidOperationException("Work Item is undefined");
         var title = ViewModel.NewTaskTitleInput ?? throw new InvalidOperationException("Title is undefined");
-        var estimate = ViewModel.NewTaskEstimateInput;
+        
+        var remainingTime = ViewModel.TimeRemainingInput;
+        var selectedTime = ViewModel.IsActive.Keys
+            .Where(key => ViewModel.IsActive[key])
+            .Select(entry => entry.TotalTime)
+            .Sum();
+        var estimate = remainingTime + selectedTime.TotalHours;
 
         var task = await WorkItemUpdateService.CreateTaskAsync(workItem, title, estimate);
         await SetWorkItemAsync(task);
@@ -184,11 +190,7 @@ public partial class EditWorkItem
         ViewModel.NewTaskTitleInputValidationErrorMessage = 
             string.IsNullOrWhiteSpace(ViewModel.NewTaskTitleInput) ? "Title is required" : null;
 
-        ViewModel.NewTaskEstimateInputValidationErrorMessage = 
-            ViewModel.NewTaskEstimateInput <= 0 ? "Estimate must be greater than 0" : null;
-
-        return string.IsNullOrEmpty(ViewModel.NewTaskTitleInputValidationErrorMessage)
-            && string.IsNullOrEmpty(ViewModel.NewTaskEstimateInputValidationErrorMessage);
+        return string.IsNullOrEmpty(ViewModel.NewTaskTitleInputValidationErrorMessage);
     }
 
     #endregion Create New Task
