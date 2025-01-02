@@ -7,11 +7,6 @@
 @inject StandUpService StandUpService
 @inject WorkItemUpdateService WorkItemUpdateService
 
-@if (IsFeatureFlagEnabled())
-{
-    return; //Not 100% Implemented Yet
-}
-
 @if(TimeEntries.Length == 0)
 {
     return;

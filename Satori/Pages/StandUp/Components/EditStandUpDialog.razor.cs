@@ -105,15 +105,6 @@ public partial class EditStandUpDialog
 
     public VisibleCssClass DialogVisible { get; set; } = VisibleCssClass.Hidden;
 
-    private static bool IsFeatureFlagEnabled()
-    {
-#if DEBUG
-        return false;
-#else
-        return true;
-#endif
-    }
-
     private void ShowDialog()
     {
         DialogVisible = VisibleCssClass.Visible;
