@@ -29,6 +29,10 @@ internal class TestKimaiServer
         _mock.Setup(srv => srv.ExportTimeSheetAsync(It.IsAny<int>()))
             .Callback((int id) => MarkAsExported(id))
             .Returns(Task.CompletedTask);
+
+        _mock.Setup(srv => srv.UpdateTimeEntryDescriptionAsync(It.IsAny<int>(), It.IsAny<string>()))
+            .Callback((int id, string description) => UpdateDescription(id, description))
+            .Returns(Task.CompletedTask);
     }
 
     public bool Enabled { get; set; } = true;
@@ -97,4 +101,11 @@ internal class TestKimaiServer
         entry.Exported = true;
     }
 
+    private void UpdateDescription(int id, string description)
+    {
+        var entry = TimeSheet.SingleOrDefault(x => x.Id == id)
+                    ?? throw new InvalidOperationException($"Id {id} not found");
+
+        entry.Description = description;
+    }
 }
