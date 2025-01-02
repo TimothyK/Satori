@@ -128,12 +128,29 @@ public partial class EditStandUpDialog
         DialogVisible = VisibleCssClass.Hidden;
     }
 
-    private Task SaveClickAsync()
+    private async Task SaveClickAsync()
     {
-        //TODO: Save changes
+        await SaveAzureDevOpsTaskAsync();
+        //await SaveKimaiTimeEntriesAsync();
+        //UpdateViewModel();
 
         DialogVisible = VisibleCssClass.Hidden;
-        return Task.CompletedTask;
+    }
+
+    private async Task SaveAzureDevOpsTaskAsync()
+    {
+        foreach (var comment in Comments.OfType<WorkItemCommentViewModel>().Where(x => x.WorkItem != null))
+        {
+            var workItem = comment.WorkItem ?? throw new InvalidOperationException();
+            var remainingTime = comment.SelectedTime + TimeSpan.FromHours(comment.TimeRemainingInput);
+
+            await WorkItemUpdateService.UpdateTaskAsync(workItem, comment.State, remainingTime);
+        }
+    }
+
+    private async Task SaveKimaiTimeEntriesAsync()
+    {
+        throw new NotImplementedException();
     }
 
     #endregion Save/Close Dialog

@@ -1,8 +1,10 @@
 ﻿@using Satori.AppServices.Extensions
 @using Satori.AppServices.Models
+@using Satori.AppServices.Services
 @using Satori.Pages.StandUp.Components.ViewModels
 
 @inject IConnectionSettingsStore ConnectionSettingsStore
+@inject WorkItemUpdateService WorkItemUpdateService
 
 @if (IsFeatureFlagEnabled())
 {
