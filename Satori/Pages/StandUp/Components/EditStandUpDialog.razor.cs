@@ -131,10 +131,10 @@ public partial class EditStandUpDialog
     private async Task SaveClickAsync()
     {
         await SaveAzureDevOpsTaskAsync();
-        //await SaveKimaiTimeEntriesAsync();
-        //UpdateViewModel();
+        await SaveKimaiTimeEntriesAsync();
 
         DialogVisible = VisibleCssClass.Hidden;
+        await OnSaved.InvokeAsync();
     }
 
     private async Task SaveAzureDevOpsTaskAsync()
@@ -150,7 +150,19 @@ public partial class EditStandUpDialog
 
     private async Task SaveKimaiTimeEntriesAsync()
     {
-        throw new NotImplementedException();
+        var newDescriptionMap = TimeEntries.ToDictionary(entry => entry.Id, GetTimeEntryDescription);
+
+        await StandUpService.UpdateTimeEntryDescriptionAsync(Project.ParentDay, newDescriptionMap);
+    }
+
+    private string GetTimeEntryDescription(TimeEntry entry)
+    {
+        var comments = Comments
+            .Where(comment => comment.IsActive[entry])
+            .OrderBy(comment => comment.Type)
+            .SelectWhereHasValue(comment => comment.KimaiDescription?.Trim())
+            .Distinct();
+        return string.Join("\r\n", comments);
     }
 
     #endregion Save/Close Dialog

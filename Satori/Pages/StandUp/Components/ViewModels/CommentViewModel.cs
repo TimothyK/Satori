@@ -29,6 +29,10 @@ public class CommentViewModel
     public CommentType Type { get; set; }
     public string? Text { get; set; }
 
+    public virtual string? KimaiDescription => 
+        Type == CommentType.Other ? Text 
+            : $"{Type.Icon}{Text}";
+
     public Dictionary<TimeEntry, SelectionActiveCssClass> IsActive { get; }
 
     public virtual Task ToggleActiveAsync(TimeEntry timeEntry)

@@ -68,6 +68,11 @@ public class WorkItemCommentViewModel : CommentViewModel
         TimeRemainingInput = TimeRemaining?.TotalHours.ToNearest(0.1) ?? 0.0;
     }
 
+    public override string? KimaiDescription => 
+        WorkItem == null ? null
+        : WorkItem.Parent == null ? $"D#{WorkItem.Id} {WorkItem.Title}"
+        : $"D#{WorkItem.Parent.Id} {WorkItem.Parent.Title} » D#{WorkItem.Id} {WorkItem.Title}";
+
     public IEnumerable<WorkItem> Children
     {
         get
