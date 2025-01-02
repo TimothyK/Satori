@@ -1,4 +1,5 @@
-﻿using Satori.AppServices.Extensions;
+﻿using CodeMonkeyProjectiles.Linq;
+using Satori.AppServices.Extensions;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps;
@@ -72,4 +73,51 @@ public class WorkItemUpdateService(
     #endregion Create Task
 
 
+    #region Update Task
+
+    public async Task<WorkItem> UpdateTaskAsync(WorkItem task, ScrumState state, TimeSpan? remaining = null)
+    {
+        if (task.Type != WorkItemType.Task)
+        {
+            return task;
+        }
+
+        var fields = new List<WorkItemPatchItem>();
+
+        if (state != task.State)
+        {
+            fields.Add(new WorkItemPatchItem
+            {
+                Operation = Operation.Add, 
+                Path = "/fields/System.State", 
+                Value = state.ToApiValue() 
+            });
+        }
+
+        if (state.IsIn(ScrumState.New, ScrumState.InProgress) && remaining != null)
+        {
+            remaining = remaining.Value.ToNearest(TimeSpan.FromMinutes(6));
+            if (remaining != task.RemainingWork)
+            {
+                fields.Add(new WorkItemPatchItem
+                {
+                    Operation = Operation.Add, 
+                    Path = "/fields/Microsoft.VSTS.Scheduling.RemainingWork", 
+                    Value = remaining .Value.TotalHours
+                });
+            }
+        }
+
+        if (fields.None())
+        {
+            //Nothing to update
+            return task;
+        }
+
+        fields.Add(new WorkItemPatchItem() { Operation = Operation.Test, Path = "/rev", Value = task.Rev });
+
+        return (await azureDevOps.PatchWorkItemAsync(task.Id, fields)).ToViewModel();
+    }
+
+    #endregion Update Task
 }
