@@ -175,10 +175,7 @@ public partial class EditWorkItem
         var title = ViewModel.NewTaskTitleInput ?? throw new InvalidOperationException("Title is undefined");
         
         var remainingTime = ViewModel.TimeRemainingInput;
-        var selectedTime = ViewModel.IsActive.Keys
-            .Where(key => ViewModel.IsActive[key])
-            .Select(entry => entry.TotalTime)
-            .Sum();
+        var selectedTime = ViewModel.SelectedTime;
         var estimate = remainingTime + selectedTime.TotalHours;
 
         var task = await WorkItemUpdateService.CreateTaskAsync(workItem, title, estimate);

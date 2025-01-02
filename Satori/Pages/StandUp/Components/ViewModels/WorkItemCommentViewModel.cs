@@ -125,18 +125,19 @@ public class WorkItemCommentViewModel : CommentViewModel
             return;
         }
 
-        var selectedTime = EntriesUnderEdit
-            .Where(entry => IsActive[entry])
-            .Select(entry => entry.TotalTime)
-            .Sum();
-
         var updateInput = Math.Abs((TimeRemaining?.TotalHours ?? 0.0) - TimeRemainingInput) < 0.1;
-        TimeRemaining = WorkItem?.RemainingWork - UnexportedTime - selectedTime;
+        TimeRemaining = WorkItem?.RemainingWork - UnexportedTime - SelectedTime;
         if (updateInput)
         {
             TimeRemainingInput = TimeRemaining?.TotalHours.ToNearest(0.1) ?? 0.0;
         }
     }
+
+    public TimeSpan SelectedTime =>
+        EntriesUnderEdit
+            .Where(entry => IsActive[entry])
+            .Select(entry => entry.TotalTime)
+            .Sum();
 
     #endregion TimeRemaining
 
