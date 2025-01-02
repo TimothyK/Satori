@@ -17,4 +17,6 @@ public interface IKimaiServer
     /// <param name="id">Kimai ID of the time entry record</param>
     /// <returns></returns>
     Task ExportTimeSheetAsync(int id);
+
+    Task UpdateTimeEntryDescriptionAsync(int id, string description);
 }
