@@ -108,6 +108,16 @@ public class WorkItemUpdateService(
             }
         }
 
+        if (task.OriginalEstimate == null && remaining != null)
+        {
+            fields.Add(new WorkItemPatchItem
+            {
+                Operation = Operation.Add, 
+                Path = "/fields/Microsoft.VSTS.Scheduling.OriginalEstimate", 
+                Value = remaining.Value.TotalHours
+            });
+        }
+
         if (fields.None())
         {
             //Nothing to update

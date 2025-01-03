@@ -159,6 +159,46 @@ public class UpdateTaskTests
     }
 
     [TestMethod]
+    public async Task OriginalEstimate_Updated()
+    {
+        //Arrange
+        var task = BuildTask(t =>
+        {
+            t.Fields.State = ScrumState.New.ToApiValue();
+            t.Fields.OriginalEstimate = null;
+            t.Fields.RemainingWork = null;
+        });
+        var remaining = RandomGenerator.TimeSpan(TimeSpan.FromHours(2.5))
+            .ToNearest(TimeSpan.FromMinutes(6));
+
+        //Act
+        var actual = await UpdateTaskAsync(task, task.State, remaining);
+
+        //Assert
+        actual.ShouldNotBeNull();
+        actual.Rev.ShouldBe(task.Rev + 1);
+        actual.State.ShouldBe(task.State);
+        actual.OriginalEstimate.ShouldBe(remaining);
+        actual.RemainingWork.ShouldBe(remaining);
+    }
+    
+    [TestMethod]
+    public async Task OriginalEstimate_HasValue_NotUpdated()
+    {
+        //Arrange
+        var task = BuildTask();
+        var expected = task.OriginalEstimate;
+        var remaining = (task.RemainingWork ?? throw new InvalidOperationException())
+            .Add(TimeSpan.FromHours(1.5));
+
+        //Act
+        var actual = await UpdateTaskAsync(task, task.State, remaining);
+
+        //Assert
+        actual.OriginalEstimate.ShouldBe(expected);
+    }
+
+    [TestMethod]
     public async Task State_ToDo_Updated()
     {
         //Arrange

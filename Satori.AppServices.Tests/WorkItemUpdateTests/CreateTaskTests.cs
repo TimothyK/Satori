@@ -90,6 +90,27 @@ public class CreateTaskTests
         task.OriginalEstimate.ShouldNotBeNull();
         task.OriginalEstimate.Value.TotalHours.ShouldBe(expected);
     }
+    
+    [TestMethod]
+    public async Task Remaining_SameAsOriginalEstimate()
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem(out var parent);
+        
+        var title = RandomGenerator.String();
+        const double precision = 0.1;
+        var expected = RandomGenerator.Number(2.5).ToNearest(precision);
+        var estimate = expected + 0.034;
+
+        //Act
+        var task = await CreateTaskAsync(parent.ToViewModel(), title, estimate);
+
+        //Assert
+        task.OriginalEstimate.ShouldNotBeNull();
+        task.OriginalEstimate.Value.TotalHours.ShouldBe(expected);
+        task.RemainingWork.ShouldNotBeNull();
+        task.RemainingWork.Value.TotalHours.ShouldBe(expected);
+    }
 
     [TestMethod]
     public async Task AssignedToMe()
