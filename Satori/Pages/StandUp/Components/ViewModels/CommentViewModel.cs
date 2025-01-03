@@ -48,7 +48,7 @@ public class CommentViewModel
 
     public event EventHandler? HasChanged;
 
-    protected void OnHasChanged()
+    protected virtual void OnHasChanged()
     {
         HasChanged?.Invoke(this, EventArgs.Empty);
     }

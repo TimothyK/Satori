@@ -67,6 +67,7 @@ public class WorkItemCommentViewModel : CommentViewModel
 
         SetTimeRemaining();
         TimeRemainingInput = TimeRemaining?.TotalHours.ToNearest(0.1) ?? 0.0;
+        OnHasChanged();
     }
 
     public override string? KimaiDescription => 
@@ -101,13 +102,24 @@ public class WorkItemCommentViewModel : CommentViewModel
     {
         State = state;
         SetTimeRemaining();
+        OnHasChanged();
     }
 
     #endregion State
 
     #region TimeRemaining
 
-    public double TimeRemainingInput { get; set; }
+    private double _timeRemainingInput;
+
+    public double TimeRemainingInput
+    {
+        get => _timeRemainingInput;
+        set
+        {
+            _timeRemainingInput = value;
+            OnHasChanged();
+        }
+    }
 
     private IEnumerable<TimeEntry> EntriesUnderEdit => IsActive.Keys;
 
@@ -204,5 +216,51 @@ public class WorkItemCommentViewModel : CommentViewModel
 
     #endregion
 
+    #region Validation
+
+    protected override void OnHasChanged()
+    {
+        var stateValidationMessage = string.Empty;
+        var timeRemainingInputValidationMessage = string.Empty;
+
+        try
+        {
+            if (WorkItem == null || WorkItem.Type != WorkItemType.Task)
+            {
+                return;
+            }
+
+            stateValidationMessage = State == ScrumState.ToDo 
+                ? "It is not recommended that time is entered against tasks that are still 'To Do'.  Change the state to In Progress" 
+                : string.Empty;
+
+            if (State.IsIn(ScrumState.ToDo, ScrumState.InProgress) && TimeRemainingInput <= 0.0)
+            {
+                timeRemainingInputValidationMessage = "Enter a current estimate for the time remaining, or mark the task as Done";
+            }
+            else
+            {
+                timeRemainingInputValidationMessage = string.Empty;
+            }
+
+            base.OnHasChanged();
+        }
+        finally
+        {
+            StateValidationMessage = stateValidationMessage;
+            TimeRemainingInputValidationMessage = timeRemainingInputValidationMessage;
+            base.OnHasChanged();
+        }
+    }
+
+    public bool AttentionRequired => 
+        !string.IsNullOrEmpty(StateValidationMessage)
+        || !string.IsNullOrEmpty(TimeRemainingInputValidationMessage);
+
+    public string StateValidationMessage { get; set; } = string.Empty;
+
+    public string TimeRemainingInputValidationMessage { get; set; } = string.Empty;
+
+    #endregion Validation
 
 }

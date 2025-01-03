@@ -43,12 +43,19 @@ public partial class EditStandUpDialog
     {
         foreach (var entry in TimeEntries)
         {
-            var activeComments = Comments.Where(c => c.IsActive[entry])
-                .SelectWhereHasValue(c => c.KimaiDescription);
+            var activeComments = Comments
+                .Where(c => c.IsActive[entry])
+                .Where(c => !string.IsNullOrEmpty(c.KimaiDescription))
+                .ToArray();
             if (activeComments.None())
             {
                 AttentionRequired = AttentionRequiredCssClass.Yes;
                 CommentRequiredValidationMessage = "Enter at least one comment per time entry";
+                return;
+            }
+            if (activeComments.OfType<WorkItemCommentViewModel>().Any(c => c.AttentionRequired))
+            {
+                AttentionRequired = AttentionRequiredCssClass.Yes;
                 return;
             }
             CommentRequiredValidationMessage = string.Empty;
