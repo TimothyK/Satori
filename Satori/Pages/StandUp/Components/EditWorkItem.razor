@@ -19,50 +19,8 @@
 }
 else
 {
-    <div class="work-item-row">
-        @if (ViewModel.WorkItem.Type == WorkItemType.Task && ViewModel.WorkItem.Parent != null)
-        {
-            <span class="work-item @ViewModel.WorkItem.Parent.Type.CssClass cell-link" @onclick="async () => await OpenWorkItemAsync(ViewModel.WorkItem.Parent)" title="Open D#@ViewModel.WorkItem.Parent.Id">
-                <span class="work-item-id">@ViewModel.WorkItem.Parent.Id</span>
-                @ViewModel.WorkItem.Parent.Title
-            </span>
-        }
-
-        <span class="work-item @ViewModel.WorkItem.Type.CssClass cell-link" @onclick="async () => await OpenWorkItemAsync(ViewModel.WorkItem)" title="Open D#@ViewModel.WorkItem.Id">
-            @if (ViewModel.WorkItem.AssignedTo != CurrentUser && ViewModel.WorkItem.Type == WorkItemType.Task)
-            {
-                <div class="avatar-cell">
-                    <img src="@ViewModel.WorkItem.AssignedTo.AvatarUrl"
-                         alt="@ViewModel.WorkItem.AssignedTo.DisplayName"
-                         title="@ViewModel.WorkItem.AssignedTo.DisplayName" />
-                </div>
-            }
-            @if (ViewModel.WorkItem.Parent == null || ViewModel.WorkItem.Type != WorkItemType.Task)
-            {
-                <label><span class="work-item-id">@ViewModel.WorkItem.Id</span>&nbsp;</label>
-            }
-            @ViewModel.WorkItem.Title
-        </span>
-        @if (ViewModel.WorkItem.Type == WorkItemType.Task)
-        {
-            if (ViewModel.State == ScrumState.Done)
-            {
-                <span class="badge bg-success">✔️ Done</span>
-            }
-            else if (ViewModel.State == ScrumState.Removed)
-            {
-                <span class="badge bg-success">✔ Removed</span>
-            }
-            else if (ViewModel.State == ScrumState.ToDo)
-            {
-                <span class="badge bg-danger">To Do</span>
-            }
-
-            if (ViewModel.TimeRemaining != null)
-            {
-                <span class="badge @(ViewModel.TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@ViewModel.TimeRemaining.Value.TotalHours.ToNearest(0.1) h</span>
-            }
-        }
+    <div class="flex-row">
+        <WorkItemView WorkItem="ViewModel.WorkItem" TimeRemaining="ViewModel.TimeRemaining"></WorkItemView>
         <div class="flex-center-whitespace"></div>
         @if (ViewModel.WorkItem.Type != WorkItemType.Task)
         {
@@ -77,6 +35,7 @@ else
             </div>
         }
     </div>
+
     @if (ViewModel.WorkItem.Type == WorkItemType.Task)
     {
         <div class="update-task-row">

@@ -178,10 +178,6 @@
     margin: 0px;
     white-space: pre-wrap;
 }
-.taskSummary-header .badge {
-    margin-left: 5px;
-    align-self: flex-start;
-}
 
 .time-table {
     margin-left: 150px;
@@ -296,15 +292,5 @@
     font-weight: bold;
 }
 
-.cell-link:hover {
-    background-color: #f5f5f5;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.work-item-row {
-    display: flex;
-    flex-wrap: wrap;
-}
 
 
