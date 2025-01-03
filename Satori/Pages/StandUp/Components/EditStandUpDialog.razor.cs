@@ -34,15 +34,44 @@ public partial class EditStandUpDialog
         Project = Activity.ParentProjectSummary;
 
         Comments = BuildComments();
+        Validate();
 
         base.OnParametersSet();
     }
 
+    private void Validate()
+    {
+        foreach (var entry in TimeEntries)
+        {
+            var activeComments = Comments.Where(c => c.IsActive[entry])
+                .SelectWhereHasValue(c => c.KimaiDescription);
+            if (activeComments.None())
+            {
+                AttentionRequired = AttentionRequiredCssClass.Yes;
+                CommentRequiredValidationMessage = "Enter at least one comment per time entry";
+                return;
+            }
+            CommentRequiredValidationMessage = string.Empty;
+        }
+
+        AttentionRequired = AttentionRequiredCssClass.No;
+    }
+
+    private AttentionRequiredCssClass AttentionRequired { get; set; } = AttentionRequiredCssClass.No;
+    private string CommentRequiredValidationMessage { get; set; } = string.Empty;
+
     private List<CommentViewModel> BuildComments()
     {
-        return BuildWorkItemComments()
+        var comments = BuildWorkItemComments()
             .Concat(BuildTextComments())
             .ToList();
+
+        foreach (var comment in comments)
+        {
+            comment.HasChanged += OnCommentHasChanged;
+        }
+
+        return comments;
     }
 
     private List<WorkItemCommentViewModel> BuildWorkItemComments()
@@ -114,6 +143,7 @@ public partial class EditStandUpDialog
     {
         //On cancel - reset the ViewModel
         Comments = BuildComments();
+        Validate();
 
         //Close the dialog
         DialogVisible = VisibleCssClass.Hidden;
@@ -166,9 +196,17 @@ public partial class EditStandUpDialog
             ? WorkItemCommentViewModel.FromNew(TimeEntries, Period).With(x => x.WorkItemActivatedAsync += OnWorkItemActivatedAsync)
             : CommentViewModel.FromNew(type, TimeEntries);
 
+        comment.HasChanged += OnCommentHasChanged;
+
         Comments.Add(comment);
         FocusRequest = comment;
     }
+
+    private void OnCommentHasChanged(object? sender, EventArgs e)
+    {
+        Validate();
+    }
+
 
     private async Task OnWorkItemActivatedAsync(object? sender, EventArgs e)
     {
@@ -219,4 +257,14 @@ public partial class EditStandUpDialog
 
         return CommentType.All().Except(disabledTypes);
     }
+}
+
+internal class AttentionRequiredCssClass : CssClass
+{
+    private AttentionRequiredCssClass(string className) : base(className)
+    {
+    }
+
+    public static readonly AttentionRequiredCssClass Yes = new("attention-required");
+    public static readonly AttentionRequiredCssClass No = new(string.Empty);
 }

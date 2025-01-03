@@ -12,7 +12,7 @@
     return;
 }
 
-<div class="edit-button" @onclick="ShowDialog">
+<div class="edit-button @AttentionRequired" @onclick="ShowDialog">
     <span class="bi bi-pencil-square"></span>
 </div>
 
@@ -109,6 +109,7 @@
                         <span class="add-button-icon">@type.Icon</span> Add @type.AddButtonLabel
                     </button>
                 }
+                <span class="validation-error">@CommentRequiredValidationMessage</span>
             </div>
         </div>
         <div class="dialog-buttonbar">

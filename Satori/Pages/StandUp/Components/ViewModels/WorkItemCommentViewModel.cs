@@ -51,6 +51,7 @@ public class WorkItemCommentViewModel : CommentViewModel
     public void SetWorkItem(WorkItem workItem)
     {
         WorkItem = workItem;
+        Text = KimaiDescription;
 
         State = workItem.State;
 

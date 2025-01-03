@@ -27,20 +27,39 @@ public class CommentViewModel
     }
 
     public CommentType Type { get; set; }
-    public string? Text { get; set; }
+    
+    private string? _text;
+    public string? Text
+    {
+        get => _text;
+        set
+        {
+            _text = value;
+            OnHasChanged();
+        }
+    }
 
     public virtual string? KimaiDescription => 
-        Type == CommentType.Other ? Text 
-            : $"{Type.Icon}{Text}";
+        Type == CommentType.Other ? Text?.Trim()
+            : string.IsNullOrWhiteSpace(Text) ? null
+            : $"{Type.Icon}{Text.Trim()}";
 
     public Dictionary<TimeEntry, SelectionActiveCssClass> IsActive { get; }
+
+    public event EventHandler? HasChanged;
+
+    protected void OnHasChanged()
+    {
+        HasChanged?.Invoke(this, EventArgs.Empty);
+    }
 
     public virtual Task ToggleActiveAsync(TimeEntry timeEntry)
     {
         IsActive[timeEntry] = IsActive[timeEntry].Not;
 
         MarkAsDeleted();
-
+        
+        OnHasChanged();
         return Task.CompletedTask;
     }
 
