@@ -18,6 +18,14 @@
         <span class="work-item @WorkItem.Parent.Type.CssClass cell-link" @onclick="() => OpenWorkItemAsync(WorkItem.Parent)" title="Open D#@WorkItem.Parent.Id">
             <span class="work-item-id">@WorkItem.Parent.Id</span>
             @WorkItem.Parent.Title
+            @if (WorkItem.Parent.Blocked)
+            {
+                <span class="blocked"></span>
+            }
+            @foreach (var tag in WorkItem.Parent.Tags)
+            {
+                <div class="work-item-tag">@tag</div>
+            }
         </span>
     }
 
@@ -35,6 +43,14 @@
             <label><span class="work-item-id">@WorkItem.Id</span>&nbsp;</label>
         }
         @WorkItem.Title
+        @if (WorkItem.Blocked)
+        {
+            <span class="blocked"></span>
+        }
+        @foreach (var tag in WorkItem.Tags)
+        {
+            <div class="work-item-tag">@tag</div>
+        }
 
         @if (WorkItem.Type == WorkItemType.Task)
         {
