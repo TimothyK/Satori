@@ -29,3 +29,24 @@
     padding-left: 3px;
     padding-right: 3px;
 }
+.project-code {
+    margin-left: 5px;
+    border: 1px solid black;
+    border-radius: 5px;
+    border-left-color: black;
+    border-left: solid 5px;
+    padding-left: 3px;
+    padding-right: 3px;
+    align-self: center;
+    font-size: 0.75em;
+}
+.project-code::before {
+    content: "P#";
+    font-size: 0.75em;
+    vertical-align: top;
+}
+.project-code-invalid {
+    border-color: #DC3545;
+    background-color: #DC3545;
+    color: white;
+}

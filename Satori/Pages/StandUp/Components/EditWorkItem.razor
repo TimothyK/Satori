@@ -1,7 +1,7 @@
 ﻿@using CodeMonkeyProjectiles.Linq
-@using Satori.AppServices.Extensions
 @using Satori.AppServices.Services
 @using Satori.AppServices.ViewModels.WorkItems
+
 @inject IJSRuntime JsRuntime
 @inject UserService UserService
 @inject StandUpService StandUpService
@@ -20,7 +20,7 @@
 else
 {
     <div class="flex-row">
-        <WorkItemView WorkItem="ViewModel.WorkItem" TimeRemaining="ViewModel.TimeRemaining"></WorkItemView>
+        <WorkItemView WorkItem="ViewModel.WorkItem" TimeRemaining="ViewModel.TimeRemaining" Activity="Activity"></WorkItemView>
         <div class="flex-center-whitespace"></div>
         @if (ViewModel.WorkItem.Type != WorkItemType.Task)
         {

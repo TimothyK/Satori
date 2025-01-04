@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Satori.AppServices.ViewModels;
+using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.Pages.StandUp.Components.ViewModels;
 using Satori.Pages.StandUp.Components.ViewModels.Models;
@@ -12,6 +13,7 @@ namespace Satori.Pages.StandUp.Components;
 public partial class EditWorkItem
 {
     [Parameter] public required WorkItemCommentViewModel ViewModel { get; set; }
+    [Parameter] public required ActivitySummary Activity { get; set; }
 
     private Person CurrentUser { get; set; } = Person.Empty;
 

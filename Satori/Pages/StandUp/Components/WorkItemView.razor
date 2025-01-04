@@ -26,6 +26,9 @@
             {
                 <div class="work-item-tag">@tag</div>
             }
+            
+            <div class="project-code @ParentProjectCodeCssClass">@WorkItem.Parent.ProjectCode</div>
+            
         </span>
     }
 
@@ -51,6 +54,7 @@
         {
             <div class="work-item-tag">@tag</div>
         }
+        <div class="project-code @ProjectCodeCssClass">@WorkItem.ProjectCode</div>
 
         @if (WorkItem.Type == WorkItemType.Task)
         {

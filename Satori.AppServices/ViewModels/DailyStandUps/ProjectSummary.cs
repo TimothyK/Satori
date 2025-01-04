@@ -2,6 +2,9 @@
 
 public class ProjectSummary : ISummary
 {
+    /// <summary>
+    /// Kimai internal project id
+    /// </summary>
     public int ProjectId { get; init; }
     public required string ProjectName { get; init; }
 

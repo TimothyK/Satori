@@ -144,7 +144,7 @@
                         <ExportButton Summary="taskSummary" OnExported="StateHasChanged"></ExportButton>
                     </div>
                     <div class="taskSummary-header-description">
-                        <WorkItemView WorkItem="taskSummary.Task" TimeRemaining="taskSummary.TimeRemaining"></WorkItemView>
+                        <WorkItemView WorkItem="taskSummary.Task" TimeRemaining="taskSummary.TimeRemaining" Activity="taskSummary.ParentActivitySummary"></WorkItemView>
                         @if (taskSummary.IsCollapsed)
                         {
                             @if (taskSummary.OtherComments != null)
