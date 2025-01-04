@@ -16,7 +16,7 @@
     margin-left: 5px;
 }
 .blocked::before {
-    content: "🧱";
+    content: "⛔";
 }
 .work-item-tag {
     font-size: 0.7em;

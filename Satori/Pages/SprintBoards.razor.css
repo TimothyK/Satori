@@ -165,14 +165,17 @@ td.status-done {
 .blocked {
     color: red;
 }
+    .blocked::before {
+        content: "⛔\00a0 Blocked" /* \00a0 is for &nbsp;*/
+    }
 
 /* Slider - https://www.w3schools.com/howto/howto_css_switch.asp, https://stackoverflow.com/questions/70590125/how-to-change-the-size-of-a-css-toggle-switch */
 * {
-    --switch-height: 20px;
-    --switch-padding: 8px;
-    --switch-width: calc((var(--switch-height) * 2) - var(--switch-padding));
-    --slider-height: calc(var(--switch-height) - var(--switch-padding));
-    --slider-on: calc(var(--switch-height) - var(--switch-padding));
+--switch-height: 20px;
+--switch-padding: 8px;
+--switch-width: calc((var(--switch-height) * 2) - var(--switch-padding));
+--slider-height: calc(var(--switch-height) - var(--switch-padding));
+--slider-on: calc(var(--switch-height) - var(--switch-padding));
 }
 
 .switch {
