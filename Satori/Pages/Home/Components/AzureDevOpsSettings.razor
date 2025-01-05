@@ -40,9 +40,14 @@
                         <ol type="a">
                             <li>Enter a name for the new token. e.g. "Satori"</li>
                             <li>Change the Expiry Date an interval you wish. Azure DevOps will email you to renew the token when it is about to expire</li>
-                            <li>Scopes can be set to "Custom defined"</li>
-                            <li>For Work Items choose "Read & write"</li>
-                            <li>For Code choose "Read"</li>
+                            <li>Scopes can be set to "Custom defined"
+                                <ol type="i">
+                                    <li>For Work Items choose "Read & write"</li>
+                                    <li>For Code choose "Read"</li>
+                                    <li>For Identity choose "Read"</li>
+                                    <li>For Project and Team choose "Read"</li>
+                                </ol>
+                            </li>
                             <li>Click the "Create" button</li>
                         </ol>
                     </li>
@@ -53,7 +58,7 @@
                 <p>Satori pulls from Azure DevOps work items for the Sprint Board view. Work Items are also displayed with pull requests and Kimai time entries. </p>
                 <p>Git Pull Requests are displayed on the Pull Requests page</p>
                 <p class="help-header">Write Access</p>
-                <p>From the Stand-up page, Kimai time entries can be exported to update the Completed and Remaining work on task work items.  RabbitMQ must be configured for Export to be enabled.</p>
+                <p>From the Stand-up page, Kimai time entries can be exported to update the Completed and Remaining work on task work items.  The Edit dialog allow allows for changing the State of a Task or creating new Tasks.</p>
                 <p>From the Sprint Board page, priority of work items can be changed.</p>
             </div>
         </div>
