@@ -3,11 +3,15 @@ using Microsoft.AspNetCore.Components;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.Pages.StandUp.Components.ViewModels;
 using Satori.Pages.StandUp.Components.ViewModels.Models;
+using Satori.Utilities;
 
 namespace Satori.Pages.StandUp.Components;
 
 public partial class EditStandUpDialog
 {
+    [Parameter]
+    public required TimeEntry[] TimeEntries { get; set; }
+
     private ActivitySummary Activity { get; set; } = null!;
     private ProjectSummary Project { get; set; } = null!;
     private PeriodSummary Period => Project.ParentDay.ParentPeriod;
@@ -30,15 +34,51 @@ public partial class EditStandUpDialog
         Project = Activity.ParentProjectSummary;
 
         Comments = BuildComments();
+        Validate();
 
         base.OnParametersSet();
     }
 
+    private void Validate()
+    {
+        foreach (var entry in TimeEntries)
+        {
+            var activeComments = Comments
+                .Where(c => c.IsActive[entry])
+                .Where(c => !string.IsNullOrEmpty(c.KimaiDescription))
+                .ToArray();
+            if (activeComments.None())
+            {
+                AttentionRequired = AttentionRequiredCssClass.Yes;
+                CommentRequiredValidationMessage = "Enter at least one comment per time entry";
+                return;
+            }
+            if (activeComments.OfType<WorkItemCommentViewModel>().Any(c => c.AttentionRequired))
+            {
+                AttentionRequired = AttentionRequiredCssClass.Yes;
+                return;
+            }
+            CommentRequiredValidationMessage = string.Empty;
+        }
+
+        AttentionRequired = AttentionRequiredCssClass.No;
+    }
+
+    private AttentionRequiredCssClass AttentionRequired { get; set; } = AttentionRequiredCssClass.No;
+    private string CommentRequiredValidationMessage { get; set; } = string.Empty;
+
     private List<CommentViewModel> BuildComments()
     {
-        return BuildWorkItemComments()
+        var comments = BuildWorkItemComments()
             .Concat(BuildTextComments())
             .ToList();
+
+        foreach (var comment in comments)
+        {
+            comment.HasChanged += OnCommentHasChanged;
+        }
+
+        return comments;
     }
 
     private List<WorkItemCommentViewModel> BuildWorkItemComments()
@@ -94,15 +134,86 @@ public partial class EditStandUpDialog
             .Select(x => (type, x));
     }
 
+    #region Save/Close Dialog
+
+    [Parameter]
+    public EventCallback OnSaved { get; set; }
+
+    public VisibleCssClass DialogVisible { get; set; } = VisibleCssClass.Hidden;
+
+    private void ShowDialog()
+    {
+        DialogVisible = VisibleCssClass.Visible;
+    }
+
+    private void CloseClick()
+    {
+        //On cancel - reset the ViewModel
+        Comments = BuildComments();
+        Validate();
+
+        //Close the dialog
+        DialogVisible = VisibleCssClass.Hidden;
+    }
+
+    private async Task SaveClickAsync()
+    {
+        await SaveAzureDevOpsTaskAsync();
+        await SaveKimaiTimeEntriesAsync();
+
+        DialogVisible = VisibleCssClass.Hidden;
+        await OnSaved.InvokeAsync();
+    }
+
+    private async Task SaveAzureDevOpsTaskAsync()
+    {
+        foreach (var comment in Comments.OfType<WorkItemCommentViewModel>().Where(x => x.WorkItem != null))
+        {
+            var workItem = comment.WorkItem ?? throw new InvalidOperationException();
+            var remainingTime = comment.SelectedTime + TimeSpan.FromHours(comment.TimeRemainingInput);
+
+            await WorkItemUpdateService.UpdateTaskAsync(workItem, comment.State, remainingTime);
+        }
+    }
+
+    private async Task SaveKimaiTimeEntriesAsync()
+    {
+        var newDescriptionMap = TimeEntries.ToDictionary(entry => entry.Id, GetTimeEntryDescription);
+
+        await StandUpService.UpdateTimeEntryDescriptionAsync(Project.ParentDay, newDescriptionMap);
+    }
+
+    private string GetTimeEntryDescription(TimeEntry entry)
+    {
+        var comments = Comments
+            .Where(comment => comment.IsActive[entry])
+            .OrderBy(comment => comment.Type)
+            .SelectWhereHasValue(comment => comment.KimaiDescription?.Trim())
+            .Distinct();
+        return string.Join("\r\n", comments);
+    }
+
+    #endregion Save/Close Dialog
+
+    #region Add Comment
+
     private void AddComment(CommentType type)
     {
         var comment = type == CommentType.WorkItem
             ? WorkItemCommentViewModel.FromNew(TimeEntries, Period).With(x => x.WorkItemActivatedAsync += OnWorkItemActivatedAsync)
             : CommentViewModel.FromNew(type, TimeEntries);
 
+        comment.HasChanged += OnCommentHasChanged;
+
         Comments.Add(comment);
         FocusRequest = comment;
     }
+
+    private void OnCommentHasChanged(object? sender, EventArgs e)
+    {
+        Validate();
+    }
+
 
     private async Task OnWorkItemActivatedAsync(object? sender, EventArgs e)
     {
@@ -139,6 +250,8 @@ public partial class EditStandUpDialog
         await base.OnAfterRenderAsync(firstRender);
     }
 
+    #endregion
+
     private IEnumerable<CommentType> AllCommentTypes()
     {
         var disabledTypes = new List<CommentType>();
@@ -151,4 +264,14 @@ public partial class EditStandUpDialog
 
         return CommentType.All().Except(disabledTypes);
     }
+}
+
+internal class AttentionRequiredCssClass : CssClass
+{
+    private AttentionRequiredCssClass(string className) : base(className)
+    {
+    }
+
+    public static readonly AttentionRequiredCssClass Yes = new("attention-required");
+    public static readonly AttentionRequiredCssClass No = new(string.Empty);
 }

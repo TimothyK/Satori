@@ -1,0 +1,93 @@
+﻿@using CodeMonkeyProjectiles.Linq
+@using Satori.AppServices.Extensions
+@using Satori.AppServices.Services
+@using Satori.AppServices.ViewModels.WorkItems
+
+@inject IJSRuntime JsRuntime
+@inject UserService UserService
+
+@if (WorkItem == null)
+{
+    return;
+}
+
+
+<div class="work-item-row">
+    @if (WorkItem.Type == WorkItemType.Task && WorkItem.Parent != null)
+    {
+        <span class="work-item @WorkItem.Parent.Type.CssClass cell-link" @onclick="() => OpenWorkItemAsync(WorkItem.Parent)" title="Open D#@WorkItem.Parent.Id">
+            <span class="work-item-id">@WorkItem.Parent.Id</span>
+            @WorkItem.Parent.Title
+            @if (WorkItem.Parent.Blocked)
+            {
+                <span class="blocked"></span>
+            }
+            @foreach (var tag in WorkItem.Parent.Tags)
+            {
+                <div class="work-item-tag">@tag</div>
+            }
+            
+            <div class="project-code @ParentProjectCodeCssClass">@WorkItem.Parent.ProjectCode</div>
+            
+        </span>
+    }
+
+    <span class="work-item @WorkItem.Type.CssClass cell-link" @onclick="() => OpenWorkItemAsync(WorkItem)" title="Open D#@WorkItem.Id">
+        @if (WorkItem.AssignedTo != CurrentUser && WorkItem.Type == WorkItemType.Task)
+        {
+            <div class="avatar-cell">
+                <img src="@WorkItem.AssignedTo.AvatarUrl"
+                     alt="@WorkItem.AssignedTo.DisplayName"
+                     title="@WorkItem.AssignedTo.DisplayName" />
+            </div>
+        }
+        @if (WorkItem.Parent == null || WorkItem.Type != WorkItemType.Task)
+        {
+            <label><span class="work-item-id">@WorkItem.Id</span>&nbsp;</label>
+        }
+        @WorkItem.Title
+        @if (WorkItem.Blocked)
+        {
+            <span class="blocked"></span>
+        }
+        @foreach (var tag in WorkItem.Tags)
+        {
+            <div class="work-item-tag">@tag</div>
+        }
+        <div class="project-code @ProjectCodeCssClass">@WorkItem.ProjectCode</div>
+
+        @if (WorkItem.Type == WorkItemType.Task)
+        {
+            if (WorkItem.State == ScrumState.Done)
+            {
+                <span class="badge bg-success">✔️ Done</span>
+            }
+            else
+            {
+                if (WorkItem.State == ScrumState.Removed)
+                {
+                    <span class="badge bg-success">✔ Removed</span>
+                }
+                else
+                {
+                    if (WorkItem.State == ScrumState.ToDo)
+                    {
+                        <span class="badge bg-danger">To Do</span>
+                    }
+                }
+            }
+
+            if (NeedsEstimate)
+            {
+                <span class="badge bg-danger">Needs Estimate</span>
+            }
+            else
+            {
+                if (TimeRemaining != null)
+                {
+                    <span class="badge @(TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@TimeRemaining.Value.TotalHours.ToNearest(0.1) h</span>
+                }
+            }
+        }
+    </span>
+</div>

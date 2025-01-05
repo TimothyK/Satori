@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Satori.AppServices.ViewModels;
+using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.Pages.StandUp.Components.ViewModels;
 using Satori.Pages.StandUp.Components.ViewModels.Models;
@@ -12,6 +13,7 @@ namespace Satori.Pages.StandUp.Components;
 public partial class EditWorkItem
 {
     [Parameter] public required WorkItemCommentViewModel ViewModel { get; set; }
+    [Parameter] public required ActivitySummary Activity { get; set; }
 
     private Person CurrentUser { get; set; } = Person.Empty;
 
@@ -95,6 +97,8 @@ public partial class EditWorkItem
 
     #endregion Add Work Item
 
+    #region Select Child Task
+
     public async Task SetWorkItemAsync(WorkItem workItem)
     {
         if (workItem.Type == WorkItemType.Unknown)
@@ -149,4 +153,44 @@ public partial class EditWorkItem
         await JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
     }
 
+    #endregion Select Child Task
+
+    #region Create New Task
+
+    private async Task CreateTaskKeyUpAsync(KeyboardEventArgs e)
+    {
+        if (e.Code.IsIn("Enter", "NumpadEnter"))
+        {
+            await CreateTaskAsync();
+        }
+    }
+
+
+    public async Task CreateTaskAsync()
+    {
+        if (!ValidateNewTask())
+        {
+            return;
+        }
+
+        var workItem = ViewModel.WorkItem ?? throw new InvalidOperationException("Work Item is undefined");
+        var title = ViewModel.NewTaskTitleInput ?? throw new InvalidOperationException("Title is undefined");
+        
+        var remainingTime = ViewModel.TimeRemainingInput;
+        var selectedTime = ViewModel.SelectedTime;
+        var estimate = remainingTime + selectedTime.TotalHours;
+
+        var task = await WorkItemUpdateService.CreateTaskAsync(workItem, title, estimate);
+        await SetWorkItemAsync(task);
+    }
+
+    private bool ValidateNewTask()
+    {
+        ViewModel.NewTaskTitleInputValidationErrorMessage = 
+            string.IsNullOrWhiteSpace(ViewModel.NewTaskTitleInput) ? "Title is required" : null;
+
+        return string.IsNullOrEmpty(ViewModel.NewTaskTitleInputValidationErrorMessage);
+    }
+
+    #endregion Create New Task
 }

@@ -246,6 +246,22 @@ public class SprintWorkItemTests
     }
     
     [TestMethod]
+    public void Rev()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        var revision = RandomGenerator.Integer(100);
+        workItem.Rev = revision;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().Rev.ShouldBe(revision);
+    }
+
+    [TestMethod]
     public void AssignedTo()
     {
         //Arrange
@@ -321,6 +337,21 @@ public class SprintWorkItemTests
     }
 
     [TestMethod]
+    public void AreaPath()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.AreaPath.ShouldNotBeNull();
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().AreaPath.ShouldBe(workItem.Fields.AreaPath);
+    }
+
+    [TestMethod]
     public void IterationPath()
     {
         //Arrange
@@ -391,6 +422,21 @@ public class SprintWorkItemTests
         //Assert
         workItems.Single().Type.ShouldBe(expected);
     }
+    
+    [TestMethod]
+    public void ProjectName()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.ProjectName.ShouldNotBeNull();
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().ProjectName.ShouldBe(workItem.Fields.ProjectName);
+    }
 
     [TestMethod]
     public void ProjectCode()
@@ -434,6 +480,21 @@ public class SprintWorkItemTests
 
         //Assert
         workItems.Single().Url.ShouldBe($"http://devops.test/Org/_workItems/edit/{workItem.Id}");
+    }
+    
+    [TestMethod]
+    public void ApiUrl()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Url.ShouldNotBeNull();
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().ApiUrl.ShouldBe(workItem.Url);
     }
 
     #region Estimates

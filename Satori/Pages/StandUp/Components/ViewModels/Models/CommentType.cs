@@ -2,7 +2,7 @@
 
 namespace Satori.Pages.StandUp.Components.ViewModels.Models;
 
-public class CommentType
+public class CommentType : IComparable<CommentType>
 {
     private CommentType()
     {
@@ -18,11 +18,11 @@ public class CommentType
 
     #region Members
 
+    public static readonly CommentType WorkItem = new();
     public static readonly CommentType Other = new();
     public static readonly CommentType Accomplishment = new();
     public static readonly CommentType Impediment = new();
     public static readonly CommentType Learning = new();
-    public static readonly CommentType WorkItem = new();
 
     #endregion
 
@@ -107,4 +107,52 @@ public class CommentType
     public string? GetComment(TimeEntry? entry) => entry == null ? null : GetCommentMap[this](entry);
 
     #endregion PlaceholderText
+
+    
+    #region Cast to/from Underlying Type
+
+    private static readonly Dictionary<CommentType, int> UnderlyingMap = new()
+    {
+        {WorkItem, 0},
+        {Other, 1},
+        {Accomplishment, 2},
+        {Impediment, 3},
+        {Learning, 4}
+    };
+
+    public static implicit operator int(CommentType value) => UnderlyingMap[value];
+    public static explicit operator CommentType(int value)
+    {
+        var result = All().FirstOrDefault(x => (int) x == value);
+        if (result != null) return result;
+
+        throw new InvalidCastException($"The value {value} is not a valid {nameof(CommentType)}");
+    }
+
+    #endregion
+
+    #region IComparable
+
+    public int CompareTo(CommentType? other)
+    {
+        if (other == null)
+        {
+            return 1;
+        }
+
+        var results = new[]
+        {
+            ((int) this).CompareTo((int) other)
+        };
+        return results
+            .SkipWhile(diff => diff == 0)
+            .FirstOrDefault();
+    }
+
+    public static bool operator <(CommentType lhs, CommentType rhs) => lhs.CompareTo(rhs) < 0;
+    public static bool operator <=(CommentType lhs, CommentType rhs) => lhs.CompareTo(rhs) <= 0;
+    public static bool operator >(CommentType lhs, CommentType rhs) => lhs.CompareTo(rhs) > 0;
+    public static bool operator >=(CommentType lhs, CommentType rhs) => lhs.CompareTo(rhs) >= 0;
+
+    #endregion
 }

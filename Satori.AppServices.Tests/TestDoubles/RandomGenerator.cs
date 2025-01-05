@@ -1,4 +1,6 @@
-﻿namespace Satori.AppServices.Tests.TestDoubles;
+﻿using Satori.AppServices.ViewModels.WorkItems;
+
+namespace Satori.AppServices.Tests.TestDoubles;
 
 public static class RandomGenerator
 {
@@ -70,6 +72,15 @@ public static class RandomGenerator
     public static TimeSpan TimeSpan(TimeSpan target, TimeSpan? standardDeviation = null)
     {
         return System.TimeSpan.FromSeconds(Number(target.TotalSeconds, standardDeviation?.TotalSeconds));
+    }
+
+    public static T PickOne<T>(IEnumerable<T> items) => 
+        PickOne(items as T[] ?? items.ToArray());
+
+    public static T PickOne<T>(params T[] items)
+    {
+        var index = Integer(0, items.Length - 1);
+        return items[index];
     }
 }
 

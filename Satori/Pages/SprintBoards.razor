@@ -108,7 +108,7 @@ else
                                 <div class="work-item-status">@workItem.StatusLabel</div>
                                 @if (workItem.Blocked)
                                 {
-                                    <div class="blocked">🧱 Blocked</div>
+                                    <div class="blocked"></div>
                                 }
                                 @foreach (var tag in workItem.Tags)
                                 {
@@ -140,7 +140,7 @@ else
                             </div>
                             @if (task.Blocked)
                             {
-                            <div class="blocked">🧱 Blocked</div>
+                            <div class="blocked"></div>
                             }
                             @foreach (var tag in task.Tags)
                             {

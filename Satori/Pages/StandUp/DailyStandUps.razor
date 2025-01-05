@@ -144,68 +144,7 @@
                         <ExportButton Summary="taskSummary" OnExported="StateHasChanged"></ExportButton>
                     </div>
                     <div class="taskSummary-header-description">
-                        @if (taskSummary.Task != null)
-                        {
-                            <div class="work-item-row">
-                                @if (taskSummary.Task.Type == WorkItemType.Task && taskSummary.Task.Parent != null)
-                                {
-                                    <span class="work-item @taskSummary.Task.Parent.Type.CssClass cell-link" @onclick="() => OpenWorkItem(taskSummary.Task.Parent)" title="Open D#@taskSummary.Task.Parent.Id">
-                                        <span class="work-item-id">@taskSummary.Task.Parent.Id</span>
-                                        @taskSummary.Task.Parent.Title
-                                    </span>
-                                }
-
-                                <span class="work-item @taskSummary.Task.Type.CssClass cell-link" @onclick="() => OpenWorkItem(taskSummary.Task)" title="Open D#@taskSummary.Task.Id">
-                                    @if (taskSummary.Task.AssignedTo != CurrentUser && taskSummary.Task.Type == WorkItemType.Task)
-                                    {
-                                        <div class="avatar-cell">
-                                            <img src="@taskSummary.Task.AssignedTo.AvatarUrl"
-                                                 alt="@taskSummary.Task.AssignedTo.DisplayName"
-                                                 title="@taskSummary.Task.AssignedTo.DisplayName"/>
-                                        </div>
-                                    }
-                                    @if (taskSummary.Task.Parent == null || taskSummary.Task.Type != WorkItemType.Task)
-                                    {
-                                        <label><span class="work-item-id">@taskSummary.Task.Id</span>&nbsp;</label>
-                                    }
-                                    @taskSummary.Task.Title
-
-                                    @if (taskSummary.Task.Type == WorkItemType.Task)
-                                    {
-                                        if (taskSummary.Task.State == ScrumState.Done)
-                                        {
-                                            <span class="badge bg-success">✔️ Done</span>
-                                        }
-                                        else
-                                        {
-                                            if (taskSummary.Task.State == ScrumState.Removed)
-                                            {
-                                                <span class="badge bg-success">✔ Removed</span>
-                                            }
-                                            else
-                                            {
-                                                if (taskSummary.Task.State == ScrumState.ToDo)
-                                                {
-                                                    <span class="badge bg-danger">To Do</span>
-                                                }
-                                            }
-                                        }
-
-                                        if (taskSummary.NeedsEstimate)
-                                        {
-                                            <span class="badge bg-danger">Needs Estimate</span>
-                                        }
-                                        else
-                                        {
-                                            if (taskSummary.TimeRemaining != null)
-                                            {
-                                                <span class="badge @(taskSummary.TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@taskSummary.TimeRemaining.Value.TotalHours.ToNearest(0.1) h</span>
-                                            }
-                                        }
-                                    }
-                                </span>
-                            </div>
-                        }
+                        <WorkItemView WorkItem="taskSummary.Task" TimeRemaining="taskSummary.TimeRemaining" Activity="taskSummary.ParentActivitySummary"></WorkItemView>
                         @if (taskSummary.IsCollapsed)
                         {
                             @if (taskSummary.OtherComments != null)

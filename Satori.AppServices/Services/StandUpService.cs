@@ -16,6 +16,7 @@ using System.Text.RegularExpressions;
 using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
 using TimeEntry = Satori.AppServices.ViewModels.DailyStandUps.TimeEntry;
 using UriFormatException = System.UriFormatException;
+using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.Services;
 
@@ -26,7 +27,7 @@ public partial class StandUpService(
     , IDailyActivityExporter dailyActivityExporter
     , ITaskAdjustmentExporter taskAdjustmentExporter
     , ILoggerFactory loggerFactory
-    )
+)
 {
     #region GetStandUpDaysAsync
 
@@ -52,9 +53,6 @@ public partial class StandUpService(
 
         await Task.WhenAll(getUserTask, getTimeSheetTask);
 
-        var language = getUserTask.Result.Language.Replace("-", "_");
-        var url = kimai.BaseUrl.AppendPathSegments(language, "timesheet");
-
         var timeSheet = getTimeSheetTask.Result;
         var period = new PeriodSummary()
         {
@@ -63,15 +61,34 @@ public partial class StandUpService(
             CanExport = GetCanExport(timeSheet),
             IsRunning = GetIsRunning(timeSheet),
         };
-        foreach (var entries in timeSheet.GroupBy(GetDateOnly))
-        {
-            AddDayViewModel(period, entries, url);
-        }
+
+        AddDaysViewModels(period, timeSheet);
+
         var allDays = Enumerable.Range(0, daysInRange).Select(begin.AddDays);
-        AddMissingDays(period, allDays, url);
+        AddMissingDays(period, allDays);
 
         return period;
     }
+
+    private void AddDaysViewModels(PeriodSummary period, List<KimaiTimeEntry> timeSheet)
+    {
+        foreach (var entries in timeSheet.GroupBy(GetDateOnly))
+        {
+            AddDayViewModel(period, entries);
+        }
+    }
+
+    private Url KimaiTimeSheetUrl
+    {
+        get
+        {
+            var language = Person.Me?.Language.Replace("-", "_") ??
+                           throw new InvalidOperationException("Person is not loaded");
+            var url = kimai.BaseUrl.AppendPathSegments(language, "timesheet");
+            return url;
+        }
+    }
+
 
     private async Task<List<KimaiTimeEntry>> GetTimeSheetAsync(DateOnly begin, DateOnly end)
     {
@@ -104,7 +121,7 @@ public partial class StandUpService(
         return timeSheet;
     }
 
-    private void AddMissingDays(PeriodSummary period, IEnumerable<DateOnly> allDays, Url url)
+    private void AddMissingDays(PeriodSummary period, IEnumerable<DateOnly> allDays)
     {
         var missingDays = allDays
             .Where(d => d.IsNotIn(period.Days.Select(x => x.Date)));
@@ -112,13 +129,13 @@ public partial class StandUpService(
         foreach (var day in missingDays)
         {
             var timeEntryGroup = new NullGroup<DateOnly, KimaiTimeEntry>(day);
-            AddDayViewModel(period, timeEntryGroup, url);
+            AddDayViewModel(period, timeEntryGroup);
         }
     }
 
-    private void AddDayViewModel(PeriodSummary period, IGrouping<DateOnly, KimaiTimeEntry> entries, Url url)
+    private void AddDayViewModel(PeriodSummary period, IGrouping<DateOnly, KimaiTimeEntry> entries)
     {
-        var uri = url.ToUri()
+        var uri = KimaiTimeSheetUrl.ToUri()
             // ReSharper disable once StringLiteralTypo
             .AppendQueryParam("daterange", $"{entries.Key:O} - {entries.Key:O}")
             .AppendQueryParam("state", 1)  // stopped & running
@@ -339,7 +356,9 @@ public partial class StandUpService(
         {
             Id = id,
             Title = title.Trim(),
+            ProjectName = "TeamProject",
             Url = azureDevOps.ConnectionSettings.Url.AppendPathSegments("_workItems", "edit", id),
+            ApiUrl = azureDevOps.ConnectionSettings.Url.AppendPathSegments("_apis/wit/workItems", id),
             AssignedTo = Person.Empty,
             CreatedBy = Person.Empty,
             Type = WorkItemType.Unknown,
@@ -730,4 +749,41 @@ public partial class StandUpService(
     }
 
     #endregion Export
+
+    #region Update Time Entry Description
+
+    /// <summary>
+    /// Updates the description on the time entries in Kimai and reloads the Day model
+    /// </summary>
+    /// <param name="day">View Model to update after Kimai is updated</param>
+    /// <param name="newDescriptionMap">Dictionary map of Kimai Time Entry Ids and their new description values</param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public async Task UpdateTimeEntryDescriptionAsync(DaySummary day, Dictionary<int, string> newDescriptionMap)
+    {
+        await UpdateKimaiTimeEntryDescriptionAsync(newDescriptionMap);
+        await UpdateViewModelAsync(day);
+    }
+
+    private async Task UpdateKimaiTimeEntryDescriptionAsync(Dictionary<int, string> newDescriptionMap)
+    {
+        foreach (var kvp in newDescriptionMap)
+        {
+            await kimai.UpdateTimeEntryDescriptionAsync(kvp.Key, kvp.Value);
+        }
+    }
+
+    private async Task UpdateViewModelAsync(DaySummary day)
+    {
+        var timeSheet = await GetTimeSheetAsync(day.Date, day.Date);
+
+        var period = day.ParentPeriod;
+        period.Days.Remove(day);
+
+        AddDaysViewModels(period, timeSheet);
+
+        await GetWorkItemsAsync(period);
+    }
+
+    #endregion Update Time Entry Description
 }

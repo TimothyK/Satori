@@ -53,9 +53,9 @@ public class WorkItemType
     /// <see cref="Task"/> can be assigned to a board, but only as a child of one of these work item types.
     /// </summary>
     public static ImmutableArray<WorkItemType> BoardTypes => 
-        _boardTypes ??= All().Where(t => t.CanAssignToBoard).ToImmutableArray();
+        _boardTypes ??= [..All().Where(t => t.CanAssignToBoard)];
 
-    private bool CanAssignToBoard => this.IsIn(ProductBacklogItem, Bug, Impediment);
+    public bool CanAssignToBoard => this.IsIn(ProductBacklogItem, Bug, Impediment);
 
     private string CssClassSuffix { get; }
     public string CssClass => "work-item-" + CssClassSuffix;
