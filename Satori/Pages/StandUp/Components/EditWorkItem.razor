@@ -52,7 +52,7 @@ else
             {
                 <div class="update-remaining">
                     <span>Change Remaining:</span>
-                    <input class="number-box" type="number" step="0.5" min="0" @bind="ViewModel.TimeRemainingInput" /><span>&nbsp;h</span>
+                    <input class="number-box" type="number" step="0.1" min="0" @bind="ViewModel.TimeRemainingInput" /><span>&nbsp;h</span>
                     <div class="validation-error">@ViewModel.TimeRemainingInputValidationMessage</div>
                 </div>
             }
@@ -85,7 +85,7 @@ else
                     </div>
                     <div class="new-task-estimate">
                         <span>Remaining:</span>
-                        <input class="number-box" type="number" step="0.5" min="0" @bind="ViewModel.TimeRemainingInput" @onkeyup="CreateTaskKeyUpAsync" /><span>&nbsp;h</span>
+                        <input class="number-box" type="number" step="0.1" min="0" @bind="ViewModel.TimeRemainingInput" @onkeyup="CreateTaskKeyUpAsync" /><span>&nbsp;h</span>
                     </div>
                 </div>
             }

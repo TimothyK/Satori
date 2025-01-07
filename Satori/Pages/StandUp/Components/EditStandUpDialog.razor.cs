@@ -174,7 +174,7 @@ public partial class EditStandUpDialog
         foreach (var comment in Comments.OfType<WorkItemCommentViewModel>().Where(x => x.WorkItem != null))
         {
             var workItem = comment.WorkItem ?? throw new InvalidOperationException();
-            var remainingTime = comment.SelectedTime + TimeSpan.FromHours(comment.TimeRemainingInput);
+            var remainingTime = comment.UnexportedTime + comment.SelectedTime + TimeSpan.FromHours(comment.TimeRemainingInput);
 
             await WorkItemUpdateService.UpdateTaskAsync(workItem, comment.State, remainingTime);
         }

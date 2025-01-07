@@ -131,7 +131,7 @@ public class WorkItemCommentViewModel : CommentViewModel
     /// This is a constant amount that should be removed from RemainingWork read from AzDO.
     /// </para>
     /// </remarks>
-    private TimeSpan UnexportedTime { get; set; } = TimeSpan.Zero;
+    public TimeSpan UnexportedTime { get; private set; } = TimeSpan.Zero;
 
     public TimeSpan? TimeRemaining { get; set; }
 
