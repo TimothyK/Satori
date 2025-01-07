@@ -14,7 +14,6 @@
 @inject StandUpService StandUpService
 @inject NavigationManager NavigationManager
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
-@inject IJSRuntime JsRuntime
 @inject IConnectionSettingsStore ConnectionSettingsStore
 
 <PageTitle>Stand-Ups - Satori</PageTitle>
@@ -371,12 +370,6 @@
 
         var periodSummary = daySummary.ParentPeriod;
         periodSummary.TotalTime = periodSummary.Days.Select(d => d.TotalTime).Sum();
-    }
-
-
-    private void OpenWorkItem(WorkItem workItem)
-    {
-        JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
     }
 
     #region Collapse
