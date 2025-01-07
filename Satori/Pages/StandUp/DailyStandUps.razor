@@ -14,7 +14,6 @@
 @inject StandUpService StandUpService
 @inject NavigationManager NavigationManager
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
-@inject IJSRuntime JsRuntime
 @inject IConnectionSettingsStore ConnectionSettingsStore
 
 <PageTitle>Stand-Ups - Satori</PageTitle>
@@ -82,8 +81,8 @@
             <div class="duration">
                 <div class="duration-caret"><span class="caret @(project.IsCollapsed ? "" : "caret-down")" @onclick="() => ToggleCollapsed(project)"></span></div>
                 <div class="duration-link"><a href="@project.Url" target="_blank">
-                    <span class="bi bi-box-arrow-up-right"></span>
-                </a></div>
+                        <span class="bi bi-box-arrow-up-right"></span>
+                    </a></div>
                 <div class="duration-minutes">
                     <span class="">@project.TotalTime.ToString(@"hh\:mm")</span>
                 </div>
@@ -116,8 +115,8 @@
                 <div class="duration">
                     <div class="duration-caret"><span class="caret @(activity.IsCollapsed ? "" : "caret-down")" @onclick="() => ToggleCollapsed(activity)"></span></div>
                     <div class="duration-link"><a href="@activity.Url" target="_blank">
-                        <span class="bi bi-box-arrow-up-right"></span>
-                    </a></div>
+                            <span class="bi bi-box-arrow-up-right"></span>
+                        </a></div>
                     <div class="duration-minutes">
                         <span class="">@activity.TotalTime.ToString(@"hh\:mm")</span>
                     </div>
@@ -134,7 +133,7 @@
                 <div class="taskSummary-header @(day.IsCollapsed || project.IsCollapsed || activity.IsCollapsed ? "hidden" : "")">
                     <div class="duration">
                         <div class="duration-caret"><span class="caret @(taskSummary.IsCollapsed ? "" : "caret-down")" @onclick="() => ToggleCollapsed(taskSummary)"></span></div>
-                        <EditStandUpDialog TimeEntries="@taskSummary.TimeEntries" OnSaved="StateHasChanged"></EditStandUpDialog>
+                        <EditStandUpDialog TimeEntries="@taskSummary.TimeEntries" OnOpening="OnOpeningDialog" OnSaved="OnSavedDialog" OnClosed="OnClosedDialog"></EditStandUpDialog>
                         <div class="duration-minutes">
                             <span class="">@taskSummary.TotalTime.ToString(@"hh\:mm")</span>
                         </div>
@@ -194,7 +193,7 @@
                             </td>
                             <td>
                                 <div class="duration">
-                                    <EditStandUpDialog TimeEntries="@entry.Yield().ToArray()" OnSaved="StateHasChanged"></EditStandUpDialog>
+                                    <EditStandUpDialog TimeEntries="@entry.Yield().ToArray()" OnOpening="OnOpeningDialog" OnSaved="OnSavedDialog" OnClosed="OnClosedDialog"></EditStandUpDialog>
                                     <div class="duration-minutes">
                                         <span class="">@entry.TotalTime.ToString(@"hh\:mm")</span>
                                     </div>
@@ -315,18 +314,19 @@
     {
         Period = eventArgs.Period;
 
-        RunningTimeEntry = Period.Days
-            .SelectMany(d => d.Projects)
-            .SelectMany(p => p.Activities)
-            .SelectMany(a => a.TimeEntries)
-            .FirstOrDefault(e => e.IsRunning);
+        StartRunningTaskTimer();
+
+        InLoading = LoadingStatusLabel.FinishedLoading;
+    }
+
+    private void StartRunningTaskTimer()
+    {
+        RunningTimeEntry = Period.TimeEntries.FirstOrDefault(e => e.IsRunning);
 
         RunningTimeEntryTimer ??= new Timer(TimeSpan.FromMinutes(1))
             .With(t => t.Elapsed += RunningTimeEntryTimer_Elapsed);
         RunningTimeEntryTimer.Enabled = RunningTimeEntry != null;
         RefreshTotalTimes();
-
-        InLoading = LoadingStatusLabel.FinishedLoading;
     }
 
     private void RunningTimeEntryTimer_Elapsed(object? sender, ElapsedEventArgs e)
@@ -339,10 +339,7 @@
     {
         if (RunningTimeEntry == null)
         {
-            if (RunningTimeEntryTimer != null)
-            {
-                RunningTimeEntryTimer.Enabled = false;
-            }
+            RunningTimeEntryTimer?.Stop();
             return;
         }
 
@@ -373,10 +370,18 @@
         periodSummary.TotalTime = periodSummary.Days.Select(d => d.TotalTime).Sum();
     }
 
-
-    private void OpenWorkItem(WorkItem workItem)
+    private void OnOpeningDialog()
     {
-        JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
+        RunningTimeEntry = null;
+        RunningTimeEntryTimer?.Stop();
+    }
+    private void OnSavedDialog()
+    {
+        StateHasChanged();
+    }
+    private void OnClosedDialog()
+    {
+        StartRunningTaskTimer();
     }
 
     #region Collapse
@@ -490,4 +495,5 @@
         public static readonly LoadingStatusLabel InLoading = new("Loading: ");
         public static readonly LoadingStatusLabel FinishedLoading = new(string.Empty);
     }
+
 }

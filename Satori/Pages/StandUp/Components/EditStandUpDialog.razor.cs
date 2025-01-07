@@ -136,17 +136,19 @@ public partial class EditStandUpDialog
 
     #region Save/Close Dialog
 
-    [Parameter]
-    public EventCallback OnSaved { get; set; }
+    [Parameter] public EventCallback OnOpening { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
+    [Parameter] public EventCallback OnClosed { get; set; }
 
     public VisibleCssClass DialogVisible { get; set; } = VisibleCssClass.Hidden;
 
-    private void ShowDialog()
+    private async Task ShowDialogAsync()
     {
+        await OnOpening.InvokeAsync();
         DialogVisible = VisibleCssClass.Visible;
     }
 
-    private void CloseClick()
+    private async Task CloseClickAsync()
     {
         //On cancel - reset the ViewModel
         Comments = BuildComments();
@@ -154,6 +156,7 @@ public partial class EditStandUpDialog
 
         //Close the dialog
         DialogVisible = VisibleCssClass.Hidden;
+        await OnClosed.InvokeAsync();
     }
 
     private async Task SaveClickAsync()
@@ -163,6 +166,7 @@ public partial class EditStandUpDialog
 
         DialogVisible = VisibleCssClass.Hidden;
         await OnSaved.InvokeAsync();
+        await OnClosed.InvokeAsync();
     }
 
     private async Task SaveAzureDevOpsTaskAsync()
