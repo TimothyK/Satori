@@ -1,5 +1,5 @@
 ---
-name: Custom issue template
+name: New issue template
 about: Template for all new issues
 title: ''
 labels: ''
