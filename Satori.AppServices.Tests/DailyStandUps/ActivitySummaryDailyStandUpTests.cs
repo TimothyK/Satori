@@ -163,6 +163,30 @@ public class ActivitySummaryDailyStandUpTests : DailyStandUpTests
     }
     
     [TestMethod]
+    [DataRow(6, 0)]
+    [DataRow(-6, 1)]
+    public async Task TwoWorkItems_OrderByDuration(int offset, int expectedPosition)
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task1);
+        var entry1 = BuildTimeEntry();
+        entry1.AddWorkItems(task1);
+
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task2);
+        var entry2 = BuildTimeEntry();
+        entry2.AddWorkItems(task2);
+        entry2.End = entry2.Begin + (entry1.End - entry1.Begin) + TimeSpan.FromMinutes(offset);
+
+        //Act
+        var activitySummary = await GetActivitySummaryAsync();
+
+        //Assert
+        activitySummary.TaskSummaries.Length.ShouldBe(2);
+        var taskSummary2 = activitySummary.TaskSummaries.Single(x => x.Task?.Id == task2.Id);
+        activitySummary.TaskSummaries[expectedPosition].ShouldBeSameAs(taskSummary2);
+    }
+    
+    [TestMethod]
     public async Task OneWorkItemOnTwoEntries_Summed()
     {
         //Arrange

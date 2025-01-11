@@ -620,7 +620,9 @@ public partial class StandUpService(
             TotalTime = g.Select(x => x.TotalTime).Sum(),
             TimeRemaining = g.First().TimeRemaining,
             NeedsEstimate = g.First().NeedsEstimate,
-        }).ToArray();
+        })
+            .OrderByDescending(t => t.TotalTime)
+            .ToArray();
 
         foreach (var taskSummary in taskSummaries)
         {
