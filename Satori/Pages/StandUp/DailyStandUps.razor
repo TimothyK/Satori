@@ -25,10 +25,10 @@
     <div class="dropdown" id="period-button">
         <button class="btn-header dropbtn">@DateSelector.PeriodText ▾</button>
         <div class="dropdown-content">
-            <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriod(AppServices.ViewModels.DailyStandUps.Period.Today)">Today</div>
-            <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriod(AppServices.ViewModels.DailyStandUps.Period.LastTwoDays)">Last 2 Days</div>
-            <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriod(AppServices.ViewModels.DailyStandUps.Period.WorkWeek)">Work Week</div>
-            <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriod(AppServices.ViewModels.DailyStandUps.Period.LastSevenDays)">Last 7 Days</div>
+            <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriodAsync(AppServices.ViewModels.DailyStandUps.Period.Today)">Today</div>
+            <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriodAsync(AppServices.ViewModels.DailyStandUps.Period.LastTwoDays)">Last 2 Days</div>
+            <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriodAsync(AppServices.ViewModels.DailyStandUps.Period.WorkWeek)">Work Week</div>
+            <div class="dropdown-content-menu" @onclick="async () => await DateSelector.ChangePeriodAsync(AppServices.ViewModels.DailyStandUps.Period.LastSevenDays)">Last 7 Days</div>
         </div>
     </div>
     <div class="duration">
@@ -261,7 +261,7 @@
         DateSelector = new DateSelectorViewModel(CurrentUser.FirstDayOfWeek, StandUpService);
         DateSelector.DateChanging += DateChanging;
         DateSelector.DateChanged += DateChanged;
-        await DateSelector.ChangePeriod(period);
+        await DateSelector.ChangePeriodAsync(period);
     }
 
     private Period GetPeriodFromUrl()
@@ -279,7 +279,7 @@
         {
             var period = await LocalStorage.GetItemAsync<Period>("DatePeriod");
             CurrentPeriod = period;
-            await DateSelector.ChangePeriod(period);
+            await DateSelector.ChangePeriodAsync(period);
             StateHasChanged();
         }
     }

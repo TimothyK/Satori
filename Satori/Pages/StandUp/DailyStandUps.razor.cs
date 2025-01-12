@@ -19,7 +19,7 @@ public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? sta
 
     private static DateOnly Today => DateOnly.FromDateTime(DateTime.Today);
 
-    public async Task ChangePeriod(Period period)
+    public async Task ChangePeriodAsync(Period period)
     {
         SetPeriod(period);
 
@@ -104,7 +104,7 @@ public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? sta
         switch (Period)
         {
             case Period.Today:
-                await ChangePeriod(Period.LastTwoDays);
+                await ChangePeriodAsync(Period.LastTwoDays);
                 break;
             case Period.LastTwoDays:
                 if (BeginDate < GetStartOfWeek(Today))
@@ -114,13 +114,13 @@ public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? sta
                 }
                 else
                 {
-                    await ChangePeriod(Period.WorkWeek);
+                    await ChangePeriodAsync(Period.WorkWeek);
                 }
                 break;
             case Period.WorkWeek:
                 if (Today.AddDays(-6) < BeginDate)
                 {
-                    await ChangePeriod(Period.LastSevenDays);
+                    await ChangePeriodAsync(Period.LastSevenDays);
                 }
                 else
                 {
@@ -144,16 +144,16 @@ public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? sta
                 // Do nothing
                 break;
             case Period.LastTwoDays:
-                await ChangePeriod(Period.Today);
+                await ChangePeriodAsync(Period.Today);
                 break;
             case Period.WorkWeek:
                 if (Today < BeginDate.AddDays(7))
                 {
-                    await ChangePeriod(Period.LastTwoDays);
+                    await ChangePeriodAsync(Period.LastTwoDays);
                 }
                 else if (GetStartOfWeek(Today) == BeginDate.AddDays(7))
                 {
-                    await ChangePeriod(Period.LastSevenDays);
+                    await ChangePeriodAsync(Period.LastSevenDays);
                 }
                 else
                 {
@@ -163,11 +163,11 @@ public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? sta
             case Period.LastSevenDays:
                 if (GetStartOfWeek(Today) == Today)
                 {
-                    await ChangePeriod(Period.LastTwoDays);
+                    await ChangePeriodAsync(Period.LastTwoDays);
                 }
                 else
                 {
-                    await ChangePeriod(Period.WorkWeek);
+                    await ChangePeriodAsync(Period.WorkWeek);
                 }
                 break;
             default:

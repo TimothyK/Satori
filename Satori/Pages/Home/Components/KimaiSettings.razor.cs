@@ -28,7 +28,7 @@ public partial class KimaiSettings
         StateHasChanged();
     }
 
-    private void Save()
+    private async Task SaveAsync()
     {
         Validate();
         if (!FormIsValid)
@@ -49,7 +49,7 @@ public partial class KimaiSettings
         ConnectionSettingsStore.SetKimaiSettings(settings);
 
         IsVisibleClass = VisibleCssClass.Hidden;
-        OnSettingsChanged.InvokeAsync();
+        await OnSettingsChanged.InvokeAsync();
     }
     private void CancelAzureDevOps()
     {
