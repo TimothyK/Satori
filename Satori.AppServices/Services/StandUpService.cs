@@ -54,6 +54,7 @@ public partial class StandUpService(
         await Task.WhenAll(getUserTask, getTimeSheetTask);
 
         var timeSheet = getTimeSheetTask.Result;
+        SetIsOverlapping(timeSheet);
         var period = new PeriodSummary()
         {
             TotalTime = GetDuration(timeSheet),
@@ -68,6 +69,21 @@ public partial class StandUpService(
         AddMissingDays(period, allDays);
 
         return period;
+    }
+
+    private static void SetIsOverlapping(List<KimaiTimeEntry> timeSheet)
+    {
+        var entries = timeSheet.OrderBy(x => x.Begin).ToArray();
+        for (var i = 0; i < entries.Length; i++)
+        {
+            var j = i + 1;
+            while (j < entries.Length && entries[j].Begin < entries[i].End)
+            {
+                entries[i].IsOverlapping = true;
+                entries[j].IsOverlapping = true;
+                j++;
+            }
+        }
     }
 
     private void AddDaysViewModels(PeriodSummary period, List<KimaiTimeEntry> timeSheet)
@@ -387,6 +403,7 @@ public partial class StandUpService(
         if (!entry.Project.Customer.Visible) return false;
         if (entry.Activity.Name == "TBD") return false;
         if (entry.Project.Name == "TBD") return false;
+        if (entry.IsOverlapping) return false;
 
         return true;
     }

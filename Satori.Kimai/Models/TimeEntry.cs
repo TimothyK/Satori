@@ -33,5 +33,7 @@ public class TimeEntry
 
     [JsonPropertyName("exported")]
     public bool Exported { get; set; }
+
+    public bool IsOverlapping { get; set; }
 }
 
