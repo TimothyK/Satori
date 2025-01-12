@@ -222,6 +222,7 @@ public class WorkItemCommentViewModel : CommentViewModel
     {
         var stateValidationMessage = string.Empty;
         var timeRemainingInputValidationMessage = string.Empty;
+        var isTaskMine = false;
 
         try
         {
@@ -243,23 +244,27 @@ public class WorkItemCommentViewModel : CommentViewModel
                 timeRemainingInputValidationMessage = string.Empty;
             }
 
+            isTaskMine = WorkItem.AssignedTo == Person.Me;
+
             base.OnHasChanged();
         }
         finally
         {
             StateValidationMessage = stateValidationMessage;
             TimeRemainingInputValidationMessage = timeRemainingInputValidationMessage;
+            IsTaskMine = isTaskMine;
             base.OnHasChanged();
         }
     }
 
     public bool AttentionRequired => 
         !string.IsNullOrEmpty(StateValidationMessage)
-        || !string.IsNullOrEmpty(TimeRemainingInputValidationMessage);
+        || !string.IsNullOrEmpty(TimeRemainingInputValidationMessage)
+        || !IsTaskMine;
 
     public string StateValidationMessage { get; set; } = string.Empty;
-
     public string TimeRemainingInputValidationMessage { get; set; } = string.Empty;
+    public bool IsTaskMine { get; set; }
 
     #endregion Validation
 
