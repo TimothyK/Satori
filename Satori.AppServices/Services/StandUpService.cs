@@ -188,8 +188,10 @@ public partial class StandUpService(
         {
             ProjectID = entry.Project.Id,
             ProjectName = entry.Project.Name,
+            ProjectVisible = entry.Project.Visible,
             CustomerID = entry.Project.Customer.Id,
             CustomerName = entry.Project.Customer.Name,
+            CustomerVisible = entry.Project.Customer.Visible,
             CustomerComment = entry.Project.Customer.Comment,
         });
 
@@ -200,9 +202,11 @@ public partial class StandUpService(
                 {
                     ProjectId = g.Key.ProjectID,
                     ProjectName = g.Key.ProjectName,
+                    IsActive = g.Key.ProjectVisible,
                     ParentDay = day,
                     CustomerId = g.Key.CustomerID,
                     CustomerName = g.Key.CustomerName,
+                    CustomerIsActive = g.Key.CustomerVisible,
                     CustomerAcronym = GetCustomerAcronym(g.Key.CustomerName),
                     CustomerUrl = GetCustomerLogo(g.Key.CustomerComment),
                     TotalTime = GetDuration(g),
@@ -259,6 +263,7 @@ public partial class StandUpService(
             entry.Activity.Id,
             entry.Activity.Name,
             entry.Activity.Comment,
+            entry.Activity.Visible,
             ProjectId = entry.Project.Id,
         });
 
@@ -269,6 +274,7 @@ public partial class StandUpService(
                 {
                     ActivityId = g.Key.Id,
                     ActivityName = g.Key.Name,
+                    IsActive = g.Key.Visible,
                     ParentProjectSummary = project,
                     ActivityDescription = g.Key.Comment,
                     TotalTime = GetDuration(g),

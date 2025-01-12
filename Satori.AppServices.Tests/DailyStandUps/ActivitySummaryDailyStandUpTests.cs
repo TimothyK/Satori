@@ -92,6 +92,57 @@ public class ActivitySummaryDailyStandUpTests : DailyStandUpTests
     }
 
     [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task Activity_IsActive(bool visible)
+    {
+        //Arrange
+        ActivityUnderTest.Visible = visible;
+        BuildTimeEntry();
+
+        //Act
+        var activitySummary = await GetActivitySummaryAsync();
+
+        //Assert
+        activitySummary.ShouldNotBeNull();
+        activitySummary.IsActive.ShouldBe(visible);
+    }
+    
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task Project_IsActive(bool visible)
+    {
+        //Arrange
+        ActivityUnderTest.Project.Visible = visible;
+        BuildTimeEntry();
+
+        //Act
+        var activitySummary = await GetActivitySummaryAsync();
+
+        //Assert
+        activitySummary.ShouldNotBeNull();
+        activitySummary.ParentProjectSummary.IsActive.ShouldBe(visible);
+    }
+    
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task Customer_IsActive(bool visible)
+    {
+        //Arrange
+        ActivityUnderTest.Project.Customer.Visible = visible;
+        BuildTimeEntry();
+
+        //Act
+        var activitySummary = await GetActivitySummaryAsync();
+
+        //Assert
+        activitySummary.ShouldNotBeNull();
+        activitySummary.ParentProjectSummary.CustomerIsActive.ShouldBe(visible);
+    }
+
+    [TestMethod]
     public async Task NoWorkItem()
     {
         //Arrange
