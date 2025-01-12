@@ -41,6 +41,8 @@ public partial class EditStandUpDialog
 
     private void Validate()
     {
+        TimeOverlappingValidationMessage = TimeEntries.Any(t => t.IsOverlapping) ? "Time entries are overlapping" : string.Empty;
+
         foreach (var entry in TimeEntries)
         {
             var activeComments = Comments
@@ -60,12 +62,13 @@ public partial class EditStandUpDialog
             }
             CommentRequiredValidationMessage = string.Empty;
         }
-
-        AttentionRequired = AttentionRequiredCssClass.No;
+        
+        AttentionRequired = string.IsNullOrEmpty(TimeOverlappingValidationMessage) ? AttentionRequiredCssClass.No : AttentionRequiredCssClass.Yes;
     }
 
     private AttentionRequiredCssClass AttentionRequired { get; set; } = AttentionRequiredCssClass.No;
     private string CommentRequiredValidationMessage { get; set; } = string.Empty;
+    private string TimeOverlappingValidationMessage { get; set; } = string.Empty;
 
     private List<CommentViewModel> BuildComments()
     {

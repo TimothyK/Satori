@@ -103,6 +103,10 @@ table td:last-child {
     font-size: 0.6em;
     padding: 5px;
 }
+.time-value.overlapping {
+    background-color: red;
+    color: white;
+}
 .enddate-now {
     color: black;
     background-color: #FFC107;
@@ -138,8 +142,6 @@ table td:last-child {
 .date-header {
     font-weight: bold;
     font-size: 1.3em;
-    width: 100%;
-    text-align: right;
 }
 
 .activity-header {
