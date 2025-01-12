@@ -69,7 +69,9 @@
                             </td>
                         }
                         <td>
-                            <div class="activity-header">
+                            <div class="flex-row">
+                                <div class="validation-error">@ActivityValidationMessage</div>
+                                <div class="flex-center-whitespace"></div>
                                 <div class="activity-text">
                                     <div class="customer-name">@Project.CustomerName</div>
                                     <div class="project-name">@Project.ProjectName</div>
@@ -78,7 +80,7 @@
                                 <div class="customer-logo">
                                     @if (Project.CustomerUrl != null)
                                     {
-                                        <img src="@Project.CustomerUrl" alt="@Project.CustomerName" title="@Project.CustomerName" />
+                                        <img src="@Project.CustomerUrl" alt="@Project.CustomerName" title="@Project.CustomerName"/>
                                     }
                                 </div>
                             </div>

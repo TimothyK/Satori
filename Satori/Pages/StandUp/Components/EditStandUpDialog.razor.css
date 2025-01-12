@@ -144,14 +144,6 @@ table td:last-child {
     font-size: 1.3em;
 }
 
-.activity-header {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    align-items: center;
-    width: 100%;
-    align-items: start;
-}
 .customer-logo {
     margin: 5px;
 }

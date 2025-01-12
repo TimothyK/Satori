@@ -1,4 +1,5 @@
-﻿using CodeMonkeyProjectiles.Linq;
+﻿using System.Text;
+using CodeMonkeyProjectiles.Linq;
 using Microsoft.AspNetCore.Components;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.Pages.StandUp.Components.ViewModels;
@@ -42,6 +43,7 @@ public partial class EditStandUpDialog
     private void Validate()
     {
         TimeOverlappingValidationMessage = TimeEntries.Any(t => t.IsOverlapping) ? "Time entries are overlapping" : string.Empty;
+        ActivityValidationMessage = GetActivityValidationMessage();
 
         foreach (var entry in TimeEntries)
         {
@@ -63,12 +65,29 @@ public partial class EditStandUpDialog
             CommentRequiredValidationMessage = string.Empty;
         }
         
-        AttentionRequired = string.IsNullOrEmpty(TimeOverlappingValidationMessage) ? AttentionRequiredCssClass.No : AttentionRequiredCssClass.Yes;
+        AttentionRequired = string.IsNullOrEmpty(TimeOverlappingValidationMessage) 
+                            && string.IsNullOrEmpty(ActivityValidationMessage)
+            ? AttentionRequiredCssClass.No 
+            : AttentionRequiredCssClass.Yes;
+    }
+
+    private string GetActivityValidationMessage()
+    {
+        var activityMsg = new StringBuilder();
+
+        if (!Activity.IsActive) activityMsg.AppendLine("Activity is not active.");
+        if (!Activity.ParentProjectSummary.IsActive) activityMsg.AppendLine("Project is not active.");
+        if (!Activity.ParentProjectSummary.CustomerIsActive) activityMsg.AppendLine("Customer is not active.");
+        if (Activity.ActivityName == "TBD") activityMsg.AppendLine("Activity is To Be Determined.");
+        if (Activity.ParentProjectSummary.ProjectName == "TBD") activityMsg.AppendLine("Project is To Be Determined.");
+
+        return activityMsg.ToString();
     }
 
     private AttentionRequiredCssClass AttentionRequired { get; set; } = AttentionRequiredCssClass.No;
     private string CommentRequiredValidationMessage { get; set; } = string.Empty;
     private string TimeOverlappingValidationMessage { get; set; } = string.Empty;
+    private string ActivityValidationMessage { get; set; } = string.Empty;
 
     private List<CommentViewModel> BuildComments()
     {
