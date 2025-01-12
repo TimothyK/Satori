@@ -54,6 +54,7 @@ public partial class StandUpService(
         await Task.WhenAll(getUserTask, getTimeSheetTask);
 
         var timeSheet = getTimeSheetTask.Result;
+        SetIsOverlapping(timeSheet);
         var period = new PeriodSummary()
         {
             TotalTime = GetDuration(timeSheet),
@@ -68,6 +69,21 @@ public partial class StandUpService(
         AddMissingDays(period, allDays);
 
         return period;
+    }
+
+    private static void SetIsOverlapping(List<KimaiTimeEntry> timeSheet)
+    {
+        var entries = timeSheet.OrderBy(x => x.Begin).ToArray();
+        for (var i = 0; i < entries.Length; i++)
+        {
+            var j = i + 1;
+            while (j < entries.Length && entries[j].Begin < entries[i].End)
+            {
+                entries[i].IsOverlapping = true;
+                entries[j].IsOverlapping = true;
+                j++;
+            }
+        }
     }
 
     private void AddDaysViewModels(PeriodSummary period, List<KimaiTimeEntry> timeSheet)
@@ -172,8 +188,10 @@ public partial class StandUpService(
         {
             ProjectID = entry.Project.Id,
             ProjectName = entry.Project.Name,
+            ProjectVisible = entry.Project.Visible,
             CustomerID = entry.Project.Customer.Id,
             CustomerName = entry.Project.Customer.Name,
+            CustomerVisible = entry.Project.Customer.Visible,
             CustomerComment = entry.Project.Customer.Comment,
         });
 
@@ -184,9 +202,11 @@ public partial class StandUpService(
                 {
                     ProjectId = g.Key.ProjectID,
                     ProjectName = g.Key.ProjectName,
+                    IsActive = g.Key.ProjectVisible,
                     ParentDay = day,
                     CustomerId = g.Key.CustomerID,
                     CustomerName = g.Key.CustomerName,
+                    CustomerIsActive = g.Key.CustomerVisible,
                     CustomerAcronym = GetCustomerAcronym(g.Key.CustomerName),
                     CustomerUrl = GetCustomerLogo(g.Key.CustomerComment),
                     TotalTime = GetDuration(g),
@@ -243,6 +263,7 @@ public partial class StandUpService(
             entry.Activity.Id,
             entry.Activity.Name,
             entry.Activity.Comment,
+            entry.Activity.Visible,
             ProjectId = entry.Project.Id,
         });
 
@@ -253,6 +274,7 @@ public partial class StandUpService(
                 {
                     ActivityId = g.Key.Id,
                     ActivityName = g.Key.Name,
+                    IsActive = g.Key.Visible,
                     ParentProjectSummary = project,
                     ActivityDescription = g.Key.Comment,
                     TotalTime = GetDuration(g),
@@ -294,6 +316,7 @@ public partial class StandUpService(
             End = kimaiEntry.End,
             TotalTime = GetDuration(kimaiEntry),
             IsRunning = kimaiEntry.End == null,
+            IsOverlapping = kimaiEntry.IsOverlapping,
             Exported = kimaiEntry.Exported,
             CanExport = GetCanExport(kimaiEntry),
             Task = ExtractWorkItem(),
@@ -387,6 +410,7 @@ public partial class StandUpService(
         if (!entry.Project.Customer.Visible) return false;
         if (entry.Activity.Name == "TBD") return false;
         if (entry.Project.Name == "TBD") return false;
+        if (entry.IsOverlapping) return false;
 
         return true;
     }

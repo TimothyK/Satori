@@ -114,6 +114,9 @@ code {
 .flex-row > div {
     margin-right: 10px;
 }
+.flex-center-whitespace {
+    margin-left: auto;
+}
 
 .help-section {
     margin-top: 10px;

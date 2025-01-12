@@ -9,6 +9,7 @@ public class ActivitySummary : ISummary
     public required ProjectSummary ParentProjectSummary { get; init; }
 
     public string? ActivityDescription { get; init; }
+    public bool IsActive { get; init; }
 
     public required TimeEntry[] TimeEntries { get; set; }
     IEnumerable<TimeEntry> ISummary.TimeEntries => TimeEntries;

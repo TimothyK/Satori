@@ -7,12 +7,14 @@ public class ProjectSummary : ISummary
     /// </summary>
     public int ProjectId { get; init; }
     public required string ProjectName { get; init; }
+    public bool IsActive { get; init; }
 
     public required DaySummary ParentDay { get; init; }
 
     public int CustomerId { get; init; }
     public required string CustomerName { get; init; }
     public string? CustomerAcronym { get; init; }
+    public bool CustomerIsActive { get; init; }
     public Uri? CustomerUrl { get; init; }
 
     public required ActivitySummary[] Activities { get; set; }
