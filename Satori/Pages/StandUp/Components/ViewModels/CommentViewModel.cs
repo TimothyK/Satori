@@ -44,6 +44,7 @@ public class CommentViewModel
             : string.IsNullOrWhiteSpace(Text) ? null
             : $"{Type.Icon}{Text.Trim()}";
 
+    public IEnumerable<TimeEntry> TimeEntries => IsActive.Keys;
     public Dictionary<TimeEntry, SelectionActiveCssClass> IsActive { get; }
 
     public event EventHandler? HasChanged;

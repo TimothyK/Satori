@@ -61,7 +61,7 @@ public partial class EditWorkItem
             return;
         }
 
-        var defaultTimeEntry = ViewModel.IsActive.Keys.Last();
+        var defaultTimeEntry = ViewModel.TimeEntries.Last();
         await ViewModel.ToggleActiveAsync(defaultTimeEntry);
     }
 

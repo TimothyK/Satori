@@ -59,7 +59,7 @@ public class WorkItemCommentViewModel : CommentViewModel
             _period.Days
                 .Where(day => !day.AllExported)
                 .SelectMany(day => day.TimeEntries)
-                .Except(EntriesUnderEdit)
+                .Except(TimeEntries)
                 .Where(entry => entry.Task?.Id == workItem.Id)
                 .Where(entry => !entry.Exported)
                 .Select(entry => entry.TotalTime)
@@ -121,8 +121,6 @@ public class WorkItemCommentViewModel : CommentViewModel
         }
     }
 
-    private IEnumerable<TimeEntry> EntriesUnderEdit => IsActive.Keys;
-
     /// <summary>
     /// Time against <see cref="WorkItem"/> that is not exported yet and not under edit.
     /// </summary>
@@ -152,7 +150,7 @@ public class WorkItemCommentViewModel : CommentViewModel
     }
 
     public TimeSpan SelectedTime =>
-        EntriesUnderEdit
+        TimeEntries
             .Where(entry => IsActive[entry])
             .Select(entry => entry.TotalTime)
             .Sum();
@@ -234,6 +232,14 @@ public class WorkItemCommentViewModel : CommentViewModel
             stateValidationMessage = State == ScrumState.ToDo 
                 ? "It is not recommended that time is entered against tasks that are still 'To Do'.  Change the state to In Progress" 
                 : string.Empty;
+            var isTimingDoneTask = State == ScrumState.Done
+                                   && TimeEntries
+                                       .Where(timeEntry => IsActive[timeEntry])
+                                       .Any(timeEntry => timeEntry.IsRunning);
+            if (isTimingDoneTask)
+            {
+                stateValidationMessage = "Actively timing a done task.  Please move the task back to 'In Progress'";
+            }
 
             if (State.IsIn(ScrumState.ToDo, ScrumState.InProgress) && TimeRemainingInput <= 0.0)
             {
