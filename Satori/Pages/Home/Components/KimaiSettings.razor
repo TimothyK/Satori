@@ -52,7 +52,7 @@
                     <td><span class="validation-error">@PasswordValidationErrorMessage</span></td>
                 </tr>
             </table>
-            <button class="btn btn-primary" @onclick="Save" disabled="@(!FormIsValid)">Save</button>
+            <button class="btn btn-primary" @onclick="SaveAsync" disabled="@(!FormIsValid)">Save</button>
             <button class="btn btn-light" @onclick="CancelAzureDevOps">Cancel</button>
             <div class="help-section">
                 <p class="help-header">Instructions</p>

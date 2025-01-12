@@ -26,7 +26,7 @@ namespace Satori.Pages.Home.Components
             StateHasChanged();
         }
 
-        private void Save()
+        private async Task SaveAsync()
         {
             Validate();
             if (!FormIsValid)
@@ -47,7 +47,7 @@ namespace Satori.Pages.Home.Components
             ConnectionSettingsStore.SetMessageQueueSettings(settings);
 
             IsVisibleClass = VisibleCssClass.Hidden;
-            OnSettingsChanged.InvokeAsync();
+            await OnSettingsChanged.InvokeAsync();
         }
         private void CancelAzureDevOps()
         {
