@@ -310,6 +310,7 @@ public partial class StandUpService(
             End = kimaiEntry.End,
             TotalTime = GetDuration(kimaiEntry),
             IsRunning = kimaiEntry.End == null,
+            IsOverlapping = kimaiEntry.IsOverlapping,
             Exported = kimaiEntry.Exported,
             CanExport = GetCanExport(kimaiEntry),
             Task = ExtractWorkItem(),
