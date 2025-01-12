@@ -88,6 +88,9 @@ button:hover {
     color: white;
 }
 
+.follow-button {
+    border: 3px solid red;
+}
 
 .bi {
     display: inline-block;
