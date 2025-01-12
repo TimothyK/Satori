@@ -36,7 +36,7 @@ else
         }
     </div>
 
-    @if (ViewModel.WorkItem.Type == WorkItemType.Task)
+    @if (ViewModel.WorkItem.Type == WorkItemType.Task && ViewModel.IsTaskMine)
     {
         <div class="update-task-row">
             <div class="update-state">
@@ -58,7 +58,7 @@ else
             }
         </div>
     }
-    else
+    else if (ViewModel.WorkItem.Type != WorkItemType.Task)
     {
         <div class="add-child @ViewModel.IsAddChildExpanded">
             @foreach (var child in ViewModel.Children)
