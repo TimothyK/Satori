@@ -20,7 +20,7 @@ public class TimeEntry : ISummary
     public bool Exported { get; internal set; }
     public bool CanExport { get; internal set; }
     public bool IsRunning { get; internal set; }
-
+    public bool IsOverlapping { get; internal set; }
 
     /// <summary>
     /// This is read from the comment of the underlying time entry record.

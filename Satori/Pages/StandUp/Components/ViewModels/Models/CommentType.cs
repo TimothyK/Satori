@@ -79,7 +79,7 @@ public class CommentType : IComparable<CommentType>
     private static readonly Dictionary<CommentType, string> AddButtonLabelMap = new()
     {
         { Other, "General Comment" },
-        { Accomplishment, "Achievement" },
+        { Accomplishment, "Accomplishment" },
         { Impediment, "Impediment" },
         { Learning, "Today I Learned" },
         { WorkItem, "Azure DevOps Work Item" }

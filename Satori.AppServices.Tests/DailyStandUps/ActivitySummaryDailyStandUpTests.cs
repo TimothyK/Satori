@@ -92,6 +92,57 @@ public class ActivitySummaryDailyStandUpTests : DailyStandUpTests
     }
 
     [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task Activity_IsActive(bool visible)
+    {
+        //Arrange
+        ActivityUnderTest.Visible = visible;
+        BuildTimeEntry();
+
+        //Act
+        var activitySummary = await GetActivitySummaryAsync();
+
+        //Assert
+        activitySummary.ShouldNotBeNull();
+        activitySummary.IsActive.ShouldBe(visible);
+    }
+    
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task Project_IsActive(bool visible)
+    {
+        //Arrange
+        ActivityUnderTest.Project.Visible = visible;
+        BuildTimeEntry();
+
+        //Act
+        var activitySummary = await GetActivitySummaryAsync();
+
+        //Assert
+        activitySummary.ShouldNotBeNull();
+        activitySummary.ParentProjectSummary.IsActive.ShouldBe(visible);
+    }
+    
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task Customer_IsActive(bool visible)
+    {
+        //Arrange
+        ActivityUnderTest.Project.Customer.Visible = visible;
+        BuildTimeEntry();
+
+        //Act
+        var activitySummary = await GetActivitySummaryAsync();
+
+        //Assert
+        activitySummary.ShouldNotBeNull();
+        activitySummary.ParentProjectSummary.CustomerIsActive.ShouldBe(visible);
+    }
+
+    [TestMethod]
     public async Task NoWorkItem()
     {
         //Arrange
@@ -160,6 +211,30 @@ public class ActivitySummaryDailyStandUpTests : DailyStandUpTests
         activitySummary.TaskSummaries.Length.ShouldBe(2);
         activitySummary.TaskSummaries.Single(x => x.Task?.Id == task1.Id).TotalTime.ShouldBe(entry1.End!.Value - entry1.Begin);
         activitySummary.TaskSummaries.Single(x => x.Task?.Id == task2.Id).TotalTime.ShouldBe(entry2.End!.Value - entry2.Begin);
+    }
+    
+    [TestMethod]
+    [DataRow(6, 0)]
+    [DataRow(-6, 1)]
+    public async Task TwoWorkItems_OrderByDuration(int offset, int expectedPosition)
+    {
+        //Arrange
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task1);
+        var entry1 = BuildTimeEntry();
+        entry1.AddWorkItems(task1);
+
+        AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task2);
+        var entry2 = BuildTimeEntry();
+        entry2.AddWorkItems(task2);
+        entry2.End = entry2.Begin + (entry1.End - entry1.Begin) + TimeSpan.FromMinutes(offset);
+
+        //Act
+        var activitySummary = await GetActivitySummaryAsync();
+
+        //Assert
+        activitySummary.TaskSummaries.Length.ShouldBe(2);
+        var taskSummary2 = activitySummary.TaskSummaries.Single(x => x.Task?.Id == task2.Id);
+        activitySummary.TaskSummaries[expectedPosition].ShouldBeSameAs(taskSummary2);
     }
     
     [TestMethod]

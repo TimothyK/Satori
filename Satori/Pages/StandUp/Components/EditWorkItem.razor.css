@@ -52,10 +52,6 @@
     width: 350px;
 }
 
-.flex-center-whitespace {
-    margin-left: auto;
-}
-
 .caret::before {
     content: "\25B6";
     color: black;
@@ -88,6 +84,9 @@ button:hover {
     color: white;
 }
 
+.follow-button {
+    border: 3px solid red;
+}
 
 .bi {
     display: inline-block;

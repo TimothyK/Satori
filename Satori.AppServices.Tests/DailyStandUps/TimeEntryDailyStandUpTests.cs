@@ -422,6 +422,45 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
         entries.Single().CanExport.ShouldBeFalse();
     }
 
+    [TestMethod]
+    public async Task CanExport_Overlapping_False()
+    {
+        //Arrange
+        var kimaiEntry1 = BuildTimeEntry();
+        kimaiEntry1.End.ShouldNotBeNull();
+        var kimaiEntry2 = BuildTimeEntry();
+        kimaiEntry2.Begin = kimaiEntry1.End.Value.AddMinutes(-1);  //Entry 2 overlaps with entry 1
+        var kimaiEntry3 = BuildTimeEntry();
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        entries.Single(t => t.Id == kimaiEntry1.Id).CanExport.ShouldBeFalse();
+        entries.Single(t => t.Id == kimaiEntry2.Id).CanExport.ShouldBeFalse();
+        entries.Single(t => t.Id == kimaiEntry3.Id).CanExport.ShouldBeTrue();
+    }
+    
+    [TestMethod]
+    public async Task IsOverlapping_IsSet()
+    {
+        //Arrange
+        var kimaiEntry1 = BuildTimeEntry();
+        kimaiEntry1.End.ShouldNotBeNull();
+        var kimaiEntry2 = BuildTimeEntry();
+        kimaiEntry2.Begin = kimaiEntry1.End.Value.AddMinutes(-1);  //Entry 2 overlaps with entry 1
+        var kimaiEntry3 = BuildTimeEntry();
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        entries.Single(t => t.Id == kimaiEntry1.Id).IsOverlapping.ShouldBeTrue();
+        entries.Single(t => t.Id == kimaiEntry2.Id).IsOverlapping.ShouldBeTrue();
+        entries.Single(t => t.Id == kimaiEntry3.Id).IsOverlapping.ShouldBeFalse();
+
+    }
+
     #endregion Export
     
     #region Comments

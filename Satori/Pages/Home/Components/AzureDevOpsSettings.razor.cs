@@ -25,7 +25,7 @@ namespace Satori.Pages.Home.Components
             StateHasChanged();
         }
 
-        private void Save()
+        private async Task SaveAsync()
         {
             if (!Uri.TryCreate(Url, UriKind.Absolute, out var url))
             {
@@ -45,7 +45,7 @@ namespace Satori.Pages.Home.Components
             ConnectionSettingsStore.SetAzureDevOpsSettings(settings);
 
             IsVisibleClass = VisibleCssClass.Hidden;
-            OnSettingsChanged.InvokeAsync();
+            await OnSettingsChanged.InvokeAsync();
         }
         private void CancelAzureDevOps()
         {
