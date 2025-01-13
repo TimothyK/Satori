@@ -51,6 +51,21 @@ public class KimaiServer(
         await VerifySuccessfulResponseAsync(response);
     }
 
+    public async Task StopTimerAsync(int id)
+    {
+        var url = connectionSettings.Url
+            .AppendPathSegment("api/timesheets")
+            .AppendPathSegment(id)
+            .AppendPathSegment("stop");
+
+        var request = new HttpRequestMessage(HttpMethod.Patch, url);
+        AddAuthHeader(request);
+        Logger.LogInformation("{Method} {Url}", request.Method.ToString().ToUpper(), request.RequestUri);
+
+        var response = await httpClient.SendAsync(request);
+        await VerifySuccessfulResponseAsync(response);
+    }
+
     public async Task UpdateTimeEntryDescriptionAsync(int id, string description)
     {        
         var url = connectionSettings.Url
