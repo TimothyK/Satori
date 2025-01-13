@@ -94,8 +94,8 @@ public abstract class DailyStandUpTests
     protected KimaiTimeEntry BuildTimeEntry(DateOnly day, TimeSpan duration) => 
         BuildTimeEntry(TestActivities.SingleRandom(), day, duration);
     
-    protected KimaiTimeEntry BuildTimeEntry(Activity activity, DateOnly day)
-        => BuildTimeEntry(activity, day, TimeSpan.FromMinutes(30).Randomize());
+    protected KimaiTimeEntry BuildTimeEntry(Activity activity, DateOnly day) => 
+        BuildTimeEntry(activity, day, TimeSpan.FromMinutes(30).Randomize());
 
     protected KimaiTimeEntry BuildTimeEntry(Activity activity, DateOnly day, TimeSpan duration)
     {
