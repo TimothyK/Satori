@@ -30,6 +30,10 @@ internal class TestKimaiServer
             .Callback((int id) => MarkAsExported(id))
             .Returns(Task.CompletedTask);
 
+        _mock.Setup(srv => srv.StopTimerAsync(It.IsAny<int>()))
+            .Callback((int id) => StopTimer(id))
+            .Returns(Task.CompletedTask);
+
         _mock.Setup(srv => srv.UpdateTimeEntryDescriptionAsync(It.IsAny<int>(), It.IsAny<string>()))
             .Callback((int id, string description) => UpdateDescription(id, description))
             .Returns(Task.CompletedTask);
@@ -76,7 +80,7 @@ internal class TestKimaiServer
 
     public int? ExpectedPageSize { get; set; }
 
-    public TimeEntry? GetLastEntry(DateOnly? day)
+    public TimeEntry? GetLastEntry(DateOnly? day = null)
     {
         var filter = new TimeSheetFilter() {Size = 1};
         if (day != null)
@@ -99,6 +103,19 @@ internal class TestKimaiServer
         }
 
         entry.Exported = true;
+    }
+    
+    private void StopTimer(int id)
+    {
+        var entry = TimeSheet.SingleOrDefault(x => x.Id == id)
+                    ?? throw new InvalidOperationException($"Id {id} not found");
+
+        if (entry.End.HasValue)
+        {
+            throw new InvalidOperationException($"Id {id} already stopped");
+        }
+
+        entry.End = DateTimeOffset.Now;
     }
 
     private void UpdateDescription(int id, string description)
