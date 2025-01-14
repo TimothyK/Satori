@@ -220,7 +220,7 @@ public class WorkItemCommentViewModel : CommentViewModel
     {
         var stateValidationMessage = string.Empty;
         var timeRemainingInputValidationMessage = string.Empty;
-        var isTaskMine = false;
+        var isTaskMine = true;
 
         try
         {
