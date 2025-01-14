@@ -3,6 +3,7 @@ using Satori.Kimai;
 using Satori.Kimai.Models;
 using Shouldly;
 using System.Net;
+using Satori.AppServices.Extensions;
 
 namespace Satori.AppServices.Tests.TestDoubles.Kimai;
 
@@ -32,7 +33,7 @@ internal class TestKimaiServer
 
         _mock.Setup(srv => srv.StopTimerAsync(It.IsAny<int>()))
             .Callback((int id) => StopTimer(id))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync((int id) => TimeSheet.Single(t => t.Id == id).End ?? throw new ApplicationException($"{nameof(StopTimer)} did not set End value"));
 
         _mock.Setup(srv => srv.UpdateTimeEntryDescriptionAsync(It.IsAny<int>(), It.IsAny<string>()))
             .Callback((int id, string description) => UpdateDescription(id, description))
@@ -115,7 +116,7 @@ internal class TestKimaiServer
             throw new InvalidOperationException($"Id {id} already stopped");
         }
 
-        entry.End = DateTimeOffset.Now;
+        entry.End = DateTimeOffset.Now.ToNearest(TimeSpan.FromMinutes(1), RoundingDirection.Floor);
     }
 
     private void UpdateDescription(int id, string description)

@@ -812,4 +812,33 @@ public partial class StandUpService(
     }
 
     #endregion Update Time Entry Description
+
+    #region StopTimer
+    
+    public async Task StopTimerAsync(TimeEntry timeEntry)
+    {
+        var end = await kimai.StopTimerAsync(timeEntry.Id);
+
+        timeEntry.End = end;
+        timeEntry.TotalTime = end - timeEntry.Begin;
+        timeEntry.IsRunning = false;
+
+        var taskSummary = timeEntry.ParentTaskSummary ?? throw new InvalidOperationException();
+        taskSummary.TotalTime = taskSummary.TimeEntries.Select(e => e.TotalTime).Sum();
+
+        var activitySummary = taskSummary.ParentActivitySummary;
+        activitySummary.TotalTime = activitySummary.TimeEntries.Select(t => t.TotalTime).Sum();
+
+        var projectSummary = activitySummary.ParentProjectSummary;
+        projectSummary.TotalTime = projectSummary.Activities.Select(a => a.TotalTime).Sum();
+
+        var daySummary = projectSummary.ParentDay;
+        daySummary.TotalTime = daySummary.Projects.Select(p => p.TotalTime).Sum();
+
+        var periodSummary = daySummary.ParentPeriod;
+        periodSummary.TotalTime = periodSummary.Days.Select(d => d.TotalTime).Sum();
+
+    }
+
+    #endregion StopTimer
 }
