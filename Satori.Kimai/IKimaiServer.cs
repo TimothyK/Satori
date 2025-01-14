@@ -18,7 +18,7 @@ public interface IKimaiServer
     /// <returns></returns>
     Task ExportTimeSheetAsync(int id);
 
-    Task StopTimerAsync(int id);
+    Task<DateTimeOffset> StopTimerAsync(int id);
 
     Task UpdateTimeEntryDescriptionAsync(int id, string description);
 }
