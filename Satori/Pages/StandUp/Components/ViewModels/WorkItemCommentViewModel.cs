@@ -72,7 +72,7 @@ public class WorkItemCommentViewModel : CommentViewModel
 
     public override string? KimaiDescription => 
         WorkItem == null ? null
-        : WorkItem.Parent == null ? $"D#{WorkItem.Id} {WorkItem.Title}"
+        : WorkItem.Parent == null || WorkItem.Parent.Type.IsNotIn(WorkItemType.BoardTypes) ? $"D#{WorkItem.Id} {WorkItem.Title}"
         : $"D#{WorkItem.Parent.Id} {WorkItem.Parent.Title} » D#{WorkItem.Id} {WorkItem.Title}";
 
     public IEnumerable<WorkItem> Children
