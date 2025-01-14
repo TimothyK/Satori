@@ -11,7 +11,7 @@ public class TimeEntry : ISummary
     public TaskSummary? ParentTaskSummary { get; set; }
 
     public DateTimeOffset Begin { get; init; }
-    public DateTimeOffset? End { get; init; }
+    public DateTimeOffset? End { get; set; }
     
     IEnumerable<TimeEntry> ISummary.TimeEntries => this.Yield();
     bool ISummary.AllExported => Exported;
