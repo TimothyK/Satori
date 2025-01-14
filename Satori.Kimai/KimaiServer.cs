@@ -51,7 +51,7 @@ public class KimaiServer(
         await VerifySuccessfulResponseAsync(response);
     }
 
-    public async Task StopTimerAsync(int id)
+    public async Task<DateTimeOffset> StopTimerAsync(int id)
     {
         var url = connectionSettings.Url
             .AppendPathSegment("api/timesheets")
@@ -64,6 +64,23 @@ public class KimaiServer(
 
         var response = await httpClient.SendAsync(request);
         await VerifySuccessfulResponseAsync(response);
+
+        await using var responseStream = await response.Content.ReadAsStreamAsync();
+        using var reader = new StreamReader(responseStream);
+        var body = await reader.ReadToEndAsync();
+
+        try
+        {
+            var timeEntry = JsonSerializer.Deserialize<TimeEntryCollapsed>(body)
+                   ?? throw new ApplicationException("Server did not respond");
+            return timeEntry.End ?? throw new ApplicationException("Response did not define a End value");
+        }
+        catch (JsonException ex)
+        {
+            Logger.LogError(ex, "Failed to deserialize {payload}", body);
+            throw;
+        }
+
     }
 
     public async Task UpdateTimeEntryDescriptionAsync(int id, string description)

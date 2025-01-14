@@ -69,5 +69,15 @@ namespace Satori.Kimai.Tests.TimeSheetTests.SampleFiles {
                 return ((byte[])(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] TimeEntryCollapsed {
+            get {
+                object obj = ResourceManager.GetObject("TimeEntryCollapsed", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }
