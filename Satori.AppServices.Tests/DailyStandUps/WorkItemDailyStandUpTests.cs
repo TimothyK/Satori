@@ -4,6 +4,7 @@ using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.ViewModels.WorkItems;
+using Satori.AzureDevOps.Models;
 using Shouldly;
 using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
 using TimeEntry = Satori.AppServices.ViewModels.DailyStandUps.TimeEntry;
@@ -332,6 +333,52 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         entry.Task.ShouldNotBeNull();
         entry.Task.Id.ShouldBe(task.Id);
         entry.Task.State.ShouldBe(ScrumState.Unknown);
+    }
+
+    [TestMethod]
+    public async Task FeatureAndBug_ReferencesTheBug()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        var builder = AzureDevOpsBuilder.BuildWorkItem(out var feature);
+        feature.Fields.WorkItemType = WorkItemType.Feature.ToApiValue();
+        builder.AddChild(out var workItem);
+        WorkItemType.FromApiValue(workItem.Fields.WorkItemType).ShouldBeOneOf(WorkItemType.BoardTypes.ToArray());
+        kimaiEntry.Description = $"D#{feature.Id} {feature.Fields.Title} » D#{workItem.Id} {workItem.Fields.Title}";
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        entries.Length.ShouldBe(1);
+        var entry = entries.Single();
+        entry.Task.ShouldNotBeNull();
+        entry.Task.Id.ShouldBe(workItem.Id);
+        entry.Task.Parent.ShouldNotBeNull();
+        entry.Task.Parent.Id.ShouldBe(feature.Id);
+    }
+    
+    [TestMethod]
+    public async Task EpicAndFeature_ReferencesTheFeature()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        var builder = AzureDevOpsBuilder.BuildWorkItem(out var epic);
+        epic.Fields.WorkItemType = WorkItemType.Epic.ToApiValue();
+        builder.AddChild(out var feature);
+        WorkItemType.FromApiValue(feature.Fields.WorkItemType).ShouldBe(WorkItemType.Feature);
+        kimaiEntry.Description = $"D#{epic.Id} {epic.Fields.Title} » D#{feature.Id} {feature.Fields.Title}";
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        entries.Length.ShouldBe(1);
+        var entry = entries.Single();
+        entry.Task.ShouldNotBeNull();
+        entry.Task.Id.ShouldBe(feature.Id);
+        entry.Task.Parent.ShouldNotBeNull();
+        entry.Task.Parent.Id.ShouldBe(epic.Id);
     }
 
     #endregion Load Work Item Type and Parent/Child relations

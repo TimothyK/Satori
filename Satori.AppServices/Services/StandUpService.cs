@@ -465,6 +465,9 @@ public partial class StandUpService(
             var task = GetAllWorkItemIds(entry).Distinct()
                 .Join(workItems, id => id, wi => wi.Id, (_, wi) => wi)
                 .OrderByDescending(wi => wi.Type == WorkItemType.Task)
+                .ThenByDescending(wi => wi.Type.IsIn(WorkItemType.BoardTypes))
+                .ThenByDescending(wi => wi.Type == WorkItemType.Feature)
+                .ThenByDescending(wi => wi.Type == WorkItemType.Epic)
                 .ThenBy(wi => wi.Id)
                 .FirstOrDefault();
 
