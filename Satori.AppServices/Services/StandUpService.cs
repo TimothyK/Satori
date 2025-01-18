@@ -579,7 +579,7 @@ public partial class StandUpService(
         }
     }
 
-    public static void ResetTimeRemaining(TimeEntry[] timeEntries)
+    private static void ResetTimeRemaining(TimeEntry[] timeEntries)
     {
         foreach (var entry in timeEntries.Where(x => x.Task?.State != ScrumState.Done))
         {
@@ -823,8 +823,24 @@ public partial class StandUpService(
         var end = await kimai.StopTimerAsync(timeEntry.Id);
 
         timeEntry.End = end;
-        timeEntry.TotalTime = end - timeEntry.Begin;
         timeEntry.IsRunning = false;
+
+        CascadeEndTimeChange(timeEntry, end);
+    }
+
+    public static void CascadeEndTimeChange(TimeEntry timeEntry, DateTimeOffset end)
+    {
+        timeEntry.TotalTime = end - timeEntry.Begin;
+
+        var task = timeEntry.Task;
+        if (task?.RemainingWork != null && task?.State != ScrumState.Done)
+        {
+            var period = timeEntry.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod;
+            var timeEntries = period.TimeEntries
+                .Where(t => t.Task == task)
+                .ToArray();
+            ResetTimeRemaining(timeEntries);
+        }
 
         var taskSummary = timeEntry.ParentTaskSummary ?? throw new InvalidOperationException();
         taskSummary.TotalTime = taskSummary.TimeEntries.Select(e => e.TotalTime).Sum();
@@ -840,7 +856,6 @@ public partial class StandUpService(
 
         var periodSummary = daySummary.ParentPeriod;
         periodSummary.TotalTime = periodSummary.Days.Select(d => d.TotalTime).Sum();
-
     }
 
     #endregion StopTimer
