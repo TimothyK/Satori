@@ -224,9 +224,15 @@ namespace Satori.Pages
 
         #region Current Mode
 
-        //TODO: This should default to Visible.  Disabling because priority adjustments isn't 100% implemented yet.
-        public VisibleCssClass ShowEnterModeClassName { get; private set; } = VisibleCssClass.Hidden; // VisibleCssClass.Visible;
+        public VisibleCssClass ShowEnterModeClassName { get; private set; } = PriorityFeatureFlag;
         public VisibleCssClass ShowExitModeClassName { get; private set; } = VisibleCssClass.Hidden;
+
+        //TODO: Priority adjustments isn't 100% implemented yet.  Hidden by compiler DEBUG flag.
+#if DEBUG
+        private static readonly VisibleCssClass PriorityFeatureFlag = VisibleCssClass.Visible;
+#else
+        private static readonly VisibleCssClass PriorityFeatureFlag = VisibleCssClass.Hidden;
+#endif
 
         public void ToggleMode()
         {
