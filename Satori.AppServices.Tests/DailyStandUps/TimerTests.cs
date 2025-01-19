@@ -229,5 +229,204 @@ public class TimerTests : DailyStandUpTests
         }
     }
 
+    [TestMethod]
+    public async Task Stop_SetsIsRunningOnParents()
+    {
+        //Arrange
+        var timeEntry = BuildTimeEntry();
 
+        //Act
+        var actual = await StopTimerAsync(timeEntry);
+
+        //Assert
+        actual.IsRunning.ShouldBeFalse();
+        actual.ParentTaskSummary.ShouldNotBeNull();
+        actual.ParentTaskSummary.IsRunning.ShouldBeFalse();
+        actual.ParentActivitySummary.IsRunning.ShouldBeFalse();
+        actual.ParentActivitySummary.ParentProjectSummary.IsRunning.ShouldBeFalse();
+        actual.ParentActivitySummary.ParentProjectSummary.ParentDay.IsRunning.ShouldBeFalse();
+        actual.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod.IsRunning.ShouldBeFalse();
+    }
+    
+    [TestMethod]
+    public async Task Stop_CanExport()
+    {
+        //Arrange
+        var timeEntry = BuildTimeEntry();
+
+        //Act
+        var actual = await StopTimerAsync(timeEntry);
+
+        //Assert
+        actual.CanExport.ShouldBeTrue();
+    }
+    
+    [TestMethod]
+    public async Task Stop_DeactivatedActivity_CannotExport()
+    {
+        //Arrange
+        var timeEntry = BuildTimeEntry()
+            .With(t => t.Activity.Visible = false);
+
+        //Act
+        var actual = await StopTimerAsync(timeEntry);
+
+        //Assert
+        actual.CanExport.ShouldBeFalse();
+    }
+    
+    [TestMethod]
+    public async Task Stop_DeactivatedProject_CannotExport()
+    {
+        //Arrange
+        var timeEntry = BuildTimeEntry()
+            .With(t => t.Project.Visible = false);
+
+        //Act
+        var actual = await StopTimerAsync(timeEntry);
+
+        //Assert
+        actual.CanExport.ShouldBeFalse();
+    }
+    
+    [TestMethod]
+    public async Task Stop_DeactivatedCustomer_CannotExport()
+    {
+        //Arrange
+        var timeEntry = BuildTimeEntry()
+            .With(t => t.Project.Customer.Visible = false);
+
+        //Act
+        var actual = await StopTimerAsync(timeEntry);
+
+        //Assert
+        actual.CanExport.ShouldBeFalse();
+    }
+    
+    [TestMethod]
+    public async Task Stop_ActivityToBeDetermined_CannotExport()
+    {
+        //Arrange
+        var timeEntry = BuildTimeEntry()
+            .With(t => t.Activity.Name = "TBD");
+
+        //Act
+        var actual = await StopTimerAsync(timeEntry);
+
+        //Assert
+        actual.CanExport.ShouldBeFalse();
+    }
+    
+    [TestMethod]
+    public async Task Stop_ProjectToBeDetermined_CannotExport()
+    {
+        //Arrange
+        var timeEntry = BuildTimeEntry()
+            .With(t => t.Project.Name = "TBD");
+
+        //Act
+        var actual = await StopTimerAsync(timeEntry);
+
+        //Assert
+        actual.CanExport.ShouldBeFalse();
+    }
+    
+    [TestMethod]
+    public async Task Stop_OverlappingTime_SetsOverlapping()
+    {
+        //Arrange
+        var timeEntry1 = BuildTimeEntry(Today);
+        var timeEntry2 = BuildTimeEntry();
+        timeEntry1.End = timeEntry2.Begin + TimeSpan.FromMinutes(1);
+
+        //Act
+        var actual = await StopTimerAsync(timeEntry2);
+
+        //Assert
+        actual.IsOverlapping.ShouldBeTrue();
+        var other = actual.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod.TimeEntries
+            .Single(t => t.Id == timeEntry1.Id);
+        other.IsOverlapping.ShouldBeTrue();
+    }
+    
+    [TestMethod]
+    public async Task Stop_NonOverlappingTime_NotOverlapping()
+    {
+        //Arrange
+        var timeEntry1 = BuildTimeEntry(Today);
+        var timeEntry2 = BuildTimeEntry();
+        timeEntry2.Begin.ShouldBe(timeEntry1.End ?? throw new InvalidOperationException());
+
+        //Act
+        var actual = await StopTimerAsync(timeEntry2);
+
+        //Assert
+        actual.IsOverlapping.ShouldBeFalse();
+        var other = actual.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod.TimeEntries
+            .Single(t => t.Id == timeEntry1.Id);
+        other.IsOverlapping.ShouldBeFalse();
+    }
+    
+    [TestMethod]
+    public async Task Stop_OverlappingTime_CannotExport()
+    {
+        //Arrange
+        var timeEntry1 = BuildTimeEntry(Today);
+        var timeEntry2 = BuildTimeEntry();
+        timeEntry1.End = timeEntry2.Begin + TimeSpan.FromMinutes(1);
+
+        //Act
+        var actual = await StopTimerAsync(timeEntry2);
+
+        //Assert
+        actual.CanExport.ShouldBeFalse();
+    }
+    
+    [TestMethod]
+    public async Task Stop_CanExportOnParents()
+    {
+        //Arrange
+        var timeEntry = BuildTimeEntry();
+
+        //Act
+        var actual = await StopTimerAsync(timeEntry);
+
+        //Assert
+        actual.CanExport.ShouldBeTrue();
+        actual.ParentTaskSummary.ShouldNotBeNull();
+        actual.ParentTaskSummary.CanExport.ShouldBeTrue();
+        actual.ParentActivitySummary.CanExport.ShouldBeTrue();
+        actual.ParentActivitySummary.ParentProjectSummary.CanExport.ShouldBeTrue();
+        actual.ParentActivitySummary.ParentProjectSummary.ParentDay.CanExport.ShouldBeTrue();
+        actual.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod.CanExport.ShouldBeTrue();
+    }
+    
+    [TestMethod]
+    public async Task Stop_SiblingCannotExport_CanExportSetOnParents()
+    {
+        //Arrange
+        var timeEntry1 = BuildTimeEntry(Today);  //This one can be exported.
+        timeEntry1.End.ShouldNotBeNull();
+        var timeEntry2 = BuildTimeEntry(timeEntry1.Activity, Today);
+        timeEntry2.End.ShouldNotBeNull();
+        var timeEntry3 = BuildTimeEntry(timeEntry1.Activity, Today).With(t =>
+        {
+            t.Begin = timeEntry2.End.Value - TimeSpan.FromMinutes(1); //overlapping should for these to not be exportable
+            t.End = null;
+        });
+
+        //Act
+        var actual = await StopTimerAsync(timeEntry3);
+
+        //Assert
+        actual.CanExport.ShouldBeFalse();
+        actual.ParentTaskSummary.ShouldNotBeNull();
+        //Because time entry 1 is exportable, all the parent summaries should be exportable.
+        actual.ParentTaskSummary.CanExport.ShouldBeTrue();
+        actual.ParentActivitySummary.CanExport.ShouldBeTrue();
+        actual.ParentActivitySummary.ParentProjectSummary.CanExport.ShouldBeTrue();
+        actual.ParentActivitySummary.ParentProjectSummary.ParentDay.CanExport.ShouldBeTrue();
+        actual.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod.CanExport.ShouldBeTrue();
+    }
+    
 }

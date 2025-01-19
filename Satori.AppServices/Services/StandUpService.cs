@@ -13,6 +13,7 @@ using Satori.Kimai.Models;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using Satori.AppServices.Models;
 using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
 using TimeEntry = Satori.AppServices.ViewModels.DailyStandUps.TimeEntry;
 using UriFormatException = System.UriFormatException;
@@ -77,7 +78,9 @@ public partial class StandUpService(
         for (var i = 0; i < entries.Length; i++)
         {
             var j = i + 1;
-            while (j < entries.Length && entries[j].Begin < entries[i].End)
+            while (j < entries.Length 
+                   && entries[i].End != null && entries[j].End != null
+                   && entries[j].Begin < entries[i].End)
             {
                 entries[i].IsOverlapping = true;
                 entries[j].IsOverlapping = true;
@@ -823,9 +826,40 @@ public partial class StandUpService(
         var end = await kimai.StopTimerAsync(timeEntry.Id);
 
         timeEntry.End = end;
+        SetIsOverlapping(timeEntry);
+        
         timeEntry.IsRunning = false;
+        timeEntry.CanExport = GetCanExport(timeEntry);
+        CascadeIsRunningAndCanExport(timeEntry);
 
         CascadeEndTimeChange(timeEntry, end);
+    }
+
+    private static void SetIsOverlapping(TimeEntry timeEntry)
+    {
+        var period = timeEntry.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod;
+        var otherTimeEntries = period.TimeEntries.Except(timeEntry.Yield()).ToArray();
+        var overlappingTimeEntries = otherTimeEntries
+            .Where(t => ((ITimeRange)t).IsOverlapping(timeEntry))
+            .ToArray();
+            
+        timeEntry.IsOverlapping = overlappingTimeEntries.Any();
+        foreach (var overlappingTimeEntry in overlappingTimeEntries)
+        {
+            overlappingTimeEntry.IsOverlapping = true;
+        }
+    }
+
+    private static bool GetCanExport(TimeEntry timeEntry)
+    {
+        if (!timeEntry.ParentActivitySummary.IsActive) return false;
+        if (!timeEntry.ParentActivitySummary.ParentProjectSummary.IsActive) return false;
+        if (!timeEntry.ParentActivitySummary.ParentProjectSummary.CustomerIsActive) return false;
+        if (timeEntry.ParentActivitySummary.ActivityName == "TBD") return false;
+        if (timeEntry.ParentActivitySummary.ParentProjectSummary.ProjectName == "TBD") return false;
+        if (timeEntry.IsOverlapping) return false;
+
+        return true;
     }
 
     public static void CascadeEndTimeChange(TimeEntry timeEntry, DateTimeOffset end)
@@ -833,7 +867,7 @@ public partial class StandUpService(
         timeEntry.TotalTime = end - timeEntry.Begin;
 
         var task = timeEntry.Task;
-        if (task?.RemainingWork != null && task?.State != ScrumState.Done)
+        if (task?.RemainingWork != null && task.State != ScrumState.Done)
         {
             var period = timeEntry.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod;
             var timeEntries = period.TimeEntries
@@ -856,6 +890,29 @@ public partial class StandUpService(
 
         var periodSummary = daySummary.ParentPeriod;
         periodSummary.TotalTime = periodSummary.Days.Select(d => d.TotalTime).Sum();
+    }
+
+    private static void CascadeIsRunningAndCanExport(TimeEntry timeEntry)
+    {
+        var taskSummary = timeEntry.ParentTaskSummary ?? throw new InvalidOperationException();
+        taskSummary.IsRunning = taskSummary.TimeEntries.Any(t => t.IsRunning);
+        taskSummary.CanExport = taskSummary.TimeEntries.Any(t => t.CanExport);
+
+        var activitySummary = taskSummary.ParentActivitySummary;
+        activitySummary.IsRunning = activitySummary.TimeEntries.Any(t => t.IsRunning);
+        activitySummary.CanExport = activitySummary.TimeEntries.Any(t => t.CanExport);
+
+        var projectSummary = activitySummary.ParentProjectSummary;
+        projectSummary.IsRunning = projectSummary.TimeEntries.Any(t => t.IsRunning);
+        projectSummary.CanExport = projectSummary.TimeEntries.Any(t => t.CanExport);
+
+        var daySummary = projectSummary.ParentDay;
+        daySummary.IsRunning = daySummary.TimeEntries.Any(t => t.IsRunning);
+        daySummary.CanExport = daySummary.TimeEntries.Any(t => t.CanExport);
+
+        var periodSummary = daySummary.ParentPeriod;
+        periodSummary.IsRunning = periodSummary.TimeEntries.Any(t => t.IsRunning);
+        periodSummary.CanExport = periodSummary.TimeEntries.Any(t => t.CanExport);
     }
 
     #endregion StopTimer

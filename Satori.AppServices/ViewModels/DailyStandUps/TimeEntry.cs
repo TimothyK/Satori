@@ -1,9 +1,10 @@
 ﻿using CodeMonkeyProjectiles.Linq;
+using Satori.AppServices.Models;
 using Satori.AppServices.ViewModels.WorkItems;
 
 namespace Satori.AppServices.ViewModels.DailyStandUps;
 
-public class TimeEntry : ISummary
+public class TimeEntry : ISummary, ITimeRange
 {
     public int Id { get; init; }
 
