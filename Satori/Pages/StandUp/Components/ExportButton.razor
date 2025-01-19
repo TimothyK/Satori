@@ -1,4 +1,6 @@
-﻿@using Satori.AppServices.Services
+﻿@using System.Timers
+@using CodeMonkeyProjectiles.Linq
+@using Satori.AppServices.Services
 @using Satori.AppServices.ViewModels.DailyStandUps
 @inject StandUpService StandUpService
 
@@ -9,10 +11,8 @@
     }
     else if (Summary.IsRunning)
     {
-        <div class="flex-row stop-row">
-            <span class="duration-running"></span>
-            <button class="btn-common btn-stop" @onclick="async () => await StopAsync(Summary)">■ Stop</button>
-        </div>
+        <span class="duration-running"></span>
+        <button class="btn-common btn-stop" @onclick="async () => await StopAsync(Summary)">■ Stop</button>
     }
     else if (Summary.CanExport)
     {
@@ -22,6 +22,9 @@
     {
         <span class="export-cannot"></span>
     }
+    <div class="alert alert-danger alert-dismissible fade show @ShowAlertClassName" role="alert">
+        @AlertContent
+    </div>  
 </div>
 
 @code {
@@ -49,6 +52,7 @@
 
     private async Task ClickButtonTemplate(Func<Task> doWork)
     {
+        ClearAlert();
         if (_isClicking)
         {
             return;
@@ -59,12 +63,44 @@
         {
             await doWork.Invoke();
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            ShowAlert(ex.Message);
+        }
         finally
         {
             _isClicking = false;
         }
 
         await OnChanged.InvokeAsync();
+    }
+
+    private string ShowAlertClassName { get; set; } = "d-none";
+    private string AlertContent { get; set; } = string.Empty;
+    private Timer? _timer;
+    public void ClearAlert()
+    {
+        ShowAlertClassName = "d-none";
+        AlertContent = string.Empty;
+    }
+
+    public void ShowAlert(string message)
+    {
+        AlertContent = message;
+        ShowAlertClassName = string.Empty;
+
+        var timer = new Timer(TimeSpan.FromSeconds(30));
+        timer.Elapsed += HandleTimer;
+        timer.Start();
+    }
+
+    private void HandleTimer(object? sender, ElapsedEventArgs e)
+    {
+        ClearAlert();
+        _timer?.Stop();
+        _timer = null;
+        StateHasChanged();
     }
 
 }

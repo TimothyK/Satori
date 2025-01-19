@@ -1,9 +1,9 @@
-﻿.export-done {
-    display: none;
+﻿.export {
+    display: flex;    
 }
 
-.stop-row {
-    height: 100%;
+.export-done {
+    display: none;
 }
 
 .btn-common {
@@ -29,6 +29,10 @@
 .btn-stop:hover {
     background-color: red;
     color: white;
+}
+
+.alert {
+    height: 100%;
 }
 
 .export-cannot::before {
