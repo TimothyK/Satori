@@ -116,7 +116,12 @@ internal class TestKimaiServer
             throw new InvalidOperationException($"Id {id} already stopped");
         }
 
-        entry.End = DateTimeOffset.Now.ToNearest(TimeSpan.FromMinutes(1), RoundingDirection.Floor);
+        var end = DateTimeOffset.Now.ToNearest(TimeSpan.FromMinutes(1), RoundingDirection.Floor);
+        if (end < entry.Begin)
+        {
+            end = entry.Begin + TimeSpan.FromMinutes(3);
+        }
+        entry.End = end;
     }
 
     private void UpdateDescription(int id, string description)
