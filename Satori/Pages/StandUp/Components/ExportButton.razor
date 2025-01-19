@@ -9,11 +9,14 @@
     }
     else if (Summary.IsRunning)
     {
-        <span class="duration-running"></span>
+        <div class="flex-row stop-row">
+            <span class="duration-running"></span>
+            <button class="btn-common btn-stop" @onclick="async () => await StopAsync(Summary)">■ Stop</button>
+        </div>
     }
     else if (Summary.CanExport)
     {
-        <button @onclick="async () => await ExportAsync(Summary)">Export</button>
+        <button class="btn-common btn-export" @onclick="async () => await ExportAsync(Summary)">Export</button>
     }
     else
     {
@@ -24,29 +27,44 @@
 @code {
     [Parameter] 
     public required ISummary Summary { get; set; }
-    private static bool _isExporting;
+    private static bool _isClicking;
     [Parameter]
-    public EventCallback OnExported { get; set; }
-
+    public EventCallback OnChanged { get; set; }
 
     private async Task ExportAsync(ISummary summary)
     {
-        if (_isExporting)
+        await ClickButtonTemplate(() => StandUpService.ExportAsync(summary.TimeEntries.Where(x => x.CanExport).ToArray()));
+    }
+
+    private async Task StopAsync(ISummary summary)
+    {
+        var runningTimeEntry = summary.TimeEntries.SingleOrDefault(x => x.IsRunning);
+        if (runningTimeEntry == null)
+        {
+            throw new InvalidOperationException("Stop button should not have been available");
+        }
+
+        await ClickButtonTemplate(() => StandUpService.StopTimerAsync(runningTimeEntry));
+    }
+
+    private async Task ClickButtonTemplate(Func<Task> doWork)
+    {
+        if (_isClicking)
         {
             return;
         }
 
-        _isExporting = true;
+        _isClicking = true;
         try
         {
-            await StandUpService.ExportAsync(summary.TimeEntries.Where(x => x.CanExport).ToArray());
+            await doWork.Invoke();
         }
         finally
         {
-            _isExporting = false;
+            _isClicking = false;
         }
 
-        await OnExported.InvokeAsync();
+        await OnChanged.InvokeAsync();
     }
 
 }

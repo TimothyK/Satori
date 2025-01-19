@@ -2,17 +2,32 @@
     display: none;
 }
 
-.export button {
-    color: green;
+.stop-row {
+    height: 100%;
+}
+
+.btn-common {
     background-color: transparent;
     border-radius: 5px;
-    border-color: green;
     border-width: 1px;
     height: 100%;
 }
 
-.export button:hover {
+.btn-export {
+    color: green;
+    border-color: green;
+}
+.btn-export:hover {
     background-color: green;
+    color: white;
+}
+
+.btn-stop {
+    color: red;
+    border-color: red;
+}
+.btn-stop:hover {
+    background-color: red;
     color: white;
 }
 
