@@ -10,18 +10,21 @@ public interface ITimeRange
     /// End of the time range, exclusive.
     /// </summary>
     public DateTimeOffset? End { get; }
+}
 
-    public bool IsOverlapping(ITimeRange other)
+public static class TimeRangeExtensions
+{
+    public static bool IsOverlapping(this ITimeRange range1, ITimeRange range2)
     {
-        if (End == null || other.End == null)
+        if (range1.End == null || range2.End == null)
         {
             return false;
         }
-        if (End < Begin || other.End < other.Begin)
+        if (range1.End < range1.Begin || range2.End < range2.Begin)
         {
-            throw new InvalidOperationException($"{nameof(End)} must be after {nameof(Begin)}");
+            throw new InvalidOperationException($"{nameof(ITimeRange.End)} must be after {nameof(ITimeRange.Begin)}");
         }
 
-        return Begin < other.End && other.Begin < End;
+        return range1.Begin < range2.End && range2.Begin < range1.End;
     }
 }

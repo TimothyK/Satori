@@ -26,8 +26,6 @@ internal class TimeRange(DateTimeOffset begin, DateTimeOffset? end) : ITimeRange
         return this - duration;
     }
 
-    public bool TestIsOverlapping(ITimeRange other) => ((ITimeRange)this).IsOverlapping(other);
-
     public static TimeRange operator +(TimeRange timeRange, TimeSpan delta) => new(timeRange.Begin + delta, timeRange.End + delta);
     public static TimeRange operator -(TimeRange timeRange, TimeSpan delta) => new(timeRange.Begin - delta, timeRange.End - delta);
 }

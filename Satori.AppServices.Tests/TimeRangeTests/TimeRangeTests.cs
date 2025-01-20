@@ -1,4 +1,5 @@
-﻿using Shouldly;
+﻿using Satori.AppServices.Models;
+using Shouldly;
 
 namespace Satori.AppServices.Tests.TimeRangeTests;
 
@@ -28,7 +29,7 @@ public class TimeRangeTests
         var testRange2 = TestRange1.NextBlock();
 
         CompareMessage(testRange2);
-        TestRange1.TestIsOverlapping(testRange2).ShouldBeFalse();
+        TestRange1.IsOverlapping(testRange2).ShouldBeFalse();
     }
 
     [TestMethod]
@@ -39,7 +40,7 @@ public class TimeRangeTests
         var testRange2 = TestRange1.PreviousBlock();
 
         CompareMessage(testRange2);
-        TestRange1.TestIsOverlapping(testRange2).ShouldBeFalse();
+        TestRange1.IsOverlapping(testRange2).ShouldBeFalse();
     }
     
     [TestMethod]
@@ -50,7 +51,7 @@ public class TimeRangeTests
         var testRange2 = TestRange1;
 
         CompareMessage(testRange2);
-        TestRange1.TestIsOverlapping(testRange2).ShouldBeTrue();
+        TestRange1.IsOverlapping(testRange2).ShouldBeTrue();
     }
     
     [TestMethod]
@@ -59,8 +60,8 @@ public class TimeRangeTests
         var testRange2 = new TimeRange(TestRange1.Begin, null);
 
         CompareMessage(testRange2);
-        TestRange1.TestIsOverlapping(testRange2).ShouldBeFalse();
-        testRange2.TestIsOverlapping(TestRange1).ShouldBeFalse();
+        TestRange1.IsOverlapping(testRange2).ShouldBeFalse();
+        testRange2.IsOverlapping(TestRange1).ShouldBeFalse();
     }
 
     [TestMethod]
@@ -68,8 +69,8 @@ public class TimeRangeTests
     {
         var testRange2 = new TimeRange(Root + OneMinute, Root);  //End is before Begin
 
-        Should.Throw<InvalidOperationException>(() => TestRange1.TestIsOverlapping(testRange2));
-        Should.Throw<InvalidOperationException>(() => testRange2.TestIsOverlapping(TestRange1));
+        Should.Throw<InvalidOperationException>(() => TestRange1.IsOverlapping(testRange2));
+        Should.Throw<InvalidOperationException>(() => testRange2.IsOverlapping(TestRange1));
     }
 
 
@@ -82,7 +83,7 @@ public class TimeRangeTests
         var testRange2 = TestRange1.NextBlock() - TimeSpan.FromMinutes(1);
 
         CompareMessage(testRange2);
-        TestRange1.TestIsOverlapping(testRange2).ShouldBeTrue();
+        TestRange1.IsOverlapping(testRange2).ShouldBeTrue();
     }
     
     [TestMethod]
@@ -93,7 +94,7 @@ public class TimeRangeTests
         var testRange2 = TestRange1 - TimeSpan.FromMinutes(1);
 
         CompareMessage(testRange2);
-        TestRange1.TestIsOverlapping(testRange2).ShouldBeTrue();
+        TestRange1.IsOverlapping(testRange2).ShouldBeTrue();
     }
     
     [TestMethod]
@@ -104,7 +105,7 @@ public class TimeRangeTests
         var testRange2 = new TimeRange(TestRange1.Begin + OneMinute, TestRange1.End - OneMinute);
 
         CompareMessage(testRange2);
-        TestRange1.TestIsOverlapping(testRange2).ShouldBeTrue();
+        TestRange1.IsOverlapping(testRange2).ShouldBeTrue();
     }
     
     [TestMethod]
@@ -115,7 +116,7 @@ public class TimeRangeTests
         var testRange2 = new TimeRange(TestRange1.Begin - OneMinute, TestRange1.End + OneMinute);
 
         CompareMessage(testRange2);
-        TestRange1.TestIsOverlapping(testRange2).ShouldBeTrue();
+        TestRange1.IsOverlapping(testRange2).ShouldBeTrue();
     }
     
 }
