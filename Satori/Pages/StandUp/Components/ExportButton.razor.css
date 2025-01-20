@@ -1,19 +1,47 @@
-﻿.export-done {
+﻿.export {
+    display: flex;    
+}
+
+.export-done {
     display: none;
 }
 
-.export button {
-    color: green;
+.btn-common {
     background-color: transparent;
     border-radius: 5px;
-    border-color: green;
     border-width: 1px;
     height: 100%;
 }
 
-.export button:hover {
+.btn-export {
+    color: green;
+    border-color: green;
+}
+.btn-export:hover {
     background-color: green;
     color: white;
+}
+
+.btn-stop {
+    color: red;
+    border-color: red;
+}
+.btn-stop:hover {
+    background-color: red;
+    color: white;
+}
+
+.btn-done {
+    color: green;
+    border-color: green;
+}
+.btn-done:hover {
+    background-color: green;
+    color: white;
+}
+
+.alert {
+    height: 100%;
 }
 
 .export-cannot::before {

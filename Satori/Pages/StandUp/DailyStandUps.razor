@@ -5,7 +5,6 @@
 @using Satori.AppServices.ViewModels
 @using Flurl
 @using Satori.AppServices.Extensions
-@using Satori.AppServices.ViewModels.WorkItems
 @using CodeMonkeyProjectiles.Linq
 @using Satori.AppServices.Models
 @using Satori.Pages.StandUp.Components
@@ -71,7 +70,7 @@
             <div class="duration-decimal">
                 <span class="">@day.TotalTime.TotalHours.ToNearest(0.05)</span>
             </div>
-            <ExportButton Summary="day" OnExported="StateHasChanged"></ExportButton>
+            <ExportButton Summary="day" OnChanged="StateHasChanged"></ExportButton>
         </div>
         <div class="day-header-day">@day.Date.ToString("D")</div>
     </div>
@@ -89,7 +88,7 @@
                 <div class="duration-decimal">
                     <span class="">@project.TotalTime.TotalHours.ToNearest(0.05)</span>
                 </div>
-                <ExportButton Summary="project" OnExported="StateHasChanged"></ExportButton>
+                <ExportButton Summary="project" OnChanged="StateHasChanged"></ExportButton>
             </div>
             <div class="project-header-project">@project.ProjectName</div>
             <div class="project-header-customer">
@@ -123,7 +122,7 @@
                     <div class="duration-decimal">
                         <span class="">@activity.TotalTime.TotalHours.ToNearest(0.05)</span>
                     </div>
-                    <ExportButton Summary="activity" OnExported="StateHasChanged"></ExportButton>
+                    <ExportButton Summary="activity" OnChanged="StateHasChanged"></ExportButton>
                 </div>
                 <div class="activity-header-activity">@activity.ActivityName</div>
             </div>
@@ -140,7 +139,7 @@
                         <div class="duration-decimal">
                             <span class="">@taskSummary.TotalTime.TotalHours.ToNearest(0.05)</span>
                         </div>
-                        <ExportButton Summary="taskSummary" OnExported="StateHasChanged"></ExportButton>
+                        <ExportButton Summary="taskSummary" OnChanged="StateHasChanged"></ExportButton>
                     </div>
                     <div class="taskSummary-header-description">
                         <WorkItemView WorkItem="taskSummary.Task" TimeRemaining="taskSummary.TimeRemaining" Activity="taskSummary.ParentActivitySummary"></WorkItemView>
@@ -200,7 +199,7 @@
                                     <div class="duration-decimal">
                                         <span class="">@entry.TotalTime.TotalHours.ToNearest(0.05)</span>
                                     </div>
-                                    <ExportButton Summary="entry" OnExported="StateHasChanged"></ExportButton>
+                                    <ExportButton Summary="entry" OnChanged="StateHasChanged"></ExportButton>
                                 </div>
                             </td>
                             <td class="time-entry-comments">
@@ -343,31 +342,7 @@
             return;
         }
 
-        RunningTimeEntry.TotalTime = DateTimeOffset.Now - RunningTimeEntry.Begin;
-
-        if (RunningTimeEntry.Task?.RemainingWork != null && RunningTimeEntry.Task?.State != ScrumState.Done)
-        {
-            var task = RunningTimeEntry.Task;
-            var timeEntries = Period.TimeEntries
-                .Where(timeEntry => timeEntry.Task == task)
-                .ToArray();
-            StandUpService.ResetTimeRemaining(timeEntries);
-        }
-
-        var taskSummary = RunningTimeEntry.ParentTaskSummary ?? throw new InvalidOperationException();
-        taskSummary.TotalTime = taskSummary.TimeEntries.Select(e => e.TotalTime).Sum();
-
-        var activitySummary = taskSummary.ParentActivitySummary;
-        activitySummary.TotalTime = activitySummary.TimeEntries.Select(t => t.TotalTime).Sum();
-
-        var projectSummary = activitySummary.ParentProjectSummary;
-        projectSummary.TotalTime = projectSummary.Activities.Select(a => a.TotalTime).Sum();
-
-        var daySummary = projectSummary.ParentDay;
-        daySummary.TotalTime = daySummary.Projects.Select(p => p.TotalTime).Sum();
-
-        var periodSummary = daySummary.ParentPeriod;
-        periodSummary.TotalTime = periodSummary.Days.Select(d => d.TotalTime).Sum();
+        StandUpService.CascadeEndTimeChange(RunningTimeEntry, DateTimeOffset.Now);
     }
 
     private void OnOpeningDialog()

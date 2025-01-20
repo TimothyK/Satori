@@ -9,9 +9,10 @@ using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.WorkItems;
-using Satori.Kimai.Models;
 using Shouldly;
 using AzureDevOpsWorkItem = Satori.AzureDevOps.Models.WorkItem;
+using User = Satori.Kimai.Models.User;
+using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.Tests.WorkItemUpdateTests;
 
@@ -53,6 +54,7 @@ public class UpdateTaskTests
         var remaining = RandomGenerator.TimeSpan(TimeSpan.FromHours(2.5)).ToNearest(TimeSpan.FromMinutes(6));
         task.Fields.OriginalEstimate = remaining.TotalHours;
         task.Fields.RemainingWork = remaining.TotalHours;
+        task.Fields.AssignedTo = AzureDevOps.Identity.ToUser();
 
         arrangeWorkItem?.Invoke(task);
 
@@ -63,9 +65,9 @@ public class UpdateTaskTests
 
     #region Act
 
-    private async Task<WorkItem> UpdateTaskAsync(WorkItem task, ScrumState state, TimeSpan? remaining = null)
+    private async Task UpdateTaskAsync(WorkItem task, ScrumState state, TimeSpan? remaining = null)
     {
-        return await Server.UpdateTaskAsync(task, state, remaining);
+        await Server.UpdateTaskAsync(task, state, remaining);
     }
 
     #endregion Act
@@ -76,18 +78,19 @@ public class UpdateTaskTests
     public async Task ASmokeTest_NoChanges_NotUpdated()
     {
         //Arrange
+        
         var task = BuildTask();
 
         //Verify BuildTask behaviour
         task.State.ShouldBe(ScrumState.InProgress);
         task.RemainingWork.ShouldNotBeNull();
+        var originalRev = task.Rev;
 
         //Act
-        var actual = await UpdateTaskAsync(task, task.State, task.RemainingWork);
+        await UpdateTaskAsync(task, task.State, task.RemainingWork);
 
         //Assert
-        actual.ShouldNotBeNull();
-        actual.Rev.ShouldBe(task.Rev);
+        task.Rev.ShouldBe(originalRev);
     }
 
     [TestMethod]
@@ -95,14 +98,14 @@ public class UpdateTaskTests
     {
         //Arrange
         var task = BuildTask();
+        var originalRev = task.Rev;
 
         //Act
-        var actual = await UpdateTaskAsync(task, ScrumState.Done);
+        await UpdateTaskAsync(task, ScrumState.Done);
 
         //Assert
-        actual.ShouldNotBeNull();
-        actual.Rev.ShouldBe(task.Rev + 1);
-        actual.State.ShouldBe(ScrumState.Done);
+        task.Rev.ShouldBe(originalRev + 1);
+        task.State.ShouldBe(ScrumState.Done);
     }
 
     [TestMethod]
@@ -112,13 +115,13 @@ public class UpdateTaskTests
         var nonTask = WorkItemType.All().Except(WorkItemType.Task.Yield());
         var type = RandomGenerator.PickOne(nonTask);
         var task = BuildTask(t => t.Fields.WorkItemType = type.ToApiValue());
+        var originalRev = task.Rev;
 
         //Act
-        var actual = await UpdateTaskAsync(task, ScrumState.Done);
+        await UpdateTaskAsync(task, ScrumState.Done);
 
         //Assert
-        actual.ShouldNotBeNull();
-        actual.Rev.ShouldBe(task.Rev);
+        task.Rev.ShouldBe(originalRev);
     }
 
     [TestMethod]
@@ -128,15 +131,15 @@ public class UpdateTaskTests
         var task = BuildTask();
         var remaining = (task.RemainingWork ?? throw new InvalidOperationException())
             .Add(TimeSpan.FromHours(1.5));
+        var originalRev = task.Rev;
 
         //Act
-        var actual = await UpdateTaskAsync(task, task.State, remaining);
+        await UpdateTaskAsync(task, task.State, remaining);
 
         //Assert
-        actual.ShouldNotBeNull();
-        actual.Rev.ShouldBe(task.Rev + 1);
-        actual.State.ShouldBe(task.State);
-        actual.RemainingWork.ShouldBe(remaining);
+        task.Rev.ShouldBe(originalRev + 1);
+        task.State.ShouldBe(task.State);
+        task.RemainingWork.ShouldBe(remaining);
     }
     
     [TestMethod]
@@ -147,15 +150,15 @@ public class UpdateTaskTests
         var remaining = (task.RemainingWork ?? throw new InvalidOperationException())
             .Add(TimeSpan.FromHours(1.5))
             .Add(TimeSpan.FromMinutes(2.345));
+        var originalRev = task.Rev;
 
         //Act
-        var actual = await UpdateTaskAsync(task, task.State, remaining);
+        await UpdateTaskAsync(task, task.State, remaining);
 
         //Assert
-        actual.ShouldNotBeNull();
-        actual.Rev.ShouldBe(task.Rev + 1);
-        actual.State.ShouldBe(task.State);
-        actual.RemainingWork.ShouldBe(remaining.ToNearest(TimeSpan.FromMinutes(6)));
+        task.Rev.ShouldBe(originalRev + 1);
+        task.State.ShouldBe(task.State);
+        task.RemainingWork.ShouldBe(remaining.ToNearest(TimeSpan.FromMinutes(6)));
     }
 
     [TestMethod]
@@ -170,16 +173,16 @@ public class UpdateTaskTests
         });
         var remaining = RandomGenerator.TimeSpan(TimeSpan.FromHours(2.5))
             .ToNearest(TimeSpan.FromMinutes(6));
+        var originalRev = task.Rev;
 
         //Act
-        var actual = await UpdateTaskAsync(task, task.State, remaining);
+        await UpdateTaskAsync(task, task.State, remaining);
 
         //Assert
-        actual.ShouldNotBeNull();
-        actual.Rev.ShouldBe(task.Rev + 1);
-        actual.State.ShouldBe(task.State);
-        actual.OriginalEstimate.ShouldBe(remaining);
-        actual.RemainingWork.ShouldBe(remaining);
+        task.Rev.ShouldBe(originalRev + 1);
+        task.State.ShouldBe(task.State);
+        task.OriginalEstimate.ShouldBe(remaining);
+        task.RemainingWork.ShouldBe(remaining);
     }
     
     [TestMethod]
@@ -192,10 +195,10 @@ public class UpdateTaskTests
             .Add(TimeSpan.FromHours(1.5));
 
         //Act
-        var actual = await UpdateTaskAsync(task, task.State, remaining);
+        await UpdateTaskAsync(task, task.State, remaining);
 
         //Assert
-        actual.OriginalEstimate.ShouldBe(expected);
+        task.OriginalEstimate.ShouldBe(expected);
     }
 
     [TestMethod]
@@ -203,13 +206,27 @@ public class UpdateTaskTests
     {
         //Arrange
         var task = BuildTask();
+        var originalRev = task.Rev;
 
         //Act
-        var actual = await UpdateTaskAsync(task, ScrumState.ToDo);
+        await UpdateTaskAsync(task, ScrumState.ToDo);
 
         //Assert
-        actual.ShouldNotBeNull();
-        actual.Rev.ShouldBe(task.Rev + 1);
-        actual.State.ShouldBe(ScrumState.ToDo);
+        task.Rev.ShouldBe(originalRev + 1);
+        task.State.ShouldBe(ScrumState.ToDo);
+    }
+    
+    [TestMethod]
+    public async Task AssignToSomeoneElse_NotUpdated()
+    {
+        //Arrange
+        var task = BuildTask(t => t.Fields.AssignedTo = null);
+        var originalRev = task.Rev;
+
+        //Act
+        await Should.ThrowAsync<InvalidOperationException>(() => UpdateTaskAsync(task, ScrumState.Done));
+
+        //Assert
+        task.Rev.ShouldBe(originalRev);
     }
 }
