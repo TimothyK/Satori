@@ -31,6 +31,15 @@
     color: white;
 }
 
+.btn-done {
+    color: green;
+    border-color: green;
+}
+.btn-done:hover {
+    background-color: green;
+    color: white;
+}
+
 .alert {
     height: 100%;
 }
