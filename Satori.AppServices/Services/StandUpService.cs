@@ -680,58 +680,21 @@ public partial class StandUpService(
     {
         var exportableEntries = timeEntries.Where(x => x.CanExport).ToArray();
 
+        await ExportToMessageQueueAsync(exportableEntries);
+        await ExportToAzureDevOpsAsync(exportableEntries);
+        await ExportToKimaiAsync(exportableEntries);
+
+        CascadeExportFlags(exportableEntries);
+    }
+
+    #region Export To Message Queue
+
+    private async Task ExportToMessageQueueAsync(TimeEntry[] exportableEntries)
+    {
         foreach (var activitySummary in exportableEntries.Select(entry => entry.ParentActivitySummary).Distinct())
         {
             var payload = ToPayload(activitySummary, exportableEntries);
             await dailyActivityExporter.SendAsync(payload);
-        }
-
-        foreach (var g in exportableEntries
-                 .Where(x => x.Task != null)
-                 .Where(x => x.Task!.AssignedTo == Person.Me)
-                 .GroupBy(x => x.Task))
-        {
-            var adjustment = new TaskAdjustment(g.Key!.Id, g.Select(x => x.TotalTime).Sum());
-            await taskAdjustmentExporter.SendAsync(adjustment);
-
-            g.Key.RemainingWork -= adjustment.Adjustment;
-            g.Key.CompletedWork = (g.Key.CompletedWork ?? TimeSpan.Zero) + adjustment.Adjustment;
-        }
-        
-        foreach (var entry in exportableEntries)
-        {
-            await kimai.ExportTimeSheetAsync(entry.Id);
-
-            entry.Exported = true;
-            entry.CanExport = false;
-        }
-
-        foreach (var taskSummary in exportableEntries.Select(entry => entry.ParentTaskSummary).Distinct())
-        {
-            _ = taskSummary ?? throw new InvalidOperationException("TaskSummary is null");
-            taskSummary.AllExported = taskSummary.TimeEntries.All(x => x.Exported);
-            taskSummary.CanExport = taskSummary.TimeEntries.Any(x => x.CanExport);
-            taskSummary.IsRunning = taskSummary.TimeEntries.Any(x => x.IsRunning);
-        }
-        foreach (var activitySummary in exportableEntries.Select(entry => entry.ParentActivitySummary).Distinct())
-        {
-            activitySummary.AllExported = activitySummary.TimeEntries.All(x => x.Exported);
-            activitySummary.CanExport = activitySummary.TimeEntries.Any(x => x.CanExport);
-        }
-        foreach (var projectSummary in exportableEntries.Select(entry => entry.ParentActivitySummary.ParentProjectSummary).Distinct())
-        {
-            projectSummary.AllExported = projectSummary.Activities.All(x => x.AllExported);
-            projectSummary.CanExport = projectSummary.Activities.Any(x => x.CanExport);
-        }
-        foreach (var day in exportableEntries.Select(entry => entry.ParentActivitySummary.ParentProjectSummary.ParentDay).Distinct())
-        {
-            day.AllExported = day.Projects.All(x => x.AllExported);
-            day.CanExport = day.Projects.Any(x => x.CanExport);
-        }
-        foreach (var period in exportableEntries.Select(entry => entry.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod).Distinct())
-        {
-            period.AllExported = period.Days.All(x => x.AllExported);
-            period.CanExport = period.Days.Any(x => x.CanExport);
         }
     }
 
@@ -778,6 +741,69 @@ public partial class StandUpService(
         builder.Append($"D#{task.Id} {task.Title}");
 
         return builder.ToString();
+    }
+
+    #endregion
+
+    private async Task ExportToAzureDevOpsAsync(TimeEntry[] exportableEntries)
+    {
+        foreach (var g in exportableEntries
+                     .Where(x => x.Task != null)
+                     .Where(x => x.Task!.AssignedTo == Person.Me)
+                     .GroupBy(x => x.Task))
+        {
+            var adjustment = new TaskAdjustment(g.Key!.Id, g.Select(x => x.TotalTime).Sum());
+            await taskAdjustmentExporter.SendAsync(adjustment);
+
+            g.Key.RemainingWork -= adjustment.Adjustment;
+            g.Key.CompletedWork = (g.Key.CompletedWork ?? TimeSpan.Zero) + adjustment.Adjustment;
+        }
+    }
+
+    private async Task ExportToKimaiAsync(TimeEntry[] exportableEntries)
+    {
+        foreach (var entry in exportableEntries)
+        {
+            await kimai.ExportTimeSheetAsync(entry.Id);
+
+            entry.Exported = true;
+            entry.CanExport = false;
+        }
+    }
+
+    private static void CascadeExportFlags(params TimeEntry[] exportableEntries)
+    {
+        foreach (var taskSummary in exportableEntries.Select(entry => entry.ParentTaskSummary).Distinct())
+        {
+            _ = taskSummary ?? throw new InvalidOperationException("TaskSummary is null");
+            taskSummary.AllExported = taskSummary.TimeEntries.All(x => x.Exported);
+            taskSummary.CanExport = taskSummary.TimeEntries.Any(x => x.CanExport);
+            taskSummary.IsRunning = taskSummary.TimeEntries.Any(x => x.IsRunning);
+        }
+        foreach (var activitySummary in exportableEntries.Select(entry => entry.ParentActivitySummary).Distinct())
+        {
+            activitySummary.AllExported = activitySummary.TimeEntries.All(x => x.Exported);
+            activitySummary.CanExport = activitySummary.TimeEntries.Any(x => x.CanExport);
+            activitySummary.IsRunning = activitySummary.TimeEntries.Any(x => x.IsRunning);
+        }
+        foreach (var projectSummary in exportableEntries.Select(entry => entry.ParentActivitySummary.ParentProjectSummary).Distinct())
+        {
+            projectSummary.AllExported = projectSummary.Activities.All(x => x.AllExported);
+            projectSummary.CanExport = projectSummary.Activities.Any(x => x.CanExport);
+            projectSummary.IsRunning = projectSummary.Activities.Any(x => x.IsRunning);
+        }
+        foreach (var day in exportableEntries.Select(entry => entry.ParentActivitySummary.ParentProjectSummary.ParentDay).Distinct())
+        {
+            day.AllExported = day.Projects.All(x => x.AllExported);
+            day.CanExport = day.Projects.Any(x => x.CanExport);
+            day.IsRunning = day.Projects.Any(x => x.IsRunning);
+        }
+        foreach (var period in exportableEntries.Select(entry => entry.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod).Distinct())
+        {
+            period.AllExported = period.Days.All(x => x.AllExported);
+            period.CanExport = period.Days.Any(x => x.CanExport);
+            period.IsRunning = period.Days.Any(x => x.IsRunning);
+        }
     }
 
     #endregion Export
@@ -830,7 +856,7 @@ public partial class StandUpService(
         
         timeEntry.IsRunning = false;
         timeEntry.CanExport = GetCanExport(timeEntry);
-        CascadeIsRunningAndCanExport(timeEntry);
+        CascadeExportFlags(timeEntry);
 
         CascadeEndTimeChange(timeEntry, end);
     }
@@ -890,29 +916,6 @@ public partial class StandUpService(
 
         var periodSummary = daySummary.ParentPeriod;
         periodSummary.TotalTime = periodSummary.Days.Select(d => d.TotalTime).Sum();
-    }
-
-    private static void CascadeIsRunningAndCanExport(TimeEntry timeEntry)
-    {
-        var taskSummary = timeEntry.ParentTaskSummary ?? throw new InvalidOperationException();
-        taskSummary.IsRunning = taskSummary.TimeEntries.Any(t => t.IsRunning);
-        taskSummary.CanExport = taskSummary.TimeEntries.Any(t => t.CanExport);
-
-        var activitySummary = taskSummary.ParentActivitySummary;
-        activitySummary.IsRunning = activitySummary.TimeEntries.Any(t => t.IsRunning);
-        activitySummary.CanExport = activitySummary.TimeEntries.Any(t => t.CanExport);
-
-        var projectSummary = activitySummary.ParentProjectSummary;
-        projectSummary.IsRunning = projectSummary.TimeEntries.Any(t => t.IsRunning);
-        projectSummary.CanExport = projectSummary.TimeEntries.Any(t => t.CanExport);
-
-        var daySummary = projectSummary.ParentDay;
-        daySummary.IsRunning = daySummary.TimeEntries.Any(t => t.IsRunning);
-        daySummary.CanExport = daySummary.TimeEntries.Any(t => t.CanExport);
-
-        var periodSummary = daySummary.ParentPeriod;
-        periodSummary.IsRunning = periodSummary.TimeEntries.Any(t => t.IsRunning);
-        periodSummary.CanExport = periodSummary.TimeEntries.Any(t => t.CanExport);
     }
 
     #endregion StopTimer
