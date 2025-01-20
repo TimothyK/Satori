@@ -9,7 +9,6 @@ using Satori.Kimai.Models;
 using Shouldly;
 using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
 using TimeEntry = Satori.AppServices.ViewModels.DailyStandUps.TimeEntry;
-using User = Satori.AzureDevOps.Models.User;
 using WorkItem = Satori.AzureDevOps.Models.WorkItem;
 
 namespace Satori.AppServices.Tests.DailyStandUps;
@@ -45,22 +44,9 @@ public class ExportDailyStandUpTests : DailyStandUpTests
     {
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
 
-        AssignMe(task);
+        task.Fields.AssignedTo = AzureDevOps.Identity.ToUser();
 
         return task;
-    }
-
-    private void AssignMe(WorkItem workItem)
-    {
-        var identity = AzureDevOps.Identity;
-        workItem.Fields.AssignedTo = new User
-        {
-            Id = identity.Id,
-            DisplayName = identity.ProviderDisplayName,
-            ImageUrl = "https://azureDevOps.test/Org/Id?id=" + identity.Id,
-            UniqueName = $"{identity.Properties.Domain}\\{identity.Properties.Account}",
-            Url = "https://azureDevOps.test/Org/Id?id=" + identity.Id,
-        };
     }
 
     #endregion Arrange

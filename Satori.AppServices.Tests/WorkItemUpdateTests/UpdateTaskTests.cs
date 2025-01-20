@@ -9,9 +9,10 @@ using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.WorkItems;
-using Satori.Kimai.Models;
 using Shouldly;
 using AzureDevOpsWorkItem = Satori.AzureDevOps.Models.WorkItem;
+using User = Satori.Kimai.Models.User;
+using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.Tests.WorkItemUpdateTests;
 
@@ -53,24 +54,11 @@ public class UpdateTaskTests
         var remaining = RandomGenerator.TimeSpan(TimeSpan.FromHours(2.5)).ToNearest(TimeSpan.FromMinutes(6));
         task.Fields.OriginalEstimate = remaining.TotalHours;
         task.Fields.RemainingWork = remaining.TotalHours;
-        AssignMe(task);
+        task.Fields.AssignedTo = AzureDevOps.Identity.ToUser();
 
         arrangeWorkItem?.Invoke(task);
 
         return task.ToViewModel();
-    }
-    
-    private void AssignMe(AzureDevOpsWorkItem workItem)
-    {
-        var identity = AzureDevOps.Identity;
-        workItem.Fields.AssignedTo= new AzureDevOps.Models.User
-        {
-            Id = identity.Id,
-            DisplayName = identity.ProviderDisplayName,
-            ImageUrl = "https://azureDevOps.test/Org/Id?id=" + identity.Id,
-            UniqueName = $"{identity.Properties.Domain}\\{identity.Properties.Account}",
-            Url = "https://azureDevOps.test/Org/Id?id=" + identity.Id,
-        };
     }
 
     #endregion Arrange
