@@ -75,19 +75,20 @@
                         <span class="badge bg-danger">To Do</span>
                     }
                 }
-            }
 
-            if (NeedsEstimate)
-            {
-                <span class="badge bg-danger">Needs Estimate</span>
-            }
-            else
-            {
-                if (TimeRemaining != null)
+                if (NeedsEstimate)
                 {
-                    <span class="badge @(TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@TimeRemaining.Value.TotalHours.ToNearest(0.1) h</span>
+                    <span class="badge bg-danger">Needs Estimate</span>
+                }
+                else
+                {
+                    if (TimeRemaining != null)
+                    {
+                        <span class="badge @(TimeRemaining > TimeSpan.Zero ? "bg-secondary" : "bg-danger")">@TimeRemaining.Value.TotalHours.ToNearest(0.1) h</span>
+                    }
                 }
             }
+
         }
     </span>
 </div>
