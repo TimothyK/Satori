@@ -22,7 +22,11 @@ public partial class ExportButton
         if (Summary.IsRunning)
         {
             var task = GetRunningTimeEntry(Summary).Task;
-            ShowDoneButton = task != null && task.Type == WorkItemType.Task && task.State != ScrumState.Done && task.AssignedTo == Person.Me;
+            ShowDoneButton = 
+                task != null 
+                && task.Type == WorkItemType.Task 
+                && task.State != ScrumState.Done 
+                && task.AssignedTo == Person.Me;
         }
         else
         {
