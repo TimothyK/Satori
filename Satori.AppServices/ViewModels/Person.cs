@@ -23,6 +23,8 @@ public class Person
     public DayOfWeek FirstDayOfWeek { get; private init; } = DayOfWeek.Monday;
     public string Language { get; private init; } = "en";
 
+    public override string ToString() => DisplayName;
+
     #endregion Properties
 
     #region Null Object
@@ -89,7 +91,7 @@ public class Person
         }
     }
 
-    public static Person From(AzureDevOps.Models.Identity? azDoIdentity, KimaiUser? kimaiUser, ConnectionSettings azDoSettings)
+    public static Person From(Identity? azDoIdentity, KimaiUser? kimaiUser, ConnectionSettings azDoSettings)
     {
         if (azDoIdentity == null && kimaiUser == null)
         {
@@ -157,7 +159,11 @@ public class Person
     /// </remarks>
     private static Guid GetUserId(Identity? azDoIdentity, KimaiUser? kimaiUser)
     {
-        return azDoIdentity?.Id ?? IntToGuid(kimaiUser?.Id);
+        return GetUserId(azDoIdentity?.Id, kimaiUser?.Id);
+    }
+    private static Guid GetUserId(Guid? azureUserId, int? kimaiUserId)
+    {
+        return azureUserId ?? IntToGuid(kimaiUserId);
     }
 
     private static Guid IntToGuid(int? value)
@@ -188,4 +194,49 @@ public class Person
     }
 
     #endregion Casting
+
+    #region Equality
+
+    public override int GetHashCode()
+    {
+        return GetUserId(AzureDevOpsId, KimaiId).GetHashCode();
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is null) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != GetType()) return false;
+        return Equals((Person)obj);
+    }
+
+    protected bool Equals(Person other)
+    {
+        if (KimaiId != null && other.KimaiId != null)
+        {
+            return KimaiId == other.KimaiId;
+        }
+        return AzureDevOpsId == other.AzureDevOpsId;
+    }
+
+    // Equality operator overloads
+    public static bool operator ==(Person? left, Person? right)
+    {
+        if (ReferenceEquals(left, right))
+        {
+            return true;
+        }
+        if (left is null || right is null)
+        {
+            return false;
+        }
+        return GetUserId(left.AzureDevOpsId, left.KimaiId) == GetUserId(right.AzureDevOpsId, right.KimaiId);
+    }
+
+    public static bool operator !=(Person? left, Person? right)
+    {
+        return !(left == right);
+    }
+
+    #endregion Equality
 }

@@ -75,15 +75,32 @@ public class WorkItemUpdateService(
 
     #region Update Task
 
-    public async Task<WorkItem> UpdateTaskAsync(WorkItem task, ScrumState state, TimeSpan? remaining = null)
+    public async Task UpdateTaskAsync(WorkItem task, ScrumState state, TimeSpan? remaining = null)
     {
         if (task.Type != WorkItemType.Task)
         {
-            return task;
+            return;
+        }
+        var me = await userService.GetCurrentUserAsync();
+        if (task.AssignedTo != me)
+        {
+            throw new InvalidOperationException("Only the assigned user can update a task");
+        }
+        var fields = BuildPatchItems(task, state, remaining);
+        if (fields.None())
+        {
+            //Nothing to update
+            return;
         }
 
-        var fields = new List<WorkItemPatchItem>();
+        var patchResult = await azureDevOps.PatchWorkItemAsync(task.Id, fields);
 
+        UpdateViewModel(task, patchResult);
+    }
+
+    private static List<WorkItemPatchItem> BuildPatchItems(WorkItem task, ScrumState state, TimeSpan? remaining)
+    {
+        var fields = new List<WorkItemPatchItem>();
         if (state != task.State)
         {
             fields.Add(new WorkItemPatchItem
@@ -118,15 +135,22 @@ public class WorkItemUpdateService(
             });
         }
 
-        if (fields.None())
+        if (fields.Any())
         {
-            //Nothing to update
-            return task;
+            fields.Add(new WorkItemPatchItem() { Operation = Operation.Test, Path = "/rev", Value = task.Rev });
         }
 
-        fields.Add(new WorkItemPatchItem() { Operation = Operation.Test, Path = "/rev", Value = task.Rev });
+        return fields;
+    }
 
-        return (await azureDevOps.PatchWorkItemAsync(task.Id, fields)).ToViewModel();
+    private static void UpdateViewModel(WorkItem task, AzureDevOps.Models.WorkItem patchResult)
+    {
+        var vm = patchResult.ToViewModel();
+
+        task.State = vm.State;
+        task.OriginalEstimate = vm.OriginalEstimate;
+        task.RemainingWork = vm.RemainingWork;
+        task.Rev = vm.Rev;
     }
 
     #endregion Update Task
