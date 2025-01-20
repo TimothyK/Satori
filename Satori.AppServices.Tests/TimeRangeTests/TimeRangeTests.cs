@@ -62,6 +62,17 @@ public class TimeRangeTests
         TestRange1.TestIsOverlapping(testRange2).ShouldBeFalse();
         testRange2.TestIsOverlapping(TestRange1).ShouldBeFalse();
     }
+
+    [TestMethod]
+    public void InvalidRange_ThrowsInvalidOp()
+    {
+        var testRange2 = new TimeRange(Root + OneMinute, Root);  //End is before Begin
+
+        Should.Throw<InvalidOperationException>(() => TestRange1.TestIsOverlapping(testRange2));
+        Should.Throw<InvalidOperationException>(() => testRange2.TestIsOverlapping(TestRange1));
+    }
+
+
     
     [TestMethod]
     public void Overlapping_OnEnd()

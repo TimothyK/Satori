@@ -17,6 +17,10 @@ public interface ITimeRange
         {
             return false;
         }
+        if (End < Begin || other.End < other.Begin)
+        {
+            throw new InvalidOperationException($"{nameof(End)} must be after {nameof(Begin)}");
+        }
 
         return Begin < other.End && other.Begin < End;
     }
