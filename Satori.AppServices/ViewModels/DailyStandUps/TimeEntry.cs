@@ -1,9 +1,10 @@
 ﻿using CodeMonkeyProjectiles.Linq;
+using Satori.AppServices.Models;
 using Satori.AppServices.ViewModels.WorkItems;
 
 namespace Satori.AppServices.ViewModels.DailyStandUps;
 
-public class TimeEntry : ISummary
+public class TimeEntry : ISummary, ITimeRange
 {
     public int Id { get; init; }
 
@@ -11,7 +12,7 @@ public class TimeEntry : ISummary
     public TaskSummary? ParentTaskSummary { get; set; }
 
     public DateTimeOffset Begin { get; init; }
-    public DateTimeOffset? End { get; init; }
+    public DateTimeOffset? End { get; set; }
     
     IEnumerable<TimeEntry> ISummary.TimeEntries => this.Yield();
     bool ISummary.AllExported => Exported;

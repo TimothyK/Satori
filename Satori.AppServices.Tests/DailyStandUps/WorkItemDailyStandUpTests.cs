@@ -4,7 +4,6 @@ using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.ViewModels.WorkItems;
-using Satori.AzureDevOps.Models;
 using Shouldly;
 using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
 using TimeEntry = Satori.AppServices.ViewModels.DailyStandUps.TimeEntry;
@@ -502,10 +501,10 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         entry.TotalTime.ShouldBe(TimeSpan.Zero);
 
         //Arrange - UI will update the TotalTime based on a timer for tasks that are currently running
-        entry.TotalTime = TimeSpan.FromMinutes(30).Randomize();
+        var now = entry.Begin + TimeSpan.FromMinutes(30).Randomize();
 
         //Act
-        StandUpService.ResetTimeRemaining(entries);
+        StandUpService.CascadeEndTimeChange(entry, now);
 
         //Assert
         var expected = estimate - entry.TotalTime;

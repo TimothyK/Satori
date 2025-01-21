@@ -25,11 +25,11 @@ public class WorkItem
     public string? AreaPath { get; init; }
     public string? IterationPath { get; init; }
     public required WorkItemType Type { get; init; }
-    public required ScrumState State { get; init; }
+    public required ScrumState State { get; set; }
     public TriageState? Triage { get; init; }
     public bool Blocked { get; init; }
     public required List<string> Tags { get; init; }
-    public TimeSpan? OriginalEstimate { get; init; }
+    public TimeSpan? OriginalEstimate { get; set; }
     public TimeSpan? CompletedWork { get; set; }
     public TimeSpan? RemainingWork { get; set; }
     /// <summary>

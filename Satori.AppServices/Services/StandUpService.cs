@@ -13,6 +13,7 @@ using Satori.Kimai.Models;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using Satori.AppServices.Models;
 using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
 using TimeEntry = Satori.AppServices.ViewModels.DailyStandUps.TimeEntry;
 using UriFormatException = System.UriFormatException;
@@ -77,7 +78,9 @@ public partial class StandUpService(
         for (var i = 0; i < entries.Length; i++)
         {
             var j = i + 1;
-            while (j < entries.Length && entries[j].Begin < entries[i].End)
+            while (j < entries.Length 
+                   && entries[i].End != null && entries[j].End != null
+                   && entries[j].Begin < entries[i].End)
             {
                 entries[i].IsOverlapping = true;
                 entries[j].IsOverlapping = true;
@@ -579,7 +582,7 @@ public partial class StandUpService(
         }
     }
 
-    public static void ResetTimeRemaining(TimeEntry[] timeEntries)
+    private static void ResetTimeRemaining(TimeEntry[] timeEntries)
     {
         foreach (var entry in timeEntries.Where(x => x.Task?.State != ScrumState.Done))
         {
@@ -677,58 +680,21 @@ public partial class StandUpService(
     {
         var exportableEntries = timeEntries.Where(x => x.CanExport).ToArray();
 
+        await ExportToMessageQueueAsync(exportableEntries);
+        await ExportToAzureDevOpsAsync(exportableEntries);
+        await ExportToKimaiAsync(exportableEntries);
+
+        CascadeExportFlags(exportableEntries);
+    }
+
+    #region Export To Message Queue
+
+    private async Task ExportToMessageQueueAsync(TimeEntry[] exportableEntries)
+    {
         foreach (var activitySummary in exportableEntries.Select(entry => entry.ParentActivitySummary).Distinct())
         {
             var payload = ToPayload(activitySummary, exportableEntries);
             await dailyActivityExporter.SendAsync(payload);
-        }
-
-        foreach (var g in exportableEntries
-                 .Where(x => x.Task != null)
-                 .Where(x => x.Task!.AssignedTo == Person.Me)
-                 .GroupBy(x => x.Task))
-        {
-            var adjustment = new TaskAdjustment(g.Key!.Id, g.Select(x => x.TotalTime).Sum());
-            await taskAdjustmentExporter.SendAsync(adjustment);
-
-            g.Key.RemainingWork -= adjustment.Adjustment;
-            g.Key.CompletedWork = (g.Key.CompletedWork ?? TimeSpan.Zero) + adjustment.Adjustment;
-        }
-        
-        foreach (var entry in exportableEntries)
-        {
-            await kimai.ExportTimeSheetAsync(entry.Id);
-
-            entry.Exported = true;
-            entry.CanExport = false;
-        }
-
-        foreach (var taskSummary in exportableEntries.Select(entry => entry.ParentTaskSummary).Distinct())
-        {
-            _ = taskSummary ?? throw new InvalidOperationException("TaskSummary is null");
-            taskSummary.AllExported = taskSummary.TimeEntries.All(x => x.Exported);
-            taskSummary.CanExport = taskSummary.TimeEntries.Any(x => x.CanExport);
-            taskSummary.IsRunning = taskSummary.TimeEntries.Any(x => x.IsRunning);
-        }
-        foreach (var activitySummary in exportableEntries.Select(entry => entry.ParentActivitySummary).Distinct())
-        {
-            activitySummary.AllExported = activitySummary.TimeEntries.All(x => x.Exported);
-            activitySummary.CanExport = activitySummary.TimeEntries.Any(x => x.CanExport);
-        }
-        foreach (var projectSummary in exportableEntries.Select(entry => entry.ParentActivitySummary.ParentProjectSummary).Distinct())
-        {
-            projectSummary.AllExported = projectSummary.Activities.All(x => x.AllExported);
-            projectSummary.CanExport = projectSummary.Activities.Any(x => x.CanExport);
-        }
-        foreach (var day in exportableEntries.Select(entry => entry.ParentActivitySummary.ParentProjectSummary.ParentDay).Distinct())
-        {
-            day.AllExported = day.Projects.All(x => x.AllExported);
-            day.CanExport = day.Projects.Any(x => x.CanExport);
-        }
-        foreach (var period in exportableEntries.Select(entry => entry.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod).Distinct())
-        {
-            period.AllExported = period.Days.All(x => x.AllExported);
-            period.CanExport = period.Days.Any(x => x.CanExport);
         }
     }
 
@@ -777,6 +743,69 @@ public partial class StandUpService(
         return builder.ToString();
     }
 
+    #endregion
+
+    private async Task ExportToAzureDevOpsAsync(TimeEntry[] exportableEntries)
+    {
+        foreach (var g in exportableEntries
+                     .Where(x => x.Task != null)
+                     .Where(x => x.Task!.AssignedTo == Person.Me)
+                     .GroupBy(x => x.Task))
+        {
+            var adjustment = new TaskAdjustment(g.Key!.Id, g.Select(x => x.TotalTime).Sum());
+            await taskAdjustmentExporter.SendAsync(adjustment);
+
+            g.Key.RemainingWork -= adjustment.Adjustment;
+            g.Key.CompletedWork = (g.Key.CompletedWork ?? TimeSpan.Zero) + adjustment.Adjustment;
+        }
+    }
+
+    private async Task ExportToKimaiAsync(TimeEntry[] exportableEntries)
+    {
+        foreach (var entry in exportableEntries)
+        {
+            await kimai.ExportTimeSheetAsync(entry.Id);
+
+            entry.Exported = true;
+            entry.CanExport = false;
+        }
+    }
+
+    private static void CascadeExportFlags(params TimeEntry[] exportableEntries)
+    {
+        foreach (var taskSummary in exportableEntries.Select(entry => entry.ParentTaskSummary).Distinct())
+        {
+            _ = taskSummary ?? throw new InvalidOperationException("TaskSummary is null");
+            taskSummary.AllExported = taskSummary.TimeEntries.All(x => x.Exported);
+            taskSummary.CanExport = taskSummary.TimeEntries.Any(x => x.CanExport);
+            taskSummary.IsRunning = taskSummary.TimeEntries.Any(x => x.IsRunning);
+        }
+        foreach (var activitySummary in exportableEntries.Select(entry => entry.ParentActivitySummary).Distinct())
+        {
+            activitySummary.AllExported = activitySummary.TimeEntries.All(x => x.Exported);
+            activitySummary.CanExport = activitySummary.TimeEntries.Any(x => x.CanExport);
+            activitySummary.IsRunning = activitySummary.TimeEntries.Any(x => x.IsRunning);
+        }
+        foreach (var projectSummary in exportableEntries.Select(entry => entry.ParentActivitySummary.ParentProjectSummary).Distinct())
+        {
+            projectSummary.AllExported = projectSummary.Activities.All(x => x.AllExported);
+            projectSummary.CanExport = projectSummary.Activities.Any(x => x.CanExport);
+            projectSummary.IsRunning = projectSummary.Activities.Any(x => x.IsRunning);
+        }
+        foreach (var day in exportableEntries.Select(entry => entry.ParentActivitySummary.ParentProjectSummary.ParentDay).Distinct())
+        {
+            day.AllExported = day.Projects.All(x => x.AllExported);
+            day.CanExport = day.Projects.Any(x => x.CanExport);
+            day.IsRunning = day.Projects.Any(x => x.IsRunning);
+        }
+        foreach (var period in exportableEntries.Select(entry => entry.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod).Distinct())
+        {
+            period.AllExported = period.Days.All(x => x.AllExported);
+            period.CanExport = period.Days.Any(x => x.CanExport);
+            period.IsRunning = period.Days.Any(x => x.IsRunning);
+        }
+    }
+
     #endregion Export
 
     #region Update Time Entry Description
@@ -815,4 +844,79 @@ public partial class StandUpService(
     }
 
     #endregion Update Time Entry Description
+
+    #region StopTimer
+    
+    public async Task StopTimerAsync(TimeEntry timeEntry)
+    {
+        var end = await kimai.StopTimerAsync(timeEntry.Id);
+
+        timeEntry.End = end;
+        SetIsOverlapping(timeEntry);
+        
+        timeEntry.IsRunning = false;
+        timeEntry.CanExport = GetCanExport(timeEntry);
+        CascadeExportFlags(timeEntry);
+
+        CascadeEndTimeChange(timeEntry, end);
+    }
+
+    private static void SetIsOverlapping(TimeEntry timeEntry)
+    {
+        var period = timeEntry.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod;
+        var otherTimeEntries = period.TimeEntries.Except(timeEntry.Yield()).ToArray();
+        var overlappingTimeEntries = otherTimeEntries
+            .Where(t => ((ITimeRange)t).IsOverlapping(timeEntry))
+            .ToArray();
+            
+        timeEntry.IsOverlapping = overlappingTimeEntries.Any();
+        foreach (var overlappingTimeEntry in overlappingTimeEntries)
+        {
+            overlappingTimeEntry.IsOverlapping = true;
+        }
+    }
+
+    private static bool GetCanExport(TimeEntry timeEntry)
+    {
+        if (!timeEntry.ParentActivitySummary.IsActive) return false;
+        if (!timeEntry.ParentActivitySummary.ParentProjectSummary.IsActive) return false;
+        if (!timeEntry.ParentActivitySummary.ParentProjectSummary.CustomerIsActive) return false;
+        if (timeEntry.ParentActivitySummary.ActivityName == "TBD") return false;
+        if (timeEntry.ParentActivitySummary.ParentProjectSummary.ProjectName == "TBD") return false;
+        if (timeEntry.IsOverlapping) return false;
+
+        return true;
+    }
+
+    public static void CascadeEndTimeChange(TimeEntry timeEntry, DateTimeOffset end)
+    {
+        timeEntry.TotalTime = end - timeEntry.Begin;
+
+        var task = timeEntry.Task;
+        if (task?.RemainingWork != null && task.State != ScrumState.Done)
+        {
+            var period = timeEntry.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod;
+            var timeEntries = period.TimeEntries
+                .Where(t => t.Task == task)
+                .ToArray();
+            ResetTimeRemaining(timeEntries);
+        }
+
+        var taskSummary = timeEntry.ParentTaskSummary ?? throw new InvalidOperationException();
+        taskSummary.TotalTime = taskSummary.TimeEntries.Select(e => e.TotalTime).Sum();
+
+        var activitySummary = taskSummary.ParentActivitySummary;
+        activitySummary.TotalTime = activitySummary.TimeEntries.Select(t => t.TotalTime).Sum();
+
+        var projectSummary = activitySummary.ParentProjectSummary;
+        projectSummary.TotalTime = projectSummary.Activities.Select(a => a.TotalTime).Sum();
+
+        var daySummary = projectSummary.ParentDay;
+        daySummary.TotalTime = daySummary.Projects.Select(p => p.TotalTime).Sum();
+
+        var periodSummary = daySummary.ParentPeriod;
+        periodSummary.TotalTime = periodSummary.Days.Select(d => d.TotalTime).Sum();
+    }
+
+    #endregion StopTimer
 }

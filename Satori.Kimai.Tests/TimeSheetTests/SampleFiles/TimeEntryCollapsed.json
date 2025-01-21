@@ -1,0 +1,18 @@
+{
+  "activity": 8,
+  "project": 2,
+  "user": 2,
+  "tags": [],
+  "id": 1223,
+  "begin": "2025-01-12T16:53:00-0700",
+  "end": "2025-01-12T16:54:00-0700",
+  "duration": 60,
+  "description": "Triage",
+  "rate": 0.0,
+  "internalRate": 0.0,
+  "fixedRate": null,
+  "hourlyRate": 0.0,
+  "exported": false,
+  "billable": false,
+  "metaFields": []
+}
