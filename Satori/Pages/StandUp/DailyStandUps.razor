@@ -336,7 +336,7 @@
 
     private void RefreshTotalTimes()
     {
-        if (RunningTimeEntry == null)
+        if (RunningTimeEntry == null || !RunningTimeEntry.IsRunning)
         {
             RunningTimeEntryTimer?.Stop();
             return;
