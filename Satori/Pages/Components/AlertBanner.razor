@@ -1,0 +1,12 @@
+﻿@using Satori.AppServices.Services
+@inject AlertService AlertService
+
+@if (!ViewModel.Visible)
+{
+    return;
+}
+
+<div class="col-md-12 banner">
+    <span @onclick="@ViewModel.ClearAlert" class="dialog-close">&times;</span>
+    @ViewModel.Message
+</div>

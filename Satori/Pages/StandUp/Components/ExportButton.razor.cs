@@ -2,8 +2,6 @@
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.AppServices.ViewModels.WorkItems;
-using System.Timers;
-using Timer = System.Timers.Timer;
 
 namespace Satori.Pages.StandUp.Components;
 
@@ -76,7 +74,6 @@ public partial class ExportButton
 
     private async Task ClickButtonTemplateAsync(Func<Task> doWork)
     {
-        ClearAlert();
         if (_isClicking)
         {
             return;
@@ -89,8 +86,7 @@ public partial class ExportButton
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
-            ShowAlert(ex.Message);
+            AlertService.BroadcastAlert(ex);
         }
         finally
         {
@@ -99,32 +95,4 @@ public partial class ExportButton
 
         await OnChanged.InvokeAsync();
     }
-
-    private string ShowAlertClassName { get; set; } = "d-none";
-    private string AlertContent { get; set; } = string.Empty;
-    private Timer? _timer;
-    public void ClearAlert()
-    {
-        ShowAlertClassName = "d-none";
-        AlertContent = string.Empty;
-    }
-
-    public void ShowAlert(string message)
-    {
-        AlertContent = message;
-        ShowAlertClassName = string.Empty;
-
-        var timer = new Timer(TimeSpan.FromSeconds(30));
-        timer.Elapsed += HandleTimer;
-        timer.Start();
-    }
-
-    private void HandleTimer(object? sender, ElapsedEventArgs e)
-    {
-        ClearAlert();
-        _timer?.Stop();
-        _timer = null;
-        StateHasChanged();
-    }
-
 }

@@ -1,0 +1,21 @@
+﻿.banner {
+    padding: 1em;
+    text-align: center;
+    vertical-align: middle;
+    background-color: #F8D7DA;
+    color: #842029;
+    font-size: 1.1em;
+}
+
+
+.dialog-close {
+    float: right;
+    font-size: 18px;
+    font-weight: bold;
+}
+.dialog-close:hover,
+.dialog-close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
