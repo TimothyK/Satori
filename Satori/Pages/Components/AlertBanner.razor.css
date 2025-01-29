@@ -2,14 +2,22 @@
     padding: 1em;
     text-align: center;
     vertical-align: middle;
-    background-color: #F8D7DA;
-    color: #842029;
     font-size: 1.1em;
     position: sticky;
     top: 0;
     z-index: 99;
 }
 
+.alert-warning {
+    color: #856404;
+    background-color: #fff3cd;
+    border-color: #ffeeba;
+}
+.alert-error {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
 
 .dialog-close {
     float: right;

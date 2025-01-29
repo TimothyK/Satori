@@ -14,11 +14,12 @@
 @inject HotKeys HotKeys
 @inject IJSRuntime JsRuntime
 @inject IConnectionSettingsStore ConnectionSettingsStore
+@inject AlertService AlertService
 
 <PageTitle>Sprint Boards - Satori</PageTitle>
 
 <div>
-    
+
     <h3>Sprint Boards
         @if (_workItems != null)
         {
@@ -33,15 +34,15 @@
                     {
                         <button id="@sprint.TeamId" class='avatar-cell @TeamSelection.TeamSelectedClassName[sprint.TeamId]' @onclick='() => TeamSelection.SelectTeam(sprint.TeamId)'>
                             <img src="@sprint.TeamAvatarUrl"
-                                 alt="@sprint.TeamName"
-                                 title="@sprint.TeamName @HttpUtility.HtmlEncode("\r") @sprint.Name @HttpUtility.HtmlEncode("\r") Finishes: @sprint.FinishTime.ToString("yyyy-MM-dd")" />
+                            alt="@sprint.TeamName"
+                            title="@sprint.TeamName @HttpUtility.HtmlEncode("\r") @sprint.Name @HttpUtility.HtmlEncode("\r") Finishes: @sprint.FinishTime.ToString("yyyy-MM-dd")" />
                         </button>
                     }
                 </span>
             }
         </span>
     </h3>
-    
+
 </div>
 
 @if (_sprints == null)
@@ -69,89 +70,89 @@ else
             <tbody>
                 @foreach (var workItem in _workItems.OrderBy(wi => wi.AbsolutePriority))
                 {
-                <tr class="
+                    <tr class="
                             work-item-row
                             @workItem.Type.CssClass
                             @workItem.StatusCssClass
                             @(workItem.Sprint == null ? string.Empty : TeamSelection.TeamSelectedClassName[workItem.Sprint.TeamId])
                             @(PriorityAdjustment.WorkItemSelectedClassName[workItem.Id])
-                        "
+                    "
                     @onclick="() => PriorityAdjustment.SetMoveTo(workItem)">
-                    <td class="cell-link" @onclick="() => OpenWorkItem(workItem)" title="Open D#@(workItem.Id)">
-                        <div style="display: flex;">
-                            <div class="workitem-id @workItem.StatusCssClass">
-                                <div>@workItem.Id</div> 
-                                <div>
-                                    <button type="button" class="btn btn-outline-success btn-priority btn-priority-select @PriorityAdjustment.ShowSelectWorkItemClassName[workItem.Id]" @onclick="() => PriorityAdjustment.AddSelectedWorkItem(workItem)" title="Select this item to adjust its priority">✔️</button>
-                                    <button type="button" class="btn btn-outline-danger btn-priority btn-priority-deselect @PriorityAdjustment.ShowDeselectWorkItemClassName[workItem.Id]" @onclick="() => PriorityAdjustment.RemoveSelectedWorkItem(workItem)" title="Deselect this item so its priority is not adjusted">❌</button>
+                        <td class="cell-link" @onclick="() => OpenWorkItem(workItem)" title="Open D#@(workItem.Id)">
+                            <div style="display: flex;">
+                                <div class="workitem-id @workItem.StatusCssClass">
+                                    <div>@workItem.Id</div> 
+                                    <div>
+                                        <button type="button" class="btn btn-outline-success btn-priority btn-priority-select @PriorityAdjustment.ShowSelectWorkItemClassName[workItem.Id]" @onclick="() => PriorityAdjustment.AddSelectedWorkItem(workItem)" title="Select this item to adjust its priority">✔️</button>
+                                        <button type="button" class="btn btn-outline-danger btn-priority btn-priority-deselect @PriorityAdjustment.ShowDeselectWorkItemClassName[workItem.Id]" @onclick="() => PriorityAdjustment.RemoveSelectedWorkItem(workItem)" title="Deselect this item so its priority is not adjusted">❌</button>
+                                    </div>
                                 </div>
-                            </div>
-                            <div>
-                                <div style="display: flex;">
-                                    @if (workItem.Sprint != null)
+                                <div>
+                                    <div style="display: flex;">
+                                        @if (workItem.Sprint != null)
+                                        {
+                                            <div class="priority-block">
+                                                <div class="avatar-cell">
+                                                    <img src="@workItem.Sprint.TeamAvatarUrl"
+                                                    alt="@workItem.Sprint.TeamName"/>
+                                                </div>
+                                                <div class="priority-number">
+                                                    @workItem.SprintPriority
+                                                </div>
+                                            </div>
+                                        }
+                                        <div class="avatar-cell">
+                                            <img src="@workItem.AssignedTo.AvatarUrl"
+                                            alt="@workItem.AssignedTo.DisplayName"/>
+                                        </div>
+                                    </div>
+                                    <div class="work-item-status">@workItem.StatusLabel</div>
+                                    @if (workItem.Blocked)
                                     {
-                                        <div class="priority-block">
-                                            <div class="avatar-cell">
-                                                <img src="@workItem.Sprint.TeamAvatarUrl"
-                                                     alt="@workItem.Sprint.TeamName"/>
-                                            </div>
-                                            <div class="priority-number">
-                                                @workItem.SprintPriority
-                                            </div>
+                                        <div class="blocked"></div>
+                                    }
+                                    @foreach (var tag in workItem.Tags)
+                                    {
+                                        <div>
+                                            <span class="badge bg-secondary work-item-status">@tag</span>
                                         </div>
                                     }
-                                    <div class="avatar-cell">
-                                        <img src="@workItem.AssignedTo.AvatarUrl"
-                                             alt="@workItem.AssignedTo.DisplayName"/>
-                                    </div>
                                 </div>
-                                <div class="work-item-status">@workItem.StatusLabel</div>
-                                @if (workItem.Blocked)
-                                {
-                                    <div class="blocked"></div>
-                                }
-                                @foreach (var tag in workItem.Tags)
-                                {
-                                    <div>
-                                        <span class="badge bg-secondary work-item-status">@tag</span>
+                                <div class="workitem-title @workItem.StatusCssClass">
+                                    @workItem.Title
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            @foreach (var task in workItem.Children.OrderByDescending(wi => wi.State).ThenBy(wi => wi.Id))
+                            {
+                                <div class="task-status @task.StatusCssClass cell-link" style="display: flex;" @onclick="() => OpenWorkItem(task)" title="Open D#@(task.Id)">
+                                    <div class="avatar-cell">
+                                        <img src="@task.AssignedTo.AvatarUrl"
+                                        alt="@task.AssignedTo.DisplayName"
+                                        title="@task.AssignedTo.DisplayName" />
                                     </div>
-                                }
-                            </div>
-                            <div class="workitem-title @workItem.StatusCssClass">
-                                @workItem.Title
-                            </div>
-                        </div>
-                    </td>
-      
-                    <td>
-                        @foreach (var task in workItem.Children.OrderByDescending(wi => wi.State).ThenBy(wi => wi.Id))
-                        {
-                        <div class="task-status @task.StatusCssClass cell-link" style="display: flex;" @onclick="() => OpenWorkItem(task)" title="Open D#@(task.Id)">
-                            <div class="avatar-cell">
-                                <img src="@task.AssignedTo.AvatarUrl"
-                                     alt="@task.AssignedTo.DisplayName"
-                                     title="@task.AssignedTo.DisplayName" />
-                            </div>
-                            <div>
-                                @task.Title
-                            </div>
-                            <div>
-                                @task.StatusLabel
-                            </div>
-                            @if (task.Blocked)
-                            {
-                            <div class="blocked"></div>
+                                    <div>
+                                        @task.Title
+                                    </div>
+                                    <div>
+                                        @task.StatusLabel
+                                    </div>
+                                    @if (task.Blocked)
+                                    {
+                                        <div class="blocked"></div>
+                                    }
+                                    @foreach (var tag in task.Tags)
+                                    {
+                                        <div>
+                                            <span class="badge bg-secondary" style="font-size:0.5rem;">@tag</span>
+                                        </div>
+                                    }
+                                </div>
                             }
-                            @foreach (var tag in task.Tags)
-                            {
-                            <div>
-                                <span class="badge bg-secondary" style="font-size:0.5rem;">@tag</span>
-                            </div>
-                            }
-                        </div>
-                        }
-                    </td>
-                </tr>
+                        </td>
+                    </tr>
                 }
             </tbody>
         </table>
@@ -165,9 +166,6 @@ else
         Adjust Priority
     </div>
     <div class="dialog-body">
-        <div class="alert @PriorityAdjustment.AlertTypeClassName alert-dismissible fade show @PriorityAdjustment.HideAlertClassName" role="alert">
-            @PriorityAdjustment.AlertContent
-        </div>  
         <div>Selected Items:
             <span class="badge bg-primary">@PriorityAdjustment.SelectedWorkItemsCount</span>
             <ul style="font-size: 0.9em;">
@@ -178,7 +176,7 @@ else
                             <div class="priority-block">
                                 <div class="avatar-cell">
                                     <img src="@workItem.Sprint?.TeamAvatarUrl"
-                                         alt="@workItem.Sprint?.TeamName"/>
+                                    alt="@workItem.Sprint?.TeamName"/>
                                 </div>
                                 <div class="priority-number">
                                     @workItem.SprintPriority
@@ -215,7 +213,7 @@ else
                             <div class="priority-block">
                                 <div class="avatar-cell">
                                     <img src="@PriorityAdjustment.Target.Sprint?.TeamAvatarUrl"
-                                         alt="@PriorityAdjustment.Target.Sprint?.TeamName"/>
+                                    alt="@PriorityAdjustment.Target.Sprint?.TeamName"/>
                                 </div>
                                 <div class="priority-number">
                                     @PriorityAdjustment.Target.SprintPriority
@@ -246,6 +244,12 @@ else
     private Sprint[]? _sprints;
     private WorkItem[]? _workItems;
 
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        PriorityAdjustment = new PriorityAdjustmentViewModel([], AlertService);
+    }
+
     protected override async Task OnInitializedAsync()
     {
         if (!ConnectionSettingsStore.GetAzureDevOpsSettings().Enabled)
@@ -261,7 +265,7 @@ else
         StateHasChanged();
 
         var workItems = (await SprintBoardService.GetWorkItemsAsync(sprints)).ToArray();
-        PriorityAdjustment = new PriorityAdjustmentViewModel(workItems);
+        PriorityAdjustment = new PriorityAdjustmentViewModel(workItems, AlertService);
         _workItems = workItems;
         ResetWorkItemCounts();
     }
@@ -326,7 +330,7 @@ else
 
     #region Adjust Priority
 
-    private PriorityAdjustmentViewModel PriorityAdjustment { get; set; } = new([]);
+    private PriorityAdjustmentViewModel PriorityAdjustment { get; set; } = null!;
 
     private void EnterAdjustPriorityMode()
     {
@@ -351,11 +355,11 @@ else
             return;
         }
 
-        PriorityAdjustment.ClearAlert();
+        AlertService.ClearAlert();
 
         if (PriorityAdjustment.SelectedWorkItemsCount == 0)
         {
-            PriorityAdjustment.ShowAlert("No work items selected.  Select work items to move (have their priority changed).", PriorityAdjustmentViewModel.AlertTypeCssClass.Warning);
+            AlertService.BroadcastAlert("No work items selected.  Select work items to move (have their priority changed).");
             return;
         }
 
@@ -369,7 +373,7 @@ else
             var logger = LoggerFactory.CreateLogger<SprintBoards>();
             logger.LogError(ex, "Error moving work items priority.  {Request}", PriorityAdjustment.Request);
 
-            PriorityAdjustment.ShowAlert(ex.Message, PriorityAdjustmentViewModel.AlertTypeCssClass.Error);
+            AlertService.BroadcastAlert(ex);
         }
     }
 

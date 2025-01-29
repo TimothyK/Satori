@@ -3,6 +3,18 @@ using Timer = System.Timers.Timer;
 
 namespace Satori.AppServices.Services;
 
+/// <summary>
+/// This is a Singleton service that stores globally an error message to show to the user.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Any consumer can <see cref="BroadcastAlert(Exception)"/> if they catch an exception.
+/// They can <see cref="ClearAlert"/> before trying to invoke an action so that it is clear that if an error occurred it was from that button click.
+/// </para>
+/// <para>
+/// Only the view that shows the alert should <see cref="Subscribe"/>
+/// </para>
+/// </remarks>
 public class AlertService
 {
     #region BroadcastAlert
@@ -11,8 +23,22 @@ public class AlertService
     {
         Console.WriteLine(ex);
 
-        _alertViewModel.ShowAlert(ex.Message);
+        _alertViewModel.ShowAlert(ex.Message, AlertLevel.Error);
         StartAutoCloseTimer();
+    }
+
+    public void BroadcastAlert(string message)
+    {
+        Console.WriteLine("Showing alert: " + message);
+
+        _alertViewModel.ShowAlert(message, AlertLevel.Warning);
+        StartAutoCloseTimer();
+    }
+
+    public void ClearAlert()
+    {
+        StopAutoCloseTimer();
+        _alertViewModel.ClearAlert();
     }
 
     #endregion BroadcastAlert
@@ -68,11 +94,13 @@ public class AlertService
 public class AlertViewModel
 {
     public string Message { get; private set; } = string.Empty;
+    public AlertLevel AlertLevel { get; private set; } = AlertLevel.Warning;
     public bool Visible { get; private set; }
 
-    public void ShowAlert(string message)
+    public void ShowAlert(string message, AlertLevel level)
     {
         Message = message;
+        AlertLevel = level;
         Visible = true;
         OnChanged();
     }
@@ -88,5 +116,23 @@ public class AlertViewModel
     private void OnChanged()
     {
         Changed?.Invoke(this, EventArgs.Empty);
+    }
+}
+
+public class AlertLevel
+{
+    private readonly string _cssClassName;
+
+    private AlertLevel(string cssClassName)
+    {
+        _cssClassName = cssClassName;
+    }
+
+    public static readonly AlertLevel Error = new("alert-error");
+    public static readonly AlertLevel Warning = new("alert-warning");
+
+    public override string ToString()
+    {
+        return _cssClassName;
     }
 }

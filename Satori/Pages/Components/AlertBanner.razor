@@ -6,7 +6,7 @@
     return;
 }
 
-<div class="col-md-12 banner">
+<div class="col-md-12 banner @ViewModel.AlertLevel">
     <span @onclick="@ViewModel.ClearAlert" class="dialog-close">&times;</span>
     @ViewModel.Message
 </div>
