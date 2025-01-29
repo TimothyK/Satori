@@ -5,6 +5,9 @@
     background-color: #F8D7DA;
     color: #842029;
     font-size: 1.1em;
+    position: sticky;
+    top: 0;
+    z-index: 99;
 }
 
 
