@@ -9,33 +9,34 @@ namespace Satori.AppServices.Tests.TestDoubles.Kimai;
 
 internal class TestKimaiServer
 {
-    private readonly Mock<IKimaiServer> _mock;
+    public readonly Mock<IKimaiServer> Mock;
+
 
     public TestKimaiServer()
     {
-        _mock = new Mock<IKimaiServer>(MockBehavior.Strict);
+        Mock = new Mock<IKimaiServer>(MockBehavior.Strict);
 
-        _mock.Setup(srv => srv.Enabled)
+        Mock.Setup(srv => srv.Enabled)
             .Returns(() => Enabled);
 
-        _mock.Setup(srv => srv.GetTimeSheetAsync(It.IsAny<TimeSheetFilter>()))
+        Mock.Setup(srv => srv.GetTimeSheetAsync(It.IsAny<TimeSheetFilter>()))
             .ReturnsAsync((TimeSheetFilter filter) => GetTimeSheet(filter));
 
-        _mock.Setup(srv => srv.BaseUrl)
+        Mock.Setup(srv => srv.BaseUrl)
             .Returns(BaseUrl);
 
-        _mock.Setup(srv => srv.GetMyUserAsync())
+        Mock.Setup(srv => srv.GetMyUserAsync())
             .ReturnsAsync(() => CurrentUser!);
 
-        _mock.Setup(srv => srv.ExportTimeSheetAsync(It.IsAny<int>()))
+        Mock.Setup(srv => srv.ExportTimeSheetAsync(It.IsAny<int>()))
             .Callback((int id) => MarkAsExported(id))
             .Returns(Task.CompletedTask);
 
-        _mock.Setup(srv => srv.StopTimerAsync(It.IsAny<int>()))
+        Mock.Setup(srv => srv.StopTimerAsync(It.IsAny<int>()))
             .Callback((int id) => StopTimer(id))
             .ReturnsAsync((int id) => TimeSheet.Single(t => t.Id == id).End ?? throw new ApplicationException($"{nameof(StopTimer)} did not set End value"));
 
-        _mock.Setup(srv => srv.UpdateTimeEntryDescriptionAsync(It.IsAny<int>(), It.IsAny<string>()))
+        Mock.Setup(srv => srv.UpdateTimeEntryDescriptionAsync(It.IsAny<int>(), It.IsAny<string>()))
             .Callback((int id, string description) => UpdateDescription(id, description))
             .Returns(Task.CompletedTask);
     }
@@ -45,7 +46,7 @@ internal class TestKimaiServer
     public Uri BaseUrl { get; } = new("https://kimai.test/");
     public required User CurrentUser { get; init; }
 
-    public IKimaiServer AsInterface() => _mock.Object;
+    public IKimaiServer AsInterface() => Mock.Object;
 
     private List<TimeEntry> TimeSheet { get; } = [];
 

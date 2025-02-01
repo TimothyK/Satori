@@ -3,14 +3,13 @@ using Moq;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Database;
 using Satori.AppServices.ViewModels;
+using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 using Shouldly;
 using System.Reflection;
-using System.Security.Principal;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Satori.AppServices.ViewModels.WorkItems;
 using WorkItem = Satori.AzureDevOps.Models.WorkItem;
 
 namespace Satori.AppServices.Tests.TestDoubles.AzureDevOps;
@@ -38,7 +37,7 @@ internal class TestAzureDevOpsServer
 
     #endregion Database
 
-    private readonly Mock<IAzureDevOpsServer> _mock;
+    public readonly Mock<IAzureDevOpsServer> Mock;
 
     public TestAzureDevOpsServer()
     {
@@ -56,46 +55,46 @@ internal class TestAzureDevOpsServer
             }
         };
 
-        _mock = new Mock<IAzureDevOpsServer>(MockBehavior.Strict);
+        Mock = new Mock<IAzureDevOpsServer>(MockBehavior.Strict);
 
-        _mock.Setup(srv => srv.Enabled)
+        Mock.Setup(srv => srv.Enabled)
             .Returns(() => Enabled);
 
-        _mock.Setup(srv => srv.ConnectionSettings)
+        Mock.Setup(srv => srv.ConnectionSettings)
             .Returns(new ConnectionSettings { Url = new Uri(AzureDevOpsRootUrl), PersonalAccessToken = "token" });
 
-        _mock.Setup(srv => srv.GetCurrentUserIdAsync())
+        Mock.Setup(srv => srv.GetCurrentUserIdAsync())
             .ReturnsAsync(() => TestUserAzureDevOpsId);
 
-        _mock.Setup(srv => srv.GetIdentityAsync(TestUserAzureDevOpsId))
+        Mock.Setup(srv => srv.GetIdentityAsync(TestUserAzureDevOpsId))
             .ReturnsAsync(() => Identity);
 
-        _mock.Setup(srv => srv.GetPullRequestsAsync())
+        Mock.Setup(srv => srv.GetPullRequestsAsync())
             .ReturnsAsync(() => _database.GetPullRequests());
 
-        _mock.Setup(srv => srv.GetPullRequestWorkItemIdsAsync(It.IsAny<PullRequestId>()))
+        Mock.Setup(srv => srv.GetPullRequestWorkItemIdsAsync(It.IsAny<PullRequestId>()))
             .ReturnsAsync((PullRequestId pr) => GetWorkItemMap(pr));
 
-        _mock.Setup(srv => srv.GetWorkItemsAsync(It.IsAny<IEnumerable<int>>()))
+        Mock.Setup(srv => srv.GetWorkItemsAsync(It.IsAny<IEnumerable<int>>()))
             .Callback((IEnumerable<int> workItemIds) => CallOnGetWorkItems(workItemIds))
             .ReturnsAsync((IEnumerable<int> workItemIds) => GetWorkItems(workItemIds));
-        _mock.Setup(srv => srv.GetWorkItemsAsync(It.IsAny<int[]>()))
+        Mock.Setup(srv => srv.GetWorkItemsAsync(It.IsAny<int[]>()))
             .Callback((int[] workItemIds) => CallOnGetWorkItems(workItemIds))
             .ReturnsAsync((int[] workItemIds) => GetWorkItems(workItemIds));
 
-        _mock.Setup(srv => srv.GetTeamsAsync())
+        Mock.Setup(srv => srv.GetTeamsAsync())
             .ReturnsAsync(() => _database.GetTeams());
 
-        _mock.Setup(srv => srv.GetCurrentIterationAsync(It.IsAny<Team>()))
+        Mock.Setup(srv => srv.GetCurrentIterationAsync(It.IsAny<Team>()))
             .ReturnsAsync((Team team) => _database.GetIterationForTeam(team));
 
-        _mock.Setup(srv => srv.GetIterationWorkItemsAsync(It.IsAny<IterationId>()))
+        Mock.Setup(srv => srv.GetIterationWorkItemsAsync(It.IsAny<IterationId>()))
             .ReturnsAsync((IterationId iteration) => _database.GetWorkItemsForIteration(iteration));
 
-        _mock.Setup(srv => srv.PatchWorkItemAsync(It.IsAny<int>(), It.IsAny<IEnumerable<WorkItemPatchItem>>()))
+        Mock.Setup(srv => srv.PatchWorkItemAsync(It.IsAny<int>(), It.IsAny<IEnumerable<WorkItemPatchItem>>()))
             .ReturnsAsync((int id, IEnumerable<WorkItemPatchItem> items) => PatchWorkItems(id, items));
 
-        _mock.Setup(srv => srv.PostWorkItemAsync(It.IsAny<string>(), It.IsAny<IEnumerable<WorkItemPatchItem>>()))
+        Mock.Setup(srv => srv.PostWorkItemAsync(It.IsAny<string>(), It.IsAny<IEnumerable<WorkItemPatchItem>>()))
             .ReturnsAsync((string projectName, IEnumerable<WorkItemPatchItem> items) => PostWorkItems(projectName, items));
 
         return;
@@ -279,7 +278,7 @@ internal class TestAzureDevOpsServer
         return segments.Last().TrimEnd('/');
     }
 
-    public IAzureDevOpsServer AsInterface() => _mock.Object;
+    public IAzureDevOpsServer AsInterface() => Mock.Object;
 
 
 }

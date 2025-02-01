@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Extensions;
 using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
+using Satori.AppServices.Tests.TestDoubles.AlertServices;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.Tests.TestDoubles.MessageQueues;
@@ -16,13 +17,13 @@ namespace Satori.AppServices.Tests.DailyStandUps;
 public abstract class DailyStandUpTests
 {
     protected StandUpService Server { get; }
+    protected readonly TestAlertService AlertService = new();
 
     protected DailyStandUpTests()
     {
         Person.Me = null;  //Clear cache
 
-        var alertService = new AlertService();
-        var userService = new UserService(AzureDevOps.AsInterface(), Kimai.AsInterface(), alertService);
+        var userService = new UserService(AzureDevOps.AsInterface(), Kimai.AsInterface(), AlertService);
         Server = new StandUpService(
             Kimai.AsInterface()
             , AzureDevOps.AsInterface()
@@ -30,7 +31,7 @@ public abstract class DailyStandUpTests
             , DailyActivityExporter
             , TaskAdjustmentExporter
             , NullLoggerFactory.Instance
-            , alertService);
+            , AlertService);
     }
 
     #region Helpers
@@ -142,6 +143,16 @@ public abstract class DailyStandUpTests
     }
 
     #endregion Act
+
+    #region Assert
+
+    [TestCleanup]
+    public void TearDown()
+    {
+        AlertService.VerifyNoMessagesWereBroadcast();
+    }
+
+    #endregion Assert
 
     #endregion Helpers
 
