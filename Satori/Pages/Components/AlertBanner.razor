@@ -1,5 +1,5 @@
-﻿@using Satori.AppServices.Services
-@inject AlertService AlertService
+﻿@using Satori.AppServices.Services.Abstractions
+@inject IAlertService AlertService
 
 @if (!ViewModel.Visible)
 {

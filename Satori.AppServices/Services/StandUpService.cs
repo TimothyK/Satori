@@ -28,7 +28,7 @@ public partial class StandUpService(
     , IDailyActivityExporter dailyActivityExporter
     , ITaskAdjustmentExporter taskAdjustmentExporter
     , ILoggerFactory loggerFactory
-    , AlertService alertService
+    , IAlertService alertService
 )
 {
     #region GetStandUpDaysAsync

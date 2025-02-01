@@ -1,4 +1,5 @@
-﻿using Satori.AppServices.ViewModels;
+﻿using Satori.AppServices.Services.Abstractions;
+using Satori.AppServices.ViewModels;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 using Satori.Kimai;
@@ -9,7 +10,7 @@ namespace Satori.AppServices.Services;
 public class UserService(
     IAzureDevOpsServer azureDevOpsServer
     , IKimaiServer kimaiServer
-    , AlertService alertService
+    , IAlertService alertService
 )
 {
     public async Task<Person> GetCurrentUserAsync()

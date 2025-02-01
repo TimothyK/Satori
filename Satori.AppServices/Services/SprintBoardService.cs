@@ -8,6 +8,7 @@ using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 using Satori.TimeServices;
 using System.Collections.Concurrent;
+using Satori.AppServices.Services.Abstractions;
 using UriParser = Satori.AppServices.Services.Converters.UriParser;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
@@ -16,7 +17,7 @@ namespace Satori.AppServices.Services;
 public class SprintBoardService(
     IAzureDevOpsServer azureDevOpsServer
     , ITimeServer timeServer
-    , AlertService alertService
+    , IAlertService alertService
 )
 {
     #region GetActiveSptringsAsync

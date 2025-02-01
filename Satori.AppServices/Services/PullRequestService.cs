@@ -6,6 +6,7 @@ using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using Satori.AppServices.Services.Abstractions;
 using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using PullRequestDto = Satori.AzureDevOps.Models.PullRequest;
 using UriParser = Satori.AppServices.Services.Converters.UriParser;
@@ -16,7 +17,7 @@ namespace Satori.AppServices.Services;
 public class PullRequestService(
     IAzureDevOpsServer azureDevOpsServer
     , ILoggerFactory loggerFactory
-    , AlertService alertService
+    , IAlertService alertService
 )
 {
     private IAzureDevOpsServer AzureDevOpsServer { get; } = azureDevOpsServer;

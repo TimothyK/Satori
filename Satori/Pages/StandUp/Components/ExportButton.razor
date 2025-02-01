@@ -1,8 +1,9 @@
 ﻿@using Satori.AppServices.Services
+@using Satori.AppServices.Services.Abstractions
 
 @inject StandUpService StandUpService
 @inject WorkItemUpdateService WorkItemUpdateService
-@inject AlertService AlertService
+@inject IAlertService AlertService
 
 <div class="export @(Summary.AllExported ? "export-done" : "") @(Summary.CanExport ? "export-enabled" : "")">
     @if (Summary.AllExported)

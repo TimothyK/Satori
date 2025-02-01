@@ -3,6 +3,7 @@ using CodeMonkeyProjectiles.Linq;
 using Flurl;
 using Microsoft.AspNetCore.Components;
 using Satori.AppServices.Services;
+using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.Utilities;
@@ -174,9 +175,9 @@ namespace Satori.Pages
     internal class PriorityAdjustmentViewModel
     {
         private readonly WorkItem[] _workItems;
-        private readonly AlertService _alertService;
+        private readonly IAlertService _alertService;
 
-        internal PriorityAdjustmentViewModel(WorkItem[] workItems, AlertService alertService)
+        internal PriorityAdjustmentViewModel(WorkItem[] workItems, IAlertService alertService)
         {
             _workItems = workItems;
             _alertService = alertService;

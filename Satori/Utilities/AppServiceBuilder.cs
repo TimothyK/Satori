@@ -30,7 +30,7 @@ internal static class AppServiceBuilder
         services.AddScoped<IDailyActivityExporter, DailyActivityExporter>();
 
         services.AddSingleton<ITimeServer, TimeServer>();
-        services.AddSingleton<AlertService>();
+        services.AddSingleton<IAlertService, AlertService>();
 
         return services;
     }

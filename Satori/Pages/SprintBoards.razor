@@ -5,6 +5,7 @@
 @using System.Web
 @using CodeMonkeyProjectiles.Linq
 @using Satori.AppServices.Models
+@using Satori.AppServices.Services.Abstractions
 @using Toolbelt.Blazor.HotKeys2
 @attribute [StreamRendering]
 @inject NavigationManager NavigationManager
@@ -14,7 +15,7 @@
 @inject HotKeys HotKeys
 @inject IJSRuntime JsRuntime
 @inject IConnectionSettingsStore ConnectionSettingsStore
-@inject AlertService AlertService
+@inject IAlertService AlertService
 
 <PageTitle>Sprint Boards - Satori</PageTitle>
 

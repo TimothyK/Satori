@@ -1,4 +1,6 @@
-﻿using System.Timers;
+﻿using Satori.AppServices.Services.Abstractions;
+using Satori.AppServices.ViewModels.AlertServices;
+using System.Timers;
 using Timer = System.Timers.Timer;
 
 namespace Satori.AppServices.Services;
@@ -15,7 +17,7 @@ namespace Satori.AppServices.Services;
 /// Only the view that shows the alert should <see cref="Subscribe"/>
 /// </para>
 /// </remarks>
-public class AlertService
+public class AlertService : IAlertService
 {
     #region BroadcastAlert
 
@@ -88,51 +90,4 @@ public class AlertService
 
     #endregion Subscribe
 
-}
-
-
-public class AlertViewModel
-{
-    public string Message { get; private set; } = string.Empty;
-    public AlertLevel AlertLevel { get; private set; } = AlertLevel.Warning;
-    public bool Visible { get; private set; }
-
-    public void ShowAlert(string message, AlertLevel level)
-    {
-        Message = message;
-        AlertLevel = level;
-        Visible = true;
-        OnChanged();
-    }
-    public void ClearAlert()
-    {
-        Message = string.Empty;
-        Visible = false;
-        OnChanged();
-    }
-
-    public event EventHandler? Changed;
-
-    private void OnChanged()
-    {
-        Changed?.Invoke(this, EventArgs.Empty);
-    }
-}
-
-public class AlertLevel
-{
-    private readonly string _cssClassName;
-
-    private AlertLevel(string cssClassName)
-    {
-        _cssClassName = cssClassName;
-    }
-
-    public static readonly AlertLevel Error = new("alert-error");
-    public static readonly AlertLevel Warning = new("alert-warning");
-
-    public override string ToString()
-    {
-        return _cssClassName;
-    }
 }
