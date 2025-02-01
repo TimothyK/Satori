@@ -77,7 +77,7 @@ public class UserTests
         var azureDevOpsMock = BuildAzureDevOpsMock();
         var kimaiMock = BuildKimaiMock();
 
-        var srv = new UserService(azureDevOpsMock.Object, kimaiMock.Object);
+        var srv = new UserService(azureDevOpsMock.Object, kimaiMock.Object, new AlertService());
         return srv;
     }
 

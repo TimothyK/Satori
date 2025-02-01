@@ -28,6 +28,7 @@ public partial class StandUpService(
     , IDailyActivityExporter dailyActivityExporter
     , ITaskAdjustmentExporter taskAdjustmentExporter
     , ILoggerFactory loggerFactory
+    , AlertService alertService
 )
 {
     #region GetStandUpDaysAsync
@@ -101,8 +102,7 @@ public partial class StandUpService(
     {
         get
         {
-            var language = Person.Me?.Language.Replace("-", "_") ??
-                           throw new InvalidOperationException("Person is not loaded");
+            var language = Person.Me?.Language.Replace("-", "_") ?? "en";
             var url = kimai.BaseUrl.AppendPathSegments(language, "timesheet");
             return url;
         }
@@ -133,6 +133,11 @@ public partial class StandUpService(
             }
             catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
+                done = true;
+            }
+            catch (Exception ex)
+            {
+                alertService.BroadcastAlert(ex);
                 done = true;
             }
         } while (!done);

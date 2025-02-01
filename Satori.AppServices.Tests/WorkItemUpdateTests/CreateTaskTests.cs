@@ -20,7 +20,7 @@ public class CreateTaskTests
     {
         Person.Me = null;  //Clear cache
 
-        var userService = new UserService(AzureDevOps.AsInterface(), Kimai.AsInterface());
+        var userService = new UserService(AzureDevOps.AsInterface(), Kimai.AsInterface(), new AlertService());
         Server = new WorkItemUpdateService(AzureDevOps.AsInterface(), userService);
 
         AzureDevOpsBuilder = AzureDevOps.CreateBuilder();

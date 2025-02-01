@@ -13,7 +13,11 @@ using UriParser = Satori.AppServices.Services.Converters.UriParser;
 
 namespace Satori.AppServices.Services;
 
-public class PullRequestService(IAzureDevOpsServer azureDevOpsServer, ILoggerFactory loggerFactory)
+public class PullRequestService(
+    IAzureDevOpsServer azureDevOpsServer
+    , ILoggerFactory loggerFactory
+    , AlertService alertService
+)
 {
     private IAzureDevOpsServer AzureDevOpsServer { get; } = azureDevOpsServer;
 
@@ -22,7 +26,16 @@ public class PullRequestService(IAzureDevOpsServer azureDevOpsServer, ILoggerFac
     public async Task<IEnumerable<PullRequest>> GetPullRequestsAsync()
     {
         var stopWatch = Stopwatch.StartNew();
-        var pullRequests = await AzureDevOpsServer.GetPullRequestsAsync();
+        PullRequestDto[] pullRequests = [];
+        try
+        {
+            pullRequests = await AzureDevOpsServer.GetPullRequestsAsync();
+        }
+        catch (Exception ex)
+        {
+            alertService.BroadcastAlert(ex);
+            Logger.LogError(ex, "Failed to get pull requests");
+        }
         Logger.LogDebug("Got {PullRequestCount} pull requests in {ElapsedMilliseconds}ms", pullRequests.Length, stopWatch.ElapsedMilliseconds);
 
         var viewModels = pullRequests.Select(ToViewModel).ToArray();

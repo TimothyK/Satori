@@ -42,7 +42,7 @@ public class SprintWorkItemTests
 
     private WorkItem[] GetWorkItems(params Sprint[] sprints)
     {
-        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), _timeServer);
+        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), _timeServer, new AlertService());
 
         return srv.GetWorkItemsAsync(sprints).Result.ToArray();
     }

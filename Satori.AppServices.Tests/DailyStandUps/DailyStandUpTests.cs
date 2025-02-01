@@ -21,8 +21,16 @@ public abstract class DailyStandUpTests
     {
         Person.Me = null;  //Clear cache
 
-        var userService = new UserService(AzureDevOps.AsInterface(), Kimai.AsInterface());
-        Server = new StandUpService(Kimai.AsInterface(), AzureDevOps.AsInterface(), userService, DailyActivityExporter, TaskAdjustmentExporter, NullLoggerFactory.Instance);
+        var alertService = new AlertService();
+        var userService = new UserService(AzureDevOps.AsInterface(), Kimai.AsInterface(), alertService);
+        Server = new StandUpService(
+            Kimai.AsInterface()
+            , AzureDevOps.AsInterface()
+            , userService
+            , DailyActivityExporter
+            , TaskAdjustmentExporter
+            , NullLoggerFactory.Instance
+            , alertService);
     }
 
     #region Helpers

@@ -45,7 +45,7 @@ public class PullRequestTests
     private ViewModels.PullRequests.PullRequest[] GetPullRequests(WithChildren children = WithChildren.None)
     {
         //Act
-        var srv = new PullRequestService(_azureDevOpsServer.AsInterface(), NullLoggerFactory.Instance);
+        var srv = new PullRequestService(_azureDevOpsServer.AsInterface(), NullLoggerFactory.Instance, new AlertService());
         var pullRequests = srv.GetPullRequestsAsync().Result.ToArray();
         if (children.HasFlag(WithChildren.WorkItems))
         {

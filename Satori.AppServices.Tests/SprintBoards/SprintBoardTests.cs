@@ -44,7 +44,7 @@ public class SprintBoardTests
     private Sprint[] GetSprints()
     {
         //Arrange
-        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), _timeServer);
+        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), _timeServer, new AlertService());
 
         //Act
         return srv.GetActiveSprintsAsync().Result.ToArray();

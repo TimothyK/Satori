@@ -240,8 +240,6 @@ namespace Satori.Pages
             ShowSelectWorkItemClassName = _workItems.ToDictionary(wi => wi.Id, _ => showSelectWorkItemButtonClassName);
             ShowDeselectWorkItemClassName = _workItems.ToDictionary(wi => wi.Id, _ => VisibleCssClass.Hidden);
             WorkItemSelectedClassName = _workItems.ToDictionary(wi => wi.Id, _ => RowSelectedCssClass.Deselected);
-
-            _alertService.ClearAlert();
         }
 
         public void AddSelectedWorkItem(WorkItem workItem)

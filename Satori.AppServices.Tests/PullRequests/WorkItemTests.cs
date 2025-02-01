@@ -56,7 +56,7 @@ public class WorkItemTests
 
     private IEnumerable<ViewModels.WorkItems.WorkItem> GetWorkItems()
     {
-        var srv = new PullRequestService(_azureDevOpsServer.AsInterface(), NullLoggerFactory.Instance);
+        var srv = new PullRequestService(_azureDevOpsServer.AsInterface(), NullLoggerFactory.Instance, new AlertService());
         var pullRequests = srv.GetPullRequestsAsync().Result.ToArray();
         srv.AddWorkItemsToPullRequestsAsync(pullRequests).GetAwaiter().GetResult();
         return [.. pullRequests.Single().WorkItems];
