@@ -159,7 +159,7 @@ public class UpdateTimeEntryTests : DailyStandUpTests
 
         //Assert
         var expected = Kimai.BaseUrl
-            .AppendPathSegment(DefaultUser.Language?.Replace("-", "_") ?? throw new InvalidOperationException())
+            .AppendPathSegment(Kimai.CurrentUser.Language?.Replace("-", "_") ?? throw new InvalidOperationException())
             .AppendPathSegment("timesheet")
             .AppendQueryParam("daterange", $"{Today:O} - {Today:O}")
             .AppendQueryParam("state", 1)  //  & running

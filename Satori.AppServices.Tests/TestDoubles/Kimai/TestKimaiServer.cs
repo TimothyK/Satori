@@ -3,6 +3,7 @@ using Satori.Kimai;
 using Satori.Kimai.Models;
 using Shouldly;
 using System.Net;
+using Builder;
 using Satori.AppServices.Extensions;
 
 namespace Satori.AppServices.Tests.TestDoubles.Kimai;
@@ -39,12 +40,21 @@ internal class TestKimaiServer
         Mock.Setup(srv => srv.UpdateTimeEntryDescriptionAsync(It.IsAny<int>(), It.IsAny<string>()))
             .Callback((int id, string description) => UpdateDescription(id, description))
             .Returns(Task.CompletedTask);
+
+        CurrentUser = BuildDefaultUser();
     }
 
     public bool Enabled { get; set; } = true;
 
     public Uri BaseUrl { get; } = new("https://kimai.test/");
-    public required User CurrentUser { get; init; }
+    public User CurrentUser { get; }
+
+    private static User BuildDefaultUser() => Builder<User>.New().Build(user =>
+    {
+        user.Id = Sequence.KimaiUserId.Next();
+        user.Enabled = true;
+        user.Language = "en_CA";
+    });
 
     public IKimaiServer AsInterface() => Mock.Object;
 

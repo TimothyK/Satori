@@ -347,7 +347,7 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
 
         //Assert
         var expected = Kimai.BaseUrl
-                .AppendPathSegments(DefaultUser.Language, "timesheet")
+                .AppendPathSegments(Kimai.CurrentUser.Language, "timesheet")
                 .AppendQueryParam("daterange", $"{today:O} - {today:O}")
                 .AppendQueryParam("state", 1)  //  & running
                 .AppendQueryParam("billable", 0)
@@ -674,7 +674,7 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
 
         //Assert
         var expected = Kimai.BaseUrl
-            .AppendPathSegments(DefaultUser.Language, "timesheet")
+            .AppendPathSegments(Kimai.CurrentUser.Language, "timesheet")
             .AppendQueryParam("daterange", $"{today:O} - {today:O}")
             .AppendQueryParam("state", 1)  // stopped & running
             .AppendQueryParam("billable", 0)
@@ -728,7 +728,7 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
 
 
         var expected = Kimai.BaseUrl
-            .AppendPathSegments(DefaultUser.Language, "timesheet")
+            .AppendPathSegments(Kimai.CurrentUser.Language, "timesheet")
             .AppendQueryParam("daterange", $"{today:O} - {today:O}")
             .AppendQueryParam("state", 1)  // stopped & running
             .AppendQueryParam("billable", 0)
