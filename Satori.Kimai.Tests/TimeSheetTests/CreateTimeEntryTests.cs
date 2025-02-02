@@ -11,6 +11,10 @@ namespace Satori.Kimai.Tests.TimeSheetTests;
 [TestClass]
 public class CreateTimeEntryTests
 {
+    public CreateTimeEntryTests()
+    {
+        _mockHttp.Clear();
+    }
 
     #region Helpers
 
