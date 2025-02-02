@@ -8,6 +8,11 @@ using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.Services;
 
+/// <summary>
+/// Service to create Azure DevOps tasks and update them with a new state and remaining work
+/// </summary>
+/// <param name="azureDevOps"></param>
+/// <param name="userService"></param>
 public class WorkItemUpdateService(
     IAzureDevOpsServer azureDevOps
     , UserService userService
