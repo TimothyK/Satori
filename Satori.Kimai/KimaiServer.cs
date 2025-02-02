@@ -103,9 +103,28 @@ public class KimaiServer(
         await VerifySuccessfulResponseAsync(response);
     }
 
+    public async Task<TimeEntry> CreateTimeEntryAsync(TimeEntryForCreate entry)
+    {
+        var url = connectionSettings.Url
+            .AppendPathSegment("api/timesheets")
+            .AppendQueryParam("full", "true");
+
+        var request = new HttpRequestMessage(HttpMethod.Post, url);
+
+        var payload = JsonSerializer.Serialize(entry);
+        request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+
+        return await SendAsync<TimeEntry>(request);
+    }
+
     private async Task<T> GetAsync<T>(Url url)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, url);
+        return await SendAsync<T>(request);
+    }
+
+    private async Task<T> SendAsync<T>(HttpRequestMessage request)
+    {
         AddAuthHeader(request);
         Logger.LogInformation("{Method} {Url}", request.Method.ToString().ToUpper(), request.RequestUri);
 
@@ -119,7 +138,7 @@ public class KimaiServer(
         try
         {
             return JsonSerializer.Deserialize<T>(body)
-                         ?? throw new ApplicationException("Server did not respond");
+                   ?? throw new ApplicationException("Server did not respond");
         }
         catch (JsonException ex)
         {
