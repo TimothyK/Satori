@@ -47,7 +47,7 @@ public class KimaiServer(
         AddAuthHeader(request);
         Logger.LogInformation("{Method} {Url}", request.Method.ToString().ToUpper(), request.RequestUri);
 
-        var response = await httpClient.SendAsync(request);
+        var response = await SendAsync(request);
         await VerifySuccessfulResponseAsync(response);
     }
 
@@ -62,7 +62,7 @@ public class KimaiServer(
         AddAuthHeader(request);
         Logger.LogInformation("{Method} {Url}", request.Method.ToString().ToUpper(), request.RequestUri);
 
-        var response = await httpClient.SendAsync(request);
+        var response = await SendAsync(request);
         await VerifySuccessfulResponseAsync(response);
 
         await using var responseStream = await response.Content.ReadAsStreamAsync();
@@ -99,7 +99,7 @@ public class KimaiServer(
         };
         request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
-        var response = await httpClient.SendAsync(request);
+        var response = await SendAsync(request);
         await VerifySuccessfulResponseAsync(response);
     }
 
@@ -109,7 +109,7 @@ public class KimaiServer(
         AddAuthHeader(request);
         Logger.LogInformation("{Method} {Url}", request.Method.ToString().ToUpper(), request.RequestUri);
 
-        var response = await httpClient.SendAsync(request);
+        var response = await SendAsync(request);
         await VerifySuccessfulResponseAsync(response);
 
         await using var responseStream = await response.Content.ReadAsStreamAsync();
@@ -125,6 +125,18 @@ public class KimaiServer(
         {
             Logger.LogError(ex, "Failed to deserialize {payload}", body);
             throw;
+        }
+    }
+
+    private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
+    {
+        try
+        {
+            return await httpClient.SendAsync(request);
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == null)
+        {
+            throw new ApplicationException($"Check network.  Failed to {request.Method} {request.RequestUri}", ex);
         }
     }
 

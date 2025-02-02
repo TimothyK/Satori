@@ -5,6 +5,7 @@ using Shouldly;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
+using Satori.AppServices.Tests.TestDoubles.AlertServices;
 
 namespace Satori.AppServices.Tests.SprintBoards;
 
@@ -15,6 +16,7 @@ public class SprintBoardTests
     private readonly AzureDevOpsDatabaseBuilder _builder;
     private readonly TestTimeServer _timeServer = new();
     private Uri AzureDevOpsRootUrl => _azureDevOpsServer.AsInterface().ConnectionSettings.Url;
+    private readonly TestAlertService _alertService = new();
 
     public SprintBoardTests()
     {
@@ -44,7 +46,7 @@ public class SprintBoardTests
     private Sprint[] GetSprints()
     {
         //Arrange
-        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), _timeServer);
+        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), _timeServer, _alertService);
 
         //Act
         return srv.GetActiveSprintsAsync().Result.ToArray();
@@ -56,6 +58,16 @@ public class SprintBoardTests
     }
 
     #endregion Act
+
+    #region Assert
+
+    [TestCleanup]
+    public void TearDown()
+    {
+        _alertService.VerifyNoMessagesWereBroadcast();
+    }
+
+    #endregion Assert
 
     #endregion Helpers
 
@@ -309,4 +321,37 @@ public class SprintBoardTests
     }
 
     #endregion
+
+    #region ConnectionErrors
+
+    [TestMethod]
+    public void ConnectionError_ReturnEmpty()
+    {
+        //Arrange
+        _azureDevOpsServer.Mock.Setup(srv => srv.GetTeamsAsync()).Throws<ApplicationException>();
+
+        //Act
+        var sprints = GetSprints();
+
+        //Assert
+        sprints.ShouldBeEmpty();
+        _alertService.DisableVerifications();
+    }
+    
+    [TestMethod]
+    public void ConnectionError_BroadcastsError()
+    {
+        //Arrange
+        _azureDevOpsServer.Mock.Setup(srv => srv.GetTeamsAsync()).Throws<ApplicationException>();
+
+        //Act
+        var sprints = GetSprints();
+
+        //Assert
+        _alertService.LastException.ShouldNotBeNull();
+        _alertService.LastException.ShouldBeOfType<ApplicationException>();
+        _alertService.DisableVerifications();
+    }
+
+    #endregion ConnectionErrors
 }

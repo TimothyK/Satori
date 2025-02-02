@@ -2,6 +2,8 @@
 using CodeMonkeyProjectiles.Linq;
 using Flurl;
 using Microsoft.AspNetCore.Components;
+using Satori.AppServices.Services;
+using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.Utilities;
@@ -173,10 +175,12 @@ namespace Satori.Pages
     internal class PriorityAdjustmentViewModel
     {
         private readonly WorkItem[] _workItems;
+        private readonly IAlertService _alertService;
 
-        internal PriorityAdjustmentViewModel(WorkItem[] workItems)
+        internal PriorityAdjustmentViewModel(WorkItem[] workItems, IAlertService alertService)
         {
             _workItems = workItems;
+            _alertService = alertService;
 
             ClearSelectedWorkItems();
             ShowSelectWorkItemClassName = workItems.ToDictionary(wi => wi.Id, _ => VisibleCssClass.Hidden);
@@ -190,37 +194,6 @@ namespace Satori.Pages
             TargetRelation == RelativePosition.Below, 
             Target);
 
-        #region Alert Message
-
-        public string HideAlertClassName { get; private set; } = "d-none";
-        public AlertTypeCssClass AlertTypeClassName { get; private set; } = AlertTypeCssClass.Error;
-
-        public string AlertContent { get; private set; } = string.Empty;
-
-        public void ClearAlert()
-        {
-            HideAlertClassName = "d-none";
-            AlertTypeClassName = AlertTypeCssClass.Error;
-        }
-
-        public void ShowAlert(string message, AlertTypeCssClass type)
-        {
-            AlertContent = message;
-            AlertTypeClassName = type;
-            HideAlertClassName = string.Empty;
-        }
-
-        internal class AlertTypeCssClass : CssClass
-        {
-            private AlertTypeCssClass(string className) : base(className)
-            {
-            }
-
-            public static readonly AlertTypeCssClass Error = new("alert-danger");
-            public static readonly AlertTypeCssClass Warning = new("alert-warning");
-        }
-
-        #endregion Alert Message
 
         #region Current Mode
 
@@ -241,7 +214,7 @@ namespace Satori.Pages
 
             ClearSelectedWorkItems();
             Target = null;
-            HideAlertClassName = "d-none";
+            _alertService.ClearAlert();
         }
 
         #endregion Current Mode
@@ -268,8 +241,6 @@ namespace Satori.Pages
             ShowSelectWorkItemClassName = _workItems.ToDictionary(wi => wi.Id, _ => showSelectWorkItemButtonClassName);
             ShowDeselectWorkItemClassName = _workItems.ToDictionary(wi => wi.Id, _ => VisibleCssClass.Hidden);
             WorkItemSelectedClassName = _workItems.ToDictionary(wi => wi.Id, _ => RowSelectedCssClass.Deselected);
-
-            ClearAlert();
         }
 
         public void AddSelectedWorkItem(WorkItem workItem)
@@ -281,7 +252,7 @@ namespace Satori.Pages
             ShowDeselectWorkItemClassName[workItem.Id] = VisibleCssClass.Visible;
             WorkItemSelectedClassName[workItem.Id] = RowSelectedCssClass.Selected;
 
-            ClearAlert();
+            _alertService.ClearAlert();
         }
 
         public void RemoveSelectedWorkItem(WorkItem workItem)
@@ -293,7 +264,7 @@ namespace Satori.Pages
             ShowDeselectWorkItemClassName[workItem.Id] = VisibleCssClass.Hidden;
             WorkItemSelectedClassName[workItem.Id] = RowSelectedCssClass.Deselected;
 
-            ClearAlert();
+            _alertService.ClearAlert();
         }
 
         internal class RowSelectedCssClass : CssClass
@@ -340,7 +311,7 @@ namespace Satori.Pages
                 ? TargetRelation == RelativePosition.Below ? "Bottom" : "Top"
                 : TargetRelation == RelativePosition.Below ? "Below" : "Above";
 
-            ClearAlert();
+            _alertService.ClearAlert();
         }
 
         public string MoveToLabel { get; private set; } = "Below";

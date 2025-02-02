@@ -2,6 +2,7 @@
 using Moq;
 using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
+using Satori.AppServices.Tests.TestDoubles.AlertServices;
 using Satori.AppServices.ViewModels;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
@@ -17,6 +18,9 @@ namespace Satori.AppServices.Tests.Users;
 public class UserTests
 {
     private readonly TestData _testData = new();
+    private readonly Mock<IAzureDevOpsServer> _azureDevOpsMock;
+    private readonly Mock<IKimaiServer> _kimaiMock;
+    private readonly TestAlertService _alertService = new();
 
     #region Helpers
 
@@ -48,7 +52,7 @@ public class UserTests
 
         private const string AzureDevOpsRootUrl = "http://devops.test/Org";
 
-        public ConnectionSettings AzureDevOpsConnectionSettings { get; set; } =
+        public ConnectionSettings AzureDevOpsConnectionSettings { get; } =
             new()
             {
                 Url = new Uri(AzureDevOpsRootUrl),
@@ -57,9 +61,9 @@ public class UserTests
 
         public Guid TestUserAzureDevOpsId { get; } 
 
-        public Identity Identity { get; set; } 
+        public Identity Identity { get; } 
         
-        public User KimaiUser { get; set; } = new()
+        public User KimaiUser { get; } = new()
         {
             Id = Sequence.KimaiUserId.Next(),
             UserName = "kimai login",
@@ -70,14 +74,15 @@ public class UserTests
 
     }
 
-
+    public UserTests()
+    {
+        _azureDevOpsMock = BuildAzureDevOpsMock();
+        _kimaiMock = BuildKimaiMock();
+    }
 
     private UserService CreateUserService()
     {
-        var azureDevOpsMock = BuildAzureDevOpsMock();
-        var kimaiMock = BuildKimaiMock();
-
-        var srv = new UserService(azureDevOpsMock.Object, kimaiMock.Object);
+        var srv = new UserService(_azureDevOpsMock.Object, _kimaiMock.Object, _alertService);
         return srv;
     }
 
@@ -130,6 +135,16 @@ public class UserTests
 
     #endregion Act
 
+    #region Assert
+
+    [TestCleanup]
+    public void TearDown()
+    {
+        _alertService.VerifyNoMessagesWereBroadcast();
+    }
+
+    #endregion Assert
+
     #endregion Helpers
 
     [TestMethod] public void ASmokeTest() => GetCurrentUser().AzureDevOpsId.ShouldBe(_testData.Identity.Id);
@@ -168,7 +183,7 @@ public class UserTests
             Id = _testData.TestUserAzureDevOpsId,
             DisplayName = "New User",
             ImageUrl = "http://newuser.com/avatar",
-            UniqueName = "newuser",
+            UniqueName = "New User",
             Url = "http://newuser.com/profile",
         };
         Person person = azureDevOpsUser;
@@ -287,4 +302,52 @@ public class UserTests
         user.Language.ShouldBe("en");
         user.FirstDayOfWeek.ShouldBe(DayOfWeek.Monday);
     }
+
+    #region Connection Errors
+
+    [TestMethod] public void KimaiConnectionError()
+    {
+        //Arrange
+        _kimaiMock.Setup(srv => srv.GetMyUserAsync()).Throws<ApplicationException>();
+
+        //Act
+        var user = GetCurrentUser();
+        
+        //Asset
+        user.AzureDevOpsId.ShouldBe(_testData.Identity.Id);
+        _alertService.LastException.ShouldNotBeNull();
+        _alertService.LastException.ShouldBeOfType<ApplicationException>();
+        _alertService.DisableVerifications();
+    }
+    
+    [TestMethod] public void AzureDevOpsConnectionError()
+    {
+        //Arrange
+        _azureDevOpsMock.Setup(srv => srv.GetCurrentUserIdAsync()).Throws<ApplicationException>();
+
+        //Act
+        var user = GetCurrentUser();
+        
+        //Asset
+        user.KimaiId.ShouldBe(_testData.KimaiUser.Id);
+        _alertService.LastException.ShouldNotBeNull();
+        _alertService.LastException.ShouldBeOfType<ApplicationException>();
+        _alertService.DisableVerifications();
+    }
+    
+    [TestMethod] public void NoConnections_ReturnEmptyPerson()
+    {
+        //Arrange
+        _kimaiMock.Setup(srv => srv.GetMyUserAsync()).Throws<ApplicationException>();
+        _azureDevOpsMock.Setup(srv => srv.GetCurrentUserIdAsync()).Throws<ApplicationException>();
+
+        //Act
+        var user = GetCurrentUser();
+        
+        //Asset
+        user.ShouldBe(Person.Empty);
+        _alertService.DisableVerifications();
+    }
+
+    #endregion Connection Errors
 }

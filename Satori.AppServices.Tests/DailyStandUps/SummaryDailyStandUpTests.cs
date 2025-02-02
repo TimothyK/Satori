@@ -93,6 +93,9 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
 
         //Act
         Should.ThrowAsync<ShouldAssertException>(() => GetPeriodAsync(today, today));
+
+        //Assert
+        AlertService.DisableVerifications();
     }
 
     [TestMethod]

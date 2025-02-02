@@ -1,5 +1,6 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Flurl;
+using Moq;
 using Satori.AppServices.Extensions;
 using Satori.AppServices.Tests.Extensions;
 using Satori.AppServices.Tests.TestDoubles;
@@ -664,4 +665,40 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
 
     #endregion WorkItems
 
+    #region Connection Errors
+
+    [TestMethod]
+    public async Task ConnectionError_ReturnsEmpty()
+    {
+        //Arrange
+        Kimai.Mock
+            .Setup(srv => srv.GetTimeSheetAsync(It.IsAny<TimeSheetFilter>()))
+            .Throws<ApplicationException>();
+        AlertService.DisableVerifications();
+
+        //Act
+        var entries = await GetTimesAsync();
+
+        //Assert
+        entries.ShouldBeEmpty();
+    }
+    
+    [TestMethod]
+    public async Task ConnectionError_BroadcastError()
+    {
+        //Arrange
+        Kimai.Mock
+            .Setup(srv => srv.GetTimeSheetAsync(It.IsAny<TimeSheetFilter>()))
+            .Throws<ApplicationException>();
+
+        //Act
+        await GetTimesAsync();
+
+        //Assert
+        AlertService.LastException.ShouldNotBeNull();
+        AlertService.LastException.ShouldBeOfType<ApplicationException>();
+        AlertService.DisableVerifications();
+    }
+
+    #endregion Connection Errors
 }

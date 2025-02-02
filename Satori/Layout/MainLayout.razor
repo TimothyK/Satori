@@ -1,4 +1,5 @@
-﻿@inherits LayoutComponentBase
+﻿@using Satori.Pages.Components
+@inherits LayoutComponentBase
 
 <div class="page">
     <div class="sidebar" style="@IconMenuCssClass">
@@ -7,6 +8,7 @@
 
     <main>
         <article class="content px-4">
+            <AlertBanner />
             @Body
         </article>
     </main>

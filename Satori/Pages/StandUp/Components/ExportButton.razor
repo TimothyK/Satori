@@ -1,7 +1,9 @@
 ﻿@using Satori.AppServices.Services
+@using Satori.AppServices.Services.Abstractions
 
 @inject StandUpService StandUpService
 @inject WorkItemUpdateService WorkItemUpdateService
+@inject IAlertService AlertService
 
 <div class="export @(Summary.AllExported ? "export-done" : "") @(Summary.CanExport ? "export-enabled" : "")">
     @if (Summary.AllExported)
@@ -25,8 +27,5 @@
     {
         <span class="export-cannot"></span>
     }
-    <div class="alert alert-danger alert-dismissible fade show @ShowAlertClassName" role="alert">
-        @AlertContent
-    </div>  
 </div>
 
