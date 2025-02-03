@@ -23,6 +23,9 @@ internal class TestKimaiServer
         Mock.Setup(srv => srv.GetTimeSheetAsync(It.IsAny<TimeSheetFilter>()))
             .ReturnsAsync((TimeSheetFilter filter) => GetTimeSheet(filter));
 
+        Mock.Setup(srv => srv.GetTimeEntryAsync(It.IsAny<int>()))
+            .ReturnsAsync((int id) => GetTimeEntry(id));
+
         Mock.Setup(srv => srv.BaseUrl)
             .Returns(BaseUrl);
 
@@ -41,12 +44,16 @@ internal class TestKimaiServer
             .Callback((int id, string description) => UpdateDescription(id, description))
             .Returns(Task.CompletedTask);
 
+        Mock.Setup(srv => srv.CreateTimeEntryAsync(It.IsAny<TimeEntryForCreate>()))
+            .ReturnsAsync((TimeEntryForCreate entry) => CreateTimeEntry(entry));
+
         CurrentUser = BuildDefaultUser();
     }
 
     public bool Enabled { get; set; } = true;
 
     public Uri BaseUrl { get; } = new("https://kimai.test/");
+
     public User CurrentUser { get; }
 
     private static User BuildDefaultUser() => Builder<User>.New().Build(user =>
@@ -116,7 +123,7 @@ internal class TestKimaiServer
 
         entry.Exported = true;
     }
-    
+
     private void StopTimer(int id)
     {
         var entry = TimeSheet.SingleOrDefault(x => x.Id == id)
@@ -142,4 +149,92 @@ internal class TestKimaiServer
 
         entry.Description = description;
     }
+
+    private TimeEntryCollapsed GetTimeEntry(int id)
+    {
+        var entry = TimeSheet.SingleOrDefault(x => x.Id == id)
+                    ?? throw new HttpRequestException("Not Found", null, HttpStatusCode.NotFound);
+
+        return new TimeEntryCollapsed()
+        {
+            Activity = entry.Activity.Id,
+            Id = entry.Id,
+            Begin = entry.Begin,
+            End = entry.End,
+            Project = entry.Project.Id,
+            User = entry.User.Id,
+            Description = entry.Description,
+            Exported = entry.Exported,
+        };
+    }
+
+    #region CreateTimeEntry
+
+    private TimeEntry CreateTimeEntry(TimeEntryForCreate payload)
+    {
+        var activity = FindOrCreateActivity(payload.Activity, payload.Project);
+        var entry = new TimeEntry
+        {
+            Id = Sequence.TimeEntryId.Next(),
+            User = FindOrCreateUser(payload.User),
+            Activity = activity,
+            Project = activity.Project,
+            Begin = payload.Begin,
+            End = payload.End,
+            Description = payload.Description,
+            Exported = payload.Exported,
+        };
+        
+        AddTimeEntry(entry);
+
+        return entry;
+    }
+
+    private Activity FindOrCreateActivity(int activityId, int projectId)
+    {
+        return TimeSheet.Select(t => t.Activity).FirstOrDefault(activity => activity.Id == activityId) 
+               ?? Builder<Activity>.New().Build(activity =>
+               {
+                   activity.Id = activityId;
+                   activity.Project = FindOrCreateProject(projectId);
+                   activity.Visible = true;
+               });
+    }
+
+    private Project FindOrCreateProject(int projectId)
+    {
+        return TimeSheet.Select(t => t.Project).FirstOrDefault(project => project.Id == projectId) 
+               ?? Builder<Project>.New().Build(project =>
+               {
+                   project.Id = projectId;
+                   project.Customer = Builder<Customer>.New().Build(customer =>
+                   {
+                       customer.Id = Sequence.CustomerId.Next();
+                       customer.Name = $"Customer {customer.Id}";
+                       customer.Number = $"FSK-{customer.Id.ToString().PadLeft(4, '0')}";
+                       customer.Visible = true;
+                   });
+                   project.Visible = true;
+                   project.Name = $"{projectId.ToString().PadLeft(4, '0')} Project";
+               });
+    }
+
+
+    private User FindOrCreateUser(int userId)
+    {
+        if (CurrentUser.Id == userId)
+        {
+            return CurrentUser;
+        }
+
+        return TimeSheet.Select(t => t.User).FirstOrDefault(user => user.Id == userId) 
+               ?? Builder<User>.New().Build(user =>
+                {
+                    user.Id = userId;
+                    user.Enabled = true;
+                    user.Language = "en_CA";
+                });
+    }
+
+    #endregion
 }
