@@ -871,7 +871,7 @@ public partial class StandUpService(
         var period = timeEntry.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod;
         var otherTimeEntries = period.TimeEntries.Except(timeEntry.Yield()).ToArray();
         var overlappingTimeEntries = otherTimeEntries
-            .Where(t => ((ITimeRange)t).IsOverlapping(timeEntry))
+            .Where(t => t.IsOverlapping(timeEntry))
             .ToArray();
             
         timeEntry.IsOverlapping = overlappingTimeEntries.Any();
