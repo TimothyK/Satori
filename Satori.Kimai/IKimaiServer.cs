@@ -23,4 +23,6 @@ public interface IKimaiServer
     Task UpdateTimeEntryDescriptionAsync(int id, string description);
 
     Task<TimeEntry> CreateTimeEntryAsync(TimeEntryForCreate entry);
+    
+    Task<TimeEntryCollapsed> GetTimeEntryAsync(int id);
 }

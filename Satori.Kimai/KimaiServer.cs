@@ -117,6 +117,15 @@ public class KimaiServer(
         return await SendAsync<TimeEntry>(request);
     }
 
+    public Task<TimeEntryCollapsed> GetTimeEntryAsync(int id)
+    {
+        var url = connectionSettings.Url
+            .AppendPathSegment("api/timesheets")
+            .AppendPathSegment(id);
+
+        return GetAsync<TimeEntryCollapsed>(url);
+    }
+
     private async Task<T> GetAsync<T>(Url url)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, url);
