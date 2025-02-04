@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
+using Satori.AppServices.Tests.TestDoubles.AlertServices;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.ViewModels.PullRequests;
@@ -15,6 +16,7 @@ public class PullRequestTests
     private readonly TestAzureDevOpsServer _azureDevOpsServer;
     private readonly AzureDevOpsDatabaseBuilder _builder;
     private Uri AzureDevOpsRootUrl => _azureDevOpsServer.AsInterface().ConnectionSettings.Url;
+    private readonly TestAlertService _alertService = new();
 
     public PullRequestTests()
     {
@@ -45,7 +47,7 @@ public class PullRequestTests
     private ViewModels.PullRequests.PullRequest[] GetPullRequests(WithChildren children = WithChildren.None)
     {
         //Act
-        var srv = new PullRequestService(_azureDevOpsServer.AsInterface(), NullLoggerFactory.Instance);
+        var srv = new PullRequestService(_azureDevOpsServer.AsInterface(), NullLoggerFactory.Instance, _alertService);
         var pullRequests = srv.GetPullRequestsAsync().Result.ToArray();
         if (children.HasFlag(WithChildren.WorkItems))
         {
@@ -74,6 +76,16 @@ public class PullRequestTests
     }
 
     #endregion Act
+
+    #region Assert
+
+    [TestCleanup]
+    public void TearDown()
+    {
+        _alertService.VerifyNoMessagesWereBroadcast();
+    }
+
+    #endregion Assert
 
     #endregion Helpers
 
@@ -377,4 +389,41 @@ public class PullRequestTests
     }
 
     #endregion Work Items
+
+    #region Error Handling
+
+    [TestMethod]
+    public void ConnectionError_ReturnsEmpty()
+    {
+        //Arrange
+        _azureDevOpsServer.Mock
+            .Setup(srv => srv.GetPullRequestsAsync())
+            .Throws<ApplicationException>();
+        _alertService.DisableVerifications();
+
+        //Act
+        var pullRequests = GetPullRequests();
+
+        //Assert
+        pullRequests.ShouldBeEmpty();
+    }
+    
+    [TestMethod]
+    public void ConnectionError_BroadcastsError()
+    {
+        //Arrange
+        _azureDevOpsServer.Mock
+            .Setup(srv => srv.GetPullRequestsAsync())
+            .Throws<ApplicationException>();
+
+        //Act
+        GetPullRequests();
+
+        //Assert
+        _alertService.LastException.ShouldNotBeNull();
+        _alertService.LastException.ShouldBeOfType<ApplicationException>();
+        _alertService.DisableVerifications();
+    }
+
+    #endregion Error Handling
 }

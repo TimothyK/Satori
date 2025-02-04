@@ -117,7 +117,7 @@ public class AzureDevOpsServer(
 
         request.Content = new StringContent(JsonSerializer.Serialize(items), Encoding.UTF8, "application/json-patch+json");
 
-        var response = await httpClient.SendAsync(request);
+        var response = await SendAsync(request);
         await VerifySuccessfulResponseAsync(response);
 
         await using var responseStream = await response.Content.ReadAsStreamAsync();
@@ -146,7 +146,7 @@ public class AzureDevOpsServer(
 
         request.Content = new StringContent(JsonSerializer.Serialize(items), Encoding.UTF8, "application/json-patch+json");
 
-        var response = await httpClient.SendAsync(request);
+        var response = await SendAsync(request);
         await VerifySuccessfulResponseAsync(response);
 
         await using var responseStream = await response.Content.ReadAsStreamAsync();
@@ -198,7 +198,7 @@ public class AzureDevOpsServer(
     /// <returns></returns>
     /// <remarks>
     /// <para>
-    /// https://learn.microsoft.com/en-us/rest/api/azure/devops/work/iterations/get-iteration-work-items?view=azure-devops-rest-6.0&tabs=HTTP
+    /// https://learn.microsoft.com/en-us/rest/api/azure/devops/work/iterations/get-iteration-work-items?view=azure-devops-rest-6.0
     /// </para>
     /// </remarks>
     public async Task<WorkItemLink[]> GetIterationWorkItemsAsync(IterationId iteration)
@@ -275,7 +275,7 @@ public class AzureDevOpsServer(
         var request = new HttpRequestMessage(HttpMethod.Get, url);
         AddAuthHeader(request);
 
-        var response = await httpClient.SendAsync(request);
+        var response = await SendAsync(request);
         await VerifySuccessfulResponseAsync(response);
 
         await using var responseStream = await response.Content.ReadAsStreamAsync();
@@ -283,6 +283,18 @@ public class AzureDevOpsServer(
                    ?? throw new ApplicationException("Server did not respond");
 
         return root;
+    }
+
+    private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
+    {
+        try
+        {
+            return await httpClient.SendAsync(request);
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == null)
+        {
+            throw new ApplicationException($"Check network or Personal Access Token.  Failed to {request.Method} {request.RequestUri}", ex);
+        }
     }
 
     private static async Task VerifySuccessfulResponseAsync(HttpResponseMessage response)

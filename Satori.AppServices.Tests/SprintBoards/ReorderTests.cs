@@ -52,7 +52,7 @@ public class ReorderTests
         //Arrange
         var workItems = request.AllWorkItems;
         var azureDevOps = new ReorderAzureDevOpsServer(workItems);
-        var srv = new SprintBoardService(azureDevOps.AsInterface(), new TimeServer());
+        var srv = new SprintBoardService(azureDevOps.AsInterface(), new TimeServer(), new AlertService());
         LogRequest(request);
 
         //Act
