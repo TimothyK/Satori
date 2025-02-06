@@ -5,6 +5,8 @@ using Shouldly;
 using System.Net;
 using Builder;
 using Satori.AppServices.Extensions;
+using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
+using Satori.TimeServices;
 
 namespace Satori.AppServices.Tests.TestDoubles.Kimai;
 
@@ -47,7 +49,7 @@ internal class TestKimaiServer
         Mock.Setup(srv => srv.CreateTimeEntryAsync(It.IsAny<TimeEntryForCreate>()))
             .ReturnsAsync((TimeEntryForCreate entry) => CreateTimeEntry(entry));
 
-        CurrentUser = BuildDefaultUser();
+        CurrentUser = KimaiUserBuilder.BuildUser();
     }
 
     public bool Enabled { get; set; } = true;
@@ -55,13 +57,6 @@ internal class TestKimaiServer
     public Uri BaseUrl { get; } = new("https://kimai.test/");
 
     public User CurrentUser { get; }
-
-    private static User BuildDefaultUser() => Builder<User>.New().Build(user =>
-    {
-        user.Id = Sequence.KimaiUserId.Next();
-        user.Enabled = true;
-        user.Language = "en_CA";
-    });
 
     public IKimaiServer AsInterface() => Mock.Object;
 
@@ -84,6 +79,7 @@ internal class TestKimaiServer
             .Where(x => filter.End == null || x.Begin <= filter.End)
             .Where(x => filter.IsRunning == null || (filter.IsRunning.Value && x.End == null) || (!filter.IsRunning.Value && x.End != null))
             .Where(x => filter.Term == null || (x.Description?.Contains(filter.Term) ?? false))
+            .Where(x => x.User == CurrentUser) // Kimai will filter by current user by default.  Our Kimai implementation doesn't support user filtering yet, so the Kimai behaviour will be to filter on current user.
             .OrderByDescending(x => x.Begin)
             .Skip((filter.Page-1) * filter.Size)
             .Take(filter.Size)
@@ -107,7 +103,7 @@ internal class TestKimaiServer
             filter.Begin = day.Value.ToDateTime(TimeOnly.MinValue);
             filter.End = day.Value.ToDateTime(TimeOnly.MaxValue);
         }
-
+        
         return GetTimeSheet(filter).FirstOrDefault();
     }
 
@@ -124,6 +120,8 @@ internal class TestKimaiServer
         entry.Exported = true;
     }
 
+    public ITimeServer TimeServer { get; set; } = new TestTimeServer();
+
     private void StopTimer(int id)
     {
         var entry = TimeSheet.SingleOrDefault(x => x.Id == id)
@@ -134,7 +132,7 @@ internal class TestKimaiServer
             throw new InvalidOperationException($"Id {id} already stopped");
         }
 
-        var end = DateTimeOffset.Now.ToNearest(TimeSpan.FromMinutes(1), RoundingDirection.Floor);
+        var end = TimeServer.GetUtcNow().ToNearest(TimeSpan.FromMinutes(1), RoundingDirection.Floor);
         if (end < entry.Begin)
         {
             end = entry.Begin + TimeSpan.FromMinutes(3);

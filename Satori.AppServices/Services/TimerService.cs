@@ -1,4 +1,5 @@
-﻿using Satori.AppServices.Services.Abstractions;
+﻿using CodeMonkeyProjectiles.Linq;
+using Satori.AppServices.Services.Abstractions;
 using Satori.Kimai;
 using Satori.Kimai.Models;
 
@@ -20,19 +21,46 @@ public class TimerService(
     /// <returns></returns>
     public async Task RestartTimerAsync(params int[] timeEntryIds)
     {
+        var startTime = await StopRunningTimeEntryAsync() ?? DateTimeOffset.Now;
+
         List<TimeEntryCollapsed> entries = [];
         foreach (var id in timeEntryIds)
         {
             entries.Add(await kimai.GetTimeEntryAsync(id));
         }
 
+        var me = await userService.GetCurrentUserAsync();
+
         var entry = new TimeEntryForCreate
         {
-            User = entries.Select(t => t.User).Distinct().Single(),
-            Activity = entries.Select(t => t.Activity).Distinct().Single(),
-            Project = entries.Select(t => t.Project).Distinct().Single(),
-            Begin = DateTimeOffset.Now,
+            User = me.KimaiId ?? throw new InvalidOperationException("Kimai UserId is unknown"),
+            Activity = entries.SelectDistinctSingle(t => t.Activity, "activities"),
+            Project = entries.SelectDistinctSingle(t => t.Project, "projects"),
+            Begin = startTime,
         };
         await kimai.CreateTimeEntryAsync(entry);
+    }
+
+    /// <summary>
+    /// Stops the active running time entry for the current user
+    /// </summary>
+    /// <returns>
+    /// The End time that Kimai assigns to the running time entry.
+    /// Returns null if there wasn't an active time entry
+    /// </returns>
+    private async Task<DateTimeOffset?> StopRunningTimeEntryAsync()
+    {
+        var filter = new TimeSheetFilter
+        {
+            IsRunning = true
+        };
+
+        var timeSheet = await kimai.GetTimeSheetAsync(filter);
+        if (timeSheet.None())
+        {
+            return null;  //No active time entry to stop
+        }
+
+        return await kimai.StopTimerAsync(timeSheet.Single().Id);
     }
 }

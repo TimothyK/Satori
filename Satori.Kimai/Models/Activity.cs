@@ -10,7 +10,7 @@ public class Activity
     public int Id { get; set; }
 
     [JsonPropertyName("project")]
-    public required Project Project { get; set; }
+    public Project? Project { get; set; }
 
     [JsonPropertyName("name")]
     public required string Name { get; set; }
