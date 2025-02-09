@@ -134,6 +134,19 @@ public class RestartTimerTests
     }
     
     [TestMethod]
+    public async Task Begin_NoRunningTask_TruncatedSeconds()
+    {
+        //Arrange
+        var entry = BuildTimeEntry();
+
+        //Act
+        var actual = await RestartTimerAsync(entry.Id);
+
+        //Assert
+        actual.Begin.Second.ShouldBe(0);
+    }
+    
+    [TestMethod]
     public async Task Begin_RunningTask_RunningTaskIsStopped()
     {
         //Arrange

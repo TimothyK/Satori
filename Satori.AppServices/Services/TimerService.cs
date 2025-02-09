@@ -1,4 +1,5 @@
 ﻿using CodeMonkeyProjectiles.Linq;
+using Satori.AppServices.Extensions;
 using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.Services.CommentParsing;
 using Satori.Kimai;
@@ -34,7 +35,7 @@ public class TimerService(
 
     private async Task RestartTimerUnsafeAsync(int[] timeEntryIds)
     {
-        var startTime = await StopRunningTimeEntryAsync() ?? DateTimeOffset.Now;
+        var startTime = await StopRunningTimeEntryAsync() ?? DateTimeOffset.Now.TruncateSeconds();
 
         List<TimeEntryCollapsed> entries = [];
         foreach (var id in timeEntryIds)
