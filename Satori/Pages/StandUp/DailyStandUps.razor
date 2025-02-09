@@ -58,7 +58,7 @@
     <div class="day-header">
         <div class="duration">
             <div class="duration-expand"><span class="tree-node @(day.IsCollapsed ? "" : "node-expanded")" @onclick="() => ToggleCollapsed(day)"></span></div>
-            <div class="duration-link">
+            <div class="duration-link" title="Open in Kimai">
                 <a href="@day.Url" target="_blank">
                     <span class="bi bi-box-arrow-up-right"></span>
                 </a></div>
@@ -77,7 +77,8 @@
         <div class="project-header @(day.IsCollapsed ? "hidden" : "")">
             <div class="duration">
                 <div class="duration-expand"><span class="tree-node @(project.IsCollapsed ? "" : "node-expanded")" @onclick="() => ToggleCollapsed(project)"></span></div>
-                <div class="duration-link"><a href="@project.Url" target="_blank">
+                <div class="duration-link" title="Open in Kimai">
+                    <a href="@project.Url" target="_blank">
                         <span class="bi bi-box-arrow-up-right"></span>
                     </a></div>
                 <div class="duration-minutes">
@@ -111,7 +112,7 @@
             <div class="activity-header @(day.IsCollapsed || project.IsCollapsed ? "hidden" : "")">
                 <div class="duration">
                     <div class="duration-expand"><span class="tree-node @(activity.IsCollapsed ? "" : "node-expanded")" @onclick="() => ToggleCollapsed(activity)"></span></div>
-                    <div class="duration-link"><a href="@activity.Url" target="_blank">
+                    <div class="duration-link" title="Open in Kimai"><a href="@activity.Url" target="_blank">
                             <span class="bi bi-box-arrow-up-right"></span>
                         </a></div>
                     <div class="duration-minutes">
@@ -131,7 +132,7 @@
                     <div class="duration">
                         <div class="duration-expand"><span class="tree-node @(taskSummary.IsCollapsed ? "" : "node-expanded")" @onclick="() => ToggleCollapsed(taskSummary)"></span></div>
                         <EditStandUpDialog TimeEntries="@taskSummary.TimeEntries" OnOpening="OnOpeningDialog" OnSaved="OnSavedDialog" OnClosed="OnClosedDialog"></EditStandUpDialog>
-                        <div class="restart-timer" @onclick="async () => await RestartTimerAsync(taskSummary.TimeEntries)"><span class="restart-timer-icon"></span></div>
+                        <div class="restart-timer" title="Restart Timer" @onclick="async () => await RestartTimerAsync(taskSummary.TimeEntries)"><span class="restart-timer-icon"></span></div>
                         <div class="duration-minutes">
                             <span class="">@taskSummary.TotalTime.ToString(@"hh\:mm")</span>
                         </div>
@@ -180,7 +181,7 @@
                             <td class="time-entry-time">
                                 @entry.Begin.ToString("HH:mm")
                                 to 
-                                @if (@entry.End == null)
+                                @if (entry.End == null)
                                 {
                                     <span class="enddate-now">now</span>
                                 }
@@ -192,7 +193,7 @@
                             <td>
                                 <div class="duration">
                                     <EditStandUpDialog TimeEntries="@entry.Yield().ToArray()" OnOpening="OnOpeningDialog" OnSaved="OnSavedDialog" OnClosed="OnClosedDialog"></EditStandUpDialog>
-                                    <div class="restart-timer" @onclick="async () => await RestartTimerAsync(entry)"><span class="restart-timer-icon"></span></div>
+                                    <div class="restart-timer" title="Restart Timer" @onclick="async () => await RestartTimerAsync(entry)"><span class="restart-timer-icon"></span></div>
                                     <div class="duration-minutes">
                                         <span class="">@entry.TotalTime.ToString(@"hh\:mm")</span>
                                     </div>
