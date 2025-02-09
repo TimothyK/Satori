@@ -101,6 +101,8 @@ public abstract class DailyStandUpTests
 
     protected KimaiTimeEntry BuildTimeEntry(Activity activity, DateOnly day, TimeSpan duration)
     {
+        _ = activity.Project ?? throw new ArgumentException("activity must have a project");
+
         var lastEntry = Kimai.GetLastEntry(day);
         if (lastEntry != null && lastEntry.End == null)
         {

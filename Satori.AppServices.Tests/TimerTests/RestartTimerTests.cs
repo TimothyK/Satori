@@ -48,7 +48,7 @@ public class RestartTimerTests
             t.End = null;
             t.Activity = lastEntry?.Activity ?? BuildActivity();
         }, int.MaxValue);
-        entry.Project = entry.Activity.Project;
+        entry.Project = entry.Activity.Project ?? BuildProject();
         
         Kimai.AddTimeEntry(entry);
 

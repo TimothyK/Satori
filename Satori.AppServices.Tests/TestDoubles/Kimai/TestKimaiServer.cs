@@ -171,6 +171,7 @@ internal class TestKimaiServer
     private TimeEntry CreateTimeEntry(TimeEntryForCreate payload)
     {
         var activity = FindOrCreateActivity(payload.Activity, payload.Project);
+        activity.Project.ShouldNotBeNull();
         var entry = new TimeEntry
         {
             Id = Sequence.TimeEntryId.Next(),
