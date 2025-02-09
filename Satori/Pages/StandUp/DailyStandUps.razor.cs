@@ -4,6 +4,7 @@ using Satori.AppServices.Services;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using System.Timers;
+using Microsoft.VisualStudio.Threading;
 using Timer = System.Timers.Timer;
 
 namespace Satori.Pages.StandUp;
@@ -29,7 +30,7 @@ public partial class DailyStandUps
         CurrentUser = await UserService.GetCurrentUserAsync();
         var period = GetPeriodFromUrl();
         DateSelector = new DateSelectorViewModel(CurrentUser.FirstDayOfWeek, StandUpService);
-        DateSelector.DateChanging += DateChanging;
+        DateSelector.DateChangingAsync += DateChangingAsync;
         DateSelector.DateChanged += DateChanged;
         await DateSelector.ChangePeriodAsync(period);
     }
@@ -55,7 +56,7 @@ public partial class DailyStandUps
     }
 
     private Period CurrentPeriod { get; set; }
-    private void DateChanging(object? sender, EventArgs eventArgs)
+    private async Task DateChangingAsync(object? sender, EventArgs eventArgs)
     {
         InLoading = LoadingStatusLabel.InLoading;
         Period = PeriodSummary.CreateEmpty();
@@ -70,7 +71,7 @@ public partial class DailyStandUps
             .AppendQueryParam("DatePeriod", DateSelector.Period);
         NavigationManager.NavigateTo(url, forceLoad: false);
 
-        LocalStorage.SetItemAsync("DatePeriod", DateSelector.Period);
+        await LocalStorage.SetItemAsync("DatePeriod", DateSelector.Period);
         CurrentPeriod = DateSelector.Period;
     }
 
@@ -102,7 +103,7 @@ public partial class DailyStandUps
     private void RunningTimeEntryTimer_Elapsed(object? sender, ElapsedEventArgs e)
     {
         RefreshTotalTimes();
-        InvokeAsync(StateHasChanged);
+        StateHasChanged();
     }
 
     private void RefreshTotalTimes()
@@ -246,7 +247,7 @@ public partial class DailyStandUps
 
 public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? standUpService)
 {
-    public event EventHandler<EventArgs>? DateChanging;
+    public event AsyncEventHandler<EventArgs>? DateChangingAsync;
     public event EventHandler<DateChangedEventArgs>? DateChanged;
 
     private DayOfWeek FirstDayOfWeek { get; } = firstDayOfWeek;
@@ -299,7 +300,7 @@ public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? sta
         DateRangeText = beginDate == EndDate ? BeginDate.ToString("D")
             : $"{BeginDate:D} - {EndDate:D}";
 
-        OnDateChanging();
+        await OnDateChangingAsync();
         await Task.Yield();
 
         await RefreshAsync();
@@ -320,9 +321,12 @@ public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? sta
         await standUpService.GetWorkItemsAsync(period);
     }
 
-    private void OnDateChanging()
+    private async Task OnDateChangingAsync()
     {
-        DateChanging?.Invoke(this, EventArgs.Empty);
+        if (DateChangingAsync != null)
+        {
+            await DateChangingAsync.InvokeAsync(this, EventArgs.Empty);
+        }
     }
 
     private void OnDateChanged(PeriodSummary days)
