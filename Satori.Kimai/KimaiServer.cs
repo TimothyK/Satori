@@ -112,7 +112,7 @@ public class KimaiServer(
         var request = new HttpRequestMessage(HttpMethod.Post, url);
 
         var payload = JsonSerializer.Serialize(entry);
-        request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+        request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
 
         return await SendAsync<TimeEntry>(request);
     }

@@ -5,6 +5,7 @@ using RichardSzalay.MockHttp;
 using Satori.Kimai.Models;
 using Shouldly;
 using System.Text.Json;
+using Satori.Kimai.Tests.Extensions;
 
 namespace Satori.Kimai.Tests.TimeSheetTests;
 
@@ -82,6 +83,14 @@ public class CreateTimeEntryTests
         static bool VerifyRequest(HttpRequestMessage request)
         {
             request.Method.ShouldBe(HttpMethod.Post);
+
+            var body = request.ReadRequestBody();
+
+            var payload = JsonSerializer.Deserialize<TimeEntryForCreate>(body);
+
+            payload.ShouldNotBeNull();
+            payload.End.ShouldBeNull();
+
             return true;
         }
     }
