@@ -199,19 +199,18 @@
     align-self: flex-start;
 }
 
-.duration-caret {
+.duration-expand {
     background-color: lightgray;
     padding: 5px;
     border-right: 1px solid darkgray;
 }
 
-.caret {
+.tree-node {
     cursor: pointer;
     user-select: none; /* Prevent text selection */
 }
 
-/* Create the caret/arrow with a unicode, and style it */
-.caret::before {
+.tree-node::before {
     content: "➕";
     color: black;
     display: inline-block;
@@ -219,8 +218,7 @@
     margin-right: 6px;
 }
 
-/* Rotate the caret/arrow icon when clicked on (using JavaScript) */
-.caret-down::before {
+.node-expanded::before {
     content: "➖";
 }
 

@@ -56,7 +56,7 @@
 {
     <div class="day-header">
         <div class="duration">
-            <div class="duration-caret"><span class="caret @(day.IsCollapsed ? "" : "caret-down")" @onclick="() => ToggleCollapsed(day)"></span></div>
+            <div class="duration-expand"><span class="tree-node @(day.IsCollapsed ? "" : "node-expanded")" @onclick="() => ToggleCollapsed(day)"></span></div>
             <div class="duration-link">
                 <a href="@day.Url" target="_blank">
                     <span class="bi bi-box-arrow-up-right"></span>
@@ -75,7 +75,7 @@
     {
         <div class="project-header @(day.IsCollapsed ? "hidden" : "")">
             <div class="duration">
-                <div class="duration-caret"><span class="caret @(project.IsCollapsed ? "" : "caret-down")" @onclick="() => ToggleCollapsed(project)"></span></div>
+                <div class="duration-expand"><span class="tree-node @(project.IsCollapsed ? "" : "node-expanded")" @onclick="() => ToggleCollapsed(project)"></span></div>
                 <div class="duration-link"><a href="@project.Url" target="_blank">
                         <span class="bi bi-box-arrow-up-right"></span>
                     </a></div>
@@ -109,7 +109,7 @@
         {
             <div class="activity-header @(day.IsCollapsed || project.IsCollapsed ? "hidden" : "")">
                 <div class="duration">
-                    <div class="duration-caret"><span class="caret @(activity.IsCollapsed ? "" : "caret-down")" @onclick="() => ToggleCollapsed(activity)"></span></div>
+                    <div class="duration-expand"><span class="tree-node @(activity.IsCollapsed ? "" : "node-expanded")" @onclick="() => ToggleCollapsed(activity)"></span></div>
                     <div class="duration-link"><a href="@activity.Url" target="_blank">
                             <span class="bi bi-box-arrow-up-right"></span>
                         </a></div>
@@ -128,7 +128,7 @@
             {
                 <div class="taskSummary-header @(day.IsCollapsed || project.IsCollapsed || activity.IsCollapsed ? "hidden" : "")">
                     <div class="duration">
-                        <div class="duration-caret"><span class="caret @(taskSummary.IsCollapsed ? "" : "caret-down")" @onclick="() => ToggleCollapsed(taskSummary)"></span></div>
+                        <div class="duration-expand"><span class="tree-node @(taskSummary.IsCollapsed ? "" : "node-expanded")" @onclick="() => ToggleCollapsed(taskSummary)"></span></div>
                         <EditStandUpDialog TimeEntries="@taskSummary.TimeEntries" OnOpening="OnOpeningDialog" OnSaved="OnSavedDialog" OnClosed="OnClosedDialog"></EditStandUpDialog>
                         <div class="duration-minutes">
                             <span class="">@taskSummary.TotalTime.ToString(@"hh\:mm")</span>
