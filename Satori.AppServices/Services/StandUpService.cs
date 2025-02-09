@@ -1,7 +1,9 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Flurl;
 using Microsoft.Extensions.Logging;
+using Satori.AppServices.Models;
 using Satori.AppServices.Services.Abstractions;
+using Satori.AppServices.Services.CommentParsing;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.DailyStandUps;
@@ -10,11 +12,10 @@ using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps;
 using Satori.Kimai;
 using Satori.Kimai.Models;
+using System.Collections.Immutable;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
-using Satori.AppServices.Models;
-using Satori.AppServices.Services.CommentParsing;
 using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
 using TimeEntry = Satori.AppServices.ViewModels.DailyStandUps.TimeEntry;
 using UriFormatException = System.UriFormatException;
@@ -667,12 +668,12 @@ public partial class StandUpService(
     {
         foreach (var activitySummary in exportableEntries.Select(entry => entry.ParentActivitySummary).Distinct())
         {
-            var payload = ToPayload(activitySummary, exportableEntries);
+            var payload = await ToPayloadAsync(activitySummary, exportableEntries);
             await dailyActivityExporter.SendAsync(payload);
         }
     }
 
-    private static DailyActivity ToPayload(ActivitySummary activitySummary, TimeEntry[] exportableEntries)
+    private async Task<DailyActivity> ToPayloadAsync(ActivitySummary activitySummary, TimeEntry[] exportableEntries)
     {
         var previous = activitySummary.TimeEntries.Where(x => x.Exported).Select(x => x.TotalTime).Sum();
         var adjustment = exportableEntries.Where(x => x.ParentActivitySummary == activitySummary).Select(x => x.TotalTime).Sum();
@@ -692,9 +693,51 @@ public partial class StandUpService(
             Impediments = activitySummary.Impediments,
             Learnings = activitySummary.Learnings,
             OtherComments = activitySummary.OtherComments,
-            Tasks = ToComment(activitySummary.TaskSummaries)
+            Tasks = ToComment(activitySummary.TaskSummaries),
+            WorkItems = await ToWorkItemsAsync(activitySummary.TaskSummaries),
         };
         return payload;
+    }
+
+    private async Task<IReadOnlyCollection<ViewModels.ExportPayloads.WorkItem>> ToWorkItemsAsync(TaskSummary[] taskSummaries)
+    {
+        var workItems = taskSummaries.SelectMany(timeEntry => GetWorkItemAncestors(timeEntry.Task))
+            .Distinct()
+            .ToList();
+
+        var unknownWorkItems = workItems.Where(wi => wi.Type == WorkItemType.Unknown).ToArray();
+        if (unknownWorkItems.Any())
+        {
+            var freshWorkItems = await GetWorkItemsAsync(unknownWorkItems.Select(wi => wi.Id));
+            foreach (var invalidWorkItem in unknownWorkItems)
+            {
+                workItems.Remove(invalidWorkItem);
+            }
+            workItems.AddRange(freshWorkItems);
+        }
+
+        return workItems
+            .Select(x => new ViewModels.ExportPayloads.WorkItem
+            {
+                Id = x.Id, 
+                Title = x.Title ?? string.Empty, 
+                Type = x.Type.ToApiValue()
+            })
+            .ToImmutableArray();
+    }
+
+    private static IEnumerable<WorkItem> GetWorkItemAncestors(WorkItem? workItem)
+    {
+        while (true)
+        {
+            if (workItem == null)
+            {
+                yield break;
+            }
+
+            yield return workItem;
+            workItem = workItem.Parent;
+        }
     }
 
     private static string? ToComment(TaskSummary[] taskSummaries)
