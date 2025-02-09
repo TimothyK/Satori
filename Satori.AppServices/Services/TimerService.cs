@@ -1,5 +1,6 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Satori.AppServices.Services.Abstractions;
+using Satori.AppServices.Services.CommentParsing;
 using Satori.Kimai;
 using Satori.Kimai.Models;
 
@@ -31,12 +32,16 @@ public class TimerService(
 
         var me = await userService.GetCurrentUserAsync();
 
+        var descriptions = string.Join('\n', entries.Select(t => t.Description));
+        var comments = CommentParser.Parse(descriptions);
+
         var entry = new TimeEntryForCreate
         {
             User = me.KimaiId ?? throw new InvalidOperationException("Kimai UserId is unknown"),
             Activity = entries.SelectDistinctSingle(t => t.Activity, "activities"),
             Project = entries.SelectDistinctSingle(t => t.Project, "projects"),
             Begin = startTime,
+            Description = comments.Join(type => type.IsNotIn(CommentType.ScrumTypes)),
         };
         await kimai.CreateTimeEntryAsync(entry);
     }

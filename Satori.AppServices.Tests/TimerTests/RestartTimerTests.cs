@@ -225,4 +225,102 @@ public class RestartTimerTests
 
     #endregion Project and Activity
 
+    #region Comments
+
+    [TestMethod]
+    public async Task Comment()
+    {
+        //Arrange
+        const string description = "Meetings";
+        var entry = BuildTimeEntry();
+        entry.Description = description;
+
+        //Act
+        var actual = await RestartTimerAsync(entry.Id);
+
+        //Assert
+        actual.Description.ShouldBe(description);
+    }
+    
+    [TestMethod]
+    public async Task WorkItemComment()
+    {
+        //Arrange
+        const string description = "D#12345 Create Widget > D#12346 Coding";
+        var entry = BuildTimeEntry();
+        entry.Description = description;
+
+        //Act
+        var actual = await RestartTimerAsync(entry.Id);
+
+        //Assert
+        actual.Description.ShouldBe(description);
+    }
+    
+    [TestMethod]
+    public async Task Accomplishments_NotCopied()
+    {
+        //Arrange
+        const string description = """
+                                   🏆Implemented wire frame
+                                   D#12345 Create Widget > D#12346 Coding
+                                   """;
+        var entry = BuildTimeEntry();
+        entry.Description = description;
+
+        //Act
+        var actual = await RestartTimerAsync(entry.Id);
+
+        //Assert
+        actual.Description.ShouldBe("D#12345 Create Widget > D#12346 Coding");
+    }
+    
+    [TestMethod]
+    public async Task ScrumCommentTypes_NotCopied()
+    {
+        //Arrange
+        const string description = """
+                                   🏆Drank Coffee
+                                   D#12345 Create Widget > D#12346 Coding
+                                   🧱Bathroom queues
+                                   Meetings
+                                   🧠Bladder Control
+                                   """;
+        var entry = BuildTimeEntry();
+        entry.Description = description;
+
+        //Act
+        var actual = await RestartTimerAsync(entry.Id);
+
+        //Assert
+        actual.Description.ShouldBe("""
+                                    D#12345 Create Widget > D#12346 Coding
+                                    Meetings
+                                    """);
+    }
+    
+    [TestMethod]
+    public async Task DuplicateComments_Removed()
+    {
+        //Arrange
+        const string description = """
+                                   D#12345 Create Widget > D#12346 Coding
+                                   Meetings
+                                   """;
+        var entry1 = BuildTimeEntry();
+        entry1.Description = description;
+        var entry2 = BuildTimeEntry();
+        entry2.Description = description;
+
+        //Act
+        var actual = await RestartTimerAsync(entry1.Id, entry2.Id);
+
+        //Assert
+        actual.Description.ShouldBe("""
+                                    D#12345 Create Widget > D#12346 Coding
+                                    Meetings
+                                    """);
+    }
+
+    #endregion Comments
 }
