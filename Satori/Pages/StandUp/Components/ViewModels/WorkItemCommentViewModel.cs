@@ -1,6 +1,7 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Microsoft.VisualStudio.Threading;
 using Satori.AppServices.Extensions;
+using Satori.AppServices.Services.CommentParsing;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.AppServices.ViewModels.WorkItems;

@@ -1,11 +1,276 @@
-﻿using Satori.AppServices.Services;
+﻿using CodeMonkeyProjectiles.Linq;
+using Flurl;
+using Satori.AppServices.Services;
+using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.DailyStandUps;
+using System.Timers;
+using Microsoft.AspNetCore.Components;
+using Microsoft.VisualStudio.Threading;
+using Timer = System.Timers.Timer;
 
 namespace Satori.Pages.StandUp;
 
+public partial class DailyStandUps
+{
+    private Person CurrentUser { get; set; } = Person.Empty;
+    private DateSelectorViewModel DateSelector { get; set; } = new(Person.Empty.FirstDayOfWeek, standUpService: null);
+    private PeriodSummary Period { get; set; } = PeriodSummary.CreateEmpty();
+    private Timer? RunningTimeEntryTimer { get; set; } 
+    private TimeEntry? RunningTimeEntry { get; set; }
+
+    private LoadingStatusLabel InLoading { get; set; } = LoadingStatusLabel.InLoading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!ConnectionSettingsStore.GetKimaiSettings().Enabled)
+        {
+            // This page shouldn't be accessible if Kimai is disabled.  Go to Home page where Kimai can be configured/enabled.
+            NavigationManager.NavigateTo("/");
+        }
+
+        CurrentUser = await UserService.GetCurrentUserAsync();
+        var period = GetPeriodFromUrl();
+        DateSelector = new DateSelectorViewModel(CurrentUser.FirstDayOfWeek, StandUpService);
+        DateSelector.DateChangingAsync += DateChangingAsync;
+        DateSelector.DateChanged += DateChanged;
+        await DateSelector.ChangePeriodAsync(period);
+    }
+
+    private Period GetPeriodFromUrl()
+    {
+        var periodString = new Url(NavigationManager.Uri).QueryParams
+            .Where(qp => qp.Name == "DatePeriod")
+            .Select(qp => qp.Value.ToString())
+            .FirstOrDefault();
+        return Enum.TryParse(periodString, out Period period) ? period : DateSelector.Period;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var period = await LocalStorage.GetItemAsync<Period>("DatePeriod");
+            CurrentPeriod = period;
+            await DateSelector.ChangePeriodAsync(period);
+            StateHasChanged();
+        }
+    }
+
+    private Period CurrentPeriod { get; set; }
+    private async Task DateChangingAsync(object? sender, EventArgs eventArgs)
+    {
+        InLoading = LoadingStatusLabel.InLoading;
+        Period = PeriodSummary.CreateEmpty();
+
+        if (CurrentPeriod == DateSelector.Period)
+        {
+            return;
+        }
+
+        var url = NavigationManager.Uri
+            .AppendQueryParam("DatePeriod", null)
+            .AppendQueryParam("DatePeriod", DateSelector.Period);
+        NavigationManager.NavigateTo(url, forceLoad: false);
+
+        await LocalStorage.SetItemAsync("DatePeriod", DateSelector.Period);
+        CurrentPeriod = DateSelector.Period;
+    }
+
+    private async Task RefreshAsync()
+    {
+        InLoading = LoadingStatusLabel.InLoading;
+        await DateSelector.RefreshAsync();
+    }
+
+    private void DateChanged(object? sender, DateChangedEventArgs eventArgs)
+    {
+        Period = eventArgs.Period;
+
+        StartRunningTaskTimer();
+
+        InLoading = LoadingStatusLabel.FinishedLoading;
+    }
+
+    private void StartRunningTaskTimer()
+    {
+        RunningTimeEntry = Period.TimeEntries.FirstOrDefault(e => e.IsRunning);
+
+        RunningTimeEntryTimer ??= new Timer(TimeSpan.FromMinutes(1))
+            .With(t => t.Elapsed += RunningTimeEntryTimer_Elapsed);
+        RunningTimeEntryTimer.Enabled = RunningTimeEntry != null;
+        RefreshTotalTimes();
+    }
+
+    private void RunningTimeEntryTimer_Elapsed(object? sender, ElapsedEventArgs e)
+    {
+        RefreshTotalTimes();
+        StateHasChanged();
+    }
+
+    private void RefreshTotalTimes()
+    {
+        if (RunningTimeEntry == null || !RunningTimeEntry.IsRunning)
+        {
+            RunningTimeEntryTimer?.Stop();
+            return;
+        }
+
+        StandUpService.CascadeEndTimeChange(RunningTimeEntry, DateTimeOffset.Now);
+    }
+
+    private void OnOpeningDialog()
+    {
+        RunningTimeEntry = null;
+        RunningTimeEntryTimer?.Stop();
+    }
+    private void OnSavedDialog()
+    {
+        StateHasChanged();
+    }
+    private void OnClosedDialog()
+    {
+        StartRunningTaskTimer();
+    }
+
+    #region Collapse
+
+    private static void ToggleCollapsed(DaySummary day)
+    {
+        day.IsCollapsed = !day.IsCollapsed;
+    }
+    private static void ToggleCollapsed(ProjectSummary project)
+    {
+        project.IsCollapsed = !project.IsCollapsed;
+    }
+    private static void ToggleCollapsed(ActivitySummary activity)
+    {
+        activity.IsCollapsed = !activity.IsCollapsed;
+    }   
+    private static void ToggleCollapsed(TaskSummary taskSummary)
+    {
+        taskSummary.IsCollapsed = !taskSummary.IsCollapsed;
+    }  
+    
+    private void CollapseAll()
+    {
+        foreach (var node in Period.Days)
+        {
+            node.IsCollapsed = true;
+        }
+    }
+
+    private void CollapseProjects()
+    {
+        foreach (var day in Period.Days)
+        {
+            day.IsCollapsed = false;
+            foreach (var project in day.Projects)
+            {
+                project.IsCollapsed = true;
+            }
+        }
+    }
+
+    private void CollapseActivities()
+    {
+        foreach (var day in Period.Days)
+        {
+            day.IsCollapsed = false;
+            foreach (var project in day.Projects)
+            {
+                project.IsCollapsed = false;
+                foreach (var activity in project.Activities)
+                {
+                    activity.IsCollapsed = true;
+                }
+            }
+        }
+    }
+
+    private void CollapseTasks()
+    {
+        foreach (var day in Period.Days)
+        {
+            day.IsCollapsed = false;
+            foreach (var project in day.Projects)
+            {
+                project.IsCollapsed = false;
+                foreach (var activity in project.Activities)
+                {
+                    activity.IsCollapsed = false;
+                    foreach (var taskSummary in activity.TaskSummaries)
+                    {
+                        taskSummary.IsCollapsed = true;
+                    }
+                }
+            }
+        }
+    }
+
+    private void CollapseNone()
+    {
+        foreach (var day in Period.Days)
+        {
+            day.IsCollapsed = false;
+            foreach(var project in day.Projects)
+            {
+                project.IsCollapsed = false;
+                foreach (var activity in project.Activities)
+                {
+                    activity.IsCollapsed = false;
+                    foreach (var taskSummary in activity.TaskSummaries)
+                    {
+                        taskSummary.IsCollapsed = false;
+                    }
+                }
+            }
+        }
+    }
+
+    #endregion Collapse
+
+    private class LoadingStatusLabel
+    {
+        private readonly string _label;
+
+        private LoadingStatusLabel(string label)
+        {
+            _label = label;
+        }
+
+        public override string ToString() => _label;
+
+        public static readonly LoadingStatusLabel InLoading = new("Loading: ");
+        public static readonly LoadingStatusLabel FinishedLoading = new(string.Empty);
+    }
+
+    private static bool _isClicking;
+
+    private async Task RestartTimerAsync(params TimeEntry[] timeEntries)
+    {
+        if (_isClicking)
+        {
+            return;
+        }
+        _isClicking = true;
+
+        try
+        {
+            var ids = timeEntries.Select(te => te.Id).ToArray();
+            await TimerService.RestartTimerAsync(ids);
+
+            await RefreshAsync();
+        }
+        finally
+        {
+            _isClicking = false;
+        }
+    }
+}
+
 public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? standUpService)
 {
-    public event EventHandler<EventArgs>? DateChanging;
+    public event AsyncEventHandler<EventArgs>? DateChangingAsync;
     public event EventHandler<DateChangedEventArgs>? DateChanged;
 
     private DayOfWeek FirstDayOfWeek { get; } = firstDayOfWeek;
@@ -58,7 +323,7 @@ public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? sta
         DateRangeText = beginDate == EndDate ? BeginDate.ToString("D")
             : $"{BeginDate:D} - {EndDate:D}";
 
-        OnDateChanging();
+        await OnDateChangingAsync();
         await Task.Yield();
 
         await RefreshAsync();
@@ -79,9 +344,12 @@ public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? sta
         await standUpService.GetWorkItemsAsync(period);
     }
 
-    private void OnDateChanging()
+    private async Task OnDateChangingAsync()
     {
-        DateChanging?.Invoke(this, EventArgs.Empty);
+        if (DateChangingAsync != null)
+        {
+            await DateChangingAsync.InvokeAsync(this, EventArgs.Empty);
+        }
     }
 
     private void OnDateChanged(PeriodSummary days)

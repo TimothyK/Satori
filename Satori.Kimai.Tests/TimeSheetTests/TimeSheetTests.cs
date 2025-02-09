@@ -11,6 +11,11 @@ namespace Satori.Kimai.Tests.TimeSheetTests;
 [TestClass]
 public class TimeSheetTests
 {
+    public TimeSheetTests()
+    {
+        _mockHttp.Clear();
+    }
+
     #region Helpers
 
     #region Arrange
@@ -60,7 +65,13 @@ public class TimeSheetTests
     [TestMethod] public void ActivityNullProject() => GetTimeEntry(3323).Activity.Project.ShouldBeNull();
 
     [TestMethod] public void ActivityId_Entry3322() => GetTimeEntry(3322).Activity.Id.ShouldBe(9453);
-    [TestMethod] public void ActivityProjectId() => GetTimeEntry(3322).Activity.Project.Id.ShouldBe(337);
+    [TestMethod] public void ActivityProjectId()
+    {
+        var timeEntry = GetTimeEntry(3322);
+        timeEntry.Activity.Project.ShouldNotBeNull();
+        timeEntry.Activity.Project.Id.ShouldBe(337);
+    }
+
     [TestMethod] public void ActivityName() => GetTimeEntry(3322).Activity.Name.ShouldBe("1.2.3 Custom Software Development » March 2024");
     [TestMethod] public void ActivityComment() => GetTimeEntry(3322).Activity.Comment.ShouldBe("Development for March [TaskKey=123]");
     [TestMethod] public void ActivityVisible() => GetTimeEntry(3322).Activity.Visible.ShouldBeTrue();

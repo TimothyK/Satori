@@ -68,3 +68,29 @@ public class TimeEntryCollapsed
     public bool IsOverlapping { get; set; }
 }
 
+public class TimeEntryForCreate
+{
+    [JsonPropertyName("begin")]
+    [JsonConverter(typeof(DateTimeOffsetConverter))]
+    public DateTimeOffset Begin { get; set; }
+
+    [JsonPropertyName("end")]
+    [JsonConverter(typeof(NullableDateTimeOffsetConverter))]
+    public DateTimeOffset? End { get; set; }
+
+    [JsonPropertyName("user")]
+    public required int User { get; set; }
+
+    [JsonPropertyName("activity")]
+    public required int Activity { get; set; }
+
+    [JsonPropertyName("project")]
+    public required int Project { get; set; }
+
+    [JsonPropertyName("description")]
+    public string? Description { get; set; }
+
+    [JsonPropertyName("exported")]
+    public bool Exported { get; set; }
+}
+

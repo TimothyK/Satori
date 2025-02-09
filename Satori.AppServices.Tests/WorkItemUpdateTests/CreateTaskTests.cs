@@ -33,14 +33,7 @@ public class CreateTaskTests
     public WorkItemUpdateService Server { get; set; }
     private TestAzureDevOpsServer AzureDevOps { get; } = new();
     private AzureDevOpsDatabaseBuilder AzureDevOpsBuilder { get; }
-    private protected TestKimaiServer Kimai { get; } = new() {CurrentUser = DefaultUser};
-
-    protected static readonly User DefaultUser = Builder<User>.New().Build(user =>
-    {
-        user.Id = Sequence.KimaiUserId.Next();
-        user.Enabled = true;
-        user.Language = "en_CA";
-    });
+    private protected TestKimaiServer Kimai { get; } = new();
 
     #endregion Arrange
 

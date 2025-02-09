@@ -451,6 +451,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.Activity.Project.ShouldNotBeNull();
 
         //Act
         await ExportTimeEntriesAsync(kimaiEntry);

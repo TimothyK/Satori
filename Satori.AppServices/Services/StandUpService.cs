@@ -14,6 +14,7 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using Satori.AppServices.Models;
+using Satori.AppServices.Services.CommentParsing;
 using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
 using TimeEntry = Satori.AppServices.ViewModels.DailyStandUps.TimeEntry;
 using UriFormatException = System.UriFormatException;
@@ -305,16 +306,17 @@ public partial class StandUpService(
         return activitySummaries;
     }
 
-    [GeneratedRegex(@"^D#?(?'id'\d+)[\s-]*(?'title'.*)$", RegexOptions.IgnoreCase)]
-    private static partial Regex WorkItemCommentRegex();
-    [GeneratedRegex(@"^D#?(?'parentId'\d+)[\s-]*(?'parentTitle'.*)\s+D#?(?'id'\d+)[\s-]*(?'title'.*)$", RegexOptions.IgnoreCase)]
-    private static partial Regex ParentedWorkItemCommentRegex();
-
    private TimeEntry ToViewModel(ActivitySummary activitySummary, KimaiTimeEntry kimaiEntry)
-    {
-        var lines = kimaiEntry.Description?.Split('\n')
-            .SelectWhereHasValue(x => string.IsNullOrWhiteSpace(x) ? null : x.Trim())
-            .ToList() ?? [];
+   { 
+        var comments = CommentParser.Parse(kimaiEntry.Description).ToList();
+
+        WorkItem? workItem = null;
+        var workItemComment = comments.OfType<WorkItemComment>().FirstOrDefault();
+        if (workItemComment != null && azureDevOps.Enabled)
+        {
+            workItem = BuildWorkItem(workItemComment);
+            comments.Remove(workItemComment);
+        }
 
         return new TimeEntry()
         {
@@ -327,58 +329,26 @@ public partial class StandUpService(
             IsOverlapping = kimaiEntry.IsOverlapping,
             Exported = kimaiEntry.Exported,
             CanExport = GetCanExport(kimaiEntry),
-            Task = ExtractWorkItem(),
-            Accomplishments = ExtractLinesWithPrefix("🏆"),
-            Impediments = ExtractLinesWithPrefix("🧱"),
-            Learnings = ExtractLinesWithPrefix("🧠"),
-            OtherComments = RejoinLines(lines),
+            Task = workItem,
+            Accomplishments = comments.Join(type => type == CommentType.Accomplishment),
+            Impediments = comments.Join(type => type == CommentType.Impediment),
+            Learnings = comments.Join(type => type == CommentType.Learning),
+            OtherComments = comments.Join(type => type.IsNotIn(CommentType.ScrumTypes)),
         };
+    }
 
-        WorkItem? ExtractWorkItem()
+    private WorkItem BuildWorkItem(WorkItemComment comment)
+    {
+        var taskTuple = comment.WorkItems.Last();
+        var task = CreateWorkItem(taskTuple.Id, taskTuple.Title);
+        if (comment.WorkItems.Count == 1)
         {
-            if (!azureDevOps.Enabled)
-            {
-                return null;
-            }
-
-            var parentedWorkItemRegex = ParentedWorkItemCommentRegex();
-            var match = lines.Select(x => parentedWorkItemRegex.Match(x)).FirstOrDefault(m => m.Success);
-            WorkItem? parentWorkItem = null;
-            if (match != null)
-            {
-                var parentId = int.Parse(match.Groups["parentId"].Value);
-                var parentTitle = match.Groups["parentTitle"].Value;
-                parentWorkItem = CreateWorkItem(parentId, parentTitle);
-            }
-            else
-            {
-                var workItemRegex = WorkItemCommentRegex();
-                match = lines.Select(x => workItemRegex.Match(x)).FirstOrDefault(m => m.Success);
-            }
-            if (match == null)
-            {
-                return null;
-            }
-
-            lines.Remove(match.Value);
-            
-            var id = int.Parse(match.Groups["id"].Value);
-            var title = match.Groups["title"].Value;
-            var task = CreateWorkItem(id, title);
-            
-            task.Parent = parentWorkItem;
-
             return task;
-
         }
 
-        string? ExtractLinesWithPrefix(string prefix)
-        {
-            var foundLines = lines.Where(x => x.StartsWith(prefix)).ToArray();
-            lines.RemoveAll(x => x.IsIn(foundLines));
-
-            return RejoinLines(foundLines.Select(x => x[prefix.Length..].Trim()));
-        }
+        var parentTuple = comment.WorkItems.First();
+        task.Parent = CreateWorkItem(parentTuple.Id, parentTuple.Title);
+        return task;
     }
 
     private WorkItem CreateWorkItem(int id, string title)
@@ -396,12 +366,6 @@ public partial class StandUpService(
             State = ScrumState.InProgress,
             Tags = [],
         };
-    }
-
-    private static string? RejoinLines(IEnumerable<string> lines) => RejoinLines(lines.ToArray());
-    private static string? RejoinLines(string[] lines)
-    {
-        return lines.None() ? null : string.Join(Environment.NewLine, lines);
     }
 
     private static bool GetAllExported(IEnumerable<KimaiTimeEntry> entries) => entries.All(entry => entry.Exported);
@@ -643,6 +607,11 @@ public partial class StandUpService(
         return RejoinLines(lines);
     }
 
+    private static string? RejoinLines(string[] lines)
+    {
+        return lines.None() ? null : string.Join(Environment.NewLine, lines);
+    }
+
     private static TaskSummary[] Summarize(TimeEntry[] entries)
     {
         var taskGroups = entries.GroupBy(entry => entry.Task).ToArray();
@@ -871,7 +840,7 @@ public partial class StandUpService(
         var period = timeEntry.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod;
         var otherTimeEntries = period.TimeEntries.Except(timeEntry.Yield()).ToArray();
         var overlappingTimeEntries = otherTimeEntries
-            .Where(t => ((ITimeRange)t).IsOverlapping(timeEntry))
+            .Where(t => t.IsOverlapping(timeEntry))
             .ToArray();
             
         timeEntry.IsOverlapping = overlappingTimeEntries.Any();

@@ -114,6 +114,7 @@ public class ActivitySummaryDailyStandUpTests : DailyStandUpTests
     public async Task Project_IsActive(bool visible)
     {
         //Arrange
+        ActivityUnderTest.Project.ShouldNotBeNull();
         ActivityUnderTest.Project.Visible = visible;
         BuildTimeEntry();
 
@@ -131,6 +132,7 @@ public class ActivitySummaryDailyStandUpTests : DailyStandUpTests
     public async Task Customer_IsActive(bool visible)
     {
         //Arrange
+        ActivityUnderTest.Project.ShouldNotBeNull();
         ActivityUnderTest.Project.Customer.Visible = visible;
         BuildTimeEntry();
 
