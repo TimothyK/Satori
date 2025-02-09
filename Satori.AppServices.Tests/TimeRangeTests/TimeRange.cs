@@ -11,9 +11,9 @@ internal class TimeRange(DateTimeOffset begin, DateTimeOffset? end) : ITimeRange
     public DateTimeOffset Begin { get; } = begin;
     public DateTimeOffset? End { get; } = end;
 
-    public override string ToString() => $"[{begin:O}, {end:O})";
+    public override string ToString() => $"[{Begin:O}, {End:O})";
 
-    public TimeSpan? Duration => end - begin;
+    public TimeSpan? Duration => End - Begin;
 
     public TimeRange NextBlock()
     {
