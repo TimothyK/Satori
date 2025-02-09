@@ -197,7 +197,7 @@ public class KimaiServer(
             using var reader = new StreamReader(responseStream);
             var responseBody = await reader.ReadToEndAsync();
 
-            throw new HttpRequestException("Bad Response: " + response.StatusCode + Environment.NewLine + responseBody, inner: null, response.StatusCode);
+            throw new HttpRequestException($"Bad Response from {response.RequestMessage?.Method} {response.RequestMessage?.RequestUri}: {response.StatusCode}{Environment.NewLine}{responseBody}", inner: null, response.StatusCode);
         }
     }
 
