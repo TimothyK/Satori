@@ -1,6 +1,6 @@
 ﻿using Satori.AppServices.ViewModels.DailyStandUps;
 
-namespace Satori.Pages.StandUp.Components.ViewModels.Models;
+namespace Satori.AppServices.Services.CommentParsing;
 
 public class CommentType : IComparable<CommentType>
 {
@@ -23,6 +23,12 @@ public class CommentType : IComparable<CommentType>
     public static readonly CommentType Accomplishment = new();
     public static readonly CommentType Impediment = new();
     public static readonly CommentType Learning = new();
+
+    public static readonly CommentType[] ScrumTypes = [
+        Accomplishment, 
+        Impediment, 
+        Learning,
+    ];
 
     #endregion
 
