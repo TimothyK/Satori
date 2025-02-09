@@ -339,15 +339,15 @@ public partial class StandUpService(
 
     private WorkItem BuildWorkItem(WorkItemComment comment)
     {
-        var taskTuple = comment.WorkItems.Last();
-        var task = CreateWorkItem(taskTuple.Id, taskTuple.Title);
+        var (id, title) = comment.WorkItems.Last();
+        var task = CreateWorkItem(id, title);
         if (comment.WorkItems.Count == 1)
         {
             return task;
         }
 
-        var parentTuple = comment.WorkItems.First();
-        task.Parent = CreateWorkItem(parentTuple.Id, parentTuple.Title);
+        var (parentId, parentTitle) = comment.WorkItems.First();
+        task.Parent = CreateWorkItem(parentId, parentTitle);
         return task;
     }
 
