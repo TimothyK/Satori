@@ -1,4 +1,5 @@
 ﻿using CodeMonkeyProjectiles.Linq;
+using Moq;
 using Satori.AppServices.Extensions;
 using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
@@ -84,6 +85,16 @@ public class RestartTimerTests
     }
 
     #endregion Act
+
+    #region Assert
+
+    [TestCleanup]
+    public void TearDown()
+    {
+        AlertService.VerifyNoMessagesWereBroadcast();
+    }
+
+    #endregion Assert
 
     #endregion Helpers
 
@@ -201,10 +212,12 @@ public class RestartTimerTests
         var entry2 = BuildTimeEntry().With(t => t.Activity = BuildActivity());
 
         //Act
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() => RestartTimerAsync(entry1.Id, entry2.Id));
+        await RestartTimerAsync(entry1.Id, entry2.Id);
 
         //Assert
-        ex.Message.ShouldBe("The activities found were not unique");
+        AlertService.LastException.ShouldNotBeNull();
+        AlertService.LastException.Message.ShouldBe("The activities found were not unique");
+        AlertService.DisableVerifications();
     }
     
     [TestMethod]
@@ -217,10 +230,12 @@ public class RestartTimerTests
         entry2.Project = BuildProject();
 
         //Act
-        var ex = await Should.ThrowAsync<InvalidOperationException>(() => RestartTimerAsync(entry1.Id, entry2.Id));
+        await RestartTimerAsync(entry1.Id, entry2.Id);
 
         //Assert
-        ex.Message.ShouldBe("The projects found were not unique");
+        AlertService.LastException.ShouldNotBeNull();
+        AlertService.LastException.Message.ShouldBe("The projects found were not unique");
+        AlertService.DisableVerifications();
     }
 
     #endregion Project and Activity
@@ -323,4 +338,28 @@ public class RestartTimerTests
     }
 
     #endregion Comments
+
+    #region Error Handling
+
+    [TestMethod]
+    public async Task ConnectionError_BroadcastError()
+    {
+        //Arrange
+        Kimai.Mock
+            .Setup(srv => srv.GetTimeSheetAsync(It.IsAny<TimeSheetFilter>()))
+            .Throws<ApplicationException>();
+
+        var entry = BuildTimeEntry();
+
+
+        //Act
+        await RestartTimerAsync(entry.Id);
+
+        //Assert
+        AlertService.LastException.ShouldNotBeNull();
+        AlertService.LastException.ShouldBeOfType<ApplicationException>();
+        AlertService.DisableVerifications();
+    }
+
+    #endregion Error Handling
 }

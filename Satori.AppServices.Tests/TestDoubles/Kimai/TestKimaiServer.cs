@@ -14,7 +14,6 @@ internal class TestKimaiServer
 {
     public readonly Mock<IKimaiServer> Mock;
 
-
     public TestKimaiServer()
     {
         Mock = new Mock<IKimaiServer>(MockBehavior.Strict);

@@ -22,6 +22,18 @@ public class TimerService(
     /// <returns></returns>
     public async Task RestartTimerAsync(params int[] timeEntryIds)
     {
+        try
+        {
+            await RestartTimerUnsafeAsync(timeEntryIds);
+        }
+        catch (Exception ex)
+        {
+            alertService.BroadcastAlert(ex);
+        }
+    }
+
+    private async Task RestartTimerUnsafeAsync(int[] timeEntryIds)
+    {
         var startTime = await StopRunningTimeEntryAsync() ?? DateTimeOffset.Now;
 
         List<TimeEntryCollapsed> entries = [];
