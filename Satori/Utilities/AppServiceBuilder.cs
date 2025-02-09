@@ -18,6 +18,7 @@ internal static class AppServiceBuilder
         services.AddScoped<UserService>();
         services.AddScoped<StandUpService>();
         services.AddScoped<WorkItemUpdateService>();
+        services.AddScoped<TimerService>();
         
         services.AddScoped(serviceProvider => serviceProvider.GetRequiredService<IConnectionSettingsStore>().GetAzureDevOpsSettings());
         services.AddScoped<IAzureDevOpsServer, AzureDevOpsServer>();

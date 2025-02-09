@@ -4,6 +4,7 @@ using Satori.AppServices.Services;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using System.Timers;
+using Microsoft.AspNetCore.Components;
 using Microsoft.VisualStudio.Threading;
 using Timer = System.Timers.Timer;
 
@@ -243,6 +244,13 @@ public partial class DailyStandUps
         public static readonly LoadingStatusLabel FinishedLoading = new(string.Empty);
     }
 
+    private async Task RestartTimerAsync(params TimeEntry[] timeEntries)
+    {
+        var ids = timeEntries.Select(te => te.Id).ToArray();
+        await TimerService.RestartTimerAsync(ids);
+
+        await RefreshAsync();
+    }
 }
 
 public class DateSelectorViewModel(DayOfWeek firstDayOfWeek, StandUpService? standUpService)

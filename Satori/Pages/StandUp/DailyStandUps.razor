@@ -11,6 +11,7 @@
 @inject NavigationManager NavigationManager
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject IConnectionSettingsStore ConnectionSettingsStore
+@inject TimerService TimerService
 
 <PageTitle>Stand-Ups - Satori</PageTitle>
 
@@ -130,6 +131,7 @@
                     <div class="duration">
                         <div class="duration-expand"><span class="tree-node @(taskSummary.IsCollapsed ? "" : "node-expanded")" @onclick="() => ToggleCollapsed(taskSummary)"></span></div>
                         <EditStandUpDialog TimeEntries="@taskSummary.TimeEntries" OnOpening="OnOpeningDialog" OnSaved="OnSavedDialog" OnClosed="OnClosedDialog"></EditStandUpDialog>
+                        <div class="restart-timer" @onclick="async () => await RestartTimerAsync(taskSummary.TimeEntries)"><span class="restart-timer-icon"></span></div>
                         <div class="duration-minutes">
                             <span class="">@taskSummary.TotalTime.ToString(@"hh\:mm")</span>
                         </div>
@@ -190,6 +192,7 @@
                             <td>
                                 <div class="duration">
                                     <EditStandUpDialog TimeEntries="@entry.Yield().ToArray()" OnOpening="OnOpeningDialog" OnSaved="OnSavedDialog" OnClosed="OnClosedDialog"></EditStandUpDialog>
+                                    <div class="restart-timer" @onclick="async () => await RestartTimerAsync(entry)"><span class="restart-timer-icon"></span></div>
                                     <div class="duration-minutes">
                                         <span class="">@entry.TotalTime.ToString(@"hh\:mm")</span>
                                     </div>

@@ -231,6 +231,18 @@
     background-color: green;
 }
 
+.restart-timer {
+    background-color: lightgray;
+    padding: 5px 10px 5px 5px;
+    text-align: center;
+}
+.restart-timer::before {
+    content: "\25B6"
+}
+.restart-timer:hover {
+    background-color: green;
+}
+
 .duration-minutes {
     font-family: "Roboto", sans-serif;
     font-weight: bold;
