@@ -244,12 +244,27 @@ public partial class DailyStandUps
         public static readonly LoadingStatusLabel FinishedLoading = new(string.Empty);
     }
 
+    private static bool _isClicking;
+
     private async Task RestartTimerAsync(params TimeEntry[] timeEntries)
     {
-        var ids = timeEntries.Select(te => te.Id).ToArray();
-        await TimerService.RestartTimerAsync(ids);
+        if (_isClicking)
+        {
+            return;
+        }
+        _isClicking = true;
 
-        await RefreshAsync();
+        try
+        {
+            var ids = timeEntries.Select(te => te.Id).ToArray();
+            await TimerService.RestartTimerAsync(ids);
+
+            await RefreshAsync();
+        }
+        finally
+        {
+            _isClicking = false;
+        }
     }
 }
 
