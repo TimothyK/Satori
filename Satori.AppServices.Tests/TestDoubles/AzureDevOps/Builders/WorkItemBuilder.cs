@@ -17,6 +17,12 @@ internal class WorkItemBuilder
         database.AddWorkItem(WorkItem);
     }
 
+    private WorkItemBuilder(IAzureDevOpsDatabaseWriter database, WorkItem workItem)
+    {
+        _database = database;
+        WorkItem = workItem;
+    }
+
     public WorkItem WorkItem { get; }
 
     private static WorkItem BuildWorkItem()
@@ -59,7 +65,7 @@ internal class WorkItemBuilder
         _database.AddWorkItem(child);
         _database.AddWorkItemLink(WorkItem, LinkType.IsParentOf, child);
 
-        return this;
+        return new WorkItemBuilder(_database, child);
     }
 
     private static WorkItemType GetChildType(string workItemTypeApiValue) => GetChildType(WorkItemType.FromApiValue(workItemTypeApiValue));

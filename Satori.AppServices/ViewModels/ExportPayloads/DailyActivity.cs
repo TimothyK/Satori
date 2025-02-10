@@ -20,4 +20,21 @@ public class DailyActivity
     public string? Learnings { get; init; }
     public string? OtherComments { get; init; }
     public string? Tasks { get; init; }
+    public required IReadOnlyCollection<WorkItem> WorkItems { get; set; }
+}
+
+public class WorkItem 
+{
+    public int Id { get; set; }
+    public required string Title { get; set; }
+
+    /// <summary>
+    /// Type of the work item.  
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The values here will be the same as the Azure DevOps API
+    /// </para>
+    /// </remarks>
+    public required string Type { get; set; }
 }

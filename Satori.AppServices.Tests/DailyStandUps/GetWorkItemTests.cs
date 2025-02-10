@@ -79,9 +79,9 @@ public class GetWorkItemTests : DailyStandUpTests
     public async Task ChildrenAreLoaded()
     {
         //Arrange
-        AzureDevOpsBuilder.BuildWorkItem(out var workItem)
-            .AddChild(out var task1)
-            .AddChild(out var task2);
+        var builder = AzureDevOpsBuilder.BuildWorkItem(out var workItem);
+        builder.AddChild(out var task1);
+        builder.AddChild(out var task2);
 
         //Act
         var actual = await GetWorkItemAsync(workItem.Id);
