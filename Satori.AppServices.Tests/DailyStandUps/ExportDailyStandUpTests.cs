@@ -565,16 +565,19 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         actualFeature.ShouldNotBeNull();
         actualFeature.Type.ShouldBe(WorkItemType.Feature.ToApiValue());
         actualFeature.Title.ShouldBe(feature.Fields.Title);
+        actualFeature.ParentId.ShouldBeNull();
 
         var actualWorkItem = payload.WorkItems.SingleOrDefault(x => x.Id == workItem.Id);
         actualWorkItem.ShouldNotBeNull();
         actualWorkItem.Type.ShouldBe(workItem.Fields.WorkItemType);
         actualWorkItem.Title.ShouldBe(workItem.Fields.Title);
+        actualWorkItem.ParentId.ShouldBe(feature.Id);
 
         var actualTask = payload.WorkItems.SingleOrDefault(x => x.Id == task.Id);
         actualTask.ShouldNotBeNull();
         actualTask.Type.ShouldBe(WorkItemType.Task.ToApiValue());
         actualTask.Title.ShouldBe(task.Fields.Title);
+        actualTask.ParentId.ShouldBe(workItem.Id);
     }
     
     [TestMethod]
