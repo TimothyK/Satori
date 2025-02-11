@@ -1,9 +1,9 @@
 ﻿using System.Text;
 using CodeMonkeyProjectiles.Linq;
 using Microsoft.AspNetCore.Components;
+using Satori.AppServices.Services.CommentParsing;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.Pages.StandUp.Components.ViewModels;
-using Satori.Pages.StandUp.Components.ViewModels.Models;
 using Satori.Utilities;
 
 namespace Satori.Pages.StandUp.Components;

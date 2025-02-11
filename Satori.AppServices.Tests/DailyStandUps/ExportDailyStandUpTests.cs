@@ -451,6 +451,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.Activity.Project.ShouldNotBeNull();
 
         //Act
         await ExportTimeEntriesAsync(kimaiEntry);
@@ -540,6 +541,43 @@ public class ExportDailyStandUpTests : DailyStandUpTests
         var payload = DailyActivityExporter.Messages.Single(msg => msg.Date == Today && msg.ActivityId == kimaiEntry.Activity.Id);
         
         payload.Tasks.ShouldBe($"D#{workItem.Id} {workItem.Fields.Title}");
+    }
+    
+    [TestMethod]
+    public async Task WorkItems_FeatureParent_AllAreIncluded()
+    {
+        //Arrange
+        AzureDevOpsBuilder
+            .BuildWorkItem(out var feature).With(_ => feature.Fields.WorkItemType = WorkItemType.Feature.ToApiValue())
+            .AddChild(out var workItem)
+            .AddChild(out var task);
+        var kimaiEntry = BuildTimeEntry().AddWorkItems(workItem, task);
+
+        //Act
+        await ExportTimeEntriesAsync(kimaiEntry);
+
+        //Assert
+        var payload = DailyActivityExporter.Messages.Single(msg => msg.Date == Today && msg.ActivityId == kimaiEntry.Activity.Id);
+
+        payload.WorkItems.Count.ShouldBe(3);
+
+        var actualFeature = payload.WorkItems.SingleOrDefault(x => x.Id == feature.Id);
+        actualFeature.ShouldNotBeNull();
+        actualFeature.Type.ShouldBe(WorkItemType.Feature.ToApiValue());
+        actualFeature.Title.ShouldBe(feature.Fields.Title);
+        actualFeature.ParentId.ShouldBeNull();
+
+        var actualWorkItem = payload.WorkItems.SingleOrDefault(x => x.Id == workItem.Id);
+        actualWorkItem.ShouldNotBeNull();
+        actualWorkItem.Type.ShouldBe(workItem.Fields.WorkItemType);
+        actualWorkItem.Title.ShouldBe(workItem.Fields.Title);
+        actualWorkItem.ParentId.ShouldBe(feature.Id);
+
+        var actualTask = payload.WorkItems.SingleOrDefault(x => x.Id == task.Id);
+        actualTask.ShouldNotBeNull();
+        actualTask.Type.ShouldBe(WorkItemType.Task.ToApiValue());
+        actualTask.Title.ShouldBe(task.Fields.Title);
+        actualTask.ParentId.ShouldBe(workItem.Id);
     }
     
     [TestMethod]

@@ -103,9 +103,37 @@ public class KimaiServer(
         await VerifySuccessfulResponseAsync(response);
     }
 
+    public async Task<TimeEntry> CreateTimeEntryAsync(TimeEntryForCreate entry)
+    {
+        var url = connectionSettings.Url
+            .AppendPathSegment("api/timesheets")
+            .AppendQueryParam("full", "true");
+
+        var request = new HttpRequestMessage(HttpMethod.Post, url);
+
+        var payload = JsonSerializer.Serialize(entry);
+        request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
+
+        return await SendAsync<TimeEntry>(request);
+    }
+
+    public Task<TimeEntryCollapsed> GetTimeEntryAsync(int id)
+    {
+        var url = connectionSettings.Url
+            .AppendPathSegment("api/timesheets")
+            .AppendPathSegment(id);
+
+        return GetAsync<TimeEntryCollapsed>(url);
+    }
+
     private async Task<T> GetAsync<T>(Url url)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, url);
+        return await SendAsync<T>(request);
+    }
+
+    private async Task<T> SendAsync<T>(HttpRequestMessage request)
+    {
         AddAuthHeader(request);
         Logger.LogInformation("{Method} {Url}", request.Method.ToString().ToUpper(), request.RequestUri);
 
@@ -119,7 +147,7 @@ public class KimaiServer(
         try
         {
             return JsonSerializer.Deserialize<T>(body)
-                         ?? throw new ApplicationException("Server did not respond");
+                   ?? throw new ApplicationException("Server did not respond");
         }
         catch (JsonException ex)
         {
@@ -169,7 +197,7 @@ public class KimaiServer(
             using var reader = new StreamReader(responseStream);
             var responseBody = await reader.ReadToEndAsync();
 
-            throw new HttpRequestException("Bad Response: " + response.StatusCode + Environment.NewLine + responseBody, inner: null, response.StatusCode);
+            throw new HttpRequestException($"Bad Response from {response.RequestMessage?.Method} {response.RequestMessage?.RequestUri}: {response.StatusCode}{Environment.NewLine}{responseBody}", inner: null, response.StatusCode);
         }
     }
 

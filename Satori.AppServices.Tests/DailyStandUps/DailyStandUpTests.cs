@@ -40,17 +40,10 @@ public abstract class DailyStandUpTests
 
     private protected TestAzureDevOpsServer AzureDevOps { get; } = new();
 
-    private protected TestKimaiServer Kimai { get; } = new() {CurrentUser = DefaultUser};
+    private protected TestKimaiServer Kimai { get; } = new();
 
     private protected TestTaskAdjustmentExporter TaskAdjustmentExporter { get; } = new();
     private protected TestDailyActivityExporter DailyActivityExporter { get; } = new();
-
-    protected static readonly User DefaultUser = Builder<User>.New().Build(user =>
-    {
-        user.Id = Sequence.KimaiUserId.Next();
-        user.Enabled = true;
-        user.Language = "en_CA";
-    });
 
     protected Activity[] TestActivities { get; } = BuildActivities();
 
@@ -108,6 +101,8 @@ public abstract class DailyStandUpTests
 
     protected KimaiTimeEntry BuildTimeEntry(Activity activity, DateOnly day, TimeSpan duration)
     {
+        _ = activity.Project ?? throw new ArgumentException("activity must have a project");
+
         var lastEntry = Kimai.GetLastEntry(day);
         if (lastEntry != null && lastEntry.End == null)
         {
@@ -122,7 +117,7 @@ public abstract class DailyStandUpTests
             Id = Sequence.TimeEntryId.Next(),
             Begin = begin.TruncateSeconds(),
             End = begin.Add(duration).TruncateSeconds(),
-            User = DefaultUser,
+            User = Kimai.CurrentUser,
             Activity = activity,
             Project = activity.Project,
             Exported = false,

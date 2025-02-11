@@ -21,4 +21,8 @@ public interface IKimaiServer
     Task<DateTimeOffset> StopTimerAsync(int id);
 
     Task UpdateTimeEntryDescriptionAsync(int id, string description);
+
+    Task<TimeEntry> CreateTimeEntryAsync(TimeEntryForCreate entry);
+    
+    Task<TimeEntryCollapsed> GetTimeEntryAsync(int id);
 }

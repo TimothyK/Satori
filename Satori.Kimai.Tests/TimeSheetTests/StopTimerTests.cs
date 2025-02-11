@@ -8,7 +8,7 @@ using Shouldly;
 namespace Satori.Kimai.Tests.TimeSheetTests;
 
 [TestClass]
-public class TimerTests
+public class StopTimerTests
 {
 
     #region Helpers

@@ -252,7 +252,7 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         var today = Today;
-        var project = TestActivities.Last().Project.Copy().With(p => p.Id = Sequence.ProjectId.Next());
+        var project = TestActivities.Last().Project?.Copy().With(p => p.Id = Sequence.ProjectId.Next()) ?? throw new InvalidOperationException();
         project.Visible = false;
         var activity = TestActivities.Last().Copy().With(a =>
         {
@@ -279,7 +279,7 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         var today = Today;
-        var project = TestActivities.Last().Project.Copy().With(p => p.Id = Sequence.ProjectId.Next());
+        var project = TestActivities.Last().Project?.Copy().With(p => p.Id = Sequence.ProjectId.Next()) ?? throw new InvalidOperationException();
         project.Name = "TBD";
         var activity = TestActivities.Last().Copy().With(a =>
         {
@@ -306,13 +306,13 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         var today = Today;
-        var customer = TestActivities.Last().Project.Customer.Copy().With(cust => cust.Id = Sequence.CustomerId.Next());
+        var customer = TestActivities.Last()?.Project?.Customer.Copy().With(cust => cust.Id = Sequence.CustomerId.Next()) ?? throw new InvalidOperationException();
         customer.Visible = false;
-        var project = TestActivities.Last().Project.Copy().With(p =>
+        var project = TestActivities.Last().Project?.Copy().With(p =>
         {
             p.Id = Sequence.ProjectId.Next();
             p.Customer = customer;
-        });
+        }) ?? throw new InvalidOperationException();
         var activity = TestActivities.Last().Copy().With(a =>
         {
             a.Id = Sequence.ActivityId.Next();
@@ -347,7 +347,7 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
 
         //Assert
         var expected = Kimai.BaseUrl
-                .AppendPathSegments(DefaultUser.Language, "timesheet")
+                .AppendPathSegments(Kimai.CurrentUser.Language, "timesheet")
                 .AppendQueryParam("daterange", $"{today:O} - {today:O}")
                 .AppendQueryParam("state", 1)  //  & running
                 .AppendQueryParam("billable", 0)
@@ -599,11 +599,13 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         //Arrange
         var today = Today;
         var project1Activity = TestActivities.SingleRandom();
-        var project2Activity1 = TestActivities.Where(a => a.Project.Id != project1Activity.Project.Id).SingleRandom();
-        var project2Activity2 = TestActivities.Where(a => a.Project.Id == project2Activity1.Project.Id && a != project2Activity1).SingleRandom();
+        var project2Activity1 = TestActivities.Where(a => a.Project?.Id != project1Activity.Project?.Id).SingleRandom();
+        var project2Activity2 = TestActivities.Where(a => a.Project?.Id == project2Activity1.Project?.Id && a != project2Activity1).SingleRandom();
         BuildTimeEntry(project1Activity, today, TimeSpan.FromMinutes(10));
         BuildTimeEntry(project2Activity1, today, TimeSpan.FromMinutes(20));
         BuildTimeEntry(project2Activity2, today, TimeSpan.FromMinutes(15));
+        project2Activity1.Project.ShouldNotBeNull();
+        project1Activity.Project.ShouldNotBeNull();
 
         //Act
         var day = await GetDayAsync(today);
@@ -622,11 +624,13 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         //Arrange
         var today = Today;
         var project1Activity = TestActivities.SingleRandom();
-        var project2Activity1 = TestActivities.Where(a => a.Project.Id != project1Activity.Project.Id).SingleRandom();
-        var project2Activity2 = TestActivities.Where(a => a.Project.Id == project2Activity1.Project.Id && a != project2Activity1).SingleRandom();
+        var project2Activity1 = TestActivities.Where(a => a.Project?.Id != project1Activity.Project?.Id).SingleRandom();
+        var project2Activity2 = TestActivities.Where(a => a.Project?.Id == project2Activity1.Project?.Id && a != project2Activity1).SingleRandom();
         BuildTimeEntry(project1Activity, today, TimeSpan.FromMinutes(60));
         BuildTimeEntry(project2Activity1, today, TimeSpan.FromMinutes(20));
         BuildTimeEntry(project2Activity2, today, TimeSpan.FromMinutes(15));
+        project1Activity.Project.ShouldNotBeNull();
+        project2Activity1.Project.ShouldNotBeNull();
 
         //Act
         var day = await GetDayAsync(today);
@@ -645,8 +649,8 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         //Arrange
         var today = Today;
         var project1Activity = TestActivities.SingleRandom();
-        var project2Activity1 = TestActivities.Where(a => a.Project.Id != project1Activity.Project.Id).SingleRandom();
-        var project2Activity2 = TestActivities.Where(a => a.Project.Id == project2Activity1.Project.Id && a != project2Activity1).SingleRandom();
+        var project2Activity1 = TestActivities.Where(a => a.Project?.Id != project1Activity.Project?.Id).SingleRandom();
+        var project2Activity2 = TestActivities.Where(a => a.Project?.Id == project2Activity1.Project?.Id && a != project2Activity1).SingleRandom();
         BuildTimeEntry(project1Activity, today, TimeSpan.FromMinutes(60)).Exported = true;
         BuildTimeEntry(project2Activity1, today, TimeSpan.FromMinutes(20)).Exported = true;
         BuildTimeEntry(project2Activity2, today, TimeSpan.FromMinutes(15)).Exported = false;
@@ -674,7 +678,7 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
 
         //Assert
         var expected = Kimai.BaseUrl
-            .AppendPathSegments(DefaultUser.Language, "timesheet")
+            .AppendPathSegments(Kimai.CurrentUser.Language, "timesheet")
             .AppendQueryParam("daterange", $"{today:O} - {today:O}")
             .AppendQueryParam("state", 1)  // stopped & running
             .AppendQueryParam("billable", 0)
@@ -698,7 +702,7 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         //Arrange
         var today = Today;
         var project = TestActivities.SingleRandom().Project;
-        var activities = TestActivities.Where(a => a.Project.Id == project.Id).ToArray();
+        var activities = TestActivities.Where(a => a.Project?.Id == project?.Id).ToArray();
         BuildTimeEntry(activities[0], today, TimeSpan.FromMinutes(20)).Exported = true;
         BuildTimeEntry(activities[1], today, TimeSpan.FromMinutes(10)).Exported = false;
         BuildTimeEntry(activities[2], today, TimeSpan.FromMinutes(15)).Exported = true;
@@ -726,9 +730,10 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
         day.Projects[0].Activities[2].AllExported.ShouldBeFalse();
         day.Projects[0].Activities[2].CanExport.ShouldBeTrue();
 
+        activities[1].Project.ShouldNotBeNull();
 
         var expected = Kimai.BaseUrl
-            .AppendPathSegments(DefaultUser.Language, "timesheet")
+            .AppendPathSegments(Kimai.CurrentUser.Language, "timesheet")
             .AppendQueryParam("daterange", $"{today:O} - {today:O}")
             .AppendQueryParam("state", 1)  // stopped & running
             .AppendQueryParam("billable", 0)
@@ -737,7 +742,7 @@ public class SummaryDailyStandUpTests : DailyStandUpTests
             .AppendQueryParam("order", "DESC")
             .AppendQueryParam("searchTerm", string.Empty)
             .AppendQueryParam("performSearch", "performSearch")
-            .AppendQueryParam("projects[]", activities[1].Project.Id)
+            .AppendQueryParam("projects[]", activities[1].Project?.Id)
             .AppendQueryParam("activities[]", activities[1].Id)
             .ToUri();
         day.Projects[0].Activities[2].Url.ShouldBe(expected);

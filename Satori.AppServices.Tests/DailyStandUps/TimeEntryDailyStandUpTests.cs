@@ -95,6 +95,7 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.Activity.Project.ShouldNotBeNull();
 
         //Act
         var entries = await GetTimesAsync();
@@ -347,7 +348,7 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
     public async Task CanExport_ProjectToBeDetermined_False()
     {
         //Arrange
-        var project = DefaultActivity.Project.Copy()
+        var project = DefaultActivity.Project?.Copy()
             .With(p => p.Id = Sequence.ProjectId.Next())
             .With(p => p.Name = "TBD");
         var activity = DefaultActivity.Copy()
@@ -384,7 +385,7 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
     public async Task CanExport_ProjectDeactivated_False()
     {
         //Arrange
-        var project = DefaultActivity.Project.Copy()
+        var project = DefaultActivity.Project?.Copy()
             .With(p => p.Id = Sequence.ProjectId.Next())
             .With(p => p.Visible = false);
         var activity = DefaultActivity.Copy()
@@ -404,10 +405,10 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
     public async Task CanExport_CustomerDeactivated_False()
     {
         //Arrange
-        var customer = DefaultActivity.Project.Customer.Copy()
+        var customer = DefaultActivity.Project?.Customer.Copy()
             .With(c => c.Id = Sequence.CustomerId.Next())
-            .With(c => c.Visible = false);
-        var project = DefaultActivity.Project.Copy()
+            .With(c => c.Visible = false) ?? throw new InvalidOperationException();
+        var project = DefaultActivity.Project?.Copy()
             .With(p => p.Id = Sequence.ProjectId.Next())
             .With(p => p.Customer = customer);
         var activity = DefaultActivity.Copy()

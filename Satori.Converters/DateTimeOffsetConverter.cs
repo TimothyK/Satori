@@ -43,7 +43,12 @@ public partial class NullableDateTimeOffsetConverter : JsonConverter<DateTimeOff
 
     public override void Write(Utf8JsonWriter writer, DateTimeOffset? value, JsonSerializerOptions options)
     {
-        throw new NotImplementedException();
+        if (value == null)
+        {
+            writer.WriteNullValue();
+            return;
+        }
+        writer.WriteStringValue(value.Value.ToString("o"));
     }
 
     [GeneratedRegex(@"^\d{4}-$\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{4}$")]
