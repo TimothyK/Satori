@@ -721,7 +721,8 @@ public partial class StandUpService(
             {
                 Id = x.Id, 
                 Title = x.Title ?? string.Empty, 
-                Type = x.Type.ToApiValue()
+                Type = x.Type.ToApiValue(),
+                ParentId = x.Parent?.Id,
             })
             .ToImmutableArray();
     }

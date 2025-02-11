@@ -37,4 +37,5 @@ public class WorkItem
     /// </para>
     /// </remarks>
     public required string Type { get; set; }
+    public int? ParentId { get; set; }
 }
