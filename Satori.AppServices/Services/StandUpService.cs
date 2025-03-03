@@ -58,7 +58,6 @@ public partial class StandUpService(
         await Task.WhenAll(getUserTask, getTimeSheetTask);
 
         var timeSheet = getTimeSheetTask.Result;
-        SetIsOverlapping(timeSheet);
         var period = new PeriodSummary()
         {
             TotalTime = GetDuration(timeSheet),
@@ -143,6 +142,8 @@ public partial class StandUpService(
                 done = true;
             }
         } while (!done);
+
+        SetIsOverlapping(timeSheet);
 
         return timeSheet;
     }

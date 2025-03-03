@@ -31,4 +31,7 @@ public class ActivitySummary : ISummary
     public string? Impediments { get; set; }
     public string? Learnings { get; set; }
     public string? OtherComments { get; set; }
+
+    public override string ToString() => 
+        $"{ParentProjectSummary.ProjectName} {ActivityName} for {ParentProjectSummary.ParentDay.Date:yyyy-MM-dd}";
 }
