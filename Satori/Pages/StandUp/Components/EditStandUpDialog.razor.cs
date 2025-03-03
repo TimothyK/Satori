@@ -183,8 +183,16 @@ public partial class EditStandUpDialog
 
     private async Task SaveClickAsync()
     {
+        try
+        {
         await SaveAzureDevOpsTaskAsync();
         await SaveKimaiTimeEntriesAsync();
+        }
+        catch (Exception ex)
+        {
+            AlertService.BroadcastAlert(ex);
+            return;
+        }
 
         DialogVisible = VisibleCssClass.Hidden;
         await OnSaved.InvokeAsync();
