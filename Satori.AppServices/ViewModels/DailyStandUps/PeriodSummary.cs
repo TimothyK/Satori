@@ -10,4 +10,11 @@ public class PeriodSummary : ISummary
     public bool AllExported { get; internal set; }
     public bool CanExport { get; internal set; }
     public bool IsRunning { get; internal set; }
+
+    public override string ToString()
+    {
+        var first = Days.Min(d => d.Date);
+        var last = Days.Min(d => d.Date);
+        return $"Period Summary {first:yyyy-MM-dd} to {last:yyyy-MM-dd}";
+    }
 }

@@ -32,4 +32,6 @@ public class ProjectSummary : ISummary
     /// For the UI to control if the section is collapsed or expanded
     /// </summary>
     public bool IsCollapsed { get; set; }
+
+    public override string ToString() => $"Project {ProjectName} for {ParentDay.Date:yyyy-MM-dd}";
 }
