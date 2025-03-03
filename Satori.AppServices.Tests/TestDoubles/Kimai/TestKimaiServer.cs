@@ -88,7 +88,12 @@ internal class TestKimaiServer
         {
             throw new HttpRequestException("Bad Response: 404 - Not Found", inner: null, HttpStatusCode.NotFound);
         }
-        
+
+        foreach (var entry in entries.Where(x => x.IsOverlapping))
+        {
+            entry.IsOverlapping = false;
+        }
+
         return entries.ToArray();
     }
 

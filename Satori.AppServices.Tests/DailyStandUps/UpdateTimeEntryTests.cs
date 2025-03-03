@@ -1,4 +1,5 @@
-﻿using Flurl;
+﻿using CodeMonkeyProjectiles.Linq;
+using Flurl;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.ViewModels.DailyStandUps;
@@ -173,4 +174,33 @@ public class UpdateTimeEntryTests : DailyStandUpTests
 
         period.Days.Single().Url.ShouldBe(expected);
     }
+
+    [TestMethod]
+    public async Task Overlapping()
+    {
+        //Arrange
+        var kimaiEntry = BuildTimeEntry();
+        kimaiEntry.End.ShouldNotBeNull();
+
+        BuildTimeEntry()
+            .With(t => t.Begin = kimaiEntry.End.Value.AddMinutes(-3));
+
+        //Act
+        var period = await UpdateDescriptionAsync(kimaiEntry, "Drink Coffee");
+
+        //Assert
+        var entry = period.TimeEntries.First();
+        entry.IsOverlapping.ShouldBeTrue();
+        entry.CanExport.ShouldBeFalse();
+        entry.Exported.ShouldBeFalse();
+
+        var day = entry.ParentActivitySummary.ParentProjectSummary.ParentDay;
+        day.CanExport.ShouldBeFalse();
+        day.AllExported.ShouldBeFalse();
+
+        day.ShouldBeSameAs(period.Days.Single());
+
+        period.CanExport.ShouldBeFalse();
+    }
+
 }

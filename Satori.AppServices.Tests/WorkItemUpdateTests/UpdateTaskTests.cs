@@ -71,7 +71,6 @@ public class UpdateTaskTests
     public async Task ASmokeTest_NoChanges_NotUpdated()
     {
         //Arrange
-        
         var task = BuildTask();
 
         //Verify BuildTask behaviour
