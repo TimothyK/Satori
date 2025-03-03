@@ -2,6 +2,7 @@
 using CodeMonkeyProjectiles.Linq;
 using Microsoft.AspNetCore.Components;
 using Satori.AppServices.Services.CommentParsing;
+using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using Satori.Pages.StandUp.Components.ViewModels;
 using Satori.Utilities;
@@ -183,8 +184,16 @@ public partial class EditStandUpDialog
 
     private async Task SaveClickAsync()
     {
-        await SaveAzureDevOpsTaskAsync();
-        await SaveKimaiTimeEntriesAsync();
+        try
+        {
+            await SaveAzureDevOpsTaskAsync();
+            await SaveKimaiTimeEntriesAsync();
+        }
+        catch (Exception ex)
+        {
+            AlertService.BroadcastAlert(ex);
+            return;
+        }
 
         DialogVisible = VisibleCssClass.Hidden;
         await OnSaved.InvokeAsync();
@@ -196,6 +205,11 @@ public partial class EditStandUpDialog
         foreach (var comment in Comments.OfType<WorkItemCommentViewModel>().Where(x => x.WorkItem != null))
         {
             var workItem = comment.WorkItem ?? throw new InvalidOperationException();
+            if (workItem.AssignedTo != Person.Me)
+            {
+                return;  //Nothing to save.  Can't save other person's work item.
+            }
+
             var remainingTime = comment.UnexportedTime + comment.SelectedTime + TimeSpan.FromHours(comment.TimeRemainingInput);
 
             await WorkItemUpdateService.UpdateTaskAsync(workItem, comment.State, remainingTime);
