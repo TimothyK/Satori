@@ -49,4 +49,5 @@ public class TimeEntry : ISummary, ITimeRange
     public string? Learnings { get; set; }
     public string? OtherComments { get; set; }
 
+    public override string ToString() => $"Time Entry {Id} {Begin:yyyy-MM-dd hh:mm}";
 }

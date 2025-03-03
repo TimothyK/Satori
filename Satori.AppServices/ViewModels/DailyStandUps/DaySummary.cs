@@ -19,4 +19,5 @@ public class DaySummary : ISummary
     /// </summary>
     public bool IsCollapsed { get; set; }
 
+    public override string ToString() => $"Day {Date:yyyy-MM-dd}";
 }
