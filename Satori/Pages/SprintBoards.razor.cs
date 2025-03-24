@@ -76,6 +76,12 @@ namespace Satori.Pages
         JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
     }
 
+    #region WorkFilters
+
+    
+
+    #endregion WorkFilters
+
     #region Team Selection
 
     private TeamSelectionViewModel? TeamSelection { get; set; }
@@ -195,22 +201,22 @@ namespace Satori.Pages
             TeamSelectedClassName =
                 sprints.ToDictionary(
                     sprint => sprint.TeamId,
-                    sprint => sprint.TeamId.IsIn(teamIds) ? TeamSelectionCssClass.Selected : TeamSelectionCssClass.Hidden);
+                    sprint => sprint.TeamId.IsIn(teamIds) ? FilterSelectionCssClass.Selected : FilterSelectionCssClass.Hidden);
         }
 
         #region Selected Teams
 
-        public Dictionary<Guid, TeamSelectionCssClass> TeamSelectedClassName { get; }
+        public Dictionary<Guid, FilterSelectionCssClass> TeamSelectedClassName { get; }
 
         public void SelectTeam(Guid teamId)
         {
             if (TeamSelectedClassName.TryGetValue(teamId, out var value))
             {
-                TeamSelectedClassName[teamId] = value == TeamSelectionCssClass.Hidden ? TeamSelectionCssClass.Selected : TeamSelectionCssClass.Hidden;
+                TeamSelectedClassName[teamId] = value == FilterSelectionCssClass.Hidden ? FilterSelectionCssClass.Selected : FilterSelectionCssClass.Hidden;
             }
             else
             {
-                TeamSelectedClassName[teamId] = TeamSelectionCssClass.Selected;
+                TeamSelectedClassName[teamId] = FilterSelectionCssClass.Selected;
             }
 
             StoreDefaultTeamIds();
@@ -225,19 +231,9 @@ namespace Satori.Pages
 
         public Guid[] SelectedTeamIds =>
             TeamSelectedClassName
-                .Where(kvp => kvp.Value == TeamSelectionCssClass.Selected)
+                .Where(kvp => kvp.Value == FilterSelectionCssClass.Selected)
                 .Select(kvp => kvp.Key)
                 .ToArray();
-
-        internal class TeamSelectionCssClass : CssClass
-        {
-            private TeamSelectionCssClass(string className) : base(className)
-            {
-            }
-
-            public static readonly TeamSelectionCssClass Selected = new("team-selected");
-            public static readonly TeamSelectionCssClass Hidden = new("team-hidden");
-        }
 
         #endregion Selected Teams
 
@@ -292,8 +288,8 @@ namespace Satori.Pages
                     foreach (var teamId in TeamSelectedClassName.Keys)
                     {
                         TeamSelectedClassName[teamId] = teamId.IsIn(teamIds)
-                            ? TeamSelectionCssClass.Selected
-                            : TeamSelectionCssClass.Hidden;
+                            ? FilterSelectionCssClass.Selected
+                            : FilterSelectionCssClass.Hidden;
                     }
                     OnSelectedTeamChanged();
                 }
@@ -313,6 +309,16 @@ namespace Satori.Pages
         }
 
         #endregion Local Storage
+    }
+
+    internal class FilterSelectionCssClass : CssClass
+    {
+        private FilterSelectionCssClass(string className) : base(className)
+        {
+        }
+
+        public static readonly FilterSelectionCssClass Selected = new("filter-selected");
+        public static readonly FilterSelectionCssClass Hidden = new("filter-hidden");
     }
 
     /// <summary>

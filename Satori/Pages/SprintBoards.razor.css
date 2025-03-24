@@ -16,7 +16,7 @@
 .team-selector .avatar-cell {
     border: 5px solid white;
 }
-.team-selector .avatar-cell.team-selected {
+.team-selector .avatar-cell.filter-selected {
     border: 5px outset green;
 }
 .team-selector .avatar-cell:hover {
@@ -46,7 +46,7 @@
     font-size: 0.7em;
 }
 
-.work-item-row.team-hidden {
+.work-item-row.filter-hidden {
     display: none;
 }
 
