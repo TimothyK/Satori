@@ -84,6 +84,7 @@ public partial class SprintBoards
     private void FilterToMeToggle()
     {
         FilterToMe = FilterToMe.Not;
+        ResetWorkItemCounts();
     }
 
     private bool IsWorkItemVisibleForPersonFilter(WorkItem workItem)
@@ -116,7 +117,11 @@ public partial class SprintBoards
     {
         var selectedTeamIds = TeamSelection?.SelectedTeamIds ?? [];
 
-        var teamWorkItems = _workItems?.Where(wi => wi.Sprint?.TeamId.IsIn(selectedTeamIds) ?? false).ToArray() ?? [];
+        var teamWorkItems = 
+            _workItems?.Where(wi => wi.Sprint?.TeamId.IsIn(selectedTeamIds) ?? false)
+            .Where(IsWorkItemVisibleForPersonFilter)
+            .ToArray() 
+            ?? [];
         WorkItemActiveCount = teamWorkItems.Count(wi => wi.State != ScrumState.Done);
         WorkInProgressCount = teamWorkItems.Count(IsInProgress);
         WorkItemDoneCount = teamWorkItems.Length - WorkItemActiveCount;
