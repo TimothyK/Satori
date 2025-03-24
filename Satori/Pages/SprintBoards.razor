@@ -1,11 +1,10 @@
 ﻿@page "/SprintBoards"
 @using Satori.AppServices.Services
-@using Satori.AppServices.ViewModels.Sprints
-@using Satori.AppServices.ViewModels.WorkItems
 @using System.Web
-@using CodeMonkeyProjectiles.Linq
 @using Satori.AppServices.Models
 @using Satori.AppServices.Services.Abstractions
+@using Satori.AppServices.ViewModels
+@using Satori.Utilities
 @using Toolbelt.Blazor.HotKeys2
 @attribute [StreamRendering]
 @inject NavigationManager NavigationManager
@@ -24,8 +23,19 @@
     <h3>Sprint Boards
         @if (_workItems != null)
         {
-            <span class="badge bg-primary">@WorkItemActiveCount</span>
-            <span class="badge bg-success">@WorkItemDoneCount</span>
+            <span class="badge bg-primary" title="Active">@WorkItemActiveCount</span>
+            <span class="badge bg-warning" title="In Progress">@WorkInProgressCount</span>
+            <span class="badge bg-success" title="Done">@WorkItemDoneCount</span>
+        }
+        @if (Person.Me != null)
+        {
+            <span id="filterMe">
+                <button class='avatar-cell @FilterToMe' @onclick="FilterToMeToggleAsync">
+                    <img src="@Person.Me.AvatarUrl"
+                         alt="@Person.Me.DisplayName"
+                         title="Filter to work items involving me" />
+                </button>
+            </span>
         }
         <span style="float: right;">
             @if (_sprints != null && TeamSelection != null)
@@ -33,7 +43,7 @@
                 <span class="team-selector avatar-row">
                     @foreach (var sprint in _sprints.OrderBy(x => x.TeamName))
                     {
-                        <button id="@sprint.TeamId" class='avatar-cell @TeamSelection.TeamSelectedClassName[sprint.TeamId]' @onclick='() => TeamSelection.SelectTeam(sprint.TeamId)'>
+                        <button id="@sprint.TeamId" class='avatar-cell @TeamSelection.TeamSelectedClassName[sprint.TeamId]' @onclick='() => TeamSelection.SelectTeamAsync(sprint.TeamId)'>
                             <img src="@sprint.TeamAvatarUrl"
                             alt="@sprint.TeamName"
                             title="@sprint.TeamName @HttpUtility.HtmlEncode("\r") @sprint.Name @HttpUtility.HtmlEncode("\r") Finishes: @sprint.FinishTime.ToString("yyyy-MM-dd")" />
@@ -75,11 +85,12 @@ else
                             work-item-row
                             @workItem.Type.CssClass
                             @workItem.StatusCssClass
+                            @((VisibleCssClass) IsWorkItemVisibleForPersonFilter(workItem))
                             @(workItem.Sprint == null ? string.Empty : TeamSelection.TeamSelectedClassName[workItem.Sprint.TeamId])
                             @(PriorityAdjustment.WorkItemSelectedClassName[workItem.Id])
                     "
                     @onclick="() => PriorityAdjustment.SetMoveTo(workItem)">
-                        <td class="cell-link" @onclick="() => OpenWorkItem(workItem)" title="Open D#@(workItem.Id)">
+                        <td class="cell-link" @onclick="() => OpenWorkItemAsync(workItem)" title="Open D#@(workItem.Id)">
                             <div style="display: flex;">
                                 <div class="workitem-id @workItem.StatusCssClass">
                                     <div>@workItem.Id</div> 
@@ -128,7 +139,7 @@ else
                         <td>
                             @foreach (var task in workItem.Children.OrderByDescending(wi => wi.State).ThenBy(wi => wi.Id))
                             {
-                                <div class="task-status @task.StatusCssClass cell-link" style="display: flex;" @onclick="() => OpenWorkItem(task)" title="Open D#@(task.Id)">
+                                <div class="task-status @task.StatusCssClass cell-link" style="display: flex;" @onclick="() => OpenWorkItemAsync(task)" title="Open D#@(task.Id)">
                                     <div class="avatar-cell">
                                         <img src="@task.AssignedTo.AvatarUrl"
                                         alt="@task.AssignedTo.DisplayName"
@@ -239,145 +250,3 @@ else
     </div>
 </div>
 
-
-
-@code {
-    private Sprint[]? _sprints;
-    private WorkItem[]? _workItems;
-
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-        PriorityAdjustment = new PriorityAdjustmentViewModel([], AlertService);
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        if (!ConnectionSettingsStore.GetAzureDevOpsSettings().Enabled)
-        {
-            // This page shouldn't be accessible if Kimai is disabled.  Go to Home page where AzureDevOps can be configured/enabled.
-            NavigationManager.NavigateTo("/");
-        }
-
-        var sprints = (await SprintBoardService.GetActiveSprintsAsync()).ToArray();
-        TeamSelection = new TeamSelectionViewModel(sprints, NavigationManager);
-        TeamSelection.SelectedTeamChanged += ResetWorkItemCounts;
-        _sprints = sprints;
-        StateHasChanged();
-
-        var workItems = (await SprintBoardService.GetWorkItemsAsync(sprints)).ToArray();
-        PriorityAdjustment = new PriorityAdjustmentViewModel(workItems, AlertService);
-        _workItems = workItems;
-        ResetWorkItemCounts();
-    }
-
-
-    private bool _isInitialized;
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender) {
-            HotKeys.CreateContext()
-                .Add(ModCode.Alt, Code.P, EnterAdjustPriorityMode, new HotKeyOptions { Description = "Adjust Priorities" })
-                .Add(ModCode.None, Code.Escape, ExitAdjustPriorityMode, new HotKeyOptions { Description = "Exit Adjust Priorities" })
-                .Add(ModCode.None, Code.Enter, MovePriority, new HotKeyOptions { Description = "Adjust Priorities" });
-        }
-
-        if (_isInitialized)
-        {
-            return;
-        }
-
-        if (TeamSelection != null)
-        {
-            await TeamSelection.SetDefaultTeamsAsync(LocalStorage);
-            StateHasChanged();
-            _isInitialized = true;
-        }
-    }
-
-    private void OpenWorkItem(WorkItem workItem)
-    {
-        if (PriorityAdjustment.ShowExitModeClassName)
-        {
-            return;
-        }
-
-        JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
-    }
-
-    #region Team Selection
-
-    private TeamSelectionViewModel? TeamSelection { get; set; }
-
-    #endregion Team Selection
-
-    #region Work Item Count
-
-    private int WorkItemActiveCount { get; set; }
-    private int WorkItemDoneCount { get; set; }
-
-    private void ResetWorkItemCounts(object? sender, EventArgs eventArgs) => ResetWorkItemCounts();
-
-    private void ResetWorkItemCounts()
-    {
-        var selectedTeamIds = TeamSelection?.SelectedTeamIds ?? [];
-
-        var teamWorkItems = _workItems?.Where(wi => wi.Sprint?.TeamId.IsIn(selectedTeamIds) ?? false).ToArray() ?? [];
-        WorkItemActiveCount = teamWorkItems.Count(wi => wi.State != ScrumState.Done);
-        WorkItemDoneCount = teamWorkItems.Length - WorkItemActiveCount;
-    }
-
-    #endregion Work Item Count
-
-    #region Adjust Priority
-
-    private PriorityAdjustmentViewModel PriorityAdjustment { get; set; } = null!;
-
-    private void EnterAdjustPriorityMode()
-    {
-        if (PriorityAdjustment.ShowEnterModeClassName)
-        {
-            PriorityAdjustment.ToggleMode();
-        }
-    }
-
-    private void ExitAdjustPriorityMode()
-    {
-        if (PriorityAdjustment.ShowExitModeClassName)
-        {
-            PriorityAdjustment.ToggleMode();
-        }
-    }
-
-    private void MovePriority()
-    {
-        if (PriorityAdjustment.ShowEnterModeClassName)
-        {
-            return;
-        }
-
-        AlertService.ClearAlert();
-
-        if (PriorityAdjustment.SelectedWorkItemsCount == 0)
-        {
-            AlertService.BroadcastAlert("No work items selected.  Select work items to move (have their priority changed).");
-            return;
-        }
-
-        try
-        {
-            SprintBoardService.ReorderWorkItems(PriorityAdjustment.Request);
-            PriorityAdjustment.ToggleMode();
-        }
-        catch (Exception ex)
-        {
-            var logger = LoggerFactory.CreateLogger<SprintBoards>();
-            logger.LogError(ex, "Error moving work items priority.  {Request}", PriorityAdjustment.Request);
-
-            AlertService.BroadcastAlert(ex);
-        }
-    }
-
-    #endregion Adjust Priority
-
-}
