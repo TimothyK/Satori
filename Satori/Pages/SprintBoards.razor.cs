@@ -2,14 +2,165 @@
 using CodeMonkeyProjectiles.Linq;
 using Flurl;
 using Microsoft.AspNetCore.Components;
-using Satori.AppServices.Services;
+using Microsoft.JSInterop;
 using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.Utilities;
+using Toolbelt.Blazor.HotKeys2;
 
 namespace Satori.Pages
 {
+    public partial class SprintBoards
+    {
+            private Sprint[]? _sprints;
+    private WorkItem[]? _workItems;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        PriorityAdjustment = new PriorityAdjustmentViewModel([], AlertService);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!ConnectionSettingsStore.GetAzureDevOpsSettings().Enabled)
+        {
+            // This page shouldn't be accessible if Kimai is disabled.  Go to Home page where AzureDevOps can be configured/enabled.
+            NavigationManager.NavigateTo("/");
+        }
+
+        var sprints = (await SprintBoardService.GetActiveSprintsAsync()).ToArray();
+        TeamSelection = new TeamSelectionViewModel(sprints, NavigationManager);
+        TeamSelection.SelectedTeamChanged += ResetWorkItemCounts;
+        _sprints = sprints;
+        StateHasChanged();
+
+        var workItems = (await SprintBoardService.GetWorkItemsAsync(sprints)).ToArray();
+        PriorityAdjustment = new PriorityAdjustmentViewModel(workItems, AlertService);
+        _workItems = workItems;
+        ResetWorkItemCounts();
+    }
+
+
+    private bool _isInitialized;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) {
+            HotKeys.CreateContext()
+                .Add(ModCode.Alt, Code.P, EnterAdjustPriorityMode, new HotKeyOptions { Description = "Adjust Priorities" })
+                .Add(ModCode.None, Code.Escape, ExitAdjustPriorityMode, new HotKeyOptions { Description = "Exit Adjust Priorities" })
+                .Add(ModCode.None, Code.Enter, MovePriority, new HotKeyOptions { Description = "Adjust Priorities" });
+        }
+
+        if (_isInitialized)
+        {
+            return;
+        }
+
+        if (TeamSelection != null)
+        {
+            await TeamSelection.SetDefaultTeamsAsync(LocalStorage);
+            StateHasChanged();
+            _isInitialized = true;
+        }
+    }
+
+    private void OpenWorkItem(WorkItem workItem)
+    {
+        if (PriorityAdjustment.ShowExitModeClassName)
+        {
+            return;
+        }
+
+        JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
+    }
+
+    #region Team Selection
+
+    private TeamSelectionViewModel? TeamSelection { get; set; }
+
+    #endregion Team Selection
+
+    #region Work Item Count
+
+    private int WorkItemActiveCount { get; set; }
+    private int WorkInProgressCount { get; set; }
+    private int WorkItemDoneCount { get; set; }
+
+    private void ResetWorkItemCounts(object? sender, EventArgs eventArgs) => ResetWorkItemCounts();
+
+    private void ResetWorkItemCounts()
+    {
+        var selectedTeamIds = TeamSelection?.SelectedTeamIds ?? [];
+
+        var teamWorkItems = _workItems?.Where(wi => wi.Sprint?.TeamId.IsIn(selectedTeamIds) ?? false).ToArray() ?? [];
+        WorkItemActiveCount = teamWorkItems.Count(wi => wi.State != ScrumState.Done);
+        WorkInProgressCount = teamWorkItems.Count(IsInProgress);
+        WorkItemDoneCount = teamWorkItems.Length - WorkItemActiveCount;
+    }
+
+    private static bool IsInProgress(WorkItem wi)
+    {
+        return wi.State != ScrumState.Done 
+               && wi.Children.Any(task => task.State.IsIn(ScrumState.InProgress, ScrumState.Done));
+    }
+
+    #endregion Work Item Count
+
+    #region Adjust Priority
+
+    private PriorityAdjustmentViewModel PriorityAdjustment { get; set; } = null!;
+
+    private void EnterAdjustPriorityMode()
+    {
+        if (PriorityAdjustment.ShowEnterModeClassName)
+        {
+            PriorityAdjustment.ToggleMode();
+        }
+    }
+
+    private void ExitAdjustPriorityMode()
+    {
+        if (PriorityAdjustment.ShowExitModeClassName)
+        {
+            PriorityAdjustment.ToggleMode();
+        }
+    }
+
+    private void MovePriority()
+    {
+        if (PriorityAdjustment.ShowEnterModeClassName)
+        {
+            return;
+        }
+
+        AlertService.ClearAlert();
+
+        if (PriorityAdjustment.SelectedWorkItemsCount == 0)
+        {
+            AlertService.BroadcastAlert("No work items selected.  Select work items to move (have their priority changed).");
+            return;
+        }
+
+        try
+        {
+            SprintBoardService.ReorderWorkItems(PriorityAdjustment.Request);
+            PriorityAdjustment.ToggleMode();
+        }
+        catch (Exception ex)
+        {
+            var logger = LoggerFactory.CreateLogger<SprintBoards>();
+            logger.LogError(ex, "Error moving work items priority.  {Request}", PriorityAdjustment.Request);
+
+            AlertService.BroadcastAlert(ex);
+        }
+    }
+
+    #endregion Adjust Priority
+
+    }
+
     /// <summary>
     /// Backing model for the team selection on the sprint board view/razor page.
     /// </summary>
