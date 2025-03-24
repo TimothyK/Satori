@@ -30,7 +30,7 @@
         @if (Person.Me != null)
         {
             <span id="filterMe">
-                <button class='avatar-cell @FilterToMe' @onclick="FilterToMeToggle">
+                <button class='avatar-cell @FilterToMe' @onclick="FilterToMeToggleAsync">
                     <img src="@Person.Me.AvatarUrl"
                          alt="@Person.Me.DisplayName"
                          title="Filter to work items involving me" />
@@ -43,7 +43,7 @@
                 <span class="team-selector avatar-row">
                     @foreach (var sprint in _sprints.OrderBy(x => x.TeamName))
                     {
-                        <button id="@sprint.TeamId" class='avatar-cell @TeamSelection.TeamSelectedClassName[sprint.TeamId]' @onclick='() => TeamSelection.SelectTeam(sprint.TeamId)'>
+                        <button id="@sprint.TeamId" class='avatar-cell @TeamSelection.TeamSelectedClassName[sprint.TeamId]' @onclick='() => TeamSelection.SelectTeamAsync(sprint.TeamId)'>
                             <img src="@sprint.TeamAvatarUrl"
                             alt="@sprint.TeamName"
                             title="@sprint.TeamName @HttpUtility.HtmlEncode("\r") @sprint.Name @HttpUtility.HtmlEncode("\r") Finishes: @sprint.FinishTime.ToString("yyyy-MM-dd")" />
@@ -90,7 +90,7 @@ else
                             @(PriorityAdjustment.WorkItemSelectedClassName[workItem.Id])
                     "
                     @onclick="() => PriorityAdjustment.SetMoveTo(workItem)">
-                        <td class="cell-link" @onclick="() => OpenWorkItem(workItem)" title="Open D#@(workItem.Id)">
+                        <td class="cell-link" @onclick="() => OpenWorkItemAsync(workItem)" title="Open D#@(workItem.Id)">
                             <div style="display: flex;">
                                 <div class="workitem-id @workItem.StatusCssClass">
                                     <div>@workItem.Id</div> 
@@ -139,7 +139,7 @@ else
                         <td>
                             @foreach (var task in workItem.Children.OrderByDescending(wi => wi.State).ThenBy(wi => wi.Id))
                             {
-                                <div class="task-status @task.StatusCssClass cell-link" style="display: flex;" @onclick="() => OpenWorkItem(task)" title="Open D#@(task.Id)">
+                                <div class="task-status @task.StatusCssClass cell-link" style="display: flex;" @onclick="() => OpenWorkItemAsync(task)" title="Open D#@(task.Id)">
                                     <div class="avatar-cell">
                                         <img src="@task.AssignedTo.AvatarUrl"
                                         alt="@task.AssignedTo.DisplayName"

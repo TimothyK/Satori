@@ -31,6 +31,8 @@ public partial class SprintBoards
             NavigationManager.NavigateTo("/");
         }
 
+        PersonFilterInitializeFromUrl();
+
         var sprints = (await SprintBoardService.GetActiveSprintsAsync()).ToArray();
         TeamSelection = new TeamSelectionViewModel(sprints, NavigationManager);
         TeamSelection.SelectedTeamChanged += ResetWorkItemCounts;
@@ -61,30 +63,84 @@ public partial class SprintBoards
 
         if (TeamSelection != null)
         {
+            await SetDefaultPersonFilterAsync();
             await TeamSelection.SetDefaultTeamsAsync(LocalStorage);
             StateHasChanged();
             _isInitialized = true;
         }
     }
 
-    private void OpenWorkItem(WorkItem workItem)
+    private async Task OpenWorkItemAsync(WorkItem workItem)
     {
         if (PriorityAdjustment.ShowExitModeClassName)
         {
             return;
         }
 
-        JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
+        await JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
     }
 
     #region WorkFilters
 
     private FilterSelectionCssClass FilterToMe { get; set; } = FilterSelectionCssClass.Hidden;
 
-    private void FilterToMeToggle()
+    private async Task FilterToMeToggleAsync()
     {
         FilterToMe = FilterToMe.Not;
         ResetWorkItemCounts();
+        ResetPersonOnUrl();
+        await StorePersonFilterAsync();
+    }
+
+    private void ResetPersonOnUrl()
+    {
+        var filterValue = FilterToMe ? DefaultPersonFilterStorageMeValue : "all";
+        
+        var url = NavigationManager.Uri
+            .RemoveQueryParam("person")
+            .AppendQueryParam("person", filterValue);
+
+        NavigationManager.NavigateTo(url, forceLoad: false);
+    }
+
+    private const string DefaultPersonFilterStorageKey = "SprintBoard.DefaultPerson";
+    private const string DefaultPersonFilterStorageMeValue = "me";
+
+    private void PersonFilterInitializeFromUrl()
+    {
+        var parameters = new Url(NavigationManager.Uri).QueryParams
+            .Where(qp => qp.Name == "person")
+            .ToArray();
+        if (parameters.None())
+        {
+            return;
+        }
+        var filterValue = parameters.First().Value.ToString();
+
+        FilterToMe = filterValue == DefaultPersonFilterStorageMeValue;
+    }
+
+    private async Task SetDefaultPersonFilterAsync()
+    {
+        var hasPersonOnUrl = new Url(NavigationManager.Uri).QueryParams.Any(qp => qp.Name == "person");
+        if (hasPersonOnUrl)
+        {
+            return;
+        }
+
+        var filterValue = await LocalStorage.GetItemAsync<string>(DefaultPersonFilterStorageKey);
+        FilterToMe = filterValue == DefaultPersonFilterStorageMeValue;
+    }
+
+    private async Task StorePersonFilterAsync()
+    {
+        if (LocalStorage == null)
+        {
+            return;
+        }
+
+        var filterValue = FilterToMe ? DefaultPersonFilterStorageMeValue : "all";
+        await LocalStorage.SetItemAsync(DefaultPersonFilterStorageKey, filterValue);
     }
 
     private bool IsWorkItemVisibleForPersonFilter(WorkItem workItem)
@@ -229,7 +285,7 @@ internal class TeamSelectionViewModel
 
     public Dictionary<Guid, FilterSelectionCssClass> TeamSelectedClassName { get; }
 
-    public void SelectTeam(Guid teamId)
+    public async Task SelectTeamAsync(Guid teamId)
     {
         if (TeamSelectedClassName.TryGetValue(teamId, out var value))
         {
@@ -240,7 +296,7 @@ internal class TeamSelectionViewModel
             TeamSelectedClassName[teamId] = FilterSelectionCssClass.Selected;
         }
 
-        StoreDefaultTeamIds();
+        await StoreDefaultTeamIdsAsync();
         ResetUrl();
         OnSelectedTeamChanged();
     }
@@ -317,16 +373,14 @@ internal class TeamSelectionViewModel
         }
     }
 
-    private void StoreDefaultTeamIds()
+    private async Task StoreDefaultTeamIdsAsync()
     {
         if (LocalStorage == null)
         {
             return;
         }
 
-#pragma warning disable CA2012
-        Task.Run(() => LocalStorage.SetItemAsync(DefaultTeamIdsStorageKey, SelectedTeamIds)).GetAwaiter().GetResult();
-#pragma warning restore CA2012
+        await LocalStorage.SetItemAsync(DefaultTeamIdsStorageKey, SelectedTeamIds);
     }
 
     #endregion Local Storage
