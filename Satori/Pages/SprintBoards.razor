@@ -4,6 +4,7 @@
 @using Satori.AppServices.Models
 @using Satori.AppServices.Services.Abstractions
 @using Satori.AppServices.ViewModels
+@using Satori.Utilities
 @using Toolbelt.Blazor.HotKeys2
 @attribute [StreamRendering]
 @inject NavigationManager NavigationManager
@@ -84,6 +85,7 @@ else
                             work-item-row
                             @workItem.Type.CssClass
                             @workItem.StatusCssClass
+                            @((VisibleCssClass) IsWorkItemVisibleForPersonFilter(workItem))
                             @(workItem.Sprint == null ? string.Empty : TeamSelection.TeamSelectedClassName[workItem.Sprint.TeamId])
                             @(PriorityAdjustment.WorkItemSelectedClassName[workItem.Id])
                     "
