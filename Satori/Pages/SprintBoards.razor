@@ -24,8 +24,9 @@
     <h3>Sprint Boards
         @if (_workItems != null)
         {
-            <span class="badge bg-primary">@WorkItemActiveCount</span>
-            <span class="badge bg-success">@WorkItemDoneCount</span>
+            <span class="badge bg-primary" title="Total Count">@WorkItemActiveCount</span>
+            <span class="badge bg-warning" title="In Progress">@WorkInProgressCount</span>
+            <span class="badge bg-success" title="Done">@WorkItemDoneCount</span>
         }
         <span style="float: right;">
             @if (_sprints != null && TeamSelection != null)
@@ -314,6 +315,7 @@ else
     #region Work Item Count
 
     private int WorkItemActiveCount { get; set; }
+    private int WorkInProgressCount { get; set; }
     private int WorkItemDoneCount { get; set; }
 
     private void ResetWorkItemCounts(object? sender, EventArgs eventArgs) => ResetWorkItemCounts();
@@ -324,7 +326,14 @@ else
 
         var teamWorkItems = _workItems?.Where(wi => wi.Sprint?.TeamId.IsIn(selectedTeamIds) ?? false).ToArray() ?? [];
         WorkItemActiveCount = teamWorkItems.Count(wi => wi.State != ScrumState.Done);
+        WorkInProgressCount = teamWorkItems.Count(IsInProgress);
         WorkItemDoneCount = teamWorkItems.Length - WorkItemActiveCount;
+    }
+
+    private static bool IsInProgress(WorkItem wi)
+    {
+        return wi.State != ScrumState.Done 
+               && wi.Children.Any(task => task.State.IsIn(ScrumState.InProgress, ScrumState.Done));
     }
 
     #endregion Work Item Count
