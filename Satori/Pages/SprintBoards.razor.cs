@@ -78,7 +78,13 @@ namespace Satori.Pages
 
     #region WorkFilters
 
-    
+    private FilterSelectionCssClass FilterToMe { get; set; } = FilterSelectionCssClass.Hidden;
+
+    private void FilterToMeToggle()
+    {
+        FilterToMe = FilterToMe == FilterSelectionCssClass.Selected ? FilterSelectionCssClass.Hidden : FilterSelectionCssClass.Selected;
+    }
+
 
     #endregion WorkFilters
 

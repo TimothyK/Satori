@@ -3,6 +3,7 @@
 @using System.Web
 @using Satori.AppServices.Models
 @using Satori.AppServices.Services.Abstractions
+@using Satori.AppServices.ViewModels
 @using Toolbelt.Blazor.HotKeys2
 @attribute [StreamRendering]
 @inject NavigationManager NavigationManager
@@ -24,6 +25,16 @@
             <span class="badge bg-primary" title="Total Count">@WorkItemActiveCount</span>
             <span class="badge bg-warning" title="In Progress">@WorkInProgressCount</span>
             <span class="badge bg-success" title="Done">@WorkItemDoneCount</span>
+        }
+        @if (Person.Me != null)
+        {
+            <span id="filterMe">
+                <button class='avatar-cell @FilterToMe' @onclick="FilterToMeToggle">
+                    <img src="@Person.Me.AvatarUrl"
+                         alt="@Person.Me.DisplayName"
+                         title="Filter to work items involving me" />
+                </button>
+            </span>
         }
         <span style="float: right;">
             @if (_sprints != null && TeamSelection != null)
