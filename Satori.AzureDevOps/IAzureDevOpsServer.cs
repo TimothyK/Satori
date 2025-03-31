@@ -43,7 +43,7 @@ public interface IAzureDevOpsServer
     /// https://learn.microsoft.com/en-us/rest/api/azure/devops/work/workitemsorder/reorder-backlog-work-items?view=azure-devops-rest-6.0&tabs=HTTP
     /// </para>
     /// </remarks>
-    ReorderResult[] ReorderBacklogWorkItems(IterationId iteration, ReorderOperation operation);
+    Task<ReorderResult[]> ReorderBacklogWorkItemsAsync(IterationId iteration, ReorderOperation operation);
 
     Task<Guid> GetCurrentUserIdAsync();
 

@@ -215,7 +215,7 @@ public class AzureDevOpsServer(
         return root.WorkItemRelations;
     }
 
-    public ReorderResult[] ReorderBacklogWorkItems(IterationId iteration, ReorderOperation operation)
+    public async Task<ReorderResult[]> ReorderBacklogWorkItemsAsync(IterationId iteration, ReorderOperation operation)
     {
         var url = ConnectionSettings.Url
             .AppendPathSegments(iteration.ProjectName, iteration.TeamName)
@@ -233,10 +233,10 @@ public class AzureDevOpsServer(
 
         request.Content = new StringContent(JsonSerializer.Serialize(operation), Encoding.UTF8, "application/json");
 
-        var response = httpClient.Send(request);
-        VerifySuccessfulResponseAsync(response).Wait();
+        var response = await httpClient.SendAsync(request);
+        await VerifySuccessfulResponseAsync(response);
 
-        using var responseStream = response.Content.ReadAsStream();
+        await using var responseStream = await response.Content.ReadAsStreamAsync();
         var root = JsonSerializer.Deserialize<RootObject<ReorderResult>>(responseStream)
             ?? throw new ApplicationException("Server did not respond");
 

@@ -17,13 +17,13 @@ internal class ReorderAzureDevOpsServer
         _workItems = workItems as WorkItem[] ?? workItems.ToArray();
         _mock = new Mock<IAzureDevOpsServer>(MockBehavior.Strict);
 
-        _mock.Setup(srv => srv.ReorderBacklogWorkItems(It.IsAny<IterationId>(), It.IsAny<ReorderOperation>()))
-            .Returns((IterationId iteration, ReorderOperation operation) => ReorderBacklogWorkItems(iteration, operation));
+        _mock.Setup(srv => srv.ReorderBacklogWorkItemsAsync(It.IsAny<IterationId>(), It.IsAny<ReorderOperation>()))
+            .ReturnsAsync((IterationId iteration, ReorderOperation operation) => ReorderBacklogWorkItemsAsync(iteration, operation));
     }
 
     public IAzureDevOpsServer AsInterface() => _mock.Object;
 
-    private ReorderResult[] ReorderBacklogWorkItems(IterationId iteration, ReorderOperation operation)
+    private ReorderResult[] ReorderBacklogWorkItemsAsync(IterationId iteration, ReorderOperation operation)
     {
         Console.WriteLine($"Act: AzDO.ReorderBacklogWorkItems: For {iteration.TeamName} moving {string.Join(", ", operation.Ids)} between {operation.PreviousId} & {operation.NextId}");
 

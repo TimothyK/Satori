@@ -53,7 +53,7 @@ public partial class SprintBoards
             HotKeys.CreateContext()
                 .Add(ModCode.Alt, Code.P, EnterAdjustPriorityMode, new HotKeyOptions { Description = "Adjust Priorities" })
                 .Add(ModCode.None, Code.Escape, ExitAdjustPriorityMode, new HotKeyOptions { Description = "Exit Adjust Priorities" })
-                .Add(ModCode.None, Code.Enter, MovePriority, new HotKeyOptions { Description = "Adjust Priorities" });
+                .Add(ModCode.None, Code.Enter, MovePriorityAsync, new HotKeyOptions { Description = "Adjust Priorities" });
         }
 
         if (_isInitialized)
@@ -211,7 +211,7 @@ public partial class SprintBoards
         }
     }
 
-    private void MovePriority()
+    private async Task MovePriorityAsync()
     {
         if (PriorityAdjustment.ShowEnterModeClassName)
         {
@@ -228,7 +228,7 @@ public partial class SprintBoards
 
         try
         {
-            SprintBoardService.ReorderWorkItems(PriorityAdjustment.Request);
+            await SprintBoardService.ReorderWorkItemsAsync(PriorityAdjustment.Request);
             PriorityAdjustment.ToggleMode();
         }
         catch (Exception ex)

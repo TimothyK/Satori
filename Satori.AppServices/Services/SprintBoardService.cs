@@ -172,7 +172,7 @@ public class SprintBoardService(
 
     #region ReorderWorkItems
 
-    public void ReorderWorkItems(ReorderRequest request)
+    public async Task ReorderWorkItemsAsync(ReorderRequest request)
     {
         if (request.WorkItemIdsToMove.Length == 0)
         {
@@ -204,7 +204,7 @@ public class SprintBoardService(
             var items = movingItems.TakeWhile(wi => wi.Sprint == sprint).ToArray();
             operation.Ids = items.Select(wi => wi.Id).ToArray();
 
-            var reorderResults = azureDevOpsServer.ReorderBacklogWorkItems(iteration, operation);
+            var reorderResults = await azureDevOpsServer.ReorderBacklogWorkItemsAsync(iteration, operation);
 
             foreach (var map in reorderResults.Join(movingItems,
                          reorderResult => reorderResult.Id,
