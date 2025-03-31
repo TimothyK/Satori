@@ -89,7 +89,7 @@ else
                             @(workItem.Sprint == null ? string.Empty : TeamSelection.TeamSelectedClassName[workItem.Sprint.TeamId])
                             @(PriorityAdjustment.WorkItemSelectedClassName[workItem.Id])
                     "
-                    @onclick="() => PriorityAdjustment.SetMoveTo(workItem)">
+                    @onclick="e => PriorityAdjustment.SetMoveTo(workItem, e)">
                         <td class="cell-link" @onclick="() => OpenWorkItemAsync(workItem)" title="Open D#@(workItem.Id)">
                             <div style="display: flex;">
                                 <div class="workitem-id @workItem.StatusCssClass">

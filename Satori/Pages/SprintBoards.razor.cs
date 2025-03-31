@@ -2,6 +2,7 @@
 using CodeMonkeyProjectiles.Linq;
 using Flurl;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.ViewModels;
@@ -560,11 +561,12 @@ internal class PriorityAdjustmentViewModel
         TargetRelation = TargetRelation == RelativePosition.Below ? RelativePosition.Above : RelativePosition.Below;
     }
 
-    public void SetMoveTo(WorkItem workItem)
+    public void SetMoveTo(WorkItem workItem, MouseEventArgs e)
     {
         if (workItem.IsNotIn(SelectedWorkItems))
         {
             Target = workItem;
+            TargetRelation = e.OffsetY <= 30 ? RelativePosition.Above : RelativePosition.Below;
         }
     }
 
