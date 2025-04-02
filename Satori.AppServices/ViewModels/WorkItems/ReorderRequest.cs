@@ -2,13 +2,20 @@
 
 public class ReorderRequest(
     WorkItem[] allWorkItems,
-    int[] workItemIdsToMove,
+    WorkItem[] workItemsToMove,
     RelativePosition position,
     WorkItem? target)
 {
+    public ReorderRequest(WorkItem[] allWorkItems,
+        WorkItem workItemToMove,
+        RelativePosition position,
+        WorkItem? target) : this(allWorkItems, [workItemToMove], position, target)
+    {
+    }
+
     public WorkItem[] AllWorkItems { get; } = allWorkItems;
 
-    public int[] WorkItemIdsToMove { get; } = workItemIdsToMove;
+    public WorkItem[] WorkItemsToMove { get; } = workItemsToMove;
 
     public RelativePosition RelativeToTarget { get; set; } = position;
     public WorkItem? Target { get; } = target;
@@ -19,7 +26,7 @@ public class ReorderRequest(
             ? RelativeToTarget == RelativePosition.Below ? "Bottom" : "Top"
             : $"{RelativeToTarget.ToString()} {Target.Id}";
 
-        return $"ReorderRequest to move {string.Join(",", WorkItemIdsToMove)} to {relativeToMsg}";
+        return $"ReorderRequest to move {string.Join(",", WorkItemsToMove.Select(wi => wi.Id))} to {relativeToMsg}";
     }
 }
 

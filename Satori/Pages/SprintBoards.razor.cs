@@ -429,7 +429,7 @@ internal class PriorityAdjustmentViewModel
 
     public ReorderRequest Request => new(
         _workItems, 
-        SelectedWorkItems.Select(wi => wi.Id).ToArray(), 
+        SelectedWorkItems.ToArray(), 
         TargetRelation, 
         Target);
 

@@ -174,7 +174,7 @@ public class SprintBoardService(
 
     public async Task ReorderWorkItemsAsync(ReorderRequest request)
     {
-        if (request.WorkItemIdsToMove.Length == 0)
+        if (request.WorkItemsToMove.Length == 0)
         {
             throw new InvalidOperationException("Work Items must be selected to be moved");
         }
@@ -186,7 +186,7 @@ public class SprintBoardService(
         {
             PreviousId = (request.Target ?? allWorkItems.Last()).Id,
             NextId = allWorkItems.SkipUntil(wi => wi == request.Target).Take(1).FirstOrDefault()?.Id ?? 0,
-            Ids = request.WorkItemIdsToMove
+            Ids = request.WorkItemsToMove.Select(wi => wi.Id).ToArray()
         };
 
         if (request.RelativeToTarget == RelativePosition.Above)
@@ -194,7 +194,7 @@ public class SprintBoardService(
             (operation.PreviousId, operation.NextId) = (operation.NextId, operation.PreviousId);
         }
 
-        var movingItems = request.AllWorkItems.Where(wi => wi.Id.IsIn(request.WorkItemIdsToMove)).OrderBy(wi => wi.AbsolutePriority).ToArray();
+        var movingItems = request.WorkItemsToMove.OrderBy(wi => wi.AbsolutePriority).ToArray();
 
         do
         {
@@ -220,7 +220,7 @@ public class SprintBoardService(
 
         var sprintGroups = request.AllWorkItems
             .GroupBy(wi => wi.Sprint!)
-            .Where(g => g.Any(wi => wi.Id.IsIn(request.WorkItemIdsToMove)));
+            .Where(g => g.Any(wi => wi.IsIn(request.WorkItemsToMove)));
         foreach (var sprintWorkItems in sprintGroups)
         {
             SetSprintPriority(sprintWorkItems);
