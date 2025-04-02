@@ -107,7 +107,7 @@ public class ReorderTests
     {
         //Arrange
         var workItems = BuildWorkItems(3);
-        var request = new ReorderRequest(workItems.ToArray(), workItems[0].Id.Yield().ToArray(), targetBelow: true, target: workItems[1]);
+        var request = new ReorderRequest(workItems.ToArray(), workItems[0].Id.Yield().ToArray(), RelativePosition.Below, target: workItems[1]);
 
         //Act
         await ReorderWorkItemsAsync(request);
@@ -122,7 +122,7 @@ public class ReorderTests
     {
         //Arrange
         var workItems = BuildWorkItems(3);
-        var request = new ReorderRequest(workItems.ToArray(), workItems[0].Id.Yield().ToArray(), targetBelow: true, target: workItems[1]);
+        var request = new ReorderRequest(workItems.ToArray(), workItems[0].Id.Yield().ToArray(), RelativePosition.Below, target: workItems[1]);
 
         //Act
         await ReorderWorkItemsAsync(request);
@@ -139,7 +139,7 @@ public class ReorderTests
         var workItems = BuildWorkItems(3);
         var first = workItems.First();
         var last = workItems.Last();
-        var request = new ReorderRequest(workItems.ToArray(), first.Id.Yield().ToArray(), targetBelow: true, target: last);
+        var request = new ReorderRequest(workItems.ToArray(), first.Id.Yield().ToArray(), RelativePosition.Below, target: last);
 
         //Act
         await ReorderWorkItemsAsync(request);
@@ -155,7 +155,7 @@ public class ReorderTests
         var workItems = BuildWorkItems(3);
         var first = workItems.First();
         var last = workItems.Last();
-        var request = new ReorderRequest(workItems.ToArray(), first.Id.Yield().ToArray(), targetBelow: true, target: null);
+        var request = new ReorderRequest(workItems.ToArray(), first.Id.Yield().ToArray(), RelativePosition.Below, target: null);
 
         //Act
         await ReorderWorkItemsAsync(request);
@@ -172,7 +172,7 @@ public class ReorderTests
         var first = workItems.First();
         var middle = workItems[1];
         var target = workItems.Last();
-        var request = new ReorderRequest(workItems.ToArray(), target.Id.Yield().ToArray(), targetBelow: false, target: middle);
+        var request = new ReorderRequest(workItems.ToArray(), target.Id.Yield().ToArray(), RelativePosition.Above, target: middle);
 
         //Act
         await ReorderWorkItemsAsync(request);
@@ -189,7 +189,7 @@ public class ReorderTests
         var workItems = BuildWorkItems(3);
         var first = workItems.First();
         var movingItem = workItems[1];
-        var request = new ReorderRequest(workItems.ToArray(), movingItem.Id.Yield().ToArray(), targetBelow: false, target: first);
+        var request = new ReorderRequest(workItems.ToArray(), movingItem.Id.Yield().ToArray(), RelativePosition.Above, target: first);
 
         //Act
         await ReorderWorkItemsAsync(request);
@@ -205,7 +205,7 @@ public class ReorderTests
         var workItems = BuildWorkItems(3);
         var first = workItems.First();
         var movingItem = workItems[1];
-        var request = new ReorderRequest(workItems.ToArray(), movingItem.Id.Yield().ToArray(), targetBelow: false, target: null);
+        var request = new ReorderRequest(workItems.ToArray(), movingItem.Id.Yield().ToArray(), RelativePosition.Above, target: null);
 
         //Act
         await ReorderWorkItemsAsync(request);
@@ -219,7 +219,7 @@ public class ReorderTests
     {
         //Arrange
         var workItems = BuildWorkItems(3);
-        var request = new ReorderRequest(workItems.ToArray(), [], targetBelow: false, target: null);
+        var request = new ReorderRequest(workItems.ToArray(), [], RelativePosition.Above, target: null);
 
         //Act
         var ex = await Should.ThrowAsync<InvalidOperationException>(() => ReorderWorkItemsAsync(request));
@@ -295,7 +295,7 @@ public class ReorderTests
 
         var itemIdsToMove = sprintGroups.Select(g => g.Skip(2).Take(3)).SelectMany(x => x).OrderBy(wi => wi.AbsolutePriority).Select(wi => wi.Id).ToArray();
         var last = allWorkItems.Last();
-        var request = new ReorderRequest(allWorkItems.ToArray(), itemIdsToMove, targetBelow: true, target: last);
+        var request = new ReorderRequest(allWorkItems.ToArray(), itemIdsToMove, RelativePosition.Below, target: last);
 
         //Act
         await ReorderWorkItemsAsync(request);

@@ -23,7 +23,7 @@ public interface IAzureDevOpsServer
     /// <summary>
     /// Creates a new Task
     /// </summary>
-    /// <param name="project"></param>
+    /// <param name="projectName"></param>
     /// <param name="items"></param>
     /// <returns></returns>
     Task<WorkItem> PostWorkItemAsync(string projectName, IEnumerable<WorkItemPatchItem> items);

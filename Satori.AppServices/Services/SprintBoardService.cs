@@ -179,7 +179,7 @@ public class SprintBoardService(
             throw new InvalidOperationException("Work Items must be selected to be moved");
         }
 
-        var orderByDirection = request.TargetBelow ? OrderByDirection.Ascending : OrderByDirection.Descending;
+        var orderByDirection = request.RelativeToTarget == RelativePosition.Below ? OrderByDirection.Ascending : OrderByDirection.Descending;
         var allWorkItems = request.AllWorkItems.OrderBy(wi => wi.AbsolutePriority, orderByDirection).ToArray();
 
         var operation = new ReorderOperation
@@ -189,7 +189,7 @@ public class SprintBoardService(
             Ids = request.WorkItemIdsToMove
         };
 
-        if (!request.TargetBelow)
+        if (request.RelativeToTarget == RelativePosition.Above)
         {
             (operation.PreviousId, operation.NextId) = (operation.NextId, operation.PreviousId);
         }

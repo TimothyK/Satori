@@ -430,7 +430,7 @@ internal class PriorityAdjustmentViewModel
     public ReorderRequest Request => new(
         _workItems, 
         SelectedWorkItems.Select(wi => wi.Id).ToArray(), 
-        TargetRelation == RelativePosition.Below, 
+        TargetRelation, 
         Target);
 
 
@@ -575,11 +575,6 @@ internal class PriorityAdjustmentViewModel
         Target = null;
     }
 
-    public enum RelativePosition
-    {
-        Above,
-        Below
-    }
 
     #endregion Target
 }
