@@ -225,13 +225,14 @@ public class AzureDevOpsServer(
             .AppendQueryParam("api-version", "6.0-preview.1");
         operation.IterationPath = iteration.IterationPath;
 
-        using (Logger.BeginScope("{ReorderOperation}", JsonSerializer.Serialize(operation)))
+        var payloadBody = JsonSerializer.Serialize(operation);
+        using (Logger.BeginScope("{ReorderOperation}", payloadBody))
             Logger.LogInformation("PATCH {Url}", url);
 
         var request = new HttpRequestMessage(HttpMethod.Patch, url);
         AddAuthHeader(request);
 
-        request.Content = new StringContent(JsonSerializer.Serialize(operation), Encoding.UTF8, "application/json");
+        request.Content = new StringContent(payloadBody, Encoding.UTF8, "application/json");
 
         var response = await httpClient.SendAsync(request);
         await VerifySuccessfulResponseAsync(response);

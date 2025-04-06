@@ -182,41 +182,36 @@ public class SprintBoardService(
         var orderByDirection = request.RelativeToTarget == RelativePosition.Below ? OrderByDirection.Ascending : OrderByDirection.Descending;
         var allWorkItems = request.AllWorkItems.OrderBy(wi => wi.AbsolutePriority, orderByDirection).ToArray();
 
+        var nextWorkItem = request.Target ?? allWorkItems.Last();
+        var previousWorkItem = allWorkItems.SkipUntil(wi => wi == request.Target).Take(1).FirstOrDefault();
         var operation = new ReorderOperation
         {
-            PreviousId = (request.Target ?? allWorkItems.Last()).Id,
-            NextId = allWorkItems.SkipUntil(wi => wi == request.Target).Take(1).FirstOrDefault()?.Id ?? 0,
+            PreviousId = nextWorkItem.Id,
+            NextId = previousWorkItem?.Id ?? 0,
             Ids = request.WorkItemsToMove.Select(wi => wi.Id).ToArray()
         };
-
         if (request.RelativeToTarget == RelativePosition.Above)
         {
             (operation.PreviousId, operation.NextId) = (operation.NextId, operation.PreviousId);
         }
 
-        var movingItems = request.WorkItemsToMove.OrderBy(wi => wi.AbsolutePriority).ToArray();
-
-        do
+        var engine = new SprintTemporaryReassignmentEngine(azureDevOpsServer);
+        engine.Add(request.WorkItemsToMove);
+        engine.Add(previousWorkItem);
+        await using (await engine.ReassignAsync(nextWorkItem))
         {
-            var sprint = movingItems.First().Sprint!;
-            var iteration = (IterationId)sprint;
-
-            var items = movingItems.TakeWhile(wi => wi.Sprint == sprint).ToArray();
-            operation.Ids = items.Select(wi => wi.Id).ToArray();
+            var iteration = (IterationId)nextWorkItem.Sprint!;
 
             var reorderResults = await azureDevOpsServer.ReorderBacklogWorkItemsAsync(iteration, operation);
 
-            foreach (var map in reorderResults.Join(movingItems,
+            foreach (var map in reorderResults.Join(request.WorkItemsToMove,
                          reorderResult => reorderResult.Id,
                          movingItem => movingItem.Id,
                          (reorderResult, movingItem) => new { WorkItem = movingItem, reorderResult.Order }))
             {
                 map.WorkItem.AbsolutePriority = map.Order;
             }
-
-            operation.PreviousId = items.Last().Id;
-            movingItems = movingItems.Except(items).OrderBy(wi => wi.AbsolutePriority).ToArray();
-        } while (movingItems.Length > 0);
+        }
 
         var sprintGroups = request.AllWorkItems
             .GroupBy(wi => wi.Sprint!)

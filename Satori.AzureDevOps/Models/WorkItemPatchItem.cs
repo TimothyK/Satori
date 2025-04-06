@@ -17,7 +17,7 @@ public enum Operation
 {
     Add,
     //Remove,
-    //Replace,
+    Replace,
     //Move,
     //Copy,
     Test
