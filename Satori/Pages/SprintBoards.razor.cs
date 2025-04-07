@@ -436,15 +436,8 @@ internal class PriorityAdjustmentViewModel
 
     #region Current Mode
 
-    public VisibleCssClass ShowEnterModeClassName { get; private set; } = PriorityFeatureFlag;
+    public VisibleCssClass ShowEnterModeClassName { get; private set; } = VisibleCssClass.Visible;
     public VisibleCssClass ShowExitModeClassName { get; private set; } = VisibleCssClass.Hidden;
-
-    //TODO: Priority adjustments isn't 100% implemented yet.  Hidden by compiler DEBUG flag.
-#if DEBUG
-    private static readonly VisibleCssClass PriorityFeatureFlag = VisibleCssClass.Visible;
-#else
-        private static readonly VisibleCssClass PriorityFeatureFlag = VisibleCssClass.Hidden;
-#endif
 
     public void ToggleMode()
     {
