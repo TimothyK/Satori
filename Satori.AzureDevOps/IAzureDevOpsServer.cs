@@ -28,6 +28,14 @@ public interface IAzureDevOpsServer
     /// <returns></returns>
     Task<WorkItem> PostWorkItemAsync(string projectName, IEnumerable<WorkItemPatchItem> items);
 
+    /// <summary>
+    /// Tests if a user has permission to create a work item
+    /// </summary>
+    /// <param name="projectName"></param>
+    /// <param name="items"></param>
+    /// <returns></returns>
+    Task<bool> TestPostWorkItemAsync(string projectName, IEnumerable<WorkItemPatchItem> items);
+
     Task<Team[]> GetTeamsAsync();
     Task<Iteration?> GetCurrentIterationAsync(Team team);
     Task<WorkItemLink[]> GetIterationWorkItemsAsync(IterationId iteration);

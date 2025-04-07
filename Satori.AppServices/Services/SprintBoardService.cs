@@ -56,10 +56,27 @@ public class SprintBoardService(
                 return;
             }
 
+            var hasPermission = await HasWritePermissionAsync(iteration, team);
+            if (!hasPermission)
+            {
+                return;
+            }
+
             iterations.Add((team, iteration));
         });
 
         return iterations;
+    }
+
+    private async Task<bool> HasWritePermissionAsync(Iteration iteration, Team team)
+    {
+        IEnumerable<WorkItemPatchItem> patches =
+        [
+            new() {Operation = Operation.Add, Path = "/fields/System.Title", Value = "TestTask"},
+            new() {Operation = Operation.Add, Path = "/fields/System.IterationPath", Value = iteration.Path}
+        ];
+        var hasPermissions = await azureDevOpsServer.TestPostWorkItemAsync(team.ProjectName, patches);
+        return hasPermissions;
     }
 
     private static Sprint ToViewModel(Team team, Iteration iteration)

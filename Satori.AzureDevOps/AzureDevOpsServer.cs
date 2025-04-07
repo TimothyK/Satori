@@ -97,10 +97,27 @@ public class AzureDevOpsServer(
         return [.. results];
     }
 
-    public async Task<WorkItem> PostWorkItemAsync(string projectName, IEnumerable<WorkItemPatchItem> items) =>
-        await PostWorkItemAsync(projectName, items as WorkItemPatchItem[] ?? items.ToArray());
+    public async Task<bool> TestPostWorkItemAsync(string projectName, IEnumerable<WorkItemPatchItem> items) =>
+        await TestPostWorkItemAsync(projectName, items as WorkItemPatchItem[] ?? items.ToArray());
 
-    private async Task<WorkItem> PostWorkItemAsync(string projectName, WorkItemPatchItem[] items)
+    private async Task<bool> TestPostWorkItemAsync(string projectName, WorkItemPatchItem[] items)
+    {
+        try
+        {
+            await PostWorkItemAsync(projectName, items, validateOnly: true);
+        }
+        catch (AzureHttpRequestException ex) when(ex.TypeKey == "PermissionDeniedException")
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public async Task<WorkItem> PostWorkItemAsync(string projectName, IEnumerable<WorkItemPatchItem> items) =>
+        await PostWorkItemAsync(projectName, items as WorkItemPatchItem[] ?? items.ToArray(), validateOnly: false);
+
+    private async Task<WorkItem> PostWorkItemAsync(string projectName, WorkItemPatchItem[] items, bool validateOnly)
     {
         var url = ConnectionSettings.Url
             .AppendPathSegment(projectName)
@@ -108,6 +125,10 @@ public class AzureDevOpsServer(
             .AppendPathSegment("$Task")
             .AppendQueryParam("$expand", "all")
             .AppendQueryParam("api-version", "6.0");
+        if (validateOnly)
+        {
+            url = url.AppendQueryParam("validateOnly", true);
+        }
 
         using (Logger.BeginScope("{Body}", JsonSerializer.Serialize(items)))
             Logger.LogInformation("POST {Url}", url);

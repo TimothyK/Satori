@@ -96,6 +96,8 @@ internal class TestAzureDevOpsServer
 
         Mock.Setup(srv => srv.PostWorkItemAsync(It.IsAny<string>(), It.IsAny<IEnumerable<WorkItemPatchItem>>()))
             .ReturnsAsync((string projectName, IEnumerable<WorkItemPatchItem> items) => PostWorkItems(projectName, items));
+        Mock.Setup(srv => srv.TestPostWorkItemAsync(It.IsAny<string>(), It.IsAny<IEnumerable<WorkItemPatchItem>>()))
+            .ReturnsAsync((string projectName, IEnumerable<WorkItemPatchItem> _) => TestPostWorkItems(projectName));
 
         Mock.Setup(srv => srv.ReorderBacklogWorkItemsAsync(It.IsAny<IterationId>(), It.IsAny<ReorderOperation>()))
             .ReturnsAsync((IterationId iteration, ReorderOperation operation) => ReorderBacklogWorkItemsAsync(iteration, operation));
@@ -143,6 +145,18 @@ internal class TestAzureDevOpsServer
         });
 
         return PatchWorkItems(workItem.Id, patchItems);
+    }
+
+    private readonly List<string> _denyProjectNames = [];
+
+    public void RevokeProject(string projectName)
+    {
+        _denyProjectNames.Add(projectName);
+    }
+
+    private bool TestPostWorkItems(string projectName)
+    {
+        return projectName.IsNotIn(_denyProjectNames);
     }
 
     public bool RequireRecordLocking { get; set; } = true;
@@ -334,6 +348,4 @@ internal class TestAzureDevOpsServer
 
 
     public IAzureDevOpsServer AsInterface() => Mock.Object;
-
-
 }
