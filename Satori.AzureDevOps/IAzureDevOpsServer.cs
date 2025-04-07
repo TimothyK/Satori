@@ -23,10 +23,18 @@ public interface IAzureDevOpsServer
     /// <summary>
     /// Creates a new Task
     /// </summary>
-    /// <param name="project"></param>
+    /// <param name="projectName"></param>
     /// <param name="items"></param>
     /// <returns></returns>
     Task<WorkItem> PostWorkItemAsync(string projectName, IEnumerable<WorkItemPatchItem> items);
+
+    /// <summary>
+    /// Tests if a user has permission to create a work item
+    /// </summary>
+    /// <param name="projectName"></param>
+    /// <param name="items"></param>
+    /// <returns></returns>
+    Task<bool> TestPostWorkItemAsync(string projectName, IEnumerable<WorkItemPatchItem> items);
 
     Task<Team[]> GetTeamsAsync();
     Task<Iteration?> GetCurrentIterationAsync(Team team);
@@ -43,7 +51,7 @@ public interface IAzureDevOpsServer
     /// https://learn.microsoft.com/en-us/rest/api/azure/devops/work/workitemsorder/reorder-backlog-work-items?view=azure-devops-rest-6.0&tabs=HTTP
     /// </para>
     /// </remarks>
-    ReorderResult[] ReorderBacklogWorkItems(IterationId iteration, ReorderOperation operation);
+    Task<ReorderResult[]> ReorderBacklogWorkItemsAsync(IterationId iteration, ReorderOperation operation);
 
     Task<Guid> GetCurrentUserIdAsync();
 

@@ -4,6 +4,7 @@
 @using Satori.AppServices.Models
 @using Satori.AppServices.Services.Abstractions
 @using Satori.AppServices.ViewModels
+@using Satori.AppServices.ViewModels.WorkItems
 @using Satori.Utilities
 @using Toolbelt.Blazor.HotKeys2
 @attribute [StreamRendering]
@@ -89,7 +90,7 @@ else
                             @(workItem.Sprint == null ? string.Empty : TeamSelection.TeamSelectedClassName[workItem.Sprint.TeamId])
                             @(PriorityAdjustment.WorkItemSelectedClassName[workItem.Id])
                     "
-                    @onclick="() => PriorityAdjustment.SetMoveTo(workItem)">
+                    @onclick="e => PriorityAdjustment.SetMoveTo(workItem, e)">
                         <td class="cell-link" @onclick="() => OpenWorkItemAsync(workItem)" title="Open D#@(workItem.Id)">
                             <div style="display: flex;">
                                 <div class="workitem-id @workItem.StatusCssClass">
@@ -212,7 +213,7 @@ else
             <div style="display: flex;">
                 <span>Move To:</span>
                 <label class="switch" style="margin: 0px 5px 0px;">
-                    <input type="checkbox" checked="@(PriorityAdjustment.TargetRelation == PriorityAdjustmentViewModel.RelativePosition.Below)" @oninput="PriorityAdjustment.ToggleMoveBelow">
+                    <input type="checkbox" checked="@(PriorityAdjustment.TargetRelation == RelativePosition.Below)" @oninput="PriorityAdjustment.ToggleMoveBelow">
                     <span class="slider round"></span>
                 </label>
                 <span style="font-weight: bold">@PriorityAdjustment.MoveToLabel</span>
@@ -245,7 +246,7 @@ else
         </div>
     </div>
     <div class="dialog-buttonbar">
-        <button type="button" class="btn btn-outline-primary btn-priority" @onclick="MovePriority" title="Move selected items to the new position">Move</button>
+        <button type="button" class="btn btn-outline-primary btn-priority" @onclick="MovePriorityAsync" title="Move selected items to the new position">Move</button>
         <button type="button" class="btn btn-outline-secondary btn-priority" @onclick="PriorityAdjustment.ToggleMode" title="Exit Adjust Priority Mode with no changes">Cancel</button>
     </div>
 </div>

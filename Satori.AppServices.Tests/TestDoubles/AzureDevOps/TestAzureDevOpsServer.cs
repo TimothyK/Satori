@@ -96,6 +96,11 @@ internal class TestAzureDevOpsServer
 
         Mock.Setup(srv => srv.PostWorkItemAsync(It.IsAny<string>(), It.IsAny<IEnumerable<WorkItemPatchItem>>()))
             .ReturnsAsync((string projectName, IEnumerable<WorkItemPatchItem> items) => PostWorkItems(projectName, items));
+        Mock.Setup(srv => srv.TestPostWorkItemAsync(It.IsAny<string>(), It.IsAny<IEnumerable<WorkItemPatchItem>>()))
+            .ReturnsAsync((string projectName, IEnumerable<WorkItemPatchItem> _) => TestPostWorkItems(projectName));
+
+        Mock.Setup(srv => srv.ReorderBacklogWorkItemsAsync(It.IsAny<IterationId>(), It.IsAny<ReorderOperation>()))
+            .ReturnsAsync((IterationId iteration, ReorderOperation operation) => ReorderBacklogWorkItemsAsync(iteration, operation));
 
         return;
         IdMap[] GetWorkItemMap(PullRequestId pullRequest)
@@ -142,6 +147,20 @@ internal class TestAzureDevOpsServer
         return PatchWorkItems(workItem.Id, patchItems);
     }
 
+    private readonly List<string> _denyProjectNames = [];
+
+    public void RevokeProject(string projectName)
+    {
+        _denyProjectNames.Add(projectName);
+    }
+
+    private bool TestPostWorkItems(string projectName)
+    {
+        return projectName.IsNotIn(_denyProjectNames);
+    }
+
+    public bool RequireRecordLocking { get; set; } = true;
+
     private WorkItem PatchWorkItems(int id, IEnumerable<WorkItemPatchItem> items)
     {
         var workItem = _database.GetWorkItemsById(id.Yield()).SingleOrDefault()
@@ -164,7 +183,10 @@ internal class TestAzureDevOpsServer
             }
         }
 
-        revWasTested.ShouldBeTrue();
+        if (RequireRecordLocking)
+        {
+            revWasTested.ShouldBeTrue();
+        }
         if (original != JsonSerializer.Serialize(workItem))
         {
             workItem.Rev++;
@@ -278,7 +300,52 @@ internal class TestAzureDevOpsServer
         return segments.Last().TrimEnd('/');
     }
 
+    private ReorderResult[] ReorderBacklogWorkItemsAsync(IterationId iteration, ReorderOperation operation)
+    {
+        Console.WriteLine($"Act: AzDO.ReorderBacklogWorkItems: For {iteration.TeamName} moving {string.Join(", ", operation.Ids)} between {operation.PreviousId} & {operation.NextId}");
+
+        var workItems = _database.GetWorkItems().ToArray();
+
+        AssertIteration(iteration, operation, workItems);
+
+        var previousPosition = workItems.SingleOrDefault(wi => wi.Id == operation.PreviousId)?.Fields.BacklogPriority ?? 0.0;
+        var nextPosition = workItems.SingleOrDefault(wi => wi.Id == operation.NextId)?.Fields.BacklogPriority
+                           ?? workItems.Select(wi => wi.Fields.BacklogPriority).Max() + 100.0;
+
+        if (previousPosition >= nextPosition)
+        {
+            throw new InvalidOperationException("Position of items is invalid");
+        }
+
+        var gap = (nextPosition - previousPosition) / (operation.Ids.Length + 1);
+
+        var results = new List<ReorderResult>();
+        var position = previousPosition;
+        foreach (var workItemId in operation.Ids)
+        {
+            position += gap;
+            results.Add(new ReorderResult() { Id = workItemId, Order = position });
+
+            var workItem = workItems.SingleOrDefault(wi => wi.Id == workItemId) ?? throw new InvalidOperationException("Work Item not found");
+            workItem.Fields.BacklogPriority = position;
+        }
+
+        Console.WriteLine($"Act: AzDO.ReorderBacklogWorkItems: For {iteration.TeamName} moved {string.Join(", ", results.Select(r => $"{r.Id}({r.Order:N2})"))}");
+
+        return results.ToArray();
+    }
+
+    private static void AssertIteration(IterationId iteration, ReorderOperation operation, WorkItem[] allWorkItems)
+    {
+        
+        var movingWorkItems = allWorkItems
+            .Where(wi => wi.Id.IsIn(operation.Ids))
+            .ToArray();
+
+        movingWorkItems.ShouldAllBe(wi => wi.Fields.ProjectName == iteration.ProjectName);
+        movingWorkItems.ShouldAllBe(wi => wi.Fields.IterationPath == iteration.IterationPath);
+    }
+
+
     public IAzureDevOpsServer AsInterface() => Mock.Object;
-
-
 }

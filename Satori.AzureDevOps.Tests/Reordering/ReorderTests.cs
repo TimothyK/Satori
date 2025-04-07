@@ -31,7 +31,7 @@ public class ReorderTests
 
     #region Act
 
-    private ReorderResult[] Reorder(IterationId iteration, ReorderOperation operation, RootObject<ReorderResult> expected)
+    private async Task<ReorderResult[]> ReorderAsync(IterationId iteration, ReorderOperation operation, RootObject<ReorderResult> expected)
     {
         //Arrange
         operation.IterationPath = iteration.IterationPath;
@@ -41,7 +41,7 @@ public class ReorderTests
         
         var srv = Globals.Services.Scope.Resolve<IAzureDevOpsServer>();
         //Act
-        return srv.ReorderBacklogWorkItems(iteration, operation);
+        return await srv.ReorderBacklogWorkItemsAsync(iteration, operation);
     }
 
     #endregion Act
@@ -49,7 +49,7 @@ public class ReorderTests
     #endregion Helpers
 
     [TestMethod]
-    public void ASmokeTest()
+    public async Task ASmokeTest()
     {
         //Arrange
         var iteration = Builder<IterationId>.New().Build();
@@ -61,7 +61,7 @@ public class ReorderTests
         };
 
         //Act
-        var actual = Reorder(iteration, operation, expected);
+        var actual = await ReorderAsync(iteration, operation, expected);
 
         //Assert
         actual.Length.ShouldBe(1);

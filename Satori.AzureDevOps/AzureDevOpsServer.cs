@@ -97,10 +97,27 @@ public class AzureDevOpsServer(
         return [.. results];
     }
 
-    public async Task<WorkItem> PostWorkItemAsync(string projectName, IEnumerable<WorkItemPatchItem> items) =>
-        await PostWorkItemAsync(projectName, items as WorkItemPatchItem[] ?? items.ToArray());
+    public async Task<bool> TestPostWorkItemAsync(string projectName, IEnumerable<WorkItemPatchItem> items) =>
+        await TestPostWorkItemAsync(projectName, items as WorkItemPatchItem[] ?? items.ToArray());
 
-    private async Task<WorkItem> PostWorkItemAsync(string projectName, WorkItemPatchItem[] items)
+    private async Task<bool> TestPostWorkItemAsync(string projectName, WorkItemPatchItem[] items)
+    {
+        try
+        {
+            await PostWorkItemAsync(projectName, items, validateOnly: true);
+        }
+        catch (AzureHttpRequestException ex) when(ex.TypeKey == "PermissionDeniedException")
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public async Task<WorkItem> PostWorkItemAsync(string projectName, IEnumerable<WorkItemPatchItem> items) =>
+        await PostWorkItemAsync(projectName, items as WorkItemPatchItem[] ?? items.ToArray(), validateOnly: false);
+
+    private async Task<WorkItem> PostWorkItemAsync(string projectName, WorkItemPatchItem[] items, bool validateOnly)
     {
         var url = ConnectionSettings.Url
             .AppendPathSegment(projectName)
@@ -108,6 +125,10 @@ public class AzureDevOpsServer(
             .AppendPathSegment("$Task")
             .AppendQueryParam("$expand", "all")
             .AppendQueryParam("api-version", "6.0");
+        if (validateOnly)
+        {
+            url = url.AppendQueryParam("validateOnly", true);
+        }
 
         using (Logger.BeginScope("{Body}", JsonSerializer.Serialize(items)))
             Logger.LogInformation("POST {Url}", url);
@@ -215,7 +236,7 @@ public class AzureDevOpsServer(
         return root.WorkItemRelations;
     }
 
-    public ReorderResult[] ReorderBacklogWorkItems(IterationId iteration, ReorderOperation operation)
+    public async Task<ReorderResult[]> ReorderBacklogWorkItemsAsync(IterationId iteration, ReorderOperation operation)
     {
         var url = ConnectionSettings.Url
             .AppendPathSegments(iteration.ProjectName, iteration.TeamName)
@@ -225,18 +246,19 @@ public class AzureDevOpsServer(
             .AppendQueryParam("api-version", "6.0-preview.1");
         operation.IterationPath = iteration.IterationPath;
 
-        using (Logger.BeginScope("{ReorderOperation}", JsonSerializer.Serialize(operation)))
+        var payloadBody = JsonSerializer.Serialize(operation);
+        using (Logger.BeginScope("{ReorderOperation}", payloadBody))
             Logger.LogInformation("PATCH {Url}", url);
 
         var request = new HttpRequestMessage(HttpMethod.Patch, url);
         AddAuthHeader(request);
 
-        request.Content = new StringContent(JsonSerializer.Serialize(operation), Encoding.UTF8, "application/json");
+        request.Content = new StringContent(payloadBody, Encoding.UTF8, "application/json");
 
-        var response = httpClient.Send(request);
-        VerifySuccessfulResponseAsync(response).Wait();
+        var response = await httpClient.SendAsync(request);
+        await VerifySuccessfulResponseAsync(response);
 
-        using var responseStream = response.Content.ReadAsStream();
+        await using var responseStream = await response.Content.ReadAsStreamAsync();
         var root = JsonSerializer.Deserialize<RootObject<ReorderResult>>(responseStream)
             ?? throw new ApplicationException("Server did not respond");
 

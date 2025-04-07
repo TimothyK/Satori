@@ -56,10 +56,27 @@ public class SprintBoardService(
                 return;
             }
 
+            var hasPermission = await HasWritePermissionAsync(iteration, team);
+            if (!hasPermission)
+            {
+                return;
+            }
+
             iterations.Add((team, iteration));
         });
 
         return iterations;
+    }
+
+    private async Task<bool> HasWritePermissionAsync(Iteration iteration, Team team)
+    {
+        IEnumerable<WorkItemPatchItem> patches =
+        [
+            new() {Operation = Operation.Add, Path = "/fields/System.Title", Value = "TestTask"},
+            new() {Operation = Operation.Add, Path = "/fields/System.IterationPath", Value = iteration.Path}
+        ];
+        var hasPermissions = await azureDevOpsServer.TestPostWorkItemAsync(team.ProjectName, patches);
+        return hasPermissions;
     }
 
     private static Sprint ToViewModel(Team team, Iteration iteration)
@@ -172,55 +189,50 @@ public class SprintBoardService(
 
     #region ReorderWorkItems
 
-    public void ReorderWorkItems(ReorderRequest request)
+    public async Task ReorderWorkItemsAsync(ReorderRequest request)
     {
-        if (request.WorkItemIdsToMove.Length == 0)
+        if (request.WorkItemsToMove.Length == 0)
         {
             throw new InvalidOperationException("Work Items must be selected to be moved");
         }
 
-        var orderByDirection = request.TargetBelow ? OrderByDirection.Ascending : OrderByDirection.Descending;
+        var orderByDirection = request.RelativeToTarget == RelativePosition.Below ? OrderByDirection.Ascending : OrderByDirection.Descending;
         var allWorkItems = request.AllWorkItems.OrderBy(wi => wi.AbsolutePriority, orderByDirection).ToArray();
 
+        var nextWorkItem = request.Target ?? allWorkItems.Last();
+        var previousWorkItem = allWorkItems.SkipUntil(wi => wi == request.Target).Take(1).FirstOrDefault();
         var operation = new ReorderOperation
         {
-            PreviousId = (request.Target ?? allWorkItems.Last()).Id,
-            NextId = allWorkItems.SkipUntil(wi => wi == request.Target).Take(1).FirstOrDefault()?.Id ?? 0,
-            Ids = request.WorkItemIdsToMove
+            PreviousId = nextWorkItem.Id,
+            NextId = previousWorkItem?.Id ?? 0,
+            Ids = request.WorkItemsToMove.Select(wi => wi.Id).ToArray()
         };
-
-        if (!request.TargetBelow)
+        if (request.RelativeToTarget == RelativePosition.Above)
         {
             (operation.PreviousId, operation.NextId) = (operation.NextId, operation.PreviousId);
         }
 
-        var movingItems = request.AllWorkItems.Where(wi => wi.Id.IsIn(request.WorkItemIdsToMove)).OrderBy(wi => wi.AbsolutePriority).ToArray();
-
-        do
+        var engine = new SprintTemporaryReassignmentEngine(azureDevOpsServer);
+        engine.Add(request.WorkItemsToMove);
+        engine.Add(previousWorkItem);
+        await using (await engine.ReassignAsync(nextWorkItem))
         {
-            var sprint = movingItems.First().Sprint!;
-            var iteration = (IterationId)sprint;
+            var iteration = (IterationId)nextWorkItem.Sprint!;
 
-            var items = movingItems.TakeWhile(wi => wi.Sprint == sprint).ToArray();
-            operation.Ids = items.Select(wi => wi.Id).ToArray();
+            var reorderResults = await azureDevOpsServer.ReorderBacklogWorkItemsAsync(iteration, operation);
 
-            var reorderResults = azureDevOpsServer.ReorderBacklogWorkItems(iteration, operation);
-
-            foreach (var map in reorderResults.Join(movingItems,
+            foreach (var map in reorderResults.Join(request.WorkItemsToMove,
                          reorderResult => reorderResult.Id,
                          movingItem => movingItem.Id,
                          (reorderResult, movingItem) => new { WorkItem = movingItem, reorderResult.Order }))
             {
                 map.WorkItem.AbsolutePriority = map.Order;
             }
-
-            operation.PreviousId = items.Last().Id;
-            movingItems = movingItems.Except(items).OrderBy(wi => wi.AbsolutePriority).ToArray();
-        } while (movingItems.Length > 0);
+        }
 
         var sprintGroups = request.AllWorkItems
             .GroupBy(wi => wi.Sprint!)
-            .Where(g => g.Any(wi => wi.Id.IsIn(request.WorkItemIdsToMove)));
+            .Where(g => g.Any(wi => wi.IsIn(request.WorkItemsToMove)));
         foreach (var sprintWorkItems in sprintGroups)
         {
             SetSprintPriority(sprintWorkItems);

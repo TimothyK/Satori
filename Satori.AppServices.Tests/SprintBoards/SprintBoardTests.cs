@@ -322,6 +322,35 @@ public class SprintBoardTests
 
     #endregion
 
+    #region Permissions
+
+    /// <summary>
+    /// The Sprint Board should not show teams that the user does not have permissions to write work items to.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Write Work Item permission would be required in order to adjust priorities across teams.
+    /// Azure DevOps only allows adjusting priorities within a team.
+    /// To support adjusting priorities across teams, work items get temporarily moved to one team.
+    /// That requires Write permission.
+    /// </para>
+    /// </remarks>
+    [TestMethod]
+    public void MissingPermission_NotReturned()
+    {
+        //Arrange
+        BuildIteration(out var team);
+        _azureDevOpsServer.RevokeProject(team.ProjectName);
+
+        //Act
+        var sprints = GetSprints();
+
+        //Assert
+        sprints.ShouldBeEmpty();
+    }
+
+    #endregion Permissions
+
     #region ConnectionErrors
 
     [TestMethod]

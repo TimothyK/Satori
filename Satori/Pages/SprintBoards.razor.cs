@@ -2,6 +2,7 @@
 using CodeMonkeyProjectiles.Linq;
 using Flurl;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.ViewModels;
@@ -53,7 +54,7 @@ public partial class SprintBoards
             HotKeys.CreateContext()
                 .Add(ModCode.Alt, Code.P, EnterAdjustPriorityMode, new HotKeyOptions { Description = "Adjust Priorities" })
                 .Add(ModCode.None, Code.Escape, ExitAdjustPriorityMode, new HotKeyOptions { Description = "Exit Adjust Priorities" })
-                .Add(ModCode.None, Code.Enter, MovePriority, new HotKeyOptions { Description = "Adjust Priorities" });
+                .Add(ModCode.None, Code.Enter, MovePriorityAsync, new HotKeyOptions { Description = "Adjust Priorities" });
         }
 
         if (_isInitialized)
@@ -211,7 +212,7 @@ public partial class SprintBoards
         }
     }
 
-    private void MovePriority()
+    private async Task MovePriorityAsync()
     {
         if (PriorityAdjustment.ShowEnterModeClassName)
         {
@@ -228,7 +229,7 @@ public partial class SprintBoards
 
         try
         {
-            SprintBoardService.ReorderWorkItems(PriorityAdjustment.Request);
+            await SprintBoardService.ReorderWorkItemsAsync(PriorityAdjustment.Request);
             PriorityAdjustment.ToggleMode();
         }
         catch (Exception ex)
@@ -428,22 +429,15 @@ internal class PriorityAdjustmentViewModel
 
     public ReorderRequest Request => new(
         _workItems, 
-        SelectedWorkItems.Select(wi => wi.Id).ToArray(), 
-        TargetRelation == RelativePosition.Below, 
+        SelectedWorkItems.ToArray(), 
+        TargetRelation, 
         Target);
 
 
     #region Current Mode
 
-    public VisibleCssClass ShowEnterModeClassName { get; private set; } = PriorityFeatureFlag;
+    public VisibleCssClass ShowEnterModeClassName { get; private set; } = VisibleCssClass.Visible;
     public VisibleCssClass ShowExitModeClassName { get; private set; } = VisibleCssClass.Hidden;
-
-    //TODO: Priority adjustments isn't 100% implemented yet.  Hidden by compiler DEBUG flag.
-#if DEBUG
-    private static readonly VisibleCssClass PriorityFeatureFlag = VisibleCssClass.Visible;
-#else
-        private static readonly VisibleCssClass PriorityFeatureFlag = VisibleCssClass.Hidden;
-#endif
 
     public void ToggleMode()
     {
@@ -560,11 +554,12 @@ internal class PriorityAdjustmentViewModel
         TargetRelation = TargetRelation == RelativePosition.Below ? RelativePosition.Above : RelativePosition.Below;
     }
 
-    public void SetMoveTo(WorkItem workItem)
+    public void SetMoveTo(WorkItem workItem, MouseEventArgs e)
     {
         if (workItem.IsNotIn(SelectedWorkItems))
         {
             Target = workItem;
+            TargetRelation = e.OffsetY <= 30 ? RelativePosition.Above : RelativePosition.Below;
         }
     }
 
@@ -573,11 +568,6 @@ internal class PriorityAdjustmentViewModel
         Target = null;
     }
 
-    public enum RelativePosition
-    {
-        Above,
-        Below
-    }
 
     #endregion Target
 }

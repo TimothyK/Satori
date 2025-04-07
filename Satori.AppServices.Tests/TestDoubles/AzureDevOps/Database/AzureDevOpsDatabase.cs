@@ -130,6 +130,8 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
             .ToArray();
     }
 
+    public IEnumerable<WorkItem> GetWorkItems() => _workItems;
+
     public IEnumerable<WorkItem> GetWorkItemsById(IEnumerable<int> workItemIds)
     {
         var foundWorkItems = _workItems
