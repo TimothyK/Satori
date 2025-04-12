@@ -94,7 +94,7 @@ else
                         <td class="cell-link" @onclick="() => OpenWorkItemAsync(workItem)" title="Open D#@(workItem.Id)">
                             <div style="display: flex;">
                                 <div class="workitem-id @workItem.StatusCssClass">
-                                    <div>@workItem.Id</div> 
+                                    <div class="work-item-id">@workItem.Id</div>
                                     <div>
                                         <button type="button" class="btn btn-outline-success btn-priority btn-priority-select @PriorityAdjustment.ShowSelectWorkItemClassName[workItem.Id]" @onclick="() => PriorityAdjustment.AddSelectedWorkItem(workItem)" title="Select this item to adjust its priority">✔️</button>
                                         <button type="button" class="btn btn-outline-danger btn-priority btn-priority-deselect @PriorityAdjustment.ShowDeselectWorkItemClassName[workItem.Id]" @onclick="() => PriorityAdjustment.RemoveSelectedWorkItem(workItem)" title="Deselect this item so its priority is not adjusted">❌</button>

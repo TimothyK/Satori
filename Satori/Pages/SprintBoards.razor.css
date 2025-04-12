@@ -68,10 +68,7 @@
     text-decoration: none;
     cursor: pointer;
 }
-.workitem-id {
-    margin-right: 5px;
-    font-weight: bold;
-}
+
 .workitem-title {
     margin-left: 5px;
 }
