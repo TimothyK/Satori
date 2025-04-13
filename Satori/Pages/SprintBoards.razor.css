@@ -58,6 +58,17 @@
     font-size: 0.7em;
 }
 
+.project-code {
+    text-align: left;
+    font-size: 0.7em;
+}
+
+.project-code::before {
+    content: "P#";
+    font-size: 0.75em;
+    vertical-align: top;
+}
+
 .work-item-row.filter-hidden {
     display: none;
 }
