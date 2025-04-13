@@ -217,54 +217,6 @@ td.status-done {
     content: "⛔\00a0 Blocked" /* \00a0 is for &nbsp;*/
 }
 
-.bi {
-    display: inline-block;
-    position: relative;
-    width: 1.0em;
-    height: 1.0em;
-    background-size: cover;
-}
-
-.bi-refresh {
-    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-arrow-clockwise" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/></svg>');
-}
-.btn-header {
-    background-color: #00A6ED;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-.btn-refresh {
-    margin: 5px;
-    padding-top: 5px;
-    font-size: 16px;
-    position: relative;
-    display: inline-block;
-}
-.btn-refresh:hover {
-    background-color: #0096D6;
-}
-.btn-refresh.in-loading::before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 12px;
-    height: 2px;
-    background-color: white;
-    transform-origin: 0% 50%;
-    animation: rotate-clock-hand 1s linear infinite;
-}
-
-@keyframes rotate-clock-hand {
-    from {
-        transform: rotate(0deg) translate(-50%, -50%);
-    }
-
-    to {
-        transform: rotate(360deg) translate(-50%, -50%);
-    }
-}
 /* Slider - https://www.w3schools.com/howto/howto_css_switch.asp, https://stackoverflow.com/questions/70590125/how-to-change-the-size-of-a-css-toggle-switch */
 * {
 --switch-height: 20px;
