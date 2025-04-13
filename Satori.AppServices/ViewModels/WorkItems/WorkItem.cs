@@ -1,4 +1,5 @@
-﻿using Satori.AppServices.ViewModels.Sprints;
+﻿using Satori.AppServices.ViewModels.PullRequests;
+using Satori.AppServices.ViewModels.Sprints;
 
 namespace Satori.AppServices.ViewModels.WorkItems;
 
@@ -69,6 +70,7 @@ public class WorkItem
 
     public WorkItem? Parent { get; set; }
     public List<WorkItem> Children { get; init; } = [];
+    public List<PullRequest> PullRequests { get; init; } = [];
     public Sprint? Sprint { get; set; }
     public int? SprintPriority { get; set; }
     public double AbsolutePriority { get; internal set; }

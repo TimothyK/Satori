@@ -3,6 +3,7 @@ using Flurl;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps.Models;
+using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.Services.Converters;
@@ -54,9 +55,35 @@ public static class WorkItemExtensions
                 .AppendPathSegment(id),
             ApiUrl = wi.Url,
             Children = GetChildren(wi.Relations),
+            PullRequests = GetPullRequests(wi.Relations),
         };
 
         return workItem;
+    }
+
+    private static List<PullRequest> GetPullRequests(List<WorkItemRelation> relations)
+    {
+        var prRelations = relations.Where(r => r.RelationType == "ArtifactLink" && r.Attributes["name"]?.ToString() == "Pull Request");
+        return prRelations.Select(CreatePullRequestPlaceholder).ToList();
+
+    }
+
+    private static PullRequest CreatePullRequestPlaceholder(WorkItemRelation relation)
+    {
+        var prParts = relation.Url.Split('/').Last().Split("%2F");
+
+        return new PullRequest
+        {
+            Project = prParts[0],
+            RepositoryName = prParts[1],
+            Id = int.Parse(prParts[2]),
+            Title = $"PR#{prParts[2]}",
+            Url = relation.Url,
+            CreatedBy = Person.Empty,
+            Reviews = [],
+            WorkItems = [],
+            Labels = [],
+        };
     }
 
     private static List<WorkItem> GetChildren(List<WorkItemRelation> relations)
