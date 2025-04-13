@@ -27,12 +27,35 @@
 .btn-refresh {
     margin: 5px;
     padding-top: 5px;
-}
-.btn-date-range {
-    margin: 5px;
+    position: relative;
+    display: inline-block;
 }
 .btn-refresh:hover {
     background-color: #0096D6;
+}
+.btn-refresh.in-loading::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 12px;
+    height: 2px;
+    background-color: white;
+    transform-origin: 0% 50%;
+    animation: rotate-clock-hand 1s linear infinite;
+}
+@keyframes rotate-clock-hand {
+    from {
+        transform: rotate(0deg) translate(-50%, -50%);
+    }
+
+    to {
+        transform: rotate(360deg) translate(-50%, -50%);
+    }
+}
+
+.btn-date-range {
+    margin: 5px;
 }
 .btn-date-range:hover {
     background-color: #0096D6;

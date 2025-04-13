@@ -36,11 +36,11 @@
         </div>
     </div>
     <div>
-        <button class="btn-header btn-refresh" title="Refresh (Alt+F5)" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
+        <button class="btn-header btn-refresh @InLoadingCssClass" title="Refresh (Alt+F5)" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
     </div>
     <div class="date-range">
         <div><button class="btn-header btn-date-range" @onclick="DateSelector.DecrementPeriodAsync">«</button></div>
-        <div><span>@InLoading @DateSelector.DateRangeText</span></div>
+        <div><span>@InLoadingLabel @DateSelector.DateRangeText</span></div>
         <div><button class="btn-header btn-date-range" @onclick="DateSelector.IncrementPeriodAsync">»</button></div>
     </div>
     <div class="dropdown" id="collapse-button">
