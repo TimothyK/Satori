@@ -38,7 +38,7 @@ public class WorkItem
                 return "hidden";
             }
 
-            if (State >= ScrumState.Done)
+            if (ScrumState.Done <= State)
             {
                 return "target-date-normal";
             }
