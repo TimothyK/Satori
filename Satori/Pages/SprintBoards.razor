@@ -38,6 +38,9 @@
                 </button>
             </span>
         }
+        <span>
+            <button class="btn-header btn-refresh @InLoading" title="Refresh (Alt+F5)" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
+        </span>
         <span style="float: right;">
             @if (_sprints != null && TeamSelection != null)
             {
