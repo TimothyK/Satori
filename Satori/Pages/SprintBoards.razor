@@ -124,6 +124,10 @@ else
                                     {
                                         <div class="project-code">@workItem.ProjectCode</div>
                                     }
+                                    @if (workItem.TargetDate.HasValue)
+                                    {
+                                        <div class="target-date @workItem.TargetDateCssClass">@workItem.TargetDate.Value.ToLocalTime().ToString("ddd, MMM d HH:mm")</div>
+                                    }
                                     @if (workItem.Blocked)
                                     {
                                         <div class="blocked"></div>

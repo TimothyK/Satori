@@ -75,6 +75,8 @@ public class WorkItemFields
     public string? Triage { get; set; }
     [JsonPropertyName("System.Tags")]
     public string? Tags { get; set; }
+    [JsonPropertyName("Microsoft.VSTS.Scheduling.TargetDate")]
+    public DateTimeOffset? TargetDate { get; set; }
     [JsonPropertyName("Microsoft.VSTS.CMMI.Blocked")]
     [JsonConverter(typeof(YesNoConverter))]
     public bool Blocked { get; set; }

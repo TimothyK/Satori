@@ -874,6 +874,37 @@ public class SprintWorkItemTests
     }
     
     [TestMethod]
+    public void TargetDate_HasValue()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        var now = DateTimeOffset.Now;
+        workItem.Fields.TargetDate = now;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().TargetDate.ShouldBe(now);
+    }
+    
+    [TestMethod]
+    public void TargetDate_Null()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.TargetDate = null;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().TargetDate.ShouldBeNull();
+    }
+    
+    [TestMethod]
     public void Tags_Empty()
     {
         //Arrange

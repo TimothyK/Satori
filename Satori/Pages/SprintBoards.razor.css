@@ -61,10 +61,38 @@
 .project-code {
     text-align: left;
     font-size: 0.7em;
-}
+ }
 
 .project-code::before {
     content: "P#";
+    font-size: 0.75em;
+    vertical-align: top;
+}
+
+.target-date {
+    display: inline-block;
+    padding: 0.25em 0.4em;
+    font-size: 0.75em;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.375rem;
+    
+}
+.target-date-normal {
+    background-color: green;
+}
+.target-date-soon {
+    background-color: orange;
+}
+.target-date-overdue {
+    background-color: red;
+}
+.target-date::before {
+    content: "Due ";
     font-size: 0.75em;
     vertical-align: top;
 }

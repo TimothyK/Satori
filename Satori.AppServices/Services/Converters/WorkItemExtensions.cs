@@ -41,6 +41,7 @@ public static class WorkItemExtensions
             Type = WorkItemType.FromApiValue(wi.Fields.WorkItemType),
             State = ScrumState.FromApiValue(wi.Fields.State),
             Triage = TriageState.FromApiValue(wi.Fields.Triage),
+            TargetDate = wi.Fields.TargetDate,
             Blocked = wi.Fields.Blocked,
             Tags = ParseTags(wi.Fields.Tags),
             OriginalEstimate = wi.Fields.OriginalEstimate.HoursToTimeSpan(),
