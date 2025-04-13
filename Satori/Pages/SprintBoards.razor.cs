@@ -15,7 +15,6 @@ namespace Satori.Pages;
 
 public partial class SprintBoards
 {
-    private static readonly CssClass InLoadingCssClass = new CssClass("in-loading");
     private Sprint[]? _sprints;
     private WorkItem[]? _workItems;
 
@@ -88,6 +87,7 @@ public partial class SprintBoards
         InLoading = CssClass.None;
     }
 
+    private static readonly CssClass InLoadingCssClass = new("in-loading");
     private CssClass InLoading { get; set; } = InLoadingCssClass;
 
     private async Task OpenWorkItemAsync(WorkItem workItem)

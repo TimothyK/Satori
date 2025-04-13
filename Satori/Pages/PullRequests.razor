@@ -4,10 +4,12 @@
 @using Satori.AppServices.Services
 @using CodeMonkeyProjectiles.Linq
 @using Satori.AppServices.Models
+@using Toolbelt.Blazor.HotKeys2
 @inject PullRequestService PullRequestService
 @inject IJSRuntime JsRuntime
 @inject NavigationManager NavigationManager
 @inject IConnectionSettingsStore ConnectionSettingsStore
+@inject HotKeys HotKeys
 
 <PageTitle>Pull Requests - Satori</PageTitle>
 
@@ -16,6 +18,9 @@
     {
         <span class="badge bg-primary">@_pullRequests.Length</span>
     }
+    <span>
+        <button class="btn-header btn-refresh @InLoading" title="Refresh (Alt+F5)" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
+    </span>
 </h3>
 
 @if (_pullRequests == null)

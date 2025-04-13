@@ -1,6 +1,8 @@
 ﻿using Microsoft.JSInterop;
 using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.WorkItems;
+using Satori.Utilities;
+using Toolbelt.Blazor.HotKeys2;
 
 namespace Satori.Pages;
 
@@ -16,6 +18,25 @@ public partial class PullRequests
             NavigationManager.NavigateTo("/");
         }
 
+        await RefreshAsync();
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            HotKeys.CreateContext()
+                .Add(ModCode.Alt, Code.F5, RefreshAsync, new HotKeyOptions { Description = "Refresh" });
+        }
+
+        return base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task RefreshAsync()
+    {
+        InLoading = InLoadingCssClass;
+        StateHasChanged();
+
         _pullRequests = (await PullRequestService.GetPullRequestsAsync()).ToArray();
         StateHasChanged();  //Quickly show the PR list to the user.
 
@@ -25,7 +46,13 @@ public partial class PullRequests
         StateHasChanged();
 
         await PullRequestService.AddWorkItemsToPullRequestsAsync(_pullRequests.Skip(pageSize).ToArray());
+
+        InLoading = CssClass.None;
     }
+
+    private static readonly CssClass InLoadingCssClass = new("in-loading");
+    private CssClass InLoading { get; set; } = InLoadingCssClass;
+
 
     #region Cell Links
 
