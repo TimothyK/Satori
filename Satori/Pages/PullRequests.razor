@@ -4,7 +4,6 @@
 @using Satori.AppServices.Services
 @using CodeMonkeyProjectiles.Linq
 @using Satori.AppServices.Models
-@using Satori.AppServices.ViewModels.WorkItems
 @inject PullRequestService PullRequestService
 @inject IJSRuntime JsRuntime
 @inject NavigationManager NavigationManager
@@ -38,7 +37,7 @@ else
             @foreach (var pullRequest in _pullRequests)
             {
                 <tr style="vertical-align:middle;">
-                    <td class="cell-link" @onclick="() => OpenPullRequest(pullRequest)" title="Open PR#@(pullRequest.Id)">
+                    <td class="cell-link" @onclick="() => OpenPullRequestAsync(pullRequest)" title="Open PR#@(pullRequest.Id)">
                         <div class="pullrequest-cell">
                             <div class="pullrequest-id">@pullRequest.Id</div>
                             <div>
@@ -51,7 +50,7 @@ else
                     <td>
                         @foreach (var workItem in pullRequest.WorkItems)
                         {
-                            <div class="work-item @workItem.Type.CssClass cell-link" @onclick="() => OpenWorkItem(workItem)" title="Open D#@(workItem.Id)">
+                            <div class="work-item @workItem.Type.CssClass cell-link" @onclick="() => OpenWorkItemAsync(workItem)" title="Open D#@(workItem.Id)">
                                 <span class="work-item-id">@workItem.Id</span> @workItem.Title
                             </div>
                         }
@@ -123,42 +122,5 @@ else
             }
         </tbody>
     </table>
-
-}
-
-@code {
-    private PullRequest[]? _pullRequests;
-
-    protected override async Task OnInitializedAsync()
-    {
-        if (!ConnectionSettingsStore.GetAzureDevOpsSettings().Enabled)
-        {
-            // This page shouldn't be accessible if Kimai is disabled.  Go to Home page where AzureDevOps can be configured/enabled.
-            NavigationManager.NavigateTo("/");
-        }
-
-        _pullRequests = (await PullRequestService.GetPullRequestsAsync()).ToArray();
-        StateHasChanged();  //Quickly show the PR list to the user.
-
-        const int pageSize = 20;
-        var topPrs = _pullRequests.Take(pageSize).ToArray();
-        await PullRequestService.AddWorkItemsToPullRequestsAsync(topPrs);
-        StateHasChanged();
-
-        await PullRequestService.AddWorkItemsToPullRequestsAsync(_pullRequests.Skip(pageSize).ToArray());
-    }
-
-    #region Cell Links
-
-    private void OpenPullRequest(PullRequest pullRequest)
-    {
-        JsRuntime.InvokeVoidAsync("open", pullRequest.Url, "_blank");
-    }
-    private void OpenWorkItem(WorkItem workItem)
-    {
-        JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
-    }
-
-    #endregion Cell Links
 
 }
