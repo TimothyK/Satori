@@ -238,14 +238,33 @@ td.status-done {
     margin: 5px;
     padding-top: 5px;
     font-size: 16px;
-}
-.btn-refresh.in-loading {
-    background-color: red;
+    position: relative;
+    display: inline-block;
 }
 .btn-refresh:hover {
     background-color: #0096D6;
 }
+.btn-refresh.in-loading::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 12px;
+    height: 2px;
+    background-color: white;
+    transform-origin: 0% 50%;
+    animation: rotate-clock-hand 1s linear infinite;
+}
 
+@keyframes rotate-clock-hand {
+    from {
+        transform: rotate(0deg) translate(-50%, -50%);
+    }
+
+    to {
+        transform: rotate(360deg) translate(-50%, -50%);
+    }
+}
 /* Slider - https://www.w3schools.com/howto/howto_css_switch.asp, https://stackoverflow.com/questions/70590125/how-to-change-the-size-of-a-css-toggle-switch */
 * {
 --switch-height: 20px;
