@@ -27,6 +27,36 @@ public class WorkItem
     public required WorkItemType Type { get; init; }
     public required ScrumState State { get; set; }
     public TriageState? Triage { get; init; }
+    public DateTimeOffset? TargetDate { get; init; }
+
+    public string TargetDateCssClass
+    {
+        get
+        {
+            if (TargetDate == null)
+            {
+                return "hidden";
+            }
+
+            if (ScrumState.Done <= State)
+            {
+                return "target-date-normal";
+            }
+
+            if (TargetDate.Value < DateTimeOffset.UtcNow)
+            {
+                return "target-date-overdue";
+            }
+
+            if (TargetDate.Value < DateTimeOffset.UtcNow.AddDays(3))
+            {
+                return "target-date-soon";
+            }
+
+            return "target-date-normal";
+        }
+    }
+
     public bool Blocked { get; init; }
     public required List<string> Tags { get; init; }
     public TimeSpan? OriginalEstimate { get; set; }

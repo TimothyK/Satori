@@ -38,6 +38,9 @@
                 </button>
             </span>
         }
+        <span>
+            <button class="btn-header btn-refresh @InLoading" title="Refresh (Alt+F5)" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
+        </span>
         <span style="float: right;">
             @if (_sprints != null && TeamSelection != null)
             {
@@ -93,8 +96,8 @@ else
                     @onclick="e => PriorityAdjustment.SetMoveTo(workItem, e)">
                         <td class="cell-link" @onclick="() => OpenWorkItemAsync(workItem)" title="Open D#@(workItem.Id)">
                             <div style="display: flex;">
-                                <div class="workitem-id @workItem.StatusCssClass">
-                                    <div>@workItem.Id</div> 
+                                <div class="@workItem.StatusCssClass">
+                                    <div class="work-item-id">@workItem.Id</div>
                                     <div>
                                         <button type="button" class="btn btn-outline-success btn-priority btn-priority-select @PriorityAdjustment.ShowSelectWorkItemClassName[workItem.Id]" @onclick="() => PriorityAdjustment.AddSelectedWorkItem(workItem)" title="Select this item to adjust its priority">✔️</button>
                                         <button type="button" class="btn btn-outline-danger btn-priority btn-priority-deselect @PriorityAdjustment.ShowDeselectWorkItemClassName[workItem.Id]" @onclick="() => PriorityAdjustment.RemoveSelectedWorkItem(workItem)" title="Deselect this item so its priority is not adjusted">❌</button>
@@ -120,6 +123,14 @@ else
                                         </div>
                                     </div>
                                     <div class="work-item-status">@workItem.StatusLabel</div>
+                                    @if (!string.IsNullOrWhiteSpace(workItem.ProjectCode))
+                                    {
+                                        <div class="project-code">@workItem.ProjectCode</div>
+                                    }
+                                    @if (workItem.TargetDate.HasValue)
+                                    {
+                                        <div class="target-date @workItem.TargetDateCssClass">@workItem.TargetDate.Value.ToLocalTime().ToString("ddd, MMM d HH:mm")</div>
+                                    }
                                     @if (workItem.Blocked)
                                     {
                                         <div class="blocked"></div>

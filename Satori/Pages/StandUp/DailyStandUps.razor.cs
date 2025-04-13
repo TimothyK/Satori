@@ -4,9 +4,10 @@ using Satori.AppServices.Services;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using System.Timers;
-using Microsoft.AspNetCore.Components;
 using Microsoft.VisualStudio.Threading;
 using Timer = System.Timers.Timer;
+using Toolbelt.Blazor.HotKeys2;
+using Satori.Utilities;
 
 namespace Satori.Pages.StandUp;
 
@@ -18,7 +19,21 @@ public partial class DailyStandUps
     private Timer? RunningTimeEntryTimer { get; set; } 
     private TimeEntry? RunningTimeEntry { get; set; }
 
-    private LoadingStatusLabel InLoading { get; set; } = LoadingStatusLabel.InLoading;
+    private bool _inLoading = true;
+
+    private bool InLoading
+    {
+        get => _inLoading;
+        set
+        {
+            _inLoading = value;
+            InLoadingLabel = value ? LoadingStatusLabel.InLoading : LoadingStatusLabel.FinishedLoading;
+            InLoadingCssClass = value ? new CssClass("in-loading") : CssClass.None;
+        }
+    }
+
+    private CssClass InLoadingCssClass { get; set; } = new("in-loading");
+    private LoadingStatusLabel InLoadingLabel { get; set; } = LoadingStatusLabel.InLoading;
 
     protected override async Task OnInitializedAsync()
     {
@@ -49,6 +64,9 @@ public partial class DailyStandUps
     {
         if (firstRender)
         {
+            HotKeys.CreateContext()
+                .Add(ModCode.Alt, Code.F5, RefreshAsync, new HotKeyOptions { Description = "Refresh" });
+
             var period = await LocalStorage.GetItemAsync<Period>("DatePeriod");
             CurrentPeriod = period;
             await DateSelector.ChangePeriodAsync(period);
@@ -59,7 +77,7 @@ public partial class DailyStandUps
     private Period CurrentPeriod { get; set; }
     private async Task DateChangingAsync(object? sender, EventArgs eventArgs)
     {
-        InLoading = LoadingStatusLabel.InLoading;
+        InLoading = true;
         Period = PeriodSummary.CreateEmpty();
 
         if (CurrentPeriod == DateSelector.Period)
@@ -78,7 +96,8 @@ public partial class DailyStandUps
 
     private async Task RefreshAsync()
     {
-        InLoading = LoadingStatusLabel.InLoading;
+        InLoading = true;
+        StateHasChanged();
         await DateSelector.RefreshAsync();
     }
 
@@ -88,7 +107,7 @@ public partial class DailyStandUps
 
         StartRunningTaskTimer();
 
-        InLoading = LoadingStatusLabel.FinishedLoading;
+        InLoading = false;
     }
 
     private void StartRunningTaskTimer()

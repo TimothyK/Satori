@@ -170,6 +170,10 @@ public class WorkItemTests
     public void Priority() => SingleWorkItem().Fields.Priority.ShouldBe(2);
 
     [TestMethod]
+    public void TargetDate() => SingleWorkItem().Fields.TargetDate
+        .ShouldBe(new DateTimeOffset(2025, 4, 14, 6, 0, 0, TimeSpan.Zero));
+
+    [TestMethod]
     public void BacklogPriority() => SingleWorkItem().Fields.BacklogPriority.ShouldBe(27103990.0);
 
     [TestMethod]
