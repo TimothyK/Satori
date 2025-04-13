@@ -4,9 +4,9 @@ using Satori.AppServices.Services;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.DailyStandUps;
 using System.Timers;
-using Microsoft.AspNetCore.Components;
 using Microsoft.VisualStudio.Threading;
 using Timer = System.Timers.Timer;
+using Toolbelt.Blazor.HotKeys2;
 
 namespace Satori.Pages.StandUp;
 
@@ -49,6 +49,9 @@ public partial class DailyStandUps
     {
         if (firstRender)
         {
+            HotKeys.CreateContext()
+                .Add(ModCode.Alt, Code.F5, RefreshAsync, new HotKeyOptions { Description = "Refresh" });
+
             var period = await LocalStorage.GetItemAsync<Period>("DatePeriod");
             CurrentPeriod = period;
             await DateSelector.ChangePeriodAsync(period);
@@ -79,6 +82,7 @@ public partial class DailyStandUps
     private async Task RefreshAsync()
     {
         InLoading = LoadingStatusLabel.InLoading;
+        StateHasChanged();
         await DateSelector.RefreshAsync();
     }
 

@@ -5,6 +5,7 @@
 @using CodeMonkeyProjectiles.Linq
 @using Satori.AppServices.Models
 @using Satori.Pages.StandUp.Components
+@using Toolbelt.Blazor.HotKeys2
 @attribute [StreamRendering]
 @inject UserService UserService
 @inject StandUpService StandUpService
@@ -12,6 +13,7 @@
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject IConnectionSettingsStore ConnectionSettingsStore
 @inject TimerService TimerService
+@inject HotKeys HotKeys
 
 <PageTitle>Stand-Ups - Satori</PageTitle>
 
@@ -34,7 +36,7 @@
         </div>
     </div>
     <div>
-        <button class="btn-header btn-refresh" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
+        <button class="btn-header btn-refresh" title="Refresh (Alt+F5)" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
     </div>
     <div class="date-range">
         <div><button class="btn-header btn-date-range" @onclick="DateSelector.DecrementPeriodAsync">«</button></div>
