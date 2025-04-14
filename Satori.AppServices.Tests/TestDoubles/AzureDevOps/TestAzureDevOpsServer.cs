@@ -72,6 +72,9 @@ internal class TestAzureDevOpsServer
         Mock.Setup(srv => srv.GetPullRequestsAsync())
             .ReturnsAsync(() => _database.GetPullRequests());
 
+        Mock.Setup(srv => srv.GetPullRequestAsync(It.IsAny<int>()))
+            .ReturnsAsync((int pullRequestId) => _database.GetPullRequest(pullRequestId));
+
         Mock.Setup(srv => srv.GetPullRequestWorkItemIdsAsync(It.IsAny<PullRequestId>()))
             .ReturnsAsync((PullRequestId pr) => GetWorkItemMap(pr));
 

@@ -138,6 +138,10 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
     #region Read Access
 
     public PullRequest[] GetPullRequests() => [.. _pullRequests];
+    
+    public PullRequest GetPullRequest(int id) => 
+        _pullRequests.SingleOrDefault(pr => pr.PullRequestId == id) 
+        ?? throw new InvalidOperationException($"PullRequestId {id} not found");
 
     public IEnumerable<int> GetWorkItemIdsForPullRequestId(int pullRequestId)
     {

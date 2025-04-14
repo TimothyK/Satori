@@ -22,6 +22,7 @@ internal class PullRequestBuilder
         pr.Reviewers = [];
         pr.CreatedBy.ImageUrl = $"http://devops.test/Org/_api/_common/identityImage?id={pr.CreatedBy.Id}";
         pr.Url = $"http://devops.test/Org/{pr.Repository.Project.Name}/_apis/git/repositories/{pr.Repository.Name}/pullRequests/{pr.PullRequestId}";
+        pr.Status = "active";
         return pr;
     }
 

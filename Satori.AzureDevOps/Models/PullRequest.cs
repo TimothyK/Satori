@@ -30,7 +30,7 @@ public class PullRequest
     [JsonPropertyName("mergeId")]
     public Guid MergeId { get; set; }
     [JsonPropertyName("mergeStatus")]
-    public required string MergeStatus { get; set; }
+    public string? MergeStatus { get; set; }
     [JsonPropertyName("pullRequestId")]
     public int PullRequestId { get; set; }
     [JsonPropertyName("repository")]

@@ -9,6 +9,8 @@ using Satori.AzureDevOps.Models;
 using Satori.TimeServices;
 using System.Collections.Concurrent;
 using Satori.AppServices.Services.Abstractions;
+using Satori.AppServices.ViewModels.PullRequests;
+using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using UriParser = Satori.AppServices.Services.Converters.UriParser;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
@@ -186,6 +188,44 @@ public class SprintBoardService(
     }
 
     #endregion GetWorkItemsAsync
+
+    #region GetPullRequests
+
+    public async Task GetPullRequestsAsync(WorkItem[] workItems)
+    {
+        var pullRequestIds = workItems.SelectMany(wi => wi.PullRequests)
+            .Union(workItems.SelectMany(wi => wi.Children).SelectMany(task => task.PullRequests))
+            .Select(pr => pr.Id)
+            .Distinct()
+            .ToArray();
+
+        var pullRequests = new Dictionary<int, PullRequest>();
+        foreach (var pullRequestId in pullRequestIds)
+        {
+            var pr = (await azureDevOpsServer.GetPullRequestAsync(pullRequestId)).ToViewModel();
+            pullRequests.Add(pullRequestId, pr);
+        }
+
+        foreach (var workItem in workItems.Concat(workItems.SelectMany(task => task.Children)))
+        {
+            var i = 0;
+            while (i < workItem.PullRequests.Count)
+            {
+                var pr = pullRequests[workItem.PullRequests[i].Id];
+                if (pr.Status == Status.Abandoned)
+                {
+                    workItem.PullRequests.RemoveAt(i);
+                }
+                else
+                {
+                    workItem.PullRequests[i] = pr;
+                    i++;
+                }
+            }
+        }
+    }
+
+    #endregion GetPullRequests
 
     #region ReorderWorkItems
 

@@ -84,6 +84,9 @@ public partial class SprintBoards
         PriorityAdjustment = new PriorityAdjustmentViewModel(workItems, AlertService);
         _workItems = workItems;
         ResetWorkItemCounts();
+        StateHasChanged();
+
+        await SprintBoardService.GetPullRequestsAsync(workItems);
 
         InLoading = CssClass.None;
     }
