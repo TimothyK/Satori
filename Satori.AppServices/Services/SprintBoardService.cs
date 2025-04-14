@@ -193,19 +193,42 @@ public class SprintBoardService(
 
     public async Task GetPullRequestsAsync(WorkItem[] workItems)
     {
+        var pullRequestIds = GetPullRequestIds(workItems);
+        var pullRequests = await PullRequestsAsync(pullRequestIds);
+        ReplacePullRequests(workItems, pullRequests);
+    }
+
+    private static int[] GetPullRequestIds(WorkItem[] workItems)
+    {
         var pullRequestIds = workItems.SelectMany(wi => wi.PullRequests)
             .Union(workItems.SelectMany(wi => wi.Children).SelectMany(task => task.PullRequests))
             .Select(pr => pr.Id)
             .Distinct()
             .ToArray();
+        return pullRequestIds;
+    }
 
-        var pullRequests = new Dictionary<int, PullRequest>();
-        foreach (var pullRequestId in pullRequestIds)
+    private async Task<Dictionary<int, PullRequest>> PullRequestsAsync(int[] pullRequestIds)
+    {
+        var pullRequests = new ConcurrentBag<PullRequest>();
+        var options = new ParallelOptions() { MaxDegreeOfParallelism = 8 };
+
+        await Parallel.ForEachAsync(pullRequestIds, options, async (prId, token) =>
         {
-            var pr = (await azureDevOpsServer.GetPullRequestAsync(pullRequestId)).ToViewModel();
-            pullRequests.Add(pullRequestId, pr);
-        }
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
 
+            var pr = (await azureDevOpsServer.GetPullRequestAsync(prId)).ToViewModel();
+            pullRequests.Add(pr);
+        });
+
+        return pullRequests.ToDictionary(pr => pr.Id, pr => pr);
+    }
+
+    private static void ReplacePullRequests(WorkItem[] workItems, Dictionary<int, PullRequest> pullRequests)
+    {
         foreach (var workItem in workItems.Concat(workItems.SelectMany(task => task.Children)))
         {
             var i = 0;
