@@ -175,6 +175,10 @@ else
                                     }
                                 </div>
                             }
+                            @foreach (var pullRequest in workItem.PullRequests.OrderBy(pr => pr.Status))
+                            {
+                               <PullRequestView PullRequest="@pullRequest"></PullRequestView>
+                            }
                         </td>
                     </tr>
                 }
