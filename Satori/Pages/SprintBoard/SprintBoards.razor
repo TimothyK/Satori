@@ -151,7 +151,7 @@ else
                         <td>
                             @foreach (var task in workItem.Children.OrderByDescending(wi => wi.State).ThenBy(wi => wi.Id))
                             {
-                                <div class="task-status @task.StatusCssClass cell-link" style="display: flex;" @onclick="() => OpenWorkItemAsync(task)" title="Open D#@(task.Id)">
+                                <div class="work-item @task.Type.CssClass task-status @task.StatusCssClass cell-link" @onclick="() => OpenWorkItemAsync(task)" title="Open D#@(task.Id)">
                                     <div class="avatar-cell">
                                         <img src="@task.AssignedTo.AvatarUrl"
                                         alt="@task.AssignedTo.DisplayName"
