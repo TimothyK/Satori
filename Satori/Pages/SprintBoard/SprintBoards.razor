@@ -86,7 +86,7 @@ else
                 @foreach (var workItem in _workItems.OrderBy(wi => wi.AbsolutePriority))
                 {
                     <tr class="
-                            work-item-row
+                            work-item
                             @workItem.Type.CssClass
                             @workItem.StatusCssClass
                             @((VisibleCssClass) IsWorkItemVisibleForPersonFilter(workItem))
