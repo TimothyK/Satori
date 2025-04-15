@@ -1,6 +1,7 @@
 ﻿@using Satori.AppServices.ViewModels.PullRequests
+@inject IJSRuntime JsRuntime
 
-<div class="work-item work-item-pr">
+<div class="work-item work-item-pr cell-link" @onclick="() => OpenPullRequestAsync(PullRequest)" title="Open PR#@PullRequest.Id)">
     <div class="avatar-cell">
         <img src="@PullRequest.CreatedBy.AvatarUrl"
              alt="@PullRequest.CreatedBy.DisplayName"

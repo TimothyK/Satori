@@ -132,6 +132,12 @@ code {
     color: red;
 }
 
+.cell-link:hover {
+    background-color: #f5f5f5;
+    text-decoration: none;
+    cursor: pointer;
+}
+
 .work-item-id {
     font-weight: bold;
     margin-right: 5px;
