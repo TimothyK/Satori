@@ -29,3 +29,12 @@
 .badge.bg-draft {
     font-size: 0.75rem;
 }
+
+.status-done {
+    background-color: #ECF9EC;
+    opacity: 0.5;
+    font-size: 0.7em;
+}
+.status-done:hover {
+    opacity: 1.0;
+}
