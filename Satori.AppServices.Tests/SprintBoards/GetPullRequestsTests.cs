@@ -2,6 +2,7 @@
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
+using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
 using Shouldly;
@@ -126,7 +127,7 @@ public class GetPullRequestsTests
         var sprint = BuildSprint();
         _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
         _builder.BuildPullRequest(out var pullRequest).WithWorkItem(workItem);
-        pullRequest.Status = "abandoned";
+        pullRequest.Status = Status.Abandoned.ToApiValue();
 
         //Act
         var workItems = await GetWorkItemsAsync(sprint);

@@ -27,11 +27,7 @@ internal static class PullRequestExtensions
             Title = pr.Title,
             RepositoryName = repositoryName,
             Project = projectName,
-            Status = pr.IsDraft ? Status.Draft 
-                : pr.Status == "active" ? Status.Open
-                : pr.Status == "completed" ? Status.Complete
-                : pr.Status == "abandoned" ? Status.Abandoned
-                : throw new NotSupportedException($"Unknown PR Status on PR#{id}: {pr.Status}"),
+            Status = pr.IsDraft ? Status.Draft : Status.FromApiValue(pr.Status),
             AutoComplete = !string.IsNullOrEmpty(pr.CompletionOptions?.MergeCommitMessage),
             CreationDate = pr.CreationDate,
             CreatedBy = pr.CreatedBy,

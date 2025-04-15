@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Flurl;
 using Satori.AppServices.ViewModels;
+using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps.Models;
 using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
@@ -78,6 +79,7 @@ public static class WorkItemExtensions
             RepositoryName = prParts[1],
             Id = int.Parse(prParts[2]),
             Title = $"PR#{prParts[2]}",
+            Status = Status.Open,
             Url = relation.Url,
             CreatedBy = Person.Empty,
             Reviews = [],
