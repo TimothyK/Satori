@@ -11,3 +11,6 @@
     font-size: 0.75em;
     vertical-align: top;
 }
+.badge.bg-draft {
+    font-size: 0.75rem;
+}

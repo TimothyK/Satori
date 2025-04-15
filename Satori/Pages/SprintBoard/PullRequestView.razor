@@ -1,4 +1,6 @@
-﻿<div class="work-item work-item-pr">
+﻿@using Satori.AppServices.ViewModels.PullRequests
+
+<div class="work-item work-item-pr">
     <div class="avatar-cell">
         <img src="@PullRequest.CreatedBy.AvatarUrl"
              alt="@PullRequest.CreatedBy.DisplayName"
@@ -6,5 +8,34 @@
     </div>
     <span class="pull-request-id">
         @PullRequest.Id
-    </span> - @PullRequest.Title
+    </span>
+    <div>@PullRequest.Title</div>
+    <div class="avatar-row">
+        @if (@PullRequest.Status == Status.Draft)
+        {
+            <div>
+                <span class="badge bg-warning bg-draft">Draft</span>
+            </div>
+        }
+        @foreach (var review in @PullRequest.Reviews.OrderByDescending(r => r.IsRequired))
+        {
+            <div class="avatar-cell @(review.IsRequired ? "" : "review-optional")">
+                <img src="@review.Reviewer.AvatarUrl"
+                     alt="@(review.IsRequired ? "" : "Optional:") @review.Reviewer.DisplayName"
+                     title="@(review.IsRequired ? "" : "Optional:") @review.Reviewer.DisplayName"/>
+                @if (review.Vote >= ReviewVote.ApprovedWithSuggestions)
+                {
+                    <span class="vote vote-approved"></span>
+                }
+                @if (review.Vote is ReviewVote.WaitingForAuthor)
+                {
+                    <span class="vote vote-wait"></span>
+                }
+                @if (review.Vote == ReviewVote.Rejected)
+                {
+                    <span class="vote vote-rejected"></span>
+                }
+            </div>
+        }
+    </div>
 </div>
