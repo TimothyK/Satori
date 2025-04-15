@@ -3,16 +3,6 @@
     justify-content: flex-start;
 }
 
-.avatar-cell {
-    position: relative;
-    text-align: left;
-    margin-right: 8px;
-}
-.avatar-cell img {
-    width: 24px;
-    height: 24px;
-}
-
 #filterMe {
     margin-left: 10px;
 }

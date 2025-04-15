@@ -94,9 +94,9 @@ a, .btn-link {
     inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
 }
 
-    .loading-progress-text:after {
-        content: var(--blazor-load-percentage-text, "Loading");
-    }
+.loading-progress-text:after {
+    content: var(--blazor-load-percentage-text, "Loading");
+}
 
 code {
     color: #c02d76;
@@ -173,6 +173,16 @@ code {
 
 .work-item-unknown {
     border-left-color: gray;
+}
+
+.avatar-cell {
+    position: relative;
+    text-align: left;
+    margin-right: 8px;
+}
+.avatar-cell img {
+    width: 24px;
+    height: 24px;
 }
 
 .btn-header {

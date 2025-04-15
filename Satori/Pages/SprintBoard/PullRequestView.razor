@@ -1,1 +1,10 @@
-﻿<div>PR#@PullRequest.Id - @PullRequest.Title</div>
+﻿<div class="work-item work-item-pr">
+    <div class="avatar-cell">
+        <img src="@PullRequest.CreatedBy.AvatarUrl"
+             alt="@PullRequest.CreatedBy.DisplayName"
+             title="@PullRequest.CreatedBy.DisplayName" />
+    </div>
+    <span class="pull-request-id">
+        @PullRequest.Id
+    </span> - @PullRequest.Title
+</div>
