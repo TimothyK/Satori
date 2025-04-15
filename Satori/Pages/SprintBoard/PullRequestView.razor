@@ -9,7 +9,11 @@
     <span class="pull-request-id">
         @PullRequest.Id
     </span>
-    <div>@PullRequest.Title</div>
+    <div class="pull-request-description">
+        <div class="pull-request-repositoryname">@PullRequest.Project/@PullRequest.RepositoryName</div>
+        <br />
+        <div class="pull-request-title">@PullRequest.Title</div>
+    </div>
     <div class="avatar-row">
         @if (@PullRequest.Status == Status.Draft)
         {

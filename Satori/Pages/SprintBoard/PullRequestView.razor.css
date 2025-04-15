@@ -11,6 +11,21 @@
     font-size: 0.75em;
     vertical-align: top;
 }
+
+.pull-request-description {
+    margin-right: 5px;
+}
+.pull-request-description br {
+    content: "";
+}
+.pull-request-repositoryname {
+    font-size: 0.7em;
+    opacity: 0.6; /* text-muted */
+}
+.pull-request-title {
+    font-size: 0.8em;
+}
+
 .badge.bg-draft {
     font-size: 0.75rem;
 }
