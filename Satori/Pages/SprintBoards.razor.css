@@ -39,7 +39,6 @@
 .work-item-row {
     border-left: solid 5px;
     padding-left: 3px;
-    font-size: 0.8em;
 }
 
 .work-item-row.work-item-pbi {
@@ -59,6 +58,45 @@
     font-size: 0.7em;
 }
 
+.project-code {
+    text-align: left;
+    font-size: 0.7em;
+ }
+
+.project-code::before {
+    content: "P#";
+    font-size: 0.75em;
+    vertical-align: top;
+}
+
+.target-date {
+    display: inline-block;
+    padding: 0.25em 0.4em;
+    font-size: 0.75em;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.375rem;
+    
+}
+.target-date-normal {
+    background-color: green;
+}
+.target-date-soon {
+    background-color: orange;
+}
+.target-date-overdue {
+    background-color: red;
+}
+.target-date::before {
+    content: "Due ";
+    font-size: 0.75em;
+    vertical-align: top;
+}
+
 .work-item-row.filter-hidden {
     display: none;
 }
@@ -68,10 +106,7 @@
     text-decoration: none;
     cursor: pointer;
 }
-.workitem-id {
-    margin-right: 5px;
-    font-weight: bold;
-}
+
 .workitem-title {
     margin-left: 5px;
 }
@@ -178,9 +213,9 @@ td.status-done {
 .blocked {
     color: red;
 }
-    .blocked::before {
-        content: "⛔\00a0 Blocked" /* \00a0 is for &nbsp;*/
-    }
+.blocked::before {
+    content: "⛔\00a0 Blocked" /* \00a0 is for &nbsp;*/
+}
 
 /* Slider - https://www.w3schools.com/howto/howto_css_switch.asp, https://stackoverflow.com/questions/70590125/how-to-change-the-size-of-a-css-toggle-switch */
 * {

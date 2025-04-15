@@ -40,10 +40,7 @@ public partial class SprintBoards
         _sprints = sprints;
         StateHasChanged();
 
-        var workItems = (await SprintBoardService.GetWorkItemsAsync(sprints)).ToArray();
-        PriorityAdjustment = new PriorityAdjustmentViewModel(workItems, AlertService);
-        _workItems = workItems;
-        ResetWorkItemCounts();
+        await RefreshAsync();
     }
 
 
@@ -54,7 +51,8 @@ public partial class SprintBoards
             HotKeys.CreateContext()
                 .Add(ModCode.Alt, Code.P, EnterAdjustPriorityMode, new HotKeyOptions { Description = "Adjust Priorities" })
                 .Add(ModCode.None, Code.Escape, ExitAdjustPriorityMode, new HotKeyOptions { Description = "Exit Adjust Priorities" })
-                .Add(ModCode.None, Code.Enter, MovePriorityAsync, new HotKeyOptions { Description = "Adjust Priorities" });
+                .Add(ModCode.None, Code.Enter, MovePriorityAsync, new HotKeyOptions { Description = "Adjust Priorities" })
+                .Add(ModCode.Alt, Code.F5, RefreshAsync, new HotKeyOptions { Description = "Refresh" });
         }
 
         if (_isInitialized)
@@ -70,6 +68,27 @@ public partial class SprintBoards
             _isInitialized = true;
         }
     }
+
+    private async Task RefreshAsync()
+    {
+        if (_sprints == null)
+        {
+            throw new InvalidOperationException("Sprint Teams has not been initialized");
+        }
+
+        InLoading = InLoadingCssClass;
+        StateHasChanged();
+
+        var workItems = (await SprintBoardService.GetWorkItemsAsync(_sprints)).ToArray();
+        PriorityAdjustment = new PriorityAdjustmentViewModel(workItems, AlertService);
+        _workItems = workItems;
+        ResetWorkItemCounts();
+
+        InLoading = CssClass.None;
+    }
+
+    private static readonly CssClass InLoadingCssClass = new("in-loading");
+    private CssClass InLoading { get; set; } = InLoadingCssClass;
 
     private async Task OpenWorkItemAsync(WorkItem workItem)
     {
