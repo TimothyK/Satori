@@ -1,0 +1,31 @@
+{
+    "dataProviderSharedData": {},
+    "dataProviders": {
+        "ms.vss-web.component-data": {},
+        "ms.vss-web.shared-data": null,
+        "ms.vss-code-web.commits-data-provider": {
+            "tags": {
+                "1234abcd5678ef9012abcd3456ef7890abcd1234": [
+                    {
+                        "name": "1.2.3",
+                        "comment": " 1.2.3\n",
+                        "tagger": {
+                            "name": "VSTS",
+                            "email": "noreply@example.com",
+                            "date": "2025-04-17T21:58:33Z",
+                            "imageUrl": "https://www.gravatar.com/avatar/a6aaaaf5d124132f358752c7d72d4b44?r=g&d=mm"
+                        },
+                        "objectId": "5678abcdef",
+                        "resolvedCommitId": "1234abcd5678ef9012abcd3456ef7890abcd1234"
+                    }
+                ]
+            },
+            "commits": [
+                {
+                    "commitId": "1234abcd5678ef9012abcd3456ef7890abcd1234"
+                }
+            ],
+            "isGitGraphFeatureEnabled": true
+        }
+    }
+}

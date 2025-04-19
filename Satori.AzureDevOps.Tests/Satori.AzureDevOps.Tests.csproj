@@ -34,6 +34,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>GetPullRequestResponses.resx</DependentUpon>
     </Compile>
+    <Compile Update="PullRequests\SampleFiles\GetTagsOrMergeResponses.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>GetTagsOrMergeResponses.resx</DependentUpon>
+    </Compile>
     <Compile Update="PullRequests\SampleFiles\PrWorkItemResponses.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -65,6 +70,10 @@
     <EmbeddedResource Update="PullRequests\SampleFiles\GetPullRequestResponses.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>GetPullRequestResponses.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="PullRequests\SampleFiles\GetTagsOrMergeResponses.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>GetTagsOrMergeResponses.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Update="PullRequests\SampleFiles\PrWorkItemResponses.resx">
       <Generator>ResXFileCodeGenerator</Generator>

@@ -20,6 +20,7 @@ public class PullRequest
     
     /// <summary>
     /// LastMergeCommit - this will be null if there are merge conflicts.
+    /// For a completed PR, this is the CommitId of the merge.
     /// </summary>
     [JsonPropertyName("lastMergeCommit")]
     public Commit? LastMergeCommit { get; set; }  
