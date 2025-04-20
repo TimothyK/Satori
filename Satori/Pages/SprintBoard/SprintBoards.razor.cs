@@ -87,6 +87,7 @@ public partial class SprintBoards
         StateHasChanged();
 
         await SprintBoardService.GetPullRequestsAsync(workItems);
+        ResetWorkItemCounts();
 
         InLoading = CssClass.None;
     }
@@ -174,8 +175,10 @@ public partial class SprintBoards
             return true;
         }
 
-        return workItem.AssignedTo == Person.Me || workItem.Children.Any(t => t.AssignedTo == Person.Me);
+        return Person.Me.IsIn(workItem.WithPeople);
     }
+
+    private Dictionary<WorkItem, VisibleCssClass> _workItemPersonFilter = [];
 
     #endregion WorkFilters
 
@@ -205,6 +208,11 @@ public partial class SprintBoards
         WorkItemActiveCount = teamWorkItems.Count(wi => wi.State != ScrumState.Done);
         WorkInProgressCount = teamWorkItems.Count(IsInProgress);
         WorkItemDoneCount = teamWorkItems.Length - WorkItemActiveCount;
+
+        _workItemPersonFilter = _workItems?.ToDictionary(
+            wi => wi, 
+            wi => (VisibleCssClass) IsWorkItemVisibleForPersonFilter(wi)
+        ) ?? [];
     }
 
     private static bool IsInProgress(WorkItem wi)

@@ -171,6 +171,7 @@ public class SprintBoardService(
                 parent.Children.Add(task);
             }
         }
+        iterationBoardItems.Values.ResetPeopleRelations();
         SetSprintPriority(iterationBoardItems.Values);
 
         return iterationBoardItems.Values.ToList();
@@ -196,6 +197,8 @@ public class SprintBoardService(
         var pullRequestIds = GetPullRequestIds(workItems);
         var pullRequests = await PullRequestsAsync(pullRequestIds);
         ReplacePullRequests(workItems, pullRequests);
+
+        workItems.ResetPeopleRelations();
     }
 
     private static int[] GetPullRequestIds(WorkItem[] workItems)

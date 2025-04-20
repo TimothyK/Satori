@@ -20,7 +20,6 @@ public class GetPullRequestsTests
     {
         _azureDevOpsServer = new TestAzureDevOpsServer();
         _builder = _azureDevOpsServer.CreateBuilder();
-
     }
 
     #region Helpers

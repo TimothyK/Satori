@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using CodeMonkeyProjectiles.Linq;
 using Flurl;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.PullRequests;
@@ -59,7 +60,32 @@ public static class WorkItemExtensions
             PullRequests = GetPullRequests(wi.Relations, UriParser.GetAzureDevOpsOrgUrl(wi.Url)),
         };
 
+        workItem.ResetPeopleRelations();
+
         return workItem;
+    }
+
+    public static void ResetPeopleRelations(this IEnumerable<WorkItem> workItems)
+    {
+        foreach (var workItem in workItems)
+        {
+            workItem.ResetPeopleRelations();
+        }
+    }
+
+    public static void ResetPeopleRelations(this WorkItem workItem)
+    {
+        foreach (var child in workItem.Children)
+        {
+            child.ResetPeopleRelations();
+        }
+
+        workItem.WithPeople = workItem.AssignedTo.Yield()
+            .Union(workItem.Children.SelectMany(task => task.WithPeople))
+            .Union(workItem.PullRequests.Select(pr => pr.CreatedBy))
+            .Union(workItem.PullRequests.SelectMany(pr => pr.Reviews.Select(review => review.Reviewer)))
+            .Distinct()
+            .ToList();
     }
 
     private static List<PullRequest> GetPullRequests(List<WorkItemRelation> relations, Uri azureDevOpsOrgUrl)
