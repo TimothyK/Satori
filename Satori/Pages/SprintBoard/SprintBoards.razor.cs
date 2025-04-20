@@ -78,6 +78,10 @@ public partial class SprintBoards
         }
 
         InLoading = InLoadingCssClass;
+        if (PriorityAdjustment.ShowExitModeClassName)
+        {
+            PriorityAdjustment.ToggleMode();
+        }
         StateHasChanged();
 
         var workItems = (await SprintBoardService.GetWorkItemsAsync(_sprints)).ToArray();
