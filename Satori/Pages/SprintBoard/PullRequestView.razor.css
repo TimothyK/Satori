@@ -38,7 +38,7 @@
 .pull-request-title {
 }
 
-.badge {
+.badge.bg-draft {
     font-size: 0.75rem;
 }
 

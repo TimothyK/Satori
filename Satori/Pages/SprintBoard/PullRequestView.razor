@@ -51,14 +51,5 @@
                 }
             </div>
         }
-        @if (PullRequest.Status == Status.Open)
-        {
-            @if (!PullRequest.AutoComplete)
-            {
-                <div>
-                    <span class="badge bg-secondary bg-auto-complete" title="PR is not set to Automatically Complete">❌AC</span>
-                </div>
-            }
-        }
     </div>
 </div>
