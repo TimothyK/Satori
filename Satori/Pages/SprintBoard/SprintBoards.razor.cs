@@ -83,6 +83,7 @@ public partial class SprintBoards
         var workItems = (await SprintBoardService.GetWorkItemsAsync(_sprints)).ToArray();
         PriorityAdjustment = new PriorityAdjustmentViewModel(workItems, AlertService);
         _workItems = workItems;
+        InLoadingWorkItem = _workItems.ToDictionary(wi => wi, _ => CssClass.None);
         ResetWorkItemCounts();
         StateHasChanged();
 
@@ -92,8 +93,19 @@ public partial class SprintBoards
         InLoading = CssClass.None;
     }
 
+    private async Task RefreshAsync(WorkItem workItem)
+    {
+        InLoadingWorkItem[workItem] = InLoadingCssClass;
+        StateHasChanged();
+
+        await Task.Delay(TimeSpan.FromSeconds(3));
+
+        InLoadingWorkItem[workItem] = CssClass.None;
+    }
+
     private static readonly CssClass InLoadingCssClass = new("in-loading");
     private CssClass InLoading { get; set; } = InLoadingCssClass;
+    private Dictionary<WorkItem,CssClass> InLoadingWorkItem { get; set; } = [];
 
     private async Task OpenWorkItemAsync(WorkItem workItem)
     {
