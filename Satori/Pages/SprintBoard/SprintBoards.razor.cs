@@ -11,7 +11,7 @@ using Satori.AppServices.ViewModels.WorkItems;
 using Satori.Utilities;
 using Toolbelt.Blazor.HotKeys2;
 
-namespace Satori.Pages;
+namespace Satori.Pages.SprintBoard;
 
 public partial class SprintBoards
 {
@@ -47,7 +47,8 @@ public partial class SprintBoards
     private bool _isInitialized;
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender) {
+        if (firstRender)
+        {
             HotKeys.CreateContext()
                 .Add(ModCode.Alt, Code.P, EnterAdjustPriorityMode, new HotKeyOptions { Description = "Adjust Priorities" })
                 .Add(ModCode.None, Code.Escape, ExitAdjustPriorityMode, new HotKeyOptions { Description = "Exit Adjust Priorities" })
@@ -83,6 +84,10 @@ public partial class SprintBoards
         PriorityAdjustment = new PriorityAdjustmentViewModel(workItems, AlertService);
         _workItems = workItems;
         ResetWorkItemCounts();
+        StateHasChanged();
+
+        await SprintBoardService.GetPullRequestsAsync(workItems);
+        ResetWorkItemCounts();
 
         InLoading = CssClass.None;
     }
@@ -115,7 +120,7 @@ public partial class SprintBoards
     private void ResetPersonOnUrl()
     {
         var filterValue = FilterToMe ? DefaultPersonFilterStorageMeValue : "all";
-        
+
         var url = NavigationManager.Uri
             .RemoveQueryParam("person")
             .AppendQueryParam("person", filterValue);
@@ -170,8 +175,10 @@ public partial class SprintBoards
             return true;
         }
 
-        return workItem.AssignedTo == Person.Me || workItem.Children.Any(t => t.AssignedTo == Person.Me);
+        return Person.Me.IsIn(workItem.WithPeople);
     }
+
+    private Dictionary<WorkItem, VisibleCssClass> _workItemPersonFilter = [];
 
     #endregion WorkFilters
 
@@ -193,19 +200,24 @@ public partial class SprintBoards
     {
         var selectedTeamIds = TeamSelection?.SelectedTeamIds ?? [];
 
-        var teamWorkItems = 
+        var teamWorkItems =
             _workItems?.Where(wi => wi.Sprint?.TeamId.IsIn(selectedTeamIds) ?? false)
             .Where(IsWorkItemVisibleForPersonFilter)
-            .ToArray() 
+            .ToArray()
             ?? [];
         WorkItemActiveCount = teamWorkItems.Count(wi => wi.State != ScrumState.Done);
         WorkInProgressCount = teamWorkItems.Count(IsInProgress);
         WorkItemDoneCount = teamWorkItems.Length - WorkItemActiveCount;
+
+        _workItemPersonFilter = _workItems?.ToDictionary(
+            wi => wi, 
+            wi => (VisibleCssClass) IsWorkItemVisibleForPersonFilter(wi)
+        ) ?? [];
     }
 
     private static bool IsInProgress(WorkItem wi)
     {
-        return wi.State != ScrumState.Done 
+        return wi.State != ScrumState.Done
                && wi.Children.Any(task => task.State.IsIn(ScrumState.InProgress, ScrumState.Done));
     }
 
@@ -447,9 +459,9 @@ internal class PriorityAdjustmentViewModel
     }
 
     public ReorderRequest Request => new(
-        _workItems, 
-        SelectedWorkItems.ToArray(), 
-        TargetRelation, 
+        _workItems,
+        SelectedWorkItems.ToArray(),
+        TargetRelation,
         Target);
 
 
@@ -486,7 +498,7 @@ internal class PriorityAdjustmentViewModel
         _selectedWorkItems = [];
         SelectedWorkItemsCount = SelectedWorkItems.Count;
 
-        var showSelectWorkItemButtonClassName = 
+        var showSelectWorkItemButtonClassName =
             ShowEnterModeClassName == VisibleCssClass.Visible ? VisibleCssClass.Hidden : VisibleCssClass.Visible;
 
         ShowSelectWorkItemClassName = _workItems.ToDictionary(wi => wi.Id, _ => showSelectWorkItemButtonClassName);
@@ -539,7 +551,7 @@ internal class PriorityAdjustmentViewModel
         get => _targetRelation;
         private set
         {
-            _targetRelation = value; 
+            _targetRelation = value;
             SetMoveToLabel();
         }
     }

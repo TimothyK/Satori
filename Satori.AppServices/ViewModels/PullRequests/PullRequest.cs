@@ -10,7 +10,8 @@ public class PullRequest
     public required string RepositoryName { get; init; }
     public required string Project { get; init; }
     public required string Url { get; init; }
-    public Status Status { get; init; }
+    public required Status Status { get; init; }
+    public string[] VersionTags { get; set; } = [];
     public bool AutoComplete { get; init; }  //set if /completionOptions/mergeCommitMessage has a value
     public DateTimeOffset CreationDate { get; init; }
     public required Person CreatedBy { get; init; }
@@ -23,8 +24,6 @@ public class PullRequest
     public required List<string> Labels { get; init; }
 
     //TODO: Add Comments
-
-
 
     public static implicit operator PullRequestId(PullRequest pr) =>
         new()

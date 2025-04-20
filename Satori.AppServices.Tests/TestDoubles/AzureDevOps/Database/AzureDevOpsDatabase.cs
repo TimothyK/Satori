@@ -25,6 +25,7 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
     private readonly List<WorkItem> _workItems = [];
     private readonly Dictionary<Team, Iteration> _iterations = [];
     private readonly Dictionary<int, int> _parentWorkItemId = [];
+    private readonly List<(string commitId, Tag tag)> _commitTags = [];
 
     #endregion Storage (the tables)
 
@@ -39,6 +40,7 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
     {
         AddWorkItem(workItem);
         _pullRequestWorkItems.Add((pullRequest.PullRequestId, workItem.Id));
+        AddWorkItemLink(workItem, pullRequest);
     }
 
     void IAzureDevOpsDatabaseWriter.AddTeam(Team team)
@@ -56,6 +58,22 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
         {
             _workItems.Add(workItem);
         }
+    }
+
+    private static void AddWorkItemLink(WorkItem workItem, PullRequest pullRequest)
+    {
+        var relation = new WorkItemRelation
+        {
+            Attributes = new Dictionary<string, object>
+            {
+                { "resourceCreatedDate", pullRequest.CreationDate.ToString("o") }, 
+                { "name", "Pull Request" },
+            },
+            RelationType = "ArtifactLink",
+            Url = $"vstfs:///Git/PullRequestId/{pullRequest.Repository.Project.Id}%2F{pullRequest.Repository.Id}%2F{pullRequest.PullRequestId}"
+        };
+
+        workItem.Relations.Add(relation);
     }
 
     public void AddWorkItemLink(WorkItem leftWorkItem, LinkType linkType, WorkItem rightWorkItem)
@@ -116,11 +134,20 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
         throw new NotSupportedException();
     }
 
+    public void AddGitTag(string commitId, Tag tag)
+    {
+        _commitTags.Add((commitId, tag));
+    }
+
     #endregion Write Access
 
     #region Read Access
 
     public PullRequest[] GetPullRequests() => [.. _pullRequests];
+    
+    public PullRequest GetPullRequest(int id) => 
+        _pullRequests.SingleOrDefault(pr => pr.PullRequestId == id) 
+        ?? throw new InvalidOperationException($"PullRequestId {id} not found");
 
     public IEnumerable<int> GetWorkItemIdsForPullRequestId(int pullRequestId)
     {
@@ -180,8 +207,12 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
 
             return null;
         }
-
     }
+
+    public IEnumerable<Tag> GetTagsForCommitId(string commitId) =>
+        _commitTags
+            .Where(pair => pair.commitId == commitId)
+            .Select(pair => pair.tag);
 }
 
 #endregion Read Access

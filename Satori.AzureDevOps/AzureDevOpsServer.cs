@@ -30,6 +30,16 @@ public class AzureDevOpsServer(
         return await GetRootValueAsync<PullRequest>(url);
     }
 
+    public async Task<PullRequest> GetPullRequestAsync(int pullRequestId)
+    {
+        var url = ConnectionSettings.Url
+            .AppendPathSegment("_apis/git/pullRequests")
+            .AppendPathSegment(pullRequestId)
+            .AppendQueryParam("api-version", "6.0");
+
+        return await GetAsync<PullRequest>(url);
+    }
+
     public async Task<IdMap[]> GetPullRequestWorkItemIdsAsync(PullRequestId pr)
     {
         var url = ConnectionSettings.Url
@@ -42,6 +52,60 @@ public class AzureDevOpsServer(
             .AppendQueryParam("api-version", "6.0");
 
         return await GetRootValueAsync<IdMap>(url);
+    }
+
+    public async Task<Tag[]> GetTagsOfMergeAsync(PullRequest pullRequest)
+    {
+        if (pullRequest.Status != "completed")
+        {
+            throw new InvalidOperationException("The pull request should be completed in order to get the Tags of the merge");
+        }
+        if (pullRequest.LastMergeCommit == null)
+        {
+            throw new InvalidOperationException($"{nameof(PullRequest.LastMergeCommit)} must have a value");
+        }
+
+        var url = ConnectionSettings.Url
+            .AppendPathSegment("_apis/Contribution/HierarchyQuery/project")
+            .AppendPathSegment(pullRequest.Repository.Project.Name)
+            .AppendQueryParam("api-version", "5.0-preview.1");
+
+        var payload = new ContributionHierarchyQuery
+        {
+            ContributionIds = [DataProviderIds.CommitsDataProvider],
+            DataProviderContext = new DataProviderContext
+            {
+                Properties = new DataProviderContextProperties()
+                {
+                    RepositoryId = pullRequest.Repository.Id,
+                    SearchCriteria = new SearchCriteria
+                    {
+                        GitArtifactsQueryArguments = new GitArtifactsQueryArguments
+                        {
+                            FetchTags = true,
+                            CommitIds = [pullRequest.LastMergeCommit.CommitId]
+                        }
+                    }
+                }
+            }
+        };
+
+        using (Logger.BeginScope("{Body}", JsonSerializer.Serialize(payload)))
+            Logger.LogInformation("POST {Url}", url);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, url);
+        AddAuthHeader(request);
+
+        request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+
+        var response = await SendAsync(request);
+        await VerifySuccessfulResponseAsync(response);
+
+        await using var responseStream = await response.Content.ReadAsStreamAsync();
+        var dataProviderResponse = await JsonSerializer.DeserializeAsync<ContributionHierarchyResponse>(responseStream)
+                       ?? throw new ApplicationException("Server did not respond");
+
+        return dataProviderResponse.DataProviders.CommitsDataProvider?.Tags?.SelectMany(kvp => kvp.Value).ToArray() ?? [];
     }
 
     public async Task<WorkItem[]> GetWorkItemsAsync(IEnumerable<int> workItemIds) => await GetWorkItemsAsync(workItemIds.ToArray());

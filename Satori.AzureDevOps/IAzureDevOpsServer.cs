@@ -8,7 +8,16 @@ public interface IAzureDevOpsServer
     ConnectionSettings ConnectionSettings { get; }
 
     Task<PullRequest[]> GetPullRequestsAsync();
+    Task<PullRequest> GetPullRequestAsync(int pullRequestId);
     Task<IdMap[]> GetPullRequestWorkItemIdsAsync(PullRequestId pr);
+
+    /// <summary>
+    /// Gets the git tags (which are likely version numbers) of the commit where a pull request was merged.
+    /// </summary>
+    /// <param name="pullRequest"></param>
+    /// <returns></returns>
+    Task<Tag[]> GetTagsOfMergeAsync(PullRequest pullRequest);
+
     Task<WorkItem[]> GetWorkItemsAsync(IEnumerable<int> workItemIds);
     Task<WorkItem[]> GetWorkItemsAsync(params int[] workItemIds);
 

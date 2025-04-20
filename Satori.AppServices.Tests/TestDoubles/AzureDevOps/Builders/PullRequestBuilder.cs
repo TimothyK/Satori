@@ -1,5 +1,7 @@
 ﻿using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Database;
+using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AzureDevOps.Models;
+using PullRequest = Satori.AzureDevOps.Models.PullRequest;
 
 namespace Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 
@@ -22,6 +24,7 @@ internal class PullRequestBuilder
         pr.Reviewers = [];
         pr.CreatedBy.ImageUrl = $"http://devops.test/Org/_api/_common/identityImage?id={pr.CreatedBy.Id}";
         pr.Url = $"http://devops.test/Org/{pr.Repository.Project.Name}/_apis/git/repositories/{pr.Repository.Name}/pullRequests/{pr.PullRequestId}";
+        pr.Status = Status.Open.ToApiValue();
         return pr;
     }
 
@@ -51,5 +54,17 @@ internal class PullRequestBuilder
     {
         var builder = new WorkItemBuilder(_database);
         return builder.WorkItem;
+    }
+
+    public PullRequestBuilder AddGitTag(string tagName)
+    {
+        PullRequest.Status = Status.Complete.ToApiValue();
+        PullRequest.LastMergeCommit ??= Builder.Builder<Commit>.New().Build(int.MaxValue);
+
+        var tag = Builder.Builder<Tag>.New().Build(int.MaxValue);
+        tag.Name = tagName;
+        _database.AddGitTag(PullRequest.LastMergeCommit.CommitId, tag);
+        
+        return this;
     }
 }

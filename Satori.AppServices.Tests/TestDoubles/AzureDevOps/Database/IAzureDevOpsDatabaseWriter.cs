@@ -12,4 +12,5 @@ internal interface IAzureDevOpsDatabaseWriter
     void LinkIteration(Team team, Iteration iteration);
     void AddWorkItem(WorkItem workItem);
     void AddWorkItemLink(WorkItem leftWorkItem, LinkType linkType, WorkItem rightWorkItem);
+    void AddGitTag(string commitId, Tag tag);
 }

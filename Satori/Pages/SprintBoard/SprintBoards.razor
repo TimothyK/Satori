@@ -5,7 +5,6 @@
 @using Satori.AppServices.Services.Abstractions
 @using Satori.AppServices.ViewModels
 @using Satori.AppServices.ViewModels.WorkItems
-@using Satori.Utilities
 @using Toolbelt.Blazor.HotKeys2
 @attribute [StreamRendering]
 @inject NavigationManager NavigationManager
@@ -86,10 +85,10 @@ else
                 @foreach (var workItem in _workItems.OrderBy(wi => wi.AbsolutePriority))
                 {
                     <tr class="
-                            work-item-row
+                            work-item
                             @workItem.Type.CssClass
                             @workItem.StatusCssClass
-                            @((VisibleCssClass) IsWorkItemVisibleForPersonFilter(workItem))
+                            @_workItemPersonFilter[workItem]
                             @(workItem.Sprint == null ? string.Empty : TeamSelection.TeamSelectedClassName[workItem.Sprint.TeamId])
                             @(PriorityAdjustment.WorkItemSelectedClassName[workItem.Id])
                     "
@@ -151,7 +150,7 @@ else
                         <td>
                             @foreach (var task in workItem.Children.OrderByDescending(wi => wi.State).ThenBy(wi => wi.Id))
                             {
-                                <div class="task-status @task.StatusCssClass cell-link" style="display: flex;" @onclick="() => OpenWorkItemAsync(task)" title="Open D#@(task.Id)">
+                                <div class="work-item @task.Type.CssClass task-status @task.StatusCssClass cell-link" @onclick="() => OpenWorkItemAsync(task)" title="Open D#@(task.Id)">
                                     <div class="avatar-cell">
                                         <img src="@task.AssignedTo.AvatarUrl"
                                         alt="@task.AssignedTo.DisplayName"
@@ -174,6 +173,12 @@ else
                                         </div>
                                     }
                                 </div>
+                            }
+                            @foreach (var pullRequest in workItem.PullRequests
+                                          .Union(workItem.Children.SelectMany(task => task.PullRequests))
+                                          .OrderBy(pr => pr.Status))
+                            {
+                               <PullRequestView PullRequest="@pullRequest"></PullRequestView>
                             }
                         </td>
                     </tr>

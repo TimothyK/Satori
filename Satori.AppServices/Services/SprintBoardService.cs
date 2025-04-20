@@ -9,6 +9,8 @@ using Satori.AzureDevOps.Models;
 using Satori.TimeServices;
 using System.Collections.Concurrent;
 using Satori.AppServices.Services.Abstractions;
+using Satori.AppServices.ViewModels.PullRequests;
+using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using UriParser = Satori.AppServices.Services.Converters.UriParser;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
@@ -169,6 +171,7 @@ public class SprintBoardService(
                 parent.Children.Add(task);
             }
         }
+        iterationBoardItems.Values.ResetPeopleRelations();
         SetSprintPriority(iterationBoardItems.Values);
 
         return iterationBoardItems.Values.ToList();
@@ -186,6 +189,77 @@ public class SprintBoardService(
     }
 
     #endregion GetWorkItemsAsync
+
+    #region GetPullRequests
+
+    public async Task GetPullRequestsAsync(WorkItem[] workItems)
+    {
+        var pullRequestIds = GetPullRequestIds(workItems);
+        var pullRequests = await PullRequestsAsync(pullRequestIds);
+        ReplacePullRequests(workItems, pullRequests);
+
+        workItems.ResetPeopleRelations();
+    }
+
+    private static int[] GetPullRequestIds(WorkItem[] workItems)
+    {
+        var pullRequestIds = workItems.SelectMany(wi => wi.PullRequests)
+            .Union(workItems.SelectMany(wi => wi.Children).SelectMany(task => task.PullRequests))
+            .Select(pr => pr.Id)
+            .Distinct()
+            .ToArray();
+        return pullRequestIds;
+    }
+
+    private async Task<Dictionary<int, PullRequest>> PullRequestsAsync(int[] pullRequestIds)
+    {
+        var pullRequests = new ConcurrentBag<PullRequest>();
+        var options = new ParallelOptions() { MaxDegreeOfParallelism = 8 };
+
+        await Parallel.ForEachAsync(pullRequestIds, options, async (prId, token) =>
+        {
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            var prDto = await azureDevOpsServer.GetPullRequestAsync(prId);
+            var prViewModel = prDto.ToViewModel();
+
+            if (prViewModel.Status == Status.Complete)
+            {
+                var tags = await azureDevOpsServer.GetTagsOfMergeAsync(prDto);
+                prViewModel.VersionTags = tags.Select(t => t.Name).ToArray();
+            }
+
+            pullRequests.Add(prViewModel);
+        });
+
+        return pullRequests.ToDictionary(pr => pr.Id, pr => pr);
+    }
+
+    private static void ReplacePullRequests(WorkItem[] workItems, Dictionary<int, PullRequest> pullRequests)
+    {
+        foreach (var workItem in workItems.Concat(workItems.SelectMany(task => task.Children)))
+        {
+            var i = 0;
+            while (i < workItem.PullRequests.Count)
+            {
+                var pr = pullRequests[workItem.PullRequests[i].Id];
+                if (pr.Status == Status.Abandoned)
+                {
+                    workItem.PullRequests.RemoveAt(i);
+                }
+                else
+                {
+                    workItem.PullRequests[i] = pr;
+                    i++;
+                }
+            }
+        }
+    }
+
+    #endregion GetPullRequests
 
     #region ReorderWorkItems
 
