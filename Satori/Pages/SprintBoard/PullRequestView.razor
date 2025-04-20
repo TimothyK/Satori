@@ -13,7 +13,14 @@
         @PullRequest.Id
     </span>
     <div class="pull-request-description">
-        <div class="pull-request-repositoryname">@PullRequest.Project/@PullRequest.RepositoryName</div>
+        <div class="pull-request-repository">
+            <span class="pull-request-projectname">@PullRequest.Project</span>
+            <span class="pull-request-repositoryname">@PullRequest.RepositoryName</span>
+            @foreach (var tag in PullRequest.VersionTags)
+            {
+                <span class="badge bg-success git-tag">@tag</span>
+            }
+        </div>
         <br />
         <div class="pull-request-title">@PullRequest.Title</div>
     </div>

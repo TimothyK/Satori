@@ -18,12 +18,24 @@
 .pull-request-description br {
     content: "";
 }
+.pull-request-repository {
+    font-size: 1.0rem;
+    font-weight: bold;
+}
+.pull-request-projectname {
+    font-size: 0.75em;
+    vertical-align: top;
+}
+.pull-request-projectname::after {
+    content: " / ";
+    font-size: 0.75em;
+}
 .pull-request-repositoryname {
-    font-size: 0.7em;
-    opacity: 0.6; /* text-muted */
+}
+.git-tag {
+    margin-left: 5px;
 }
 .pull-request-title {
-    font-size: 0.8em;
 }
 
 .badge {
