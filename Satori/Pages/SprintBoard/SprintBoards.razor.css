@@ -29,6 +29,9 @@
 .work-item {
     display: table-row;
 }
+.work-item.hidden {
+    display: none;
+}
 
 .work-item-status {
     text-align: left;
