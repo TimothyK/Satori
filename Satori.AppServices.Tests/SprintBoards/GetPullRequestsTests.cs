@@ -135,4 +135,41 @@ public class GetPullRequestsTests
         //Assert
         workItems.Single().PullRequests.ShouldBeEmpty();
     }
+    
+    [TestMethod]
+    public async Task CompletedPullRequest_Returned()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        _builder.BuildPullRequest(out var pullRequest).WithWorkItem(workItem);
+        pullRequest.Status = Status.Complete.ToApiValue();
+
+        //Act
+        var workItems = await GetWorkItemsAsync(sprint);
+
+        //Assert
+        var actual = workItems.Single().PullRequests.SingleOrDefault();
+        actual.ShouldNotBeNull();
+        actual.Id.ShouldBe(pullRequest.PullRequestId);
+        actual.Title.ShouldBe(pullRequest.Title);
+    }
+    
+    [TestMethod]
+    public async Task CompletedPullRequest_WithTag()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        _builder.BuildPullRequest()
+            .WithWorkItem(workItem)
+            .AddGitTag("v1.2.3");
+
+        //Act
+        var workItems = await GetWorkItemsAsync(sprint);
+
+        //Assert
+        var pullRequest = workItems.Single().PullRequests.Single();
+        pullRequest.VersionTags.Single().ShouldBe("v1.2.3");
+    }
 }

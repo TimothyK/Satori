@@ -55,4 +55,16 @@ internal class PullRequestBuilder
         var builder = new WorkItemBuilder(_database);
         return builder.WorkItem;
     }
+
+    public PullRequestBuilder AddGitTag(string tagName)
+    {
+        PullRequest.Status = Status.Complete.ToApiValue();
+        PullRequest.LastMergeCommit ??= Builder.Builder<Commit>.New().Build(int.MaxValue);
+
+        var tag = Builder.Builder<Tag>.New().Build(int.MaxValue);
+        tag.Name = tagName;
+        _database.AddGitTag(PullRequest.LastMergeCommit.CommitId, tag);
+        
+        return this;
+    }
 }

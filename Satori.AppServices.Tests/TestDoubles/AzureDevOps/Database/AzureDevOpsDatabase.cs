@@ -25,6 +25,7 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
     private readonly List<WorkItem> _workItems = [];
     private readonly Dictionary<Team, Iteration> _iterations = [];
     private readonly Dictionary<int, int> _parentWorkItemId = [];
+    private readonly List<(string commitId, Tag tag)> _commitTags = [];
 
     #endregion Storage (the tables)
 
@@ -133,6 +134,11 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
         throw new NotSupportedException();
     }
 
+    public void AddGitTag(string commitId, Tag tag)
+    {
+        _commitTags.Add((commitId, tag));
+    }
+
     #endregion Write Access
 
     #region Read Access
@@ -201,8 +207,12 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
 
             return null;
         }
-
     }
+
+    public IEnumerable<Tag> GetTagsForCommitId(string commitId) =>
+        _commitTags
+            .Where(pair => pair.commitId == commitId)
+            .Select(pair => pair.tag);
 }
 
 #endregion Read Access

@@ -220,8 +220,16 @@ public class SprintBoardService(
                 return;
             }
 
-            var pr = (await azureDevOpsServer.GetPullRequestAsync(prId)).ToViewModel();
-            pullRequests.Add(pr);
+            var prDto = await azureDevOpsServer.GetPullRequestAsync(prId);
+            var prViewModel = prDto.ToViewModel();
+
+            if (prViewModel.Status == Status.Complete)
+            {
+                var tags = await azureDevOpsServer.GetTagsOfMergeAsync(prDto);
+                prViewModel.VersionTags = tags.Select(t => t.Name).ToArray();
+            }
+
+            pullRequests.Add(prViewModel);
         });
 
         return pullRequests.ToDictionary(pr => pr.Id, pr => pr);
