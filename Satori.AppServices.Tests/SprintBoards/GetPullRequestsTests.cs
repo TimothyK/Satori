@@ -1,4 +1,5 @@
-﻿using Satori.AppServices.Services;
+﻿using Microsoft.Extensions.Logging.Abstractions;
+using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
@@ -37,7 +38,7 @@ public class GetPullRequestsTests
 
     private async Task<WorkItem[]> GetWorkItemsAsync(params Sprint[] sprints)
     {
-        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), _timeServer, new AlertService());
+        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), _timeServer, new AlertService(), new NullLoggerFactory());
 
         var workItems = (await srv.GetWorkItemsAsync(sprints)).ToArray();
         await srv.GetPullRequestsAsync(workItems);

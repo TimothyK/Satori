@@ -1,5 +1,6 @@
 ﻿using Builder;
 using CodeMonkeyProjectiles.Linq;
+using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
@@ -63,7 +64,7 @@ public class ReorderTests
     {
         //Arrange
         var workItems = request.AllWorkItems;
-        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), new TimeServer(), new AlertService());
+        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), new TimeServer(), new AlertService(), new NullLoggerFactory());
         LogRequest(request);
 
         //Act

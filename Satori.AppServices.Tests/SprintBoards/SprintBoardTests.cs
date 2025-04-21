@@ -1,4 +1,5 @@
-﻿using Satori.AppServices.Services;
+﻿using Microsoft.Extensions.Logging.Abstractions;
+using Satori.AppServices.Services;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AzureDevOps.Models;
 using Shouldly;
@@ -46,7 +47,7 @@ public class SprintBoardTests
     private Sprint[] GetSprints()
     {
         //Arrange
-        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), _timeServer, _alertService);
+        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), _timeServer, _alertService, new NullLoggerFactory());
 
         //Act
         return srv.GetActiveSprintsAsync().Result.ToArray();
