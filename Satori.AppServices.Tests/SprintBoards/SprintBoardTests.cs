@@ -375,7 +375,7 @@ public class SprintBoardTests
         _azureDevOpsServer.Mock.Setup(srv => srv.GetTeamsAsync()).Throws<ApplicationException>();
 
         //Act
-        var sprints = GetSprints();
+        GetSprints();
 
         //Assert
         _alertService.LastException.ShouldNotBeNull();
