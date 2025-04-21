@@ -11,6 +11,7 @@ using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.ViewModels.PullRequests;
+using Satori.AzureDevOps.Exceptions;
 using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using UriParser = Satori.AppServices.Services.Converters.UriParser;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
@@ -364,8 +365,15 @@ public class SprintBoardService(
 
             if (prViewModel.Status == Status.Complete)
             {
-                var tags = await azureDevOpsServer.GetTagsOfMergeAsync(prDto);
-                prViewModel.VersionTags = tags.Select(t => t.Name).ToArray();
+                try
+                {
+                    var tags = await azureDevOpsServer.GetTagsOfMergeAsync(prDto);
+                    prViewModel.VersionTags = tags.Select(t => t.Name).ToArray();
+                }
+                catch (SecurityException)
+                {
+                    alertService.BroadcastAlert("Version tags of completed PRs is not available unless Full Control is granted to the Azure DevOps Personal Access Token");
+                }
             }
 
             pullRequests.Add(prViewModel);

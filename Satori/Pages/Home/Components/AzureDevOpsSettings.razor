@@ -40,13 +40,17 @@
                         <ol type="a">
                             <li>Enter a name for the new token. e.g. "Satori"</li>
                             <li>Change the Expiry Date an interval you wish. Azure DevOps will email you to renew the token when it is about to expire</li>
-                            <li>Scopes can be set to "Custom defined"
-                                <ol type="i">
-                                    <li>For Work Items choose "Read & write"</li>
-                                    <li>For Code choose "Read"</li>
-                                    <li>For Identity choose "Read".  ⚠️ This may not be immediately visible.  Click "Show all scopes".</li>
-                                    <li>For Project and Team choose "Read"</li>
-                                </ol>
+                            <li>Scopes can be should be set to "Full access".
+                                <ul>
+                                    <li>However, we understand that granting "Full access" may be scary.  Satori can be run with limited access to Azure DevOps, but some features of Satori will not be available.  The following "Custom defined" scopes can be granted:</li>
+                                    <ol type="i">
+                                        <li>For Work Items choose "Read & write".  Write access is required from the Stand-Up edit script to quick change the status and estimates.  The Export feature requires write access to the Completed Work and Remaining Work fields.</li>
+                                        <li>For Code choose "Read".  Required to show pull requests.</li>
+                                        <li>For Identity choose "Read". ⚠️ This may not be immediately visible. Click "Show all scopes".  This is required to show your Azure DevOps user as an avatar in Satori</li>
+                                        <li>For Project and Team choose "Read".  Shows the teams on the Sprint Board.  This permission is required for the Satori Sprint Board</li>
+                                        <li>Full Control is required to view version (git tag) of a completed PR is completed on the Sprint Board.</li>
+                                    </ol>
+                                </ul>
                             </li>
                             <li>Click the "Create" button</li>
                         </ol>

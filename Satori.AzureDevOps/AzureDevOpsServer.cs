@@ -379,7 +379,7 @@ public class AzureDevOpsServer(
         }
         catch (HttpRequestException ex) when (ex.StatusCode == null)
         {
-            throw new ApplicationException($"Check network or Personal Access Token.  Failed to {request.Method} {request.RequestUri}", ex);
+            throw new SecurityException($"Check network or Personal Access Token.  Failed to {request.Method} {request.RequestUri}", ex);
         }
     }
 

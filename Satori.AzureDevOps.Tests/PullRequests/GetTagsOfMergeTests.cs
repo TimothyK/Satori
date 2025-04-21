@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using Flurl;
 using RichardSzalay.MockHttp;
+using Satori.AzureDevOps.Exceptions;
 using Satori.AzureDevOps.Models;
 using Satori.AzureDevOps.Tests.Extensions;
 using Satori.AzureDevOps.Tests.PullRequests.SampleFiles;
@@ -227,6 +228,26 @@ public class GetTagsOfMergeTests
 
         //Act
         await Should.ThrowAsync<InvalidOperationException>(() => GetTagsOfMergeAsync(pr));
+    }
+    
+    [TestMethod]
+    public async Task HttpRequestException_ReclassifiedAsSecurityException()
+    {
+        //Arrange
+        var pr = BuildPullRequest();
+
+        //Act
+        await Should.ThrowAsync<SecurityException>(() => GetTagsOfMergeAsync(pr, VerifyRequest));
+
+        //Assert
+        return;
+        bool VerifyRequest(HttpRequestMessage request)
+        {
+            //This is the Exception that Azure DevOps throw when the person access token doesn't have permission.
+            var ex = new HttpRequestException();
+            ex.StatusCode.ShouldBeNull();
+            throw ex;
+        }
     }
 
 
