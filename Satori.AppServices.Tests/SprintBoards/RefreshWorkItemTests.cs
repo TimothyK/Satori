@@ -96,7 +96,21 @@ public class RefreshWorkItemTests
         actual.Id.ShouldBe(workItem.Id);
     }
     
+    [TestMethod]
+    public async Task WasRemoved()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
 
+        //Act
+        var (original, actual) = await RefreshWorkItemAsync(workItem,
+            () => workItem.Fields.State = ScrumState.Removed.ToApiValue());
+
+        //Assert
+        original.Id.ShouldBe(workItem.Id);
+        actual.ShouldBeNull();
+    }
 
     #region Sprint
 

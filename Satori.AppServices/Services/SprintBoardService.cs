@@ -194,14 +194,37 @@ public class SprintBoardService(
 
     #region RefreshWorkItemAsync
 
+    /// <summary>
+    /// Refreshes a work item for the Sprint Board
+    /// </summary>
+    /// <param name="allWorkItems">
+    /// List of all work items.
+    /// The <see cref="original"/> work item will be replaced in this List with the newly refreshed version (a different object).
+    /// The relative sprint priorities will be recalculated.
+    /// If the work item could not be refreshed or is no longer valid, it will be removed from this List.
+    /// </param>
+    /// <param name="original">Work Item to refresh</param>
+    /// <remarks>
+    /// <para>
+    /// After the sprint board work items are loaded (via <see cref="GetWorkItemsAsync"/>) a single work item can be refreshed from this method.
+    /// The original load method loads all work items, which can take a long time.
+    /// The Sprint Board has links to allow users to open the Work Item in Azure DevOps in another browser tab.
+    /// The user can make changes, then return the Satori Sprint Board.
+    /// However, the changes won't be immediately visible on the Sprint Board.  It needs to be refreshed to reload the changes.
+    /// Loading the entire Spring Board can take a long time.  This method allows the user to (quickly) refresh a single work item
+    /// instead of the entire board.
+    /// </para>
+    /// </remarks>
+    /// <returns></returns>
     public async Task RefreshWorkItemAsync(List<WorkItem> allWorkItems, WorkItem original)
     {
         var target = (await azureDevOpsServer.GetWorkItemsAsync(original.Id.Yield()))
             .SingleOrDefault()
             ?.ToViewModel();
 
-        if (target == null)
+        if (target == null || target.State == ScrumState.Removed)
         {
+            allWorkItems.Remove(original);
             return;
         }
         
@@ -243,17 +266,15 @@ public class SprintBoardService(
     private static bool IsSameSprint(WorkItem a, WorkItem b)
     {
         return a.ProjectName == b.ProjectName
-               && a.AreaPath == b.AreaPath
                && a.IterationPath == b.IterationPath;
     }
-
 
     /// <summary>
     /// Loads the placeholder children work items
     /// </summary>
     /// <param name="workItem"></param>
     /// <returns></returns>
-    public async Task GetChildWorkItemsAsync(WorkItem workItem)
+    private async Task GetChildWorkItemsAsync(WorkItem workItem)
     {
         var placeholderChildren = workItem.Children
             .Where(wi => wi.Type == WorkItemType.Unknown)
