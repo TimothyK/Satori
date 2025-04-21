@@ -1,4 +1,5 @@
 ﻿using CodeMonkeyProjectiles.Linq;
+using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
@@ -42,7 +43,7 @@ public class SprintWorkItemTests
 
     private WorkItem[] GetWorkItems(params Sprint[] sprints)
     {
-        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), _timeServer, new AlertService());
+        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), _timeServer, new AlertService(), new NullLoggerFactory());
 
         return srv.GetWorkItemsAsync(sprints).Result.ToArray();
     }

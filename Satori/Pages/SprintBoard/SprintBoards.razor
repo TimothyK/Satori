@@ -101,6 +101,9 @@ else
                                         <button type="button" class="btn btn-outline-success btn-priority btn-priority-select @PriorityAdjustment.ShowSelectWorkItemClassName[workItem.Id]" @onclick="() => PriorityAdjustment.AddSelectedWorkItem(workItem)" title="Select this item to adjust its priority">✔️</button>
                                         <button type="button" class="btn btn-outline-danger btn-priority btn-priority-deselect @PriorityAdjustment.ShowDeselectWorkItemClassName[workItem.Id]" @onclick="() => PriorityAdjustment.RemoveSelectedWorkItem(workItem)" title="Deselect this item so its priority is not adjusted">❌</button>
                                     </div>
+                                    <div class="@PriorityAdjustment.ShowEnterModeClassName.ToString()">
+                                        <button type="button" class="btn-refresh-workitem btn-refresh @InLoadingWorkItem[workItem]" title="Refresh D#{@workItem.Id}" @onclick="async () => await RefreshAsync(workItem)" @onclick:stopPropagation="true"><span class="bi bi-refresh"></span></button>
+                                    </div>
                                 </div>
                                 <div>
                                     <div style="display: flex;">

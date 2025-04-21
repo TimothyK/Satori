@@ -33,6 +33,26 @@
     display: none;
 }
 
+.btn-refresh-workitem {
+    display: none;
+}
+.btn-refresh-workitem.in-loading {
+    display: inline-block;
+}
+.work-item:hover .btn-refresh-workitem {
+    display: inline-block;
+}
+
+.btn-refresh-workitem {
+    background-color: #00A6ED;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+.btn-refresh-workitem:hover {
+    background-color: #0096D6;
+}
 .work-item-status {
     text-align: left;
     font-size: 0.7em;

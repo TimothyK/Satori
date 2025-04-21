@@ -78,12 +78,14 @@ public partial class SprintBoards
         }
 
         InLoading = InLoadingCssClass;
+        if (PriorityAdjustment.ShowExitModeClassName)
+        {
+            PriorityAdjustment.ToggleMode();
+        }
         StateHasChanged();
 
         var workItems = (await SprintBoardService.GetWorkItemsAsync(_sprints)).ToArray();
-        PriorityAdjustment = new PriorityAdjustmentViewModel(workItems, AlertService);
-        _workItems = workItems;
-        ResetWorkItemCounts();
+        SetWorkItems(workItems);
         StateHasChanged();
 
         await SprintBoardService.GetPullRequestsAsync(workItems);
@@ -92,8 +94,46 @@ public partial class SprintBoards
         InLoading = CssClass.None;
     }
 
+    private void SetWorkItems(IEnumerable<WorkItem> workItems) =>
+        SetWorkItems(workItems as WorkItem[] ?? workItems.ToArray());
+    private void SetWorkItems(WorkItem[] workItems)
+    {
+        PriorityAdjustment = new PriorityAdjustmentViewModel(workItems, AlertService);
+        InLoadingWorkItem = workItems.ToDictionary(wi => wi, _ => CssClass.None);
+        _workItems = workItems;
+        ResetWorkItemCounts();
+    }
+
+    private async Task RefreshAsync(WorkItem workItem)
+    {
+        if (_workItems == null)
+        {
+            return;
+        }
+
+        InLoadingWorkItem[workItem] = InLoadingCssClass;
+        StateHasChanged();
+
+        try
+        {
+            //await Task.Delay(TimeSpan.FromSeconds(3));
+            var workItems = _workItems.ToList();
+            await SprintBoardService.RefreshWorkItemAsync(workItems, workItem);
+            SetWorkItems(workItems);
+        }
+        catch (Exception ex)
+        {
+            AlertService.BroadcastAlert(ex);
+        }
+        finally
+        {
+            InLoadingWorkItem[workItem] = CssClass.None;
+        }
+    }
+
     private static readonly CssClass InLoadingCssClass = new("in-loading");
     private CssClass InLoading { get; set; } = InLoadingCssClass;
+    private Dictionary<WorkItem,CssClass> InLoadingWorkItem { get; set; } = [];
 
     private async Task OpenWorkItemAsync(WorkItem workItem)
     {
