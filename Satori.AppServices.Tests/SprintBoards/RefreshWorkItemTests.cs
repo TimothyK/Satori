@@ -336,6 +336,8 @@ public class RefreshWorkItemTests
         _builder.BuildWorkItem(out var workItem).WithSprint(sprint)
             .AddChild(out var task);
         _builder.BuildPullRequest(out var pullRequest).WithWorkItem(workItem);
+        workItem.Fields.AssignedTo.ShouldNotBeNull();
+        task.Fields.AssignedTo.ShouldNotBeNull();
 
         //Act
         var (_, actual) = await RefreshWorkItemAsync(workItem);

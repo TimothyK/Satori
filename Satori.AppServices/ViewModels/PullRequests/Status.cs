@@ -11,7 +11,7 @@ public class Status : IComparable<Status>
 
     #region All
 
-    private static readonly List<Status> Members = new List<Status>();
+    private static readonly List<Status> Members = [];
     public static IEnumerable<Status> All() => Members;
 
     #endregion
@@ -27,7 +27,7 @@ public class Status : IComparable<Status>
 
     #region To/From String
 
-    private static readonly Dictionary<Status, string> ToStringMap = new Dictionary<Status, string>
+    private static readonly Dictionary<Status, string> ToStringMap = new()
     {
         {Draft, nameof(Draft)},
         {Open, nameof(Open)},
@@ -36,15 +36,6 @@ public class Status : IComparable<Status>
     };
 
     public override string ToString() => ToStringMap[this];
-    public static Status FromString(string value)
-    {
-        if (value == null) throw new ArgumentNullException(nameof(value));
-
-        var result = All().FirstOrDefault(x => x.ToString() == value);
-        if (result != null) return result;
-
-        throw new ArgumentOutOfRangeException(nameof(value), value, $"Invalid {nameof(Status)}");
-    }
 
     #endregion
 
@@ -71,7 +62,7 @@ public class Status : IComparable<Status>
 
     #region Cast to/from Underlying Type
 
-    private static readonly Dictionary<Status, int> UnderlyingMap = new Dictionary<Status, int>
+    private static readonly Dictionary<Status, int> UnderlyingMap = new()
     {
         {Draft, 0},
         {Open, 1},
@@ -92,8 +83,13 @@ public class Status : IComparable<Status>
 
     #region IComparable
 
-    public int CompareTo(Status other)
+    public int CompareTo(Status? other)
     {
+        if (other == null)
+        {
+            return 1;
+        }
+
         var results = new[]
         {
             ((int) this).CompareTo((int) other)
