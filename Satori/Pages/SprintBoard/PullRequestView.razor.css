@@ -1,0 +1,52 @@
+﻿.work-item-pr {
+    border-left-color: #2EB886;
+}
+
+.pull-request-id {
+    font-weight: bold;
+    margin-right: 5px;
+}
+.pull-request-id::before {
+    content: "PR#";
+    font-size: 0.75em;
+    vertical-align: top;
+}
+
+.pull-request-description {
+    margin-right: 5px;
+}
+.pull-request-description br {
+    content: "";
+}
+.pull-request-repository {
+    font-size: 1.0rem;
+    font-weight: bold;
+}
+.pull-request-projectname {
+    font-size: 0.75em;
+    vertical-align: top;
+}
+.pull-request-projectname::after {
+    content: " / ";
+    font-size: 0.75em;
+}
+.pull-request-repositoryname {
+}
+.git-tag {
+    margin-left: 5px;
+}
+.pull-request-title {
+}
+
+.badge.bg-draft {
+    font-size: 0.75rem;
+}
+
+.status-done {
+    background-color: #ECF9EC;
+    opacity: 0.5;
+    font-size: 0.7em;
+}
+.status-done:hover {
+    opacity: 1.0;
+}

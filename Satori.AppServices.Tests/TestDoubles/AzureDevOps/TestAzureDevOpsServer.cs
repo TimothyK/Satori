@@ -10,6 +10,8 @@ using Shouldly;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Satori.AppServices.ViewModels.PullRequests;
+using PullRequest = Satori.AzureDevOps.Models.PullRequest;
 using WorkItem = Satori.AzureDevOps.Models.WorkItem;
 
 namespace Satori.AppServices.Tests.TestDoubles.AzureDevOps;
@@ -72,8 +74,14 @@ internal class TestAzureDevOpsServer
         Mock.Setup(srv => srv.GetPullRequestsAsync())
             .ReturnsAsync(() => _database.GetPullRequests());
 
+        Mock.Setup(srv => srv.GetPullRequestAsync(It.IsAny<int>()))
+            .ReturnsAsync((int pullRequestId) => _database.GetPullRequest(pullRequestId));
+
         Mock.Setup(srv => srv.GetPullRequestWorkItemIdsAsync(It.IsAny<PullRequestId>()))
             .ReturnsAsync((PullRequestId pr) => GetWorkItemMap(pr));
+
+        Mock.Setup(srv => srv.GetTagsOfMergeAsync(It.IsAny<PullRequest>()))
+            .ReturnsAsync((PullRequest pr) => GetTags(pr));
 
         Mock.Setup(srv => srv.GetWorkItemsAsync(It.IsAny<IEnumerable<int>>()))
             .Callback((IEnumerable<int> workItemIds) => CallOnGetWorkItems(workItemIds))
@@ -114,6 +122,18 @@ internal class TestAzureDevOpsServer
         {
             return _database.GetWorkItemsById(workItemIds).ToArray();
         }
+    }
+
+    private Tag[] GetTags(PullRequest pr)
+    {
+        if (pr.Status != Status.Complete.ToApiValue())
+        {
+            throw new InvalidOperationException("Pull Request is not completed");
+        }
+        var commitId = pr.LastMergeCommit?.CommitId
+            ?? throw new InvalidOperationException("Pull Request does not have a merge commit");
+
+        return _database.GetTagsForCommitId(commitId).ToArray();
     }
 
     private void CallOnGetWorkItems(IEnumerable<int> workItemIds)

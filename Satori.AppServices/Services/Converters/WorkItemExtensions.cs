@@ -1,8 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using CodeMonkeyProjectiles.Linq;
 using Flurl;
 using Satori.AppServices.ViewModels;
+using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps.Models;
+using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.Services.Converters;
@@ -54,9 +57,71 @@ public static class WorkItemExtensions
                 .AppendPathSegment(id),
             ApiUrl = wi.Url,
             Children = GetChildren(wi.Relations),
+            PullRequests = GetPullRequests(wi.Relations, UriParser.GetAzureDevOpsOrgUrl(wi.Url)),
         };
 
+        workItem.ResetPeopleRelations();
+
         return workItem;
+    }
+
+    public static void ResetPeopleRelations(this IEnumerable<WorkItem> workItems)
+    {
+        foreach (var workItem in workItems)
+        {
+            workItem.ResetPeopleRelations();
+        }
+    }
+
+    public static void ResetPeopleRelations(this WorkItem workItem)
+    {
+        foreach (var child in workItem.Children)
+        {
+            child.ResetPeopleRelations();
+        }
+
+        workItem.WithPeople = workItem.AssignedTo.Yield()
+            .Union(workItem.Children.SelectMany(task => task.WithPeople))
+            .Union(workItem.PullRequests.Select(pr => pr.CreatedBy))
+            .Union(workItem.PullRequests.SelectMany(pr => pr.Reviews.Select(review => review.Reviewer)))
+            .Distinct()
+            .ToList();
+    }
+
+    private static List<PullRequest> GetPullRequests(List<WorkItemRelation> relations, Uri azureDevOpsOrgUrl)
+    {
+        var prRelations = relations.Where(r => r.RelationType == "ArtifactLink" && r.Attributes["name"]?.ToString() == "Pull Request");
+        return prRelations.Select(relation => CreatePullRequestPlaceholder(relation, azureDevOpsOrgUrl)).ToList();
+
+    }
+
+    private static PullRequest CreatePullRequestPlaceholder(WorkItemRelation relation, Uri azureDevOpsOrgUrl)
+    {
+        var prParts = relation.Url.Split('/').Last().Split("%2F");
+        var projectId = Guid.Parse(prParts[0]);
+        var repoId = Guid.Parse(prParts[1]);
+        var prId = int.Parse(prParts[2]);
+
+        var url = azureDevOpsOrgUrl
+            .AppendPathSegment(projectId)
+            .AppendPathSegment("_git")
+            .AppendPathSegment(repoId)
+            .AppendPathSegment("PullRequest")
+            .AppendPathSegment(prId);
+
+        return new PullRequest
+        {
+            Project = projectId.ToString(),
+            RepositoryName = repoId.ToString(),
+            Id = prId,
+            Title = $"PR#{prId}",
+            Status = Status.Open,
+            Url = url,
+            CreatedBy = Person.Empty,
+            Reviews = [],
+            WorkItems = [],
+            Labels = [],
+        };
     }
 
     private static List<WorkItem> GetChildren(List<WorkItemRelation> relations)

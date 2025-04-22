@@ -1,4 +1,5 @@
 ﻿using CodeMonkeyProjectiles.Linq;
+using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
@@ -42,7 +43,7 @@ public class SprintWorkItemTests
 
     private WorkItem[] GetWorkItems(params Sprint[] sprints)
     {
-        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), _timeServer, new AlertService());
+        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), _timeServer, new AlertService(), new NullLoggerFactory());
 
         return srv.GetWorkItemsAsync(sprints).Result.ToArray();
     }
@@ -77,7 +78,7 @@ public class SprintWorkItemTests
         //Assert
         workItems.ShouldBeEmpty();
     }
-    
+
     [TestMethod]
     public void SprintWithNoWorkItems()
     {
@@ -190,7 +191,7 @@ public class SprintWorkItemTests
         var srv = _azureDevOpsServer.AsInterface();
         var iterationId = (IterationId)sprint;
         var relations = srv.GetIterationWorkItemsAsync(iterationId).Result;
-        
+
         //Assert
         relations.Any(r => r.Source?.Id == pbi.Id && r.Target.Id == bug.Id).ShouldBeTrue();
     }
@@ -228,6 +229,46 @@ public class SprintWorkItemTests
 
     #endregion Child Tasks
 
+    #region Pull Requests
+
+    [TestMethod]
+    public void PullRequests_None()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Length.ShouldBe(1);
+        var actual = workItems.Single();
+        actual.Id.ShouldBe(workItem.Id);
+        actual.PullRequests.ShouldBeEmpty();
+    }
+    
+    [TestMethod]
+    public void PullRequests()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        _builder.BuildPullRequest(out var pr).WithWorkItem(workItem);
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        var actual = workItems.Single().PullRequests.SingleOrDefault();
+        actual.ShouldNotBeNull();
+        actual.Id.ShouldBe(pr.PullRequestId);
+        actual.Project.ShouldBe(pr.Repository.Project.Id.ToString());
+        actual.RepositoryName.ShouldBe(pr.Repository.Id.ToString());
+    }
+
+    #endregion Pull Requests
+
     #region Properties
 
     [TestMethod]
@@ -244,7 +285,7 @@ public class SprintWorkItemTests
         workItems.Length.ShouldBe(1);
         workItems.Single().Title.ShouldBe(workItem.Fields.Title);
     }
-    
+
     [TestMethod]
     public void Rev()
     {
@@ -279,7 +320,7 @@ public class SprintWorkItemTests
         vm.AssignedTo.DisplayName.ShouldBe(workItem.Fields.AssignedTo.DisplayName);
         vm.AssignedTo.AvatarUrl.ToString().ShouldBe(workItem.Fields.AssignedTo.ImageUrl);
     }
-    
+
     [TestMethod]
     public void AssignedTo_Unassigned()
     {
@@ -364,7 +405,7 @@ public class SprintWorkItemTests
         //Assert
         workItems.Single().IterationPath.ShouldBe(sprint.IterationPath);
     }
-    
+
     [TestMethod]
     public void AbsolutePriority()
     {
@@ -422,7 +463,7 @@ public class SprintWorkItemTests
         //Assert
         workItems.Single().Type.ShouldBe(expected);
     }
-    
+
     [TestMethod]
     public void ProjectName()
     {
@@ -452,7 +493,7 @@ public class SprintWorkItemTests
         //Assert
         workItems.Single().ProjectCode.ShouldBe(workItem.Fields.ProjectCode);
     }
-    
+
     [TestMethod]
     public void ProjectCode_Missing()
     {
@@ -467,7 +508,7 @@ public class SprintWorkItemTests
         //Assert
         workItems.Single().ProjectCode.ShouldBeNullOrEmpty();
     }
-    
+
     [TestMethod]
     public void Url()
     {
@@ -481,7 +522,7 @@ public class SprintWorkItemTests
         //Assert
         workItems.Single().Url.ShouldBe($"http://devops.test/Org/_workItems/edit/{workItem.Id}");
     }
-    
+
     [TestMethod]
     public void ApiUrl()
     {
@@ -576,7 +617,7 @@ public class SprintWorkItemTests
         //Assert
         workItems.Single().Children.Single().RemainingWork.ShouldBe(expected);
     }
-    
+
     [TestMethod]
     public void RemainingWork_Missing()
     {
@@ -616,7 +657,7 @@ public class SprintWorkItemTests
         //Assert
         workItems.Single().State.ShouldBe(expected);
     }
-    
+
     [TestMethod]
     [DataRow("To Do")]
     [DataRow("In Progress")]
@@ -655,7 +696,7 @@ public class SprintWorkItemTests
         workItems.Single().Children.Single().StatusLabel.ShouldBe("⏳ To Do");
         workItems.Single().Children.Single().StatusCssClass.ShouldBe("status-to-do");
     }
-    
+
     [TestMethod]
     public void ToDo_Estimate_NoRemaining()
     {
@@ -673,7 +714,7 @@ public class SprintWorkItemTests
         workItems.Single().Children.Single().StatusLabel.ShouldBe("⏳ To Do (~5.0 hr)");
         workItems.Single().Children.Single().StatusCssClass.ShouldBe("status-to-do");
     }
-    
+
     [TestMethod]
     public void ToDo_Estimate_Remaining()
     {
@@ -709,7 +750,7 @@ public class SprintWorkItemTests
         workItems.Single().Children.Single().StatusLabel.ShouldBe("⌛ In Progress");
         workItems.Single().Children.Single().StatusCssClass.ShouldBe("status-in-progress");
     }
-    
+
     [TestMethod]
     public void InProgress_Estimate_NoRemaining()
     {
@@ -727,7 +768,7 @@ public class SprintWorkItemTests
         workItems.Single().Children.Single().StatusLabel.ShouldBe("⌛ In Progress (~10.0 hr)");
         workItems.Single().Children.Single().StatusCssClass.ShouldBe("status-in-progress");
     }
-    
+
     [TestMethod]
     public void InProgress_Remaining()
     {
@@ -744,7 +785,7 @@ public class SprintWorkItemTests
         workItems.Single().Children.Single().StatusLabel.ShouldBe("⌛ In Progress (9.9 hr)");
         workItems.Single().Children.Single().StatusCssClass.ShouldBe("status-in-progress");
     }
-    
+
     [TestMethod]
     public void Done()
     {
@@ -775,7 +816,7 @@ public class SprintWorkItemTests
         //Assert
         workItems.Single().StatusLabel.ShouldBe("Approved by Product Owner");
     }
-    
+
     [TestMethod]
     public void StatusLabel_Committed()
     {
@@ -790,7 +831,7 @@ public class SprintWorkItemTests
         //Assert
         workItems.Single().StatusLabel.ShouldBe("Committed by Team");
     }
-    
+
     [TestMethod]
     [DataRow("Open", "Open", null)]
     [DataRow("Closed", "✔️ Closed", "status-done")]
@@ -853,7 +894,7 @@ public class SprintWorkItemTests
         //Assert
         workItems.Single().StatusLabel.ShouldBe(expected);
     }
-    
+
     #endregion
 
     [TestMethod]
@@ -872,7 +913,7 @@ public class SprintWorkItemTests
         //Assert
         workItems.Single().Blocked.ShouldBe(expected);
     }
-    
+
     [TestMethod]
     public void TargetDate_HasValue()
     {
@@ -888,7 +929,7 @@ public class SprintWorkItemTests
         //Assert
         workItems.Single().TargetDate.ShouldBe(now);
     }
-    
+
     [TestMethod]
     public void TargetDate_Null()
     {
@@ -903,7 +944,7 @@ public class SprintWorkItemTests
         //Assert
         workItems.Single().TargetDate.ShouldBeNull();
     }
-    
+
     [TestMethod]
     public void Tags_Empty()
     {
@@ -918,7 +959,7 @@ public class SprintWorkItemTests
         //Assert
         workItems.Single().Tags.ShouldBeEmpty();
     }
-    
+
     [TestMethod]
     public void Tags_OneTag()
     {
@@ -934,7 +975,7 @@ public class SprintWorkItemTests
         workItems.Single().Tags.Count.ShouldBe(1);
         workItems.Single().Tags.Single().ShouldBe("Bug Bounty");
     }
-    
+
     [TestMethod]
     public void Tags_TwoTags()
     {
@@ -987,7 +1028,7 @@ public class SprintWorkItemTests
         workItems.Single(wi => wi.Id == firstWorkItem.Id).SprintPriority.ShouldBe(1);
         workItems.Single(wi => wi.Id == secondWorkItem.Id).SprintPriority.ShouldBe(2);
     }
-    
+
     [TestMethod]
     public void SprintPriority_ZeroBacklogPriority_LowestSprintPriority()
     {
