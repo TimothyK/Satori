@@ -195,6 +195,31 @@ public class RefreshWorkItemTests
         actual.ShouldNotBeNull();
         actual.SprintPriority.ShouldBe(2);
     }
+    
+    [TestMethod]
+    public async Task MultipleSprints()
+    {
+        //Arrange
+        var sprint1 = BuildSprint();
+        var sprint2 = BuildSprint();
+        _builder.BuildWorkItem(out var workItem1).WithSprint(sprint1);
+        _builder.BuildWorkItem(out var workItem2).WithSprint(sprint1);
+        _builder.BuildWorkItem(out var workItem3).WithSprint(sprint2);
+        workItem1.Fields.BacklogPriority = workItem2.Fields.BacklogPriority - 1.0;
+        workItem3.Fields.BacklogPriority = workItem1.Fields.BacklogPriority - 1.0;
+
+        //Act
+        var (original, actual) = await RefreshWorkItemAsync(workItem1,
+            () =>
+            {
+                workItem1.Fields.BacklogPriority = workItem2.Fields.BacklogPriority + 1.0;
+            });
+
+        //Assert
+        original.SprintPriority.ShouldBe(1);
+        actual.ShouldNotBeNull();
+        actual.SprintPriority.ShouldBe(2);
+    }
 
     #endregion Sprint Priority
 

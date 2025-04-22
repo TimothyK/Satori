@@ -244,7 +244,7 @@ public class SprintBoardService(
         var index = allWorkItems.IndexOf(original);
         allWorkItems[index] = target;
 
-        SetSprintPriority(allWorkItems);
+        SetSprintPriority(allWorkItems.Where(wi => wi.Sprint == target.Sprint));
     }
 
     private static void SafeSetSprint(WorkItem target, WorkItem source)
