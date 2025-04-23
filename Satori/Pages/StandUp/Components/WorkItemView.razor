@@ -16,7 +16,7 @@
     {
         <span class="work-item @WorkItem.Parent.Type.CssClass cell-link" @onclick="() => OpenWorkItemAsync(WorkItem.Parent)" title="Open D#@WorkItem.Parent.Id">
             <span class="work-item-id">@WorkItem.Parent.Id</span>
-            @WorkItem.Parent.Title
+            <span class="work-item-title">@WorkItem.Parent.Title</span>
             @if (WorkItem.Parent.Blocked)
             {
                 <span class="blocked"></span>
@@ -44,7 +44,7 @@
         {
             <label><span class="work-item-id">@WorkItem.Id</span>&nbsp;</label>
         }
-        @WorkItem.Title
+        <span class="work-item-title">@WorkItem.Title</span>
         @if (WorkItem.Blocked)
         {
             <span class="blocked"></span>

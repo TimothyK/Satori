@@ -8,8 +8,8 @@
     margin-left: 5px;
     align-self: center;
 }
-.blocked {
-    margin-left: 5px;
+.work-item-title {
+    margin-right: 5px;
 }
 .blocked::before {
     content: "⛔";
@@ -21,12 +21,12 @@
     margin: 3px;
     background-color: gray;
     color: white;
-    margin-left: 5px;
+    margin-right: 5px;
     padding-left: 3px;
     padding-right: 3px;
 }
 .project-code {
-    margin-left: 5px;
+    margin-right: 5px;
     border: 1px solid black;
     border-radius: 5px;
     border-left-color: black;
