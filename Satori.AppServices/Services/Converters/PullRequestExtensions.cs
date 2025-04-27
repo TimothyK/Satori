@@ -27,7 +27,7 @@ internal static class PullRequestExtensions
             Title = pr.Title,
             RepositoryName = repositoryName,
             Project = projectName,
-            Status = pr.IsDraft ? Status.Draft : Status.FromApiValue(pr.Status),
+            Status = GetStatus(pr),
             AutoComplete = !string.IsNullOrEmpty(pr.CompletionOptions?.MergeCommitMessage),
             CreationDate = pr.CreationDate,
             CreatedBy = pr.CreatedBy,
@@ -43,6 +43,16 @@ internal static class PullRequestExtensions
         };
 
         return pullRequest;
+    }
+
+    private static Status GetStatus(PullRequestDto pr)
+    {
+        var status = Status.FromApiValue(pr.Status);
+        if (status == Status.Open && pr.IsDraft)
+        {
+            return Status.Draft;
+        }
+        return status;
     }
 
     private static Review ToViewModel(Reviewer reviewer)

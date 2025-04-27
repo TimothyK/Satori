@@ -137,6 +137,23 @@ public class GetPullRequestsTests
     }
     
     [TestMethod]
+    public async Task AbandonedDraftPullRequest_Ignored()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        _builder.BuildPullRequest(out var pullRequest).WithWorkItem(workItem);
+        pullRequest.Status = Status.Abandoned.ToApiValue();
+        pullRequest.IsDraft = true;
+
+        //Act
+        var workItems = await GetWorkItemsAsync(sprint);
+
+        //Assert
+        workItems.Single().PullRequests.ShouldBeEmpty();
+    }
+    
+    [TestMethod]
     public async Task CompletedPullRequest_Returned()
     {
         //Arrange
