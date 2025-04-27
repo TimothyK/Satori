@@ -36,6 +36,13 @@ public class Person
         AvatarUrl = new Url("/images/NullAvatar.png").ToUri(),
     };
 
+    public static readonly Person Anyone = new()
+    {
+        AzureDevOpsId = Guid.NewGuid(),
+        DisplayName = "Anyone",
+        AvatarUrl = new Url("/images/AllAvatar.png").ToUri(),
+    };
+
     #endregion Null Object
 
     #region Caching

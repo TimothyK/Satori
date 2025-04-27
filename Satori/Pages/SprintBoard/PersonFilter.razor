@@ -1,0 +1,53 @@
+﻿@using CodeMonkeyProjectiles.Linq
+@using Satori.AppServices.ViewModels
+
+<div class="dropdown">
+    <button class="dropbtn avatar-cell @FilterWithBorders">
+        <img src="@CurrentPerson.AvatarUrl"
+             alt="@CurrentPerson.DisplayName"
+             title="Filtering to work items involving @CurrentPerson.DisplayName" />
+    </button>
+
+    <div class="dropdown-content">
+        <div class="dropdown-content-menu" @onclick="() => SetFilter(Person.Anyone)">
+            <button class="avatar-cell">
+                <img src="@Person.Anyone.AvatarUrl"
+                     alt="@Person.Anyone.DisplayName"
+                     title="Filtering to work items involving @Person.Anyone.DisplayName" />
+                @Person.Anyone.DisplayName
+            </button>
+        </div>
+        @if (@Person.Me != null)
+        {
+            <div class="dropdown-content-menu" @onclick="SetFilterMe">
+                <button class="avatar-cell">
+                    <img src="@Person.Me.AvatarUrl"
+                         alt="@Person.Me.DisplayName"
+                         title="Filtering to work items involving @Person.Me.DisplayName" />
+                    Me
+                </button>
+            </div>
+        }
+        <div class="dropdown-content-menu" @onclick="() => SetFilter(Person.Empty)">
+            <button class="avatar-cell">
+                <img src="@Person.Empty.AvatarUrl"
+                     alt="@Person.Empty.DisplayName"
+                     title="Filtering to work items involving @Person.Empty.DisplayName" />
+                @Person.Empty.DisplayName
+            </button>
+        </div>
+        @foreach (var person in People.Except(Person.Empty.Yield()))
+        {
+            <div class="dropdown-content-menu" @onclick="() => SetFilter(person)">
+                <button class="avatar-cell">
+                    <img src="@person.AvatarUrl"
+                         alt="@person.DisplayName"
+                         title="Filtering to work items involving @person.DisplayName" />
+                    @person.DisplayName
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+

@@ -37,6 +37,7 @@
                 </button>
             </span>
         }
+        <PersonFilter People="_workItems?.SelectMany(wi => wi.WithPeople)?.Distinct()?.OrderBy(p => p.DisplayName)?.ToArray() ?? []"></PersonFilter>
         <span>
             <button class="btn-header btn-refresh @InLoading" title="Refresh (Alt+F5)" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
         </span>

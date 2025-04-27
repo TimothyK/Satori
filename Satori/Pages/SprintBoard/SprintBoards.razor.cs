@@ -222,6 +222,13 @@ public partial class SprintBoards
 
     #endregion WorkFilters
 
+    #region With Filter
+
+    private Person WithPerson { get; set; } = Person.Anyone;
+    private FilterSelectionCssClass FilterWithBorders { get; set; } = FilterSelectionCssClass.Hidden;
+
+    #endregion With Filter
+
     #region Team Selection
 
     private TeamSelectionViewModel? TeamSelection { get; set; }
