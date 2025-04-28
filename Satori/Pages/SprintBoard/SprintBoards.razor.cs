@@ -32,7 +32,7 @@ public partial class SprintBoards
             NavigationManager.NavigateTo("/");
         }
 
-        PersonFilterInitializeFromUrl();
+        WithFilterInitializeFromUrl();
 
         var sprints = (await SprintBoardService.GetActiveSprintsAsync()).ToArray();
         TeamSelection = new TeamSelectionViewModel(sprints, NavigationManager);
@@ -63,7 +63,7 @@ public partial class SprintBoards
 
         if (TeamSelection != null)
         {
-            await SetDefaultPersonFilterAsync();
+            await SetDefaultWithFilterAsync();
             await TeamSelection.SetDefaultTeamsAsync(LocalStorage);
             StateHasChanged();
             _isInitialized = true;
@@ -89,6 +89,7 @@ public partial class SprintBoards
         StateHasChanged();
 
         await SprintBoardService.GetPullRequestsAsync(workItems);
+        StateHasChanged();
         ResetWorkItemCounts();
 
         InLoading = CssClass.None;
@@ -145,82 +146,73 @@ public partial class SprintBoards
         await JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
     }
 
-    #region WorkFilters
+    #region With Filter
 
-    private FilterSelectionCssClass FilterToMe { get; set; } = FilterSelectionCssClass.Hidden;
+    private Dictionary<WorkItem, VisibleCssClass> _workItemFilter = [];
 
-    private async Task FilterToMeToggleAsync()
+    public required PersonFilter WithPersonFilter { get; set; }
+
+    private async Task SetDefaultWithFilterAsync()
     {
-        FilterToMe = FilterToMe.Not;
-        ResetWorkItemCounts();
-        ResetPersonOnUrl();
-        await StorePersonFilterAsync();
-    }
-
-    private void ResetPersonOnUrl()
-    {
-        var filterValue = FilterToMe ? DefaultPersonFilterStorageMeValue : "all";
-
-        var url = NavigationManager.Uri
-            .RemoveQueryParam("person")
-            .AppendQueryParam("person", filterValue);
-
-        NavigationManager.NavigateTo(url, forceLoad: false);
-    }
-
-    private const string DefaultPersonFilterStorageKey = "SprintBoard.DefaultPerson";
-    private const string DefaultPersonFilterStorageMeValue = "me";
-
-    private void PersonFilterInitializeFromUrl()
-    {
-        var parameters = new Url(NavigationManager.Uri).QueryParams
-            .Where(qp => qp.Name == "person")
-            .ToArray();
-        if (parameters.None())
-        {
-            return;
-        }
-        var filterValue = parameters.First().Value.ToString();
-
-        FilterToMe = filterValue == DefaultPersonFilterStorageMeValue;
-    }
-
-    private async Task SetDefaultPersonFilterAsync()
-    {
-        var hasPersonOnUrl = new Url(NavigationManager.Uri).QueryParams.Any(qp => qp.Name == "person");
+        var hasPersonOnUrl = new Url(NavigationManager.Uri).QueryParams.Any(qp => qp.Name == WithQueryParamName);
         if (hasPersonOnUrl)
         {
             return;
         }
 
-        var filterValue = await LocalStorage.GetItemAsync<string>(DefaultPersonFilterStorageKey);
-        FilterToMe = filterValue == DefaultPersonFilterStorageMeValue;
+        var filterValue = await LocalStorage.GetItemAsync<string>(DefaultWithFilterStorageKey) ?? "all";
+        WithPersonFilter.FilterKey = filterValue;
     }
 
-    private async Task StorePersonFilterAsync()
+    private async Task WithFilterChangedAsync()
+    {
+        ResetWorkItemCounts();
+        ResetWithOnUrl();
+        await StoreWithFilterAsync();
+    }
+
+    private const string DefaultWithFilterStorageKey = "SprintBoard.With";
+    private const string WithQueryParamName = "with";
+
+    private void ResetWithOnUrl()
+    {
+        var filterValue = WithPersonFilter.FilterKey;
+
+        var url = NavigationManager.Uri
+            .RemoveQueryParam(WithQueryParamName)
+            .AppendQueryParam(WithQueryParamName, filterValue);
+
+        NavigationManager.NavigateTo(url, forceLoad: false);
+    }
+
+    private async Task StoreWithFilterAsync()
     {
         if (LocalStorage == null)
         {
             return;
         }
 
-        var filterValue = FilterToMe ? DefaultPersonFilterStorageMeValue : "all";
-        await LocalStorage.SetItemAsync(DefaultPersonFilterStorageKey, filterValue);
+        var filterValue = WithPersonFilter.FilterKey;
+        await LocalStorage.SetItemAsync(DefaultWithFilterStorageKey, filterValue);
     }
 
-    private bool IsWorkItemVisibleForPersonFilter(WorkItem workItem)
+
+    private void WithFilterInitializeFromUrl()
     {
-        if (!FilterToMe)
+        var parameters = new Url(NavigationManager.Uri).QueryParams
+            .Where(qp => qp.Name == WithQueryParamName)
+            .ToArray();
+        if (parameters.None())
         {
-            return true;
+            return;
         }
-
-        return Person.Me.IsIn(workItem.WithPeople);
+        var filterValue = parameters.First().Value.ToString() ?? "all";
+        WithPersonFilter.FilterKey = filterValue;
     }
 
-    private Dictionary<WorkItem, VisibleCssClass> _workItemPersonFilter = [];
 
-    #endregion WorkFilters
+
+    #endregion With Filter
 
     #region Team Selection
 
@@ -241,18 +233,25 @@ public partial class SprintBoards
         var selectedTeamIds = TeamSelection?.SelectedTeamIds ?? [];
 
         var teamWorkItems =
-            _workItems?.Where(wi => wi.Sprint?.TeamId.IsIn(selectedTeamIds) ?? false)
-            .Where(IsWorkItemVisibleForPersonFilter)
+            _workItems?.Where(IsVisible)
             .ToArray()
             ?? [];
         WorkItemActiveCount = teamWorkItems.Count(wi => wi.State != ScrumState.Done);
         WorkInProgressCount = teamWorkItems.Count(IsInProgress);
         WorkItemDoneCount = teamWorkItems.Length - WorkItemActiveCount;
 
-        _workItemPersonFilter = _workItems?.ToDictionary(
-            wi => wi, 
-            wi => (VisibleCssClass) IsWorkItemVisibleForPersonFilter(wi)
+        _workItemFilter = _workItems?.ToDictionary(
+            wi => wi,
+            wi => (VisibleCssClass) IsVisible(wi)
         ) ?? [];
+
+        return;
+
+        bool IsVisible(WorkItem workItem)
+        {
+            return (workItem.Sprint?.TeamId.IsIn(selectedTeamIds) ?? false)
+                && (WithPersonFilter.CurrentPerson == Person.Anyone || WithPersonFilter.CurrentPerson.IsIn(workItem.WithPeople));
+        }
     }
 
     private static bool IsInProgress(WorkItem wi)
@@ -266,7 +265,7 @@ public partial class SprintBoards
     #region Adjust Priority
 
     private PriorityAdjustmentViewModel PriorityAdjustment { get; set; } = null!;
-
+    
     private void EnterAdjustPriorityMode()
     {
         if (PriorityAdjustment.ShowEnterModeClassName)
@@ -313,7 +312,6 @@ public partial class SprintBoards
     }
 
     #endregion Adjust Priority
-
 }
 
 /// <summary>
