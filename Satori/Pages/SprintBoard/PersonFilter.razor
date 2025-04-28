@@ -2,7 +2,7 @@
 @using Satori.AppServices.ViewModels
 
 <div class="dropdown">
-    <button class="dropbtn avatar-cell @FilterWithBorders">
+    <button class="dropbtn avatar-cell @FilterWithBorders" @onclick="ToggleFilterAsync">
         <img src="@CurrentPerson.AvatarUrl"
              alt="@CurrentPerson.DisplayName"
              title="Filtering to work items involving @CurrentPerson.DisplayName" />

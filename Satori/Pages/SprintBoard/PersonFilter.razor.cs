@@ -95,4 +95,16 @@ public partial class PersonFilter
 
         await OnFilterChanged.InvokeAsync();
     }
+
+    private async Task ToggleFilterAsync()
+    {
+        if (CurrentPerson == Person.Anyone && Person.Me != null)
+        {
+            await SetFilterAsync(Person.Me, isMe: true);
+        }
+        else
+        {
+            await SetFilterAsync(Person.Anyone);
+        }
+    }
 }
