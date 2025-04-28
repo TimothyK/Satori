@@ -27,16 +27,7 @@
             <span class="badge bg-warning" title="In Progress">@WorkInProgressCount</span>
             <span class="badge bg-success" title="Done">@WorkItemDoneCount</span>
         }
-        @if (Person.Me != null)
-        {
-            <span id="filterMe">
-                <button class='avatar-cell @FilterToMe' @onclick="FilterToMeToggleAsync">
-                    <img src="@Person.Me.AvatarUrl"
-                         alt="@Person.Me.DisplayName"
-                         title="Filter to work items involving me" />
-                </button>
-            </span>
-        }
+        <PersonFilter People="_workItems?.SelectMany(wi => wi.WithPeople) ?? []" OnFilterChanged="WithFilterChangedAsync" @ref="WithPersonFilter"></PersonFilter>
         <span>
             <button class="btn-header btn-refresh @InLoading" title="Refresh (Alt+F5)" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
         </span>
@@ -88,8 +79,7 @@ else
                             work-item
                             @workItem.Type.CssClass
                             @workItem.StatusCssClass
-                            @_workItemPersonFilter[workItem]
-                            @(workItem.Sprint == null ? string.Empty : TeamSelection.TeamSelectedClassName[workItem.Sprint.TeamId])
+                            @_workItemFilter[workItem]
                             @(PriorityAdjustment.WorkItemSelectedClassName[workItem.Id])
                     "
                     @onclick="e => PriorityAdjustment.SetMoveTo(workItem, e)">
