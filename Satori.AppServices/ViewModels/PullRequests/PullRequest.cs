@@ -1,4 +1,5 @@
-﻿using Satori.AzureDevOps.Models;
+﻿using Satori.AppServices.ViewModels.Abstractions;
+using Satori.AzureDevOps.Models;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.ViewModels.PullRequests;
@@ -16,6 +17,8 @@ public class PullRequest
     public DateTimeOffset CreationDate { get; init; }
     public required Person CreatedBy { get; init; }
     public required List<Review> Reviews { get; init; }
+    public List<ActionItem> ActionItems { get; set; } = [];
+
     public required List<WorkItem> WorkItems { get; set; }
 
     /// <summary>

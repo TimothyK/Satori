@@ -4,6 +4,7 @@ using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
+using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.Sprints;
@@ -35,29 +36,6 @@ public class PeopleTests
     {
         return Builder.Builder<Sprint>.New().Build(int.MaxValue);
     }
-
-    private static class People
-    {
-        public static readonly User Alice = BuildUser(nameof(Alice));
-        public static readonly User Bob = BuildUser(nameof(Bob));
-        public static readonly User Cathy = BuildUser(nameof(Cathy));
-        public static readonly User Dave = BuildUser(nameof(Dave));
-        //public static readonly User Emily = BuildUser(nameof(Emily));
-        //public static readonly User Fred = BuildUser(nameof(Fred));
-
-        private static User BuildUser(string name)
-        {
-            var user = Builder.Builder<User>.New().Build(int.MaxValue);
-
-            user.DisplayName = name;
-            user.UniqueName = name;
-            user.ImageUrl = $"http://devops.test/Org/_api/_common/identityImage?id={user.Id}";
-
-            return user;
-        }
-
-    }
-
 
     #endregion Arrange
 
