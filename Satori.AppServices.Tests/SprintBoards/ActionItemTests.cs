@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+﻿using CodeMonkeyProjectiles.Linq;
+using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
@@ -11,7 +12,9 @@ using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.PullRequests.ActionItems;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AppServices.ViewModels.WorkItems.ActionItems;
+using Satori.AzureDevOps.Models;
 using Shouldly;
+using PullRequest = Satori.AzureDevOps.Models.PullRequest;
 
 namespace Satori.AppServices.Tests.SprintBoards;
 
@@ -77,12 +80,10 @@ public class ActionItemTests
 
         //Assert
         actionItems.Length.ShouldBe(1);
-        var actual = actionItems.Single() as FinishActionItem;
-        actual.ShouldNotBeNull();
-        actual.On.Count.ShouldBe(1);
-        actual.On.Single().AzureDevOpsId.ShouldBe(People.Alice.Id);
-        actual.Message.ShouldBe($"This {WorkItemType.FromApiValue(workItem.Fields.WorkItemType)} can be marked as Done or have more tasks added");
-        actual.WorkItem.Id.ShouldBe(workItem.Id);
+        actionItems.ShouldBeOfType<FinishActionItem>()
+            .ShouldBeOn(People.Alice)
+            .ShouldBeFor(workItem)
+            .ShouldHaveMessage($"This {WorkItemType.FromApiValue(workItem.Fields.WorkItemType)} can be marked as Done or have more tasks added");
     }
     
     [TestMethod]
@@ -115,13 +116,10 @@ public class ActionItemTests
         var actionItems = await GetActionItems(sprint);
 
         //Assert
-        actionItems.Length.ShouldBe(1);
-        var actual = actionItems.Single() as TaskActionItem;
-        actual.ShouldNotBeNull();
-        actual.On.Count.ShouldBe(1);
-        actual.On.Single().AzureDevOpsId.ShouldBe(People.Bob.Id);
-        actual.Message.ShouldBe("This task can be started");
-        actual.Task.Id.ShouldBe(task.Id);
+        actionItems.ShouldBeOfType<TaskActionItem>()
+            .ShouldBeOn(People.Bob)
+            .ShouldBeFor(task)
+            .ShouldHaveMessage("This task can be started");
     }
     
     [TestMethod]
@@ -140,12 +138,10 @@ public class ActionItemTests
 
         //Assert
         actionItems.Length.ShouldBe(1);
-        var actual = actionItems.Single() as TaskActionItem;
-        actual.ShouldNotBeNull();
-        actual.On.Count.ShouldBe(1);
-        actual.On.Single().AzureDevOpsId.ShouldBe(People.Bob.Id);
-        actual.Message.ShouldBe("This task can be resumed");
-        actual.Task.Id.ShouldBe(task.Id);
+        actionItems.ShouldBeOfType<TaskActionItem>()
+            .ShouldBeOn(People.Bob)
+            .ShouldBeFor(task)
+            .ShouldHaveMessage("This task can be resumed");
     }
     
     [TestMethod]
@@ -164,12 +160,10 @@ public class ActionItemTests
 
         //Assert
         actionItems.Length.ShouldBe(1);
-        var actual = actionItems.Single() as FinishActionItem;
-        actual.ShouldNotBeNull();
-        actual.On.Count.ShouldBe(1);
-        actual.On.Single().AzureDevOpsId.ShouldBe(People.Alice.Id);
-        actual.Message.ShouldBe($"This {WorkItemType.FromApiValue(workItem.Fields.WorkItemType)} can be marked as Done or have more tasks added");
-        actual.WorkItem.Id.ShouldBe(workItem.Id);
+        actionItems.ShouldBeOfType<FinishActionItem>()
+            .ShouldBeOn(People.Alice)
+            .ShouldBeFor(workItem)
+            .ShouldHaveMessage($"This {WorkItemType.FromApiValue(workItem.Fields.WorkItemType)} can be marked as Done or have more tasks added");
     }
     
     [TestMethod]
@@ -188,12 +182,10 @@ public class ActionItemTests
 
         //Assert
         actionItems.Length.ShouldBe(1);
-        var actual = actionItems.Single() as PublishActionItem;
-        actual.ShouldNotBeNull();
-        actual.On.Count.ShouldBe(1);
-        actual.On.Single().AzureDevOpsId.ShouldBe(People.Bob.Id);
-        actual.Message.ShouldBe("The draft PR needs published");
-        actual.PullRequest.Id.ShouldBe(pullRequest.PullRequestId);
+        actionItems.ShouldBeOfType<PublishActionItem>()
+            .ShouldBeOn(People.Bob)
+            .ShouldBeFor(pullRequest)
+            .ShouldHaveMessage("The draft PR needs published");
     }
     
     [TestMethod]
@@ -213,12 +205,10 @@ public class ActionItemTests
 
         //Assert
         actionItems.Length.ShouldBe(1);
-        var actual = actionItems.Single() as PublishActionItem;
-        actual.ShouldNotBeNull();
-        actual.On.Count.ShouldBe(1);
-        actual.On.Single().AzureDevOpsId.ShouldBe(People.Bob.Id);
-        actual.Message.ShouldBe("The draft PR needs published");
-        actual.PullRequest.Id.ShouldBe(pullRequest.PullRequestId);
+        actionItems.ShouldBeOfType<PublishActionItem>()
+            .ShouldBeOn(People.Bob)
+            .ShouldBeFor(pullRequest)
+            .ShouldHaveMessage("The draft PR needs published");
     }
 
     [TestMethod]
@@ -236,13 +226,10 @@ public class ActionItemTests
 
         //Assert
         actionItems.Length.ShouldBe(1);
-        actionItems.Single().ShouldBeOfType<CompleteActionItem>();
-        var actual = actionItems.Single() as CompleteActionItem;
-        actual.ShouldNotBeNull();
-        actual.On.Count.ShouldBe(1);
-        actual.On.Single().AzureDevOpsId.ShouldBe(People.Bob.Id);
-        actual.Message.ShouldBe("Complete the PR or add a reviewer");
-        actual.PullRequest.Id.ShouldBe(pullRequest.PullRequestId);
+        actionItems.ShouldBeOfType<CompleteActionItem>()
+            .ShouldBeOn(People.Bob)
+            .ShouldBeFor(pullRequest)
+            .ShouldHaveMessage("Complete the PR or add a reviewer");
     }
 
     [TestMethod]
@@ -261,13 +248,10 @@ public class ActionItemTests
 
         //Assert
         actionItems.Length.ShouldBe(1);
-        actionItems.Single().ShouldBeOfType<ReviewActionItem>();
-        var actual = actionItems.Single() as ReviewActionItem;
-        actual.ShouldNotBeNull();
-        actual.On.Count.ShouldBe(1);
-        actual.On.Single().AzureDevOpsId.ShouldBe(People.Cathy.Id);
-        actual.Message.ShouldBe("The PR is ready for review");
-        actual.PullRequest.Id.ShouldBe(pullRequest.PullRequestId);
+        actionItems.ShouldBeOfType<ReviewActionItem>()
+            .ShouldBeOn(People.Cathy)
+            .ShouldBeFor(pullRequest)
+            .ShouldHaveMessage("The PR is ready for review");
     }
     
     [TestMethod]
@@ -286,13 +270,10 @@ public class ActionItemTests
 
         //Assert
         actionItems.Length.ShouldBe(1);
-        actionItems.Single().ShouldBeOfType<ReplyActionItem>();
-        var actual = actionItems.Single() as ReplyActionItem;
-        actual.ShouldNotBeNull();
-        actual.On.Count.ShouldBe(1);
-        actual.On.Single().AzureDevOpsId.ShouldBe(People.Bob.Id);
-        actual.Message.ShouldBe("A reply is needed for the reviewer's comment(s)");
-        actual.PullRequest.Id.ShouldBe(pullRequest.PullRequestId);
+        actionItems.ShouldBeOfType<ReplyActionItem>()
+            .ShouldBeOn(People.Bob)
+            .ShouldBeFor(pullRequest)
+            .ShouldHaveMessage("A reply is needed for the reviewer's comment(s)");
     }
     
     [TestMethod]
@@ -311,13 +292,10 @@ public class ActionItemTests
 
         //Assert
         actionItems.Length.ShouldBe(1);
-        actionItems.Single().ShouldBeOfType<ReplyActionItem>();
-        var actual = actionItems.Single() as ReplyActionItem;
-        actual.ShouldNotBeNull();
-        actual.On.Count.ShouldBe(1);
-        actual.On.Single().AzureDevOpsId.ShouldBe(People.Bob.Id);
-        actual.Message.ShouldBe("A reply is needed for the reviewer's comment(s)");
-        actual.PullRequest.Id.ShouldBe(pullRequest.PullRequestId);
+        actionItems.ShouldBeOfType<ReplyActionItem>()
+            .ShouldBeOn(People.Bob)
+            .ShouldBeFor(pullRequest)
+            .ShouldHaveMessage("A reply is needed for the reviewer's comment(s)");
     }
     
     [TestMethod]
@@ -336,11 +314,80 @@ public class ActionItemTests
 
         //Assert
         actionItems.Length.ShouldBe(1);
-        actionItems.Single().ShouldBeOfType<CompleteActionItem>();
-        var actual = actionItems.Single() as CompleteActionItem;
-        actual.ShouldNotBeNull();
-        actual.On.Count.ShouldBe(1);
-        actual.On.Single().AzureDevOpsId.ShouldBe(People.Bob.Id);
-        actual.PullRequest.Id.ShouldBe(pullRequest.PullRequestId);
+        actionItems.ShouldBeOfType<CompleteActionItem>()
+            .ShouldBeOn(People.Bob)
+            .ShouldBeFor(pullRequest);
+    }
+}
+
+internal static class ActionItemAssertionExtensions
+{
+    public static T[] ShouldBeOfType<T>(this ActionItem[] actionItems) where T : ActionItem
+    {
+        actionItems.ShouldNotBeEmpty();
+        
+        var actionItemsOfType = actionItems.OfType<T>().ToArray();
+        actionItemsOfType.ShouldNotBeEmpty($"No action items of type {typeof(T).Name} were found.  They were {string.Join(", ", actionItems.Select(x => x.GetType().Name))}");
+
+        return actionItemsOfType;
+    }
+
+    public static T[] ShouldBeOn<T>(this T[] actionItems, User user) where T : ActionItem
+    {
+        actionItems.ShouldNotBeEmpty();
+        
+        var matches = actionItems
+            .Where(x => x.On.Select(person => person.AzureDevOpsId).Contains(user.Id))
+            .ToArray();
+        matches.ShouldNotBeEmpty($"No action items were found for {user.DisplayName}.  They were {string.Join(", ", actionItems.Select(x => x.On.SelectMany(person => person.DisplayName)))}");
+
+        return matches;
+    }
+    
+    public static T[] ShouldHaveMessage<T>(this T[] actionItems, string expected) where T : ActionItem
+    {
+        actionItems.ShouldNotBeEmpty();
+
+        foreach (var actionItem in actionItems)
+        {
+            actionItem.Message.ShouldBe(expected);
+        }
+
+        return actionItems;
+    }
+    public static T[] ShouldBeFor<T>(this T[] actionItems, PullRequest pr) where T : PullRequestActionItem
+    {
+        actionItems.ShouldNotBeEmpty();
+        
+        var matches = actionItems
+            .Where(x => x.PullRequest.Id == pr.PullRequestId)
+            .ToArray();
+        matches.ShouldNotBeEmpty($"No action items were found for pull request {pr.PullRequestId}.  They were for pull request(s) {string.Join(", ", actionItems.Select(x => x.PullRequest.Id))}");
+
+        return matches;
+    }
+    
+    public static TaskActionItem[] ShouldBeFor(this TaskActionItem[] actionItems, AzureDevOps.Models.WorkItem task)
+    {
+        actionItems.ShouldNotBeEmpty();
+        
+        var matches = actionItems
+            .Where(x => x.Task.Id == task.Id)
+            .ToArray();
+        matches.ShouldNotBeEmpty($"No action items were found for task {task.Id}.  They were for task(s) {string.Join(", ", actionItems.Select(x => x.Task.Id))}");
+
+        return matches;
+    }
+    
+    public static FinishActionItem[] ShouldBeFor(this FinishActionItem[] actionItems, AzureDevOps.Models.WorkItem workItem)
+    {
+        actionItems.ShouldNotBeEmpty();
+        
+        var matches = actionItems
+            .Where(x => x.WorkItem.Id == workItem.Id)
+            .ToArray();
+        matches.ShouldNotBeEmpty($"No action items were found for task {workItem.Id}.  They were for task(s) {string.Join(", ", actionItems.Select(x => x.WorkItem.Id))}");
+
+        return matches;
     }
 }
