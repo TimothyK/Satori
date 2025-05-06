@@ -15,9 +15,6 @@
 .pull-request-description {
     margin-right: 5px;
 }
-.pull-request-description br {
-    content: "";
-}
 .pull-request-repository {
     font-size: 1.0rem;
     font-weight: bold;
