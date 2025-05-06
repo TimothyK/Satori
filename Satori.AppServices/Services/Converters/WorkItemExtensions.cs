@@ -101,7 +101,9 @@ public static class WorkItemExtensions
             actionItems.Add(new TaskActionItem(workItem));
         }
 
-        var pullRequests = workItem.PullRequests.Union(workItem.Children.SelectMany(task => task.PullRequests));
+        var pullRequests = workItem.PullRequests
+            .Union(workItem.Children.SelectMany(task => task.PullRequests))
+            .Where(pr => pr.Status != Status.Complete);
         foreach (var pr in pullRequests)
         {
             var prActionItems = new List<PullRequestActionItem>();

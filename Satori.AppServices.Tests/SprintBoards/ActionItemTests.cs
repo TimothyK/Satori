@@ -318,6 +318,27 @@ public class ActionItemTests
             .ShouldBeOn(People.Bob)
             .ShouldBeFor(pullRequest);
     }
+    
+    [TestMethod]
+    public async Task PullRequest_Completed()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        _builder.BuildPullRequest(out var pullRequest).WithWorkItem(workItem);
+        workItem.Fields.AssignedTo = People.Alice;
+        pullRequest.CreatedBy = People.Bob;
+        pullRequest.AddReviewer(People.Cathy).Vote = (int)ReviewVote.Approved;
+        pullRequest.Status = Status.Complete.ToApiValue();
+
+        //Act
+        var actionItems = await GetActionItems(sprint);
+
+        //Assert
+        actionItems.Length.ShouldBe(1);
+        actionItems.ShouldBeOfType<FinishActionItem>()
+            .ShouldBeOn(People.Alice);
+    }
 }
 
 internal static class ActionItemAssertionExtensions
