@@ -70,6 +70,7 @@ else
                         <button type="button" class="btn btn-outline-primary btn-priority @PriorityAdjustment.ShowEnterModeClassName" @onclick="PriorityAdjustment.ToggleMode" title="Enter Adjust Priority Mode">Adjust <u>P</u>riority...</button>
                     </th>
                     <th>Tasks</th>
+                    <th>Action Items</th>
                 </tr>
             </thead>
             <tbody>
@@ -84,7 +85,7 @@ else
                     "
                     @onclick="e => PriorityAdjustment.SetMoveTo(workItem, e)">
                         <td class="cell-link" @onclick="() => OpenWorkItemAsync(workItem)" title="Open D#@(workItem.Id)">
-                            <div style="display: flex;">
+                            <div class="flex-row">
                                 <div class="@workItem.StatusCssClass">
                                     <div class="work-item-id">@workItem.Id</div>
                                     <div>
@@ -96,7 +97,7 @@ else
                                     </div>
                                 </div>
                                 <div>
-                                    <div style="display: flex;">
+                                    <div class="flex-row">
                                         @if (workItem.Sprint != null)
                                         {
                                             <div class="priority-block">
@@ -146,8 +147,8 @@ else
                                 <div class="work-item @task.Type.CssClass task-status @task.StatusCssClass cell-link" @onclick="() => OpenWorkItemAsync(task)" title="Open D#@(task.Id)">
                                     <div class="avatar-cell">
                                         <img src="@task.AssignedTo.AvatarUrl"
-                                        alt="@task.AssignedTo.DisplayName"
-                                        title="@task.AssignedTo.DisplayName" />
+                                             alt="@task.AssignedTo.DisplayName"
+                                             title="@task.AssignedTo.DisplayName" />
                                     </div>
                                     <div>
                                         @task.Title
@@ -171,7 +172,13 @@ else
                                           .Union(workItem.Children.SelectMany(task => task.PullRequests))
                                           .OrderBy(pr => pr.Status))
                             {
-                               <PullRequestView PullRequest="@pullRequest"></PullRequestView>
+                                <PullRequestView PullRequest="@pullRequest"></PullRequestView>
+                            }
+                        </td>
+                        <td>
+                            @foreach (var actionItem in workItem.ActionItems)
+                            {
+                                <ActionItemView ActionItem="actionItem"></ActionItemView>
                             }
                         </td>
                     </tr>

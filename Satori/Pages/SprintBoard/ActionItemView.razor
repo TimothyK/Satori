@@ -1,0 +1,31 @@
+﻿@using Satori.AppServices.ViewModels
+@using Satori.AppServices.ViewModels.PullRequests.ActionItems
+@using Satori.AppServices.ViewModels.WorkItems.ActionItems
+<div class="flex-row">
+    @foreach (var person in @ActionItem.On)
+    {
+        <div class="@(person == Person.Me ? "highlight" : "")">
+            <div class="avatar-cell">
+                <img src="@person.AvatarUrl"
+                     alt="@person.DisplayName"
+                     title="@person.DisplayName" />
+            </div>
+        </div>
+    }
+    <div>@ActionItem.Message</div>
+</div>
+@if (ActionItem is TaskActionItem taskAction)
+{
+    <div class="work-item @taskAction.Task.Type.CssClass">
+        <div class="work-item-id">@taskAction.Task.Id</div>
+        <div>@taskAction.Task.Title</div>
+    </div>
+}
+@if (ActionItem is PullRequestActionItem prAction)
+{
+    <div class="work-item work-item-pr">
+        <div class="pull-request-id">@prAction.PullRequest.Id</div>
+        <div>@prAction.PullRequest.Title</div>
+    </div>
+}
+

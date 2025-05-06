@@ -1,0 +1,21 @@
+﻿.work-item {
+    margin-left: 24px;
+}
+.work-item-pr {
+    border-left-color: #2EB886;
+    margin-left: 24px;
+}
+
+.pull-request-id {
+    font-weight: bold;
+    margin-right: 5px;
+}
+.pull-request-id::before {
+    content: "PR#";
+    font-size: 0.75em;
+    vertical-align: top;
+}
+
+.highlight {
+    border: solid 5px gold;
+}
