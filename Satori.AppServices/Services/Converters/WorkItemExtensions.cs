@@ -115,10 +115,14 @@ public static class WorkItemExtensions
             else
             {
                 var reviewActionItems = pr.Reviews
-                    .Where(review => review.Vote <= ReviewVote.NoVote)
+                    .Where(review => review.Vote == ReviewVote.NoVote)
                     .Select(review => review.Vote == ReviewVote.NoVote ? new ReviewActionItem(pr, review.Reviewer)
                         : (PullRequestActionItem)new ReplyActionItem(pr));
                 prActionItems.AddRange(reviewActionItems);
+                if (pr.Reviews.Any(review => review.Vote <= ReviewVote.WaitingForAuthor))
+                {
+                    prActionItems.Add(new ReplyActionItem(pr));
+                }
             }
             if (prActionItems.None())
             {

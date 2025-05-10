@@ -272,6 +272,29 @@ public class ActionItemTests
             .ShouldBeFor(pullRequest)
             .ShouldHaveActionDescription("Reply");
     }
+
+    [TestMethod]
+    public async Task PullRequest_MultipleReviewersWaiting_OneReplyActionItem()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        _builder.BuildPullRequest(out var pullRequest).WithWorkItem(workItem);
+        workItem.Fields.AssignedTo = People.Alice;
+        pullRequest.CreatedBy = People.Bob;
+        pullRequest.AddReviewer(People.Cathy).Vote = (int)ReviewVote.WaitingForAuthor;
+        pullRequest.AddReviewer(People.Dave).Vote = (int)ReviewVote.WaitingForAuthor;
+
+        //Act
+        var actionItems = await GetActionItems(sprint);
+
+        //Assert
+        actionItems.Length.ShouldBe(1);
+        actionItems.ShouldBeOfType<ReplyActionItem>()
+            .ShouldBeOn(People.Bob)
+            .ShouldBeFor(pullRequest)
+            .ShouldHaveActionDescription("Reply");
+    }
     
     [TestMethod]
     public async Task PullRequest_ReviewerRejects()
