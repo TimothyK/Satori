@@ -1,20 +1,19 @@
-﻿using CodeMonkeyProjectiles.Linq;
-using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
+using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
-using Satori.AppServices.ViewModels.Sprints;
-using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels.Abstractions;
 using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.PullRequests.ActionItems;
+using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AppServices.ViewModels.WorkItems.ActionItems;
 using Satori.AzureDevOps.Models;
 using Shouldly;
 using PullRequest = Satori.AzureDevOps.Models.PullRequest;
+using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.Tests.SprintBoards;
 
@@ -83,7 +82,7 @@ public class ActionItemTests
         actionItems.ShouldBeOfType<FinishActionItem>()
             .ShouldBeOn(People.Alice)
             .ShouldBeFor(workItem)
-            .ShouldHaveMessage($"This {WorkItemType.FromApiValue(workItem.Fields.WorkItemType)} can be marked as Done or have more tasks added");
+            .ShouldHaveActionDescription($"Finish this {WorkItemType.FromApiValue(workItem.Fields.WorkItemType)}");
     }
     
     [TestMethod]
@@ -119,7 +118,7 @@ public class ActionItemTests
         actionItems.ShouldBeOfType<TaskActionItem>()
             .ShouldBeOn(People.Bob)
             .ShouldBeFor(task)
-            .ShouldHaveMessage("This task can be started");
+            .ShouldHaveActionDescription("Start");
     }
     
     [TestMethod]
@@ -141,7 +140,7 @@ public class ActionItemTests
         actionItems.ShouldBeOfType<TaskActionItem>()
             .ShouldBeOn(People.Bob)
             .ShouldBeFor(task)
-            .ShouldHaveMessage("This task can be resumed");
+            .ShouldHaveActionDescription("Resume");
     }
     
     [TestMethod]
@@ -162,8 +161,7 @@ public class ActionItemTests
         actionItems.Length.ShouldBe(1);
         actionItems.ShouldBeOfType<FinishActionItem>()
             .ShouldBeOn(People.Alice)
-            .ShouldBeFor(workItem)
-            .ShouldHaveMessage($"This {WorkItemType.FromApiValue(workItem.Fields.WorkItemType)} can be marked as Done or have more tasks added");
+            .ShouldBeFor(workItem);
     }
     
     [TestMethod]
@@ -185,7 +183,7 @@ public class ActionItemTests
         actionItems.ShouldBeOfType<PublishActionItem>()
             .ShouldBeOn(People.Bob)
             .ShouldBeFor(pullRequest)
-            .ShouldHaveMessage("The draft PR needs published");
+            .ShouldHaveActionDescription("Publish");
     }
     
     [TestMethod]
@@ -207,8 +205,7 @@ public class ActionItemTests
         actionItems.Length.ShouldBe(1);
         actionItems.ShouldBeOfType<PublishActionItem>()
             .ShouldBeOn(People.Bob)
-            .ShouldBeFor(pullRequest)
-            .ShouldHaveMessage("The draft PR needs published");
+            .ShouldBeFor(pullRequest);
     }
 
     [TestMethod]
@@ -229,7 +226,7 @@ public class ActionItemTests
         actionItems.ShouldBeOfType<CompleteActionItem>()
             .ShouldBeOn(People.Bob)
             .ShouldBeFor(pullRequest)
-            .ShouldHaveMessage("Complete the PR or add a reviewer");
+            .ShouldHaveActionDescription("Complete");
     }
 
     [TestMethod]
@@ -251,7 +248,7 @@ public class ActionItemTests
         actionItems.ShouldBeOfType<ReviewActionItem>()
             .ShouldBeOn(People.Cathy)
             .ShouldBeFor(pullRequest)
-            .ShouldHaveMessage("The PR is ready for review");
+            .ShouldHaveActionDescription("Review");
     }
     
     [TestMethod]
@@ -273,7 +270,7 @@ public class ActionItemTests
         actionItems.ShouldBeOfType<ReplyActionItem>()
             .ShouldBeOn(People.Bob)
             .ShouldBeFor(pullRequest)
-            .ShouldHaveMessage("A reply is needed for the reviewer's comment(s)");
+            .ShouldHaveActionDescription("Reply");
     }
     
     [TestMethod]
@@ -295,7 +292,7 @@ public class ActionItemTests
         actionItems.ShouldBeOfType<ReplyActionItem>()
             .ShouldBeOn(People.Bob)
             .ShouldBeFor(pullRequest)
-            .ShouldHaveMessage("A reply is needed for the reviewer's comment(s)");
+            .ShouldHaveActionDescription("Reply");
     }
     
     [TestMethod]
@@ -365,17 +362,18 @@ internal static class ActionItemAssertionExtensions
         return matches;
     }
     
-    public static T[] ShouldHaveMessage<T>(this T[] actionItems, string expected) where T : ActionItem
+    public static T[] ShouldHaveActionDescription<T>(this T[] actionItems, string expected) where T : ActionItem
     {
         actionItems.ShouldNotBeEmpty();
 
         foreach (var actionItem in actionItems)
         {
-            actionItem.Message.ShouldBe(expected);
+            actionItem.ActionDescription.ShouldBe(expected);
         }
 
         return actionItems;
     }
+
     public static T[] ShouldBeFor<T>(this T[] actionItems, PullRequest pr) where T : PullRequestActionItem
     {
         actionItems.ShouldNotBeEmpty();

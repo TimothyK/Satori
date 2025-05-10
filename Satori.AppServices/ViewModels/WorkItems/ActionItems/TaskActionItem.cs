@@ -2,14 +2,13 @@
 
 namespace Satori.AppServices.ViewModels.WorkItems.ActionItems;
 
-public class TaskActionItem(WorkItem task) : ActionItem(GetMessage(task), task.AssignedTo)
+public class TaskActionItem(WorkItem task) : ActionItem(GetActionDescription(task), task.AssignedTo)
 {
-    private static string GetMessage(WorkItem task)
+    private static string GetActionDescription(WorkItem task)
     {
-        var action = task.State == ScrumState.ToDo ? "started"
-            : task.State == ScrumState.InProgress ? "resumed"
-            : "worked on";
-        return $"This task can be {action}";
+        return task.State == ScrumState.ToDo ? "Start"
+            : task.State == ScrumState.InProgress ? "Resume"
+            : "Work on";
     }
 
     public WorkItem Task { get; set; } = task;

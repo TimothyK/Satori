@@ -4,7 +4,7 @@ namespace Satori.AppServices.ViewModels.WorkItems.ActionItems;
 
 public class FinishActionItem : ActionItem
 {
-    internal FinishActionItem(WorkItem workItem) : base($"This {workItem.Type} can be marked as Done or have more tasks added", workItem.AssignedTo)
+    internal FinishActionItem(WorkItem workItem) : base($"Finish this {workItem.Type}", workItem.AssignedTo)
     {
         WorkItem = workItem;
     }
