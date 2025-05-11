@@ -389,6 +389,43 @@ public class ActionItemTests
     }
 
     #endregion Pull Requests
+
+    #region Priority
+
+    [TestMethod]
+    public async Task Priority()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem1).WithSprint(sprint);
+        workItem1.Fields.AssignedTo = People.Alice;
+
+        _builder.BuildWorkItem(out var workItem2).WithSprint(sprint);
+        workItem2.Fields.AssignedTo = People.Bob;
+        workItem2.Fields.BacklogPriority = workItem1.Fields.BacklogPriority + 1;
+
+        _builder.BuildWorkItem(out var workItem3).WithSprint(sprint);
+        workItem3.Fields.AssignedTo = People.Alice;
+        workItem3.Fields.BacklogPriority = workItem2.Fields.BacklogPriority + 1;
+
+        //Act
+        var actionItems = await GetActionItems(sprint);
+
+        //Assert
+        actionItems.Length.ShouldBe(3);
+
+        actionItems.ShouldBeOfType<FinishActionItem>()
+            .Where(item => item.WorkItem.Id == workItem1.Id).ToArray()
+            .ShouldBeOn(People.Alice, 1);
+        actionItems.ShouldBeOfType<FinishActionItem>()
+            .Where(item => item.WorkItem.Id == workItem2.Id).ToArray()
+            .ShouldBeOn(People.Bob, 1);
+        actionItems.ShouldBeOfType<FinishActionItem>()
+            .Where(item => item.WorkItem.Id == workItem3.Id).ToArray()
+            .ShouldBeOn(People.Alice, 2);
+    }
+
+    #endregion Priority
 }
 
 internal static class ActionItemAssertionExtensions
@@ -408,9 +445,22 @@ internal static class ActionItemAssertionExtensions
         actionItems.ShouldNotBeEmpty();
         
         var matches = actionItems
-            .Where(x => x.On.Select(person => person.AzureDevOpsId).Contains(user.Id))
+            .Where(actionItem => actionItem.On.Select(x => x.Person.AzureDevOpsId).Contains(user.Id))
             .ToArray();
-        matches.ShouldNotBeEmpty($"No action items were found for {user.DisplayName}.  They were {string.Join(", ", actionItems.Select(x => x.On.SelectMany(person => person.DisplayName)))}");
+        matches.ShouldNotBeEmpty($"No action items were found for {user.DisplayName}.  They were {string.Join(", ", actionItems.SelectMany(actionItem => actionItem.On.Select(x => x.Person.DisplayName)))}");
+
+        return matches;
+    }
+    
+    public static T[] ShouldBeOn<T>(this T[] actionItems, User user, int priority) where T : ActionItem
+    {
+        actionItems.ShouldNotBeEmpty();
+        
+        var matches = actionItems
+            .Where(actionItem => actionItem.On.Select(x => x.Person.AzureDevOpsId).Contains(user.Id))
+            .Where(actionItem => actionItem.On.Select(x => x.Priority).Contains(priority))
+            .ToArray();
+        matches.ShouldNotBeEmpty($"No action items were found for {user.DisplayName} with priority {priority}.  They were {string.Join(", ", actionItems.SelectMany(actionItem => actionItem.On.Select(x => $"{x.Person.DisplayName}-{x.Priority}")))}");
 
         return matches;
     }

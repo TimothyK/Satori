@@ -117,7 +117,6 @@ public partial class SprintBoards
 
         try
         {
-            //await Task.Delay(TimeSpan.FromSeconds(3));
             var workItems = _workItems.ToList();
             await SprintBoardService.RefreshWorkItemAsync(workItems, workItem);
             SetWorkItems(workItems);

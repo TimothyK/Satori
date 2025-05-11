@@ -92,7 +92,7 @@
     background-color: red;
 }
 .target-date::before {
-    content: "Due ";
+    content: "due ";
     font-size: 0.75em;
     vertical-align: top;
 }
@@ -148,7 +148,7 @@
 
 .priority-block {
     display: flex;
-    border: 1px solid black;
+    border: 3px outset darkgray;
 }
 
 .priority-number {

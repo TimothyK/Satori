@@ -70,9 +70,25 @@ public static class WorkItemExtensions
 
     public static void ResetPeopleRelations(this IEnumerable<WorkItem> workItems)
     {
-        foreach (var workItem in workItems)
+        var personPriority = new Dictionary<Person, int>();
+
+        foreach (var workItem in workItems.OrderBy(wi => wi.AbsolutePriority))
         {
             workItem.ResetPeopleRelations();
+
+            foreach (var assignment in workItem.ActionItems.SelectMany(actionItem => actionItem.On))
+            {
+                if (personPriority.TryGetValue(assignment.Person, out var priority))
+                {
+                    priority++;
+                }
+                else
+                {
+                    priority = 1;
+                }
+                personPriority[assignment.Person] = priority;
+                assignment.Priority = priority;
+            }
         }
     }
 

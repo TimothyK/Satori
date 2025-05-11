@@ -245,6 +245,7 @@ public class SprintBoardService(
         allWorkItems[index] = target;
 
         SetSprintPriority(allWorkItems.Where(wi => wi.Sprint == target.Sprint));
+        allWorkItems.ResetPeopleRelations();
     }
 
     private static void SafeSetSprint(WorkItem target, WorkItem source)

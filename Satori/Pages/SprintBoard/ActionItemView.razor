@@ -4,14 +4,15 @@
 @inject IJSRuntime JsRuntime
 
 <div class="flex-row">
-    @foreach (var person in @ActionItem.On)
+    @foreach (var personPriority in @ActionItem.On)
     {
-        <div class="@(person == Person.Me ? "highlight" : "")">
+        <div class="priority-block @(personPriority.Person == Person.Me ? "highlight" : "")">
             <div class="avatar-cell">
-                <img src="@person.AvatarUrl"
-                     alt="@person.DisplayName"
-                     title="@person.DisplayName" />
+                <img src="@personPriority.Person.AvatarUrl"
+                     alt="@personPriority.Person.DisplayName"
+                     title="@personPriority.Person.DisplayName" />
             </div>
+            <div class="priority-number">@personPriority.Priority</div>
         </div>
     }
     <div class="action-description">@ActionItem.ActionDescription</div>
