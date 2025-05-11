@@ -1,9 +1,12 @@
-﻿.work-item {
-    margin-left: 24px;
+﻿.action-description {
+    min-width: 75px;
+}
+.work-item {
+    /*margin-left: 24px;*/
 }
 .work-item-pr {
     border-left-color: #2EB886;
-    margin-left: 24px;
+    /*margin-left: 24px;*/
 }
 
 .pull-request-id {
