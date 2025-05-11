@@ -99,7 +99,9 @@ public class ActionItemTests
         //Assert
         actionItems.ShouldBeEmpty();
     }
-    
+
+    #region Tasks
+
     [TestMethod]
     public async Task Task_ToDo()
     {
@@ -144,6 +146,28 @@ public class ActionItemTests
     }
     
     [TestMethod]
+    public async Task Task_Unassigned()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint)
+            .AddChild(out var task);
+        workItem.Fields.AssignedTo = People.Alice;
+        task.Fields.AssignedTo = null;
+        task.Fields.State = ScrumState.InProgress.ToApiValue();
+
+        //Act
+        var actionItems = await GetActionItems(sprint);
+
+        //Assert
+        actionItems.Length.ShouldBe(1);
+        actionItems.ShouldBeOfType<TaskActionItem>()
+            .ShouldBeOn(People.Alice)
+            .ShouldBeFor(task)
+            .ShouldHaveActionDescription("Assign");
+    }
+
+    [TestMethod]
     public async Task Task_Done()
     {
         //Arrange
@@ -163,7 +187,11 @@ public class ActionItemTests
             .ShouldBeOn(People.Alice)
             .ShouldBeFor(workItem);
     }
-    
+
+    #endregion Tasks
+
+    #region Pull Requests
+
     [TestMethod]
     public async Task PullRequest_Draft()
     {
@@ -359,6 +387,8 @@ public class ActionItemTests
         actionItems.ShouldBeOfType<FinishActionItem>()
             .ShouldBeOn(People.Alice);
     }
+
+    #endregion Pull Requests
 }
 
 internal static class ActionItemAssertionExtensions
