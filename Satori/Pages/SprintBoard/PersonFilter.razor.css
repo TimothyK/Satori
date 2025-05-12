@@ -1,9 +1,29 @@
-﻿.dropdown {
+﻿.root {
     margin-left: 10px;
+    align-items: stretch;
+}
+
+.label {
+    margin-right: 0px;
+    font-size: 16px;
+    border: 1px solid black;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    padding: 5px;
+    background-color: lightgray;
+    padding-top: 10px;    
+}
+.dropdown {
+    margin-left: 0px;
 }
 
 .avatar-cell {
     border: 5px solid white;
+}
+.dropbtn {
+    margin-left: 0px;
+    border: 1px solid black;
+    height: 100%;
 }
 
 .avatar-cell.filter-selected {
@@ -11,7 +31,7 @@
 }
 
 .dropbtn.avatar-cell:hover {
-    transform: scale(1.1);
+    background-color: #f5f5f5;
 }
 
 button {

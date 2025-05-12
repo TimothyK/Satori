@@ -17,37 +17,41 @@
 
 <PageTitle>Sprint Boards - Satori</PageTitle>
 
-<div>
 
-    <h3>Sprint Boards
-        @if (_workItems != null)
-        {
-            <span class="badge bg-primary" title="Active">@WorkItemActiveCount</span>
-            <span class="badge bg-warning" title="In Progress">@WorkInProgressCount</span>
-            <span class="badge bg-success" title="Done">@WorkItemDoneCount</span>
-        }
-        <PersonFilter People="_workItems?.SelectMany(wi => wi.WithPeople) ?? []" OnFilterChanged="WithFilterChangedAsync" @ref="WithPersonFilter"></PersonFilter>
-        <span>
+<h3>
+    <div class="flex-row">
+        <div>Sprint Boards</div>
+        <div class="counters">
+            @if (_workItems != null)
+            {
+                <div class="badge bg-primary" title="Active">@WorkItemActiveCount</div>
+                <div class="badge bg-warning" title="In Progress">@WorkInProgressCount</div>
+                <div class="badge bg-success" title="Done">@WorkItemDoneCount</div>
+            }
+        </div>        
+        <PersonFilter Label="With" People="_workItems?.SelectMany(wi => wi.WithPeople) ?? []" OnFilterChanged="WithFilterChangedAsync" @ref="WithPersonFilter"></PersonFilter>
+        <div>
             <button class="btn-header btn-refresh @InLoading" title="Refresh (Alt+F5)" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
-        </span>
-        <span style="float: right;">
+        </div>
+        <div class="flex-center-whitespace"></div>
+        <div>
             @if (_sprints != null && TeamSelection != null)
             {
-                <span class="team-selector avatar-row">
+                <div class="team-selector avatar-row">
                     @foreach (var sprint in _sprints.OrderBy(x => x.TeamName))
                     {
                         <button id="@sprint.TeamId" class='avatar-cell @TeamSelection.TeamSelectedClassName[sprint.TeamId]' @onclick='() => TeamSelection.SelectTeamAsync(sprint.TeamId)'>
                             <img src="@sprint.TeamAvatarUrl"
-                            alt="@sprint.TeamName"
-                            title="@sprint.TeamName @HttpUtility.HtmlEncode("\r") @sprint.Name @HttpUtility.HtmlEncode("\r") Finishes: @sprint.FinishTime.ToString("yyyy-MM-dd")" />
+                                 alt="@sprint.TeamName"
+                                 title="@sprint.TeamName @HttpUtility.HtmlEncode("\r") @sprint.Name @HttpUtility.HtmlEncode("\r") Finishes: @sprint.FinishTime.ToString("yyyy-MM-dd")"/>
                         </button>
                     }
-                </span>
+                </div>
             }
-        </span>
-    </h3>
+        </div>
+    </div>
+</h3>
 
-</div>
 
 @if (_sprints == null)
 {

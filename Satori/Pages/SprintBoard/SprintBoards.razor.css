@@ -3,17 +3,8 @@
     justify-content: flex-start;
 }
 
-#filterMe {
-    margin-left: 10px;
-}
-#filterMe .avatar-cell {
-    border: 5px solid white;
-}
-#filterMe .avatar-cell.filter-selected {
-    border: 5px outset green;
-}
-#filterMe .avatar-cell:hover {
-    transform: scale(1.1);
+.counters {
+    align-items: self-start;
 }
 
 .team-selector .avatar-cell {
