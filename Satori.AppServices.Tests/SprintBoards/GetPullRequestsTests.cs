@@ -152,6 +152,22 @@ public class GetPullRequestsTests
         //Assert
         workItems.Single().PullRequests.ShouldBeEmpty();
     }
+
+    [TestMethod]
+    public async Task RestrictedPullRequest_Ignored()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        _builder.BuildPullRequest(out var pullRequest).WithWorkItem(workItem);
+        pullRequest.Title = "throw TF401180";
+
+        //Act
+        var workItems = await GetWorkItemsAsync(sprint);
+
+        //Assert
+        workItems.Single().PullRequests.ShouldBeEmpty();
+    }
     
     [TestMethod]
     public async Task CompletedPullRequest_Returned()
