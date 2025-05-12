@@ -1,4 +1,5 @@
-﻿using CodeMonkeyProjectiles.Linq;
+﻿using System.Net;
+using CodeMonkeyProjectiles.Linq;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps.Models;
 using NotSupportedException = System.NotSupportedException;
@@ -145,9 +146,20 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
 
     public PullRequest[] GetPullRequests() => [.. _pullRequests];
     
-    public PullRequest GetPullRequest(int id) => 
-        _pullRequests.SingleOrDefault(pr => pr.PullRequestId == id) 
-        ?? throw new InvalidOperationException($"PullRequestId {id} not found");
+    public PullRequest GetPullRequest(int id)
+    {
+        var pr = _pullRequests.SingleOrDefault(pr => pr.PullRequestId == id) 
+                 ?? throw new InvalidOperationException($"PullRequestId {id} not found");
+
+        if (pr.Title.StartsWith("throw"))
+        {
+            throw new HttpRequestException(
+                $"Azure DevOps Server test double throwing error as requested for {pr.Title}", inner: null,
+                HttpStatusCode.NotFound);
+        }
+
+        return pr;
+    }
 
     public IEnumerable<int> GetWorkItemIdsForPullRequestId(int pullRequestId)
     {

@@ -360,7 +360,17 @@ public class SprintBoardService(
                 return;
             }
 
-            var prDto = await azureDevOpsServer.GetPullRequestAsync(prId);
+            AzureDevOps.Models.PullRequest prDto;
+            try
+            {
+                prDto = await azureDevOpsServer.GetPullRequestAsync(prId);
+            }
+            catch (Exception ex) when (ex.Message.Contains("TF401180"))
+            {
+                var logger = loggerFactory.CreateLogger<SprintBoardService>();
+                logger.LogInformation(ex, "Failed to load PR {PullRequestId}", prId);
+                return;
+            }
             var prViewModel = prDto.ToViewModel();
 
             if (prViewModel.Status == Status.Complete)
@@ -389,8 +399,8 @@ public class SprintBoardService(
             var i = 0;
             while (i < workItem.PullRequests.Count)
             {
-                var pr = pullRequests[workItem.PullRequests[i].Id];
-                if (pr.Status == Status.Abandoned)
+                var pr = pullRequests.GetValueOrDefault(workItem.PullRequests[i].Id);
+                if (pr == null || pr.Status == Status.Abandoned)
                 {
                     workItem.PullRequests.RemoveAt(i);
                 }
