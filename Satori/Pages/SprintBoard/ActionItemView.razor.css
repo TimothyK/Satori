@@ -5,7 +5,9 @@
     --highlight-border-width: 3px;
     --computed-margin: calc(var(--highlight-border-width) - var(--border-width));
 }
-
+.flex-row {
+    flex-wrap: wrap;
+}
 .priority-block {
     display: flex;
     border: var(--border-width) outset darkgray;
@@ -37,7 +39,9 @@
     margin-left: 5px;
     margin-top: var(--border-width);
 }
-
+.work-item {
+    margin-left: 5px;
+}
 .work-item-pr {
     border-left-color: #2EB886;
 }
