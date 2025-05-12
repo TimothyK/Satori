@@ -30,6 +30,7 @@
             }
         </div>        
         <PersonFilter Label="With" People="_workItems?.SelectMany(wi => wi.WithPeople) ?? []" OnFilterChanged="WithFilterChangedAsync" @ref="WithPersonFilter"></PersonFilter>
+        <PersonFilter Label="On" People="ActionItemPeople" OnFilterChanged="ActionItemFilterChangedAsync" @ref="ActionItemPersonFilter"></PersonFilter>
         <div>
             <button class="btn-header btn-refresh @InLoading" title="Refresh (Alt+F5)" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
         </div>
