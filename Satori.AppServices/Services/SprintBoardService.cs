@@ -466,6 +466,7 @@ public class SprintBoardService(
         {
             SetSprintPriority(sprintWorkItems);
         }
+        request.AllWorkItems.ResetPeopleRelations();
     }
 
     #endregion ReorderWorkItems

@@ -5,6 +5,7 @@ using Satori.AppServices.Services;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
+using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps.Models;
@@ -45,6 +46,7 @@ public class ReorderTests
         {
             _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
             workItem.Fields.BacklogPriority = (i + 1) * 10.0;
+            workItem.Fields.AssignedTo = People.Alice;
 
             var viewModel = workItem.ToViewModel();
             viewModel.Sprint = sprint;
@@ -144,6 +146,22 @@ public class ReorderTests
         workItems[0].SprintPriority!.Value.ShouldBeLessThan(workItems[2].SprintPriority!.Value);
     }
     
+    [TestMethod]
+    public async Task Reorder_ChangesActionItemPriority()
+    {
+        //Arrange
+        var workItems = BuildWorkItems(3);
+        workItems[0].AssignedTo.ShouldBeSameAs(workItems[1].AssignedTo);
+        var request = new ReorderRequest(workItems.ToArray(), workItems[0], RelativePosition.Below, target: workItems[1]);
+
+        //Act
+        await ReorderWorkItemsAsync(request);
+
+        //Assert
+        workItems[0].ActionItems.Single().On.Single().Priority.ShouldBeGreaterThan(workItems[1].ActionItems.Single().On.Single().Priority);
+        workItems[0].ActionItems.Single().On.Single().Priority.ShouldBeLessThan(workItems[2].ActionItems.Single().On.Single().Priority);
+    }
+
     [TestMethod]
     public async Task Reorder_MoveToBottomImplicit()
     {
