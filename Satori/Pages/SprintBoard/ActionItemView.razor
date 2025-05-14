@@ -1,0 +1,32 @@
+﻿@using Satori.AppServices.ViewModels
+@using Satori.AppServices.ViewModels.PullRequests.ActionItems
+@using Satori.AppServices.ViewModels.WorkItems.ActionItems
+@inject IJSRuntime JsRuntime
+
+<div class="flex-row">
+    @foreach (var personPriority in @ActionItem.On)
+    {
+        <div class="priority-block @(personPriority.Person == Person.Me ? "highlight" : "")">
+            <div class="avatar-cell">
+                <img src="@personPriority.Person.AvatarUrl"
+                     alt="@personPriority.Person.DisplayName"
+                     title="@personPriority.Person.DisplayName" />
+            </div>
+            <div class="priority-number">@personPriority.Priority</div>
+        </div>
+    }
+    <div class="action-description">@ActionItem.ActionDescription</div>
+    @if (ActionItem is TaskActionItem taskAction)
+    {
+        <div class="work-item cell-link @taskAction.Task.Type.CssClass" @onclick="() => OpenWorkItemAsync(taskAction.Task)" title="Open D#@(taskAction.Task.Id)">
+            <div>@taskAction.Task.Title</div>
+        </div>
+    }
+    @if (ActionItem is PullRequestActionItem prAction)
+    {
+        <div class="work-item cell-link work-item-pr" @onclick="() => OpenPullRequestAsync(prAction.PullRequest)" title="Open PR#@(prAction.PullRequest.Id)">
+            <div class="pull-request-id">@prAction.PullRequest.Id</div>
+            <div>@prAction.PullRequest.Title</div>
+        </div>
+    }
+</div>

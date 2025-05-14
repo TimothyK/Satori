@@ -6,8 +6,11 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.ViewModels;
+using Satori.AppServices.ViewModels.Abstractions;
+using Satori.AppServices.ViewModels.PullRequests.ActionItems;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
+using Satori.AppServices.ViewModels.WorkItems.ActionItems;
 using Satori.Utilities;
 using Toolbelt.Blazor.HotKeys2;
 
@@ -33,6 +36,7 @@ public partial class SprintBoards
         }
 
         WithFilterInitializeFromUrl();
+        ActionItemFilterInitializeFromUrl();
 
         var sprints = (await SprintBoardService.GetActiveSprintsAsync()).ToArray();
         TeamSelection = new TeamSelectionViewModel(sprints, NavigationManager);
@@ -64,6 +68,7 @@ public partial class SprintBoards
         if (TeamSelection != null)
         {
             await SetDefaultWithFilterAsync();
+            await SetDefaultActionItemFilterAsync();
             await TeamSelection.SetDefaultTeamsAsync(LocalStorage);
             StateHasChanged();
             _isInitialized = true;
@@ -117,7 +122,6 @@ public partial class SprintBoards
 
         try
         {
-            //await Task.Delay(TimeSpan.FromSeconds(3));
             var workItems = _workItems.ToList();
             await SprintBoardService.RefreshWorkItemAsync(workItems, workItem);
             SetWorkItems(workItems);
@@ -146,9 +150,12 @@ public partial class SprintBoards
         await JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
     }
 
+    private Dictionary<WorkItem, VisibleCssClass> _workItemFilter = [];
+
     #region With Filter
 
-    private Dictionary<WorkItem, VisibleCssClass> _workItemFilter = [];
+    private const string DefaultWithFilterStorageKey = "SprintBoard.With";
+    private const string WithQueryParamName = "with";
 
     public required PersonFilter WithPersonFilter { get; set; }
 
@@ -170,9 +177,6 @@ public partial class SprintBoards
         ResetWithOnUrl();
         await StoreWithFilterAsync();
     }
-
-    private const string DefaultWithFilterStorageKey = "SprintBoard.With";
-    private const string WithQueryParamName = "with";
 
     private void ResetWithOnUrl()
     {
@@ -210,9 +214,105 @@ public partial class SprintBoards
         WithPersonFilter.FilterKey = filterValue;
     }
 
-
-
     #endregion With Filter
+
+    #region ActionItem (On) Filter
+
+    private const string DefaultActionItemFilterStorageKey = "SprintBoard.ActionItem";
+    private const string ActionItemQueryParamName = "on";
+
+    public required PersonFilter ActionItemPersonFilter { get; set; }
+
+    private async Task SetDefaultActionItemFilterAsync()
+    {
+        var hasPersonOnUrl = new Url(NavigationManager.Uri).QueryParams.Any(qp => qp.Name == ActionItemQueryParamName);
+        if (hasPersonOnUrl)
+        {
+            return;
+        }
+
+        var filterValue = await LocalStorage.GetItemAsync<string>(DefaultActionItemFilterStorageKey) ?? "all";
+        ActionItemPersonFilter.FilterKey = filterValue;
+    }
+
+    private async Task ActionItemFilterChangedAsync()
+    {
+        ResetWorkItemCounts();
+        ResetActionItemOnUrl();
+        await StoreActionItemFilterAsync();
+    }
+
+    private IEnumerable<Person> ActionItemPeople
+    {
+        get
+        {
+            if (_workItems == null)
+            {
+                return [];
+            }
+
+            var actionItems = _workItems.SelectMany(wi => wi.ActionItems);
+            var personPriorities = actionItems.SelectMany(actionItem => actionItem.On);
+            return personPriorities.Select(x => x.Person).Distinct();
+        }
+    }
+
+    private void ResetActionItemOnUrl()
+    {
+        var filterValue = ActionItemPersonFilter.FilterKey;
+
+        var url = NavigationManager.Uri
+            .RemoveQueryParam(ActionItemQueryParamName)
+            .AppendQueryParam(ActionItemQueryParamName, filterValue);
+
+        NavigationManager.NavigateTo(url, forceLoad: false);
+    }
+
+    private async Task StoreActionItemFilterAsync()
+    {
+        if (LocalStorage == null)
+        {
+            return;
+        }
+
+        var filterValue = ActionItemPersonFilter.FilterKey;
+        await LocalStorage.SetItemAsync(DefaultActionItemFilterStorageKey, filterValue);
+    }
+
+
+    private void ActionItemFilterInitializeFromUrl()
+    {
+        var parameters = new Url(NavigationManager.Uri).QueryParams
+            .Where(qp => qp.Name == ActionItemQueryParamName)
+            .ToArray();
+        if (parameters.None())
+        {
+            return;
+        }
+        var filterValue = parameters.First().Value.ToString() ?? "all";
+        ActionItemPersonFilter.FilterKey = filterValue;
+    }
+
+    private static IEnumerable<ActionItem> OrderActionItems(WorkItem workItem)
+    {
+        return workItem.ActionItems
+            .OrderBy(actionItem =>
+                actionItem switch
+                {
+                    FinishActionItem => 0,
+                    TaskActionItem => 1,
+                    PullRequestActionItem => 2,
+                    _ => 3
+                })
+            .ThenBy(actionItem => actionItem is FinishActionItem finish ? finish.WorkItem.Id : int.MaxValue)
+            .ThenByDescending(actionItem => actionItem is TaskActionItem task ? task.Task.State : ScrumState.Unknown)
+            .ThenBy(actionItem => actionItem is TaskActionItem task ? task.Task.Id : int.MaxValue)
+            .ThenBy(actionItem => actionItem is PullRequestActionItem pr ? pr.PullRequest.Id : int.MaxValue)
+            .ThenBy(actionItem => actionItem is PullRequestActionItem pr ? (pr.PullRequest.CreatedBy.IsIn(pr.On.Select(x => x.Person)) ? 0 : 1) : int.MaxValue)
+            ;
+    }
+
+    #endregion On (ActionItem) Filter
 
     #region Team Selection
 
@@ -250,7 +350,8 @@ public partial class SprintBoards
         bool IsVisible(WorkItem workItem)
         {
             return (workItem.Sprint?.TeamId.IsIn(selectedTeamIds) ?? false)
-                && (WithPersonFilter.CurrentPerson == Person.Anyone || WithPersonFilter.CurrentPerson.IsIn(workItem.WithPeople));
+                && (WithPersonFilter.CurrentPerson == Person.Anyone || WithPersonFilter.CurrentPerson.IsIn(workItem.WithPeople))
+                && (ActionItemPersonFilter.CurrentPerson == Person.Anyone || ActionItemPersonFilter.CurrentPerson.IsIn(workItem.ActionItems.SelectMany(actionItem => actionItem.On).Select(x => x.Person)));
         }
     }
 

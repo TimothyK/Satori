@@ -1,4 +1,5 @@
-﻿using Satori.AppServices.ViewModels.PullRequests;
+﻿using Satori.AppServices.ViewModels.Abstractions;
+using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.Sprints;
 
 namespace Satori.AppServices.ViewModels.WorkItems;
@@ -22,6 +23,7 @@ public class WorkItem
     public required string ApiUrl { get; init; }
     public required Person AssignedTo { get; init; }
     public List<Person> WithPeople { get; set; } = [];
+    public List<ActionItem> ActionItems { get; set; } = [];
     public required Person CreatedBy { get; init; }
     public DateTimeOffset CreatedDate { get; init; }
     public string? AreaPath { get; init; }

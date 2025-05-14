@@ -3,7 +3,6 @@
 @using System.Web
 @using Satori.AppServices.Models
 @using Satori.AppServices.Services.Abstractions
-@using Satori.AppServices.ViewModels
 @using Satori.AppServices.ViewModels.WorkItems
 @using Toolbelt.Blazor.HotKeys2
 @attribute [StreamRendering]
@@ -18,37 +17,42 @@
 
 <PageTitle>Sprint Boards - Satori</PageTitle>
 
-<div>
 
-    <h3>Sprint Boards
-        @if (_workItems != null)
-        {
-            <span class="badge bg-primary" title="Active">@WorkItemActiveCount</span>
-            <span class="badge bg-warning" title="In Progress">@WorkInProgressCount</span>
-            <span class="badge bg-success" title="Done">@WorkItemDoneCount</span>
-        }
-        <PersonFilter People="_workItems?.SelectMany(wi => wi.WithPeople) ?? []" OnFilterChanged="WithFilterChangedAsync" @ref="WithPersonFilter"></PersonFilter>
-        <span>
+<h3>
+    <div class="flex-row">
+        <div>Sprint Boards</div>
+        <div class="counters">
+            @if (_workItems != null)
+            {
+                <div class="badge bg-primary" title="Active">@WorkItemActiveCount</div>
+                <div class="badge bg-warning" title="In Progress">@WorkInProgressCount</div>
+                <div class="badge bg-success" title="Done">@WorkItemDoneCount</div>
+            }
+        </div>        
+        <PersonFilter Label="With" People="_workItems?.SelectMany(wi => wi.WithPeople) ?? []" OnFilterChanged="WithFilterChangedAsync" @ref="WithPersonFilter"></PersonFilter>
+        <PersonFilter Label="On" People="ActionItemPeople" OnFilterChanged="ActionItemFilterChangedAsync" @ref="ActionItemPersonFilter"></PersonFilter>
+        <div>
             <button class="btn-header btn-refresh @InLoading" title="Refresh (Alt+F5)" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
-        </span>
-        <span style="float: right;">
+        </div>
+        <div class="flex-center-whitespace"></div>
+        <div>
             @if (_sprints != null && TeamSelection != null)
             {
-                <span class="team-selector avatar-row">
+                <div class="team-selector avatar-row">
                     @foreach (var sprint in _sprints.OrderBy(x => x.TeamName))
                     {
                         <button id="@sprint.TeamId" class='avatar-cell @TeamSelection.TeamSelectedClassName[sprint.TeamId]' @onclick='() => TeamSelection.SelectTeamAsync(sprint.TeamId)'>
                             <img src="@sprint.TeamAvatarUrl"
-                            alt="@sprint.TeamName"
-                            title="@sprint.TeamName @HttpUtility.HtmlEncode("\r") @sprint.Name @HttpUtility.HtmlEncode("\r") Finishes: @sprint.FinishTime.ToString("yyyy-MM-dd")" />
+                                 alt="@sprint.TeamName"
+                                 title="@sprint.TeamName @HttpUtility.HtmlEncode("\r") @sprint.Name @HttpUtility.HtmlEncode("\r") Finishes: @sprint.FinishTime.ToString("yyyy-MM-dd")"/>
                         </button>
                     }
-                </span>
+                </div>
             }
-        </span>
-    </h3>
+        </div>
+    </div>
+</h3>
 
-</div>
 
 @if (_sprints == null)
 {
@@ -70,6 +74,7 @@ else
                         <button type="button" class="btn btn-outline-primary btn-priority @PriorityAdjustment.ShowEnterModeClassName" @onclick="PriorityAdjustment.ToggleMode" title="Enter Adjust Priority Mode">Adjust <u>P</u>riority...</button>
                     </th>
                     <th>Tasks</th>
+                    <th>Action Items</th>
                 </tr>
             </thead>
             <tbody>
@@ -84,7 +89,7 @@ else
                     "
                     @onclick="e => PriorityAdjustment.SetMoveTo(workItem, e)">
                         <td class="cell-link" @onclick="() => OpenWorkItemAsync(workItem)" title="Open D#@(workItem.Id)">
-                            <div style="display: flex;">
+                            <div class="flex-row">
                                 <div class="@workItem.StatusCssClass">
                                     <div class="work-item-id">@workItem.Id</div>
                                     <div>
@@ -96,7 +101,7 @@ else
                                     </div>
                                 </div>
                                 <div>
-                                    <div style="display: flex;">
+                                    <div class="flex-row">
                                         @if (workItem.Sprint != null)
                                         {
                                             <div class="priority-block">
@@ -146,8 +151,8 @@ else
                                 <div class="work-item @task.Type.CssClass task-status @task.StatusCssClass cell-link" @onclick="() => OpenWorkItemAsync(task)" title="Open D#@(task.Id)">
                                     <div class="avatar-cell">
                                         <img src="@task.AssignedTo.AvatarUrl"
-                                        alt="@task.AssignedTo.DisplayName"
-                                        title="@task.AssignedTo.DisplayName" />
+                                             alt="@task.AssignedTo.DisplayName"
+                                             title="@task.AssignedTo.DisplayName" />
                                     </div>
                                     <div>
                                         @task.Title
@@ -171,7 +176,13 @@ else
                                           .Union(workItem.Children.SelectMany(task => task.PullRequests))
                                           .OrderBy(pr => pr.Status))
                             {
-                               <PullRequestView PullRequest="@pullRequest"></PullRequestView>
+                                <PullRequestView PullRequest="@pullRequest"></PullRequestView>
+                            }
+                        </td>
+                        <td>
+                            @foreach (var actionItem in OrderActionItems(workItem))
+                            {
+                                <ActionItemView ActionItem="actionItem"></ActionItemView>
                             }
                         </td>
                     </tr>

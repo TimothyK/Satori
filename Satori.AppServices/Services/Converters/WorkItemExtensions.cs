@@ -2,8 +2,11 @@
 using CodeMonkeyProjectiles.Linq;
 using Flurl;
 using Satori.AppServices.ViewModels;
+using Satori.AppServices.ViewModels.Abstractions;
 using Satori.AppServices.ViewModels.PullRequests;
+using Satori.AppServices.ViewModels.PullRequests.ActionItems;
 using Satori.AppServices.ViewModels.WorkItems;
+using Satori.AppServices.ViewModels.WorkItems.ActionItems;
 using Satori.AzureDevOps.Models;
 using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
@@ -67,9 +70,25 @@ public static class WorkItemExtensions
 
     public static void ResetPeopleRelations(this IEnumerable<WorkItem> workItems)
     {
-        foreach (var workItem in workItems)
+        var personPriority = new Dictionary<Person, int>();
+
+        foreach (var workItem in workItems.OrderBy(wi => wi.AbsolutePriority))
         {
             workItem.ResetPeopleRelations();
+
+            foreach (var assignment in workItem.ActionItems.SelectMany(actionItem => actionItem.On))
+            {
+                if (personPriority.TryGetValue(assignment.Person, out var priority))
+                {
+                    priority++;
+                }
+                else
+                {
+                    priority = 1;
+                }
+                personPriority[assignment.Person] = priority;
+                assignment.Priority = priority;
+            }
         }
     }
 
@@ -86,11 +105,58 @@ public static class WorkItemExtensions
             .Union(workItem.PullRequests.SelectMany(pr => pr.Reviews.Select(review => review.Reviewer)))
             .Distinct()
             .ToList();
+
+        ResetActionItems(workItem);
+    }
+
+    private static void ResetActionItems(WorkItem workItem)
+    {
+        var actionItems = workItem.Children.SelectMany(task => task.ActionItems).ToList();
+        if (workItem.Type == WorkItemType.Task && workItem.State < ScrumState.Done)
+        {
+            actionItems.Add(new TaskActionItem(workItem));
+        }
+
+        var pullRequests = workItem.PullRequests
+            .Union(workItem.Children.SelectMany(task => task.PullRequests))
+            .Where(pr => pr.Status != Status.Complete);
+        foreach (var pr in pullRequests)
+        {
+            var prActionItems = new List<PullRequestActionItem>();
+
+            if (pr.Status == Status.Draft)
+            {
+                prActionItems.Add(new PublishActionItem(pr));
+            }
+            else
+            {
+                var reviewActionItems = pr.Reviews
+                    .Where(review => review.Vote == ReviewVote.NoVote)
+                    .Select(review => review.Vote == ReviewVote.NoVote ? new ReviewActionItem(pr, review.Reviewer)
+                        : (PullRequestActionItem)new ReplyActionItem(pr));
+                prActionItems.AddRange(reviewActionItems);
+                if (pr.Reviews.Any(review => review.Vote <= ReviewVote.WaitingForAuthor))
+                {
+                    prActionItems.Add(new ReplyActionItem(pr));
+                }
+            }
+            if (prActionItems.None())
+            {
+                actionItems.Add(new CompleteActionItem(pr));
+            }
+
+            actionItems.AddRange(prActionItems);
+        }
+        if (workItem.State < ScrumState.Done && actionItems.None() && workItem.Type != WorkItemType.Task)
+        {
+            actionItems.Add(new FinishActionItem(workItem));
+        }
+        workItem.ActionItems = actionItems;
     }
 
     private static List<PullRequest> GetPullRequests(List<WorkItemRelation> relations, Uri azureDevOpsOrgUrl)
     {
-        var prRelations = relations.Where(r => r.RelationType == "ArtifactLink" && r.Attributes["name"]?.ToString() == "Pull Request");
+        var prRelations = relations.Where(r => r.RelationType == "ArtifactLink" && r.Attributes["name"].ToString() == "Pull Request");
         return prRelations.Select(relation => CreatePullRequestPlaceholder(relation, azureDevOpsOrgUrl)).ToList();
 
     }

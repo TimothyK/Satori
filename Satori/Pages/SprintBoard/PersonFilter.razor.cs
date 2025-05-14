@@ -9,6 +9,9 @@ public partial class PersonFilter
     private Person[] _people;
 
     [Parameter]
+    public required string Label { get; set; }
+
+    [Parameter]
 #pragma warning disable BL0007
     public required IEnumerable<Person> People
 #pragma warning restore BL0007

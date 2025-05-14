@@ -3,17 +3,8 @@
     justify-content: flex-start;
 }
 
-#filterMe {
-    margin-left: 10px;
-}
-#filterMe .avatar-cell {
-    border: 5px solid white;
-}
-#filterMe .avatar-cell.filter-selected {
-    border: 5px outset green;
-}
-#filterMe .avatar-cell:hover {
-    transform: scale(1.1);
+.counters {
+    align-items: self-start;
 }
 
 .team-selector .avatar-cell {
@@ -26,6 +17,12 @@
     transform: scale(1.1);
 }
 
+table {
+    table-layout: fixed;
+}
+th,td {
+    overflow: hidden;
+}
 .work-item {
     display: table-row;
 }
@@ -92,7 +89,7 @@
     background-color: red;
 }
 .target-date::before {
-    content: "Due ";
+    content: "due ";
     font-size: 0.75em;
     vertical-align: top;
 }
@@ -148,7 +145,7 @@
 
 .priority-block {
     display: flex;
-    border: 1px solid black;
+    border: 3px outset darkgray;
 }
 
 .priority-number {

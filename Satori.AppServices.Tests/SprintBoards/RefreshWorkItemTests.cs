@@ -4,6 +4,7 @@ using Satori.AppServices.Tests.TestDoubles.AlertServices;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
+using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
 using Shouldly;
@@ -194,6 +195,31 @@ public class RefreshWorkItemTests
         original.SprintPriority.ShouldBe(1);
         actual.ShouldNotBeNull();
         actual.SprintPriority.ShouldBe(2);
+    }
+    
+    [TestMethod]
+    public async Task PriorityChange_ChangesPersonPriority()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem1).WithSprint(sprint);
+        _builder.BuildWorkItem(out var workItem2).WithSprint(sprint);
+        workItem1.Fields.BacklogPriority = workItem2.Fields.BacklogPriority - 1.0;
+        workItem1.Fields.AssignedTo = People.Alice;
+        workItem2.Fields.AssignedTo = People.Alice;
+
+
+        //Act
+        var (original, actual) = await RefreshWorkItemAsync(workItem1,
+            () =>
+            {
+                workItem1.Fields.BacklogPriority = workItem2.Fields.BacklogPriority + 1.0;
+            });
+
+        //Assert
+        original.ActionItems.Single().On.Single().Priority.ShouldBe(1);
+        actual.ShouldNotBeNull();
+        actual.ActionItems.Single().On.Single().Priority.ShouldBe(2);
     }
     
     [TestMethod]
