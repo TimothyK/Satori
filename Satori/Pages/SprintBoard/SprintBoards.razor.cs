@@ -6,8 +6,11 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.ViewModels;
+using Satori.AppServices.ViewModels.Abstractions;
+using Satori.AppServices.ViewModels.PullRequests.ActionItems;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
+using Satori.AppServices.ViewModels.WorkItems.ActionItems;
 using Satori.Utilities;
 using Toolbelt.Blazor.HotKeys2;
 
@@ -290,6 +293,24 @@ public partial class SprintBoards
         ActionItemPersonFilter.FilterKey = filterValue;
     }
 
+    private static IEnumerable<ActionItem> OrderActionItems(WorkItem workItem)
+    {
+        return workItem.ActionItems
+            .OrderBy(actionItem =>
+                actionItem switch
+                {
+                    FinishActionItem => 0,
+                    TaskActionItem => 1,
+                    PullRequestActionItem => 2,
+                    _ => 3
+                })
+            .ThenBy(actionItem => actionItem is FinishActionItem finish ? finish.WorkItem.Id : int.MaxValue)
+            .ThenByDescending(actionItem => actionItem is TaskActionItem task ? task.Task.State : ScrumState.Unknown)
+            .ThenBy(actionItem => actionItem is TaskActionItem task ? task.Task.Id : int.MaxValue)
+            .ThenBy(actionItem => actionItem is PullRequestActionItem pr ? pr.PullRequest.Id : int.MaxValue)
+            .ThenBy(actionItem => actionItem is PullRequestActionItem pr ? (pr.PullRequest.CreatedBy.IsIn(pr.On.Select(x => x.Person)) ? 0 : 1) : int.MaxValue)
+            ;
+    }
 
     #endregion On (ActionItem) Filter
 

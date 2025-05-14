@@ -180,7 +180,7 @@ else
                             }
                         </td>
                         <td>
-                            @foreach (var actionItem in workItem.ActionItems)
+                            @foreach (var actionItem in OrderActionItems(workItem))
                             {
                                 <ActionItemView ActionItem="actionItem"></ActionItemView>
                             }
