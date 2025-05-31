@@ -79,60 +79,33 @@ internal class AzureDevOpsDatabase : IAzureDevOpsDatabaseWriter
 
     public void AddWorkItemLink(WorkItem leftWorkItem, LinkType linkType, WorkItem rightWorkItem)
     {
+        if (linkType == LinkType.IsChildOf)
+        {
+            (rightWorkItem, leftWorkItem) = (leftWorkItem, rightWorkItem);
+            linkType = linkType.ReverseLink;
+        }
         if (linkType == LinkType.IsParentOf)
         {
             _parentWorkItemId[rightWorkItem.Id] = leftWorkItem.Id;
             rightWorkItem.Fields.Parent = leftWorkItem.Id;
-            rightWorkItem.Relations.Add(new WorkItemRelation
-            {
-                Attributes = new Dictionary<string, object>()
-                {
-                    { "isLocked", false },
-                    { "name", "Parent" }
-                },
-                RelationType = "System.LinkTypes.Hierarchy-Reverse",
-                Url = $"http://devops.test/Org/{leftWorkItem.Fields.ProjectName}/_apis/wit/workItems/{leftWorkItem.Id}"
-            });
-            leftWorkItem.Relations.Add(new WorkItemRelation
-            {
-                Attributes = new Dictionary<string, object>()
-                {
-                    { "isLocked", false },
-                    { "name", "Child" }
-                },
-                RelationType = "System.LinkTypes.Hierarchy-Forward",
-                Url = $"http://devops.test/Org/{rightWorkItem.Fields.ProjectName}/_apis/wit/workItems/{rightWorkItem.Id}"
-            });
-            return;
-        }
-        if (linkType == LinkType.IsChildOf)
-        {
-            _parentWorkItemId[leftWorkItem.Id] = rightWorkItem.Id;
-            leftWorkItem.Fields.Parent = rightWorkItem.Id;
-            leftWorkItem.Relations.Add(new WorkItemRelation
-            {
-                Attributes = new Dictionary<string, object>()
-                {
-                    { "isLocked", false },
-                    { "name", "Parent" }
-                },
-                RelationType = "System.LinkTypes.Hierarchy-Reverse",
-                Url = $"http://devops.test/Org/{rightWorkItem.Fields.ProjectName}/_apis/wit/workItems/{rightWorkItem.Id}"
-            });
-            rightWorkItem.Relations.Add(new WorkItemRelation
-            {
-                Attributes = new Dictionary<string, object>()
-                {
-                    { "isLocked", false },
-                    { "name", "Child" }
-                },
-                RelationType = "System.LinkTypes.Hierarchy-Forward",
-                Url = $"http://devops.test/Org/{leftWorkItem.Fields.ProjectName}/_apis/wit/workItems/{leftWorkItem.Id}"
-            });
-            return;
         }
 
-        throw new NotSupportedException();
+        AddRelation(leftWorkItem, linkType, rightWorkItem);
+        AddRelation(rightWorkItem, linkType.ReverseLink, leftWorkItem);
+    }
+
+    private static void AddRelation(WorkItem leftWorkItem, LinkType linkType, WorkItem rightWorkItem)
+    {
+        leftWorkItem.Relations.Add(new WorkItemRelation
+        {
+            Attributes = new Dictionary<string, object>()
+            {
+                { "isLocked", false },
+                { "name", linkType.RelatedWorkItemName }
+            },
+            RelationType = linkType.ToApiValue(),
+            Url = $"http://devops.test/Org/{rightWorkItem.Fields.ProjectName}/_apis/wit/workItems/{rightWorkItem.Id}"
+        });
     }
 
     public void AddGitTag(string commitId, Tag tag)
