@@ -114,7 +114,9 @@ public static class WorkItemExtensions
     private static void ResetActionItems(WorkItem workItem)
     {
         var actionItems = workItem.Children.SelectMany(task => task.ActionItems).ToList();
-        if (workItem.Type == WorkItemType.Task && workItem.State < ScrumState.Done)
+        if (workItem.Type == WorkItemType.Task 
+            && workItem.State < ScrumState.Done
+            && (workItem.Predecessors.All(predecessor => ScrumState.Done <= predecessor.State) || workItem.State == ScrumState.InProgress))
         {
             actionItems.Add(new TaskActionItem(workItem));
         }

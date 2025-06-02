@@ -190,6 +190,119 @@ public class ActionItemTests
 
     #endregion Tasks
 
+    #region Predecessor/Successor
+
+    [TestMethod]
+    public async Task Tasks_NoPredecessors_AllReadyToStartInParallel()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        var workItemBuilder = _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItemBuilder.AddChild(out var coding);
+        workItemBuilder.AddChild(out var testing);
+        workItem.Fields.AssignedTo = People.Alice;
+        coding.Fields.AssignedTo = People.Bob;
+        coding.Fields.State = ScrumState.ToDo.ToApiValue();
+        testing.Fields.AssignedTo = People.Cathy;
+        testing.Fields.State = ScrumState.ToDo.ToApiValue();
+
+        //Act
+        var actionItems = await GetActionItems(sprint);
+
+        //Assert
+        actionItems.ShouldBeOfType<TaskActionItem>()
+            .ShouldBeOn(People.Bob)
+            .ShouldBeFor(coding)
+            .ShouldHaveActionDescription("Start");
+        actionItems.ShouldBeOfType<TaskActionItem>()
+            .ShouldBeOn(People.Cathy)
+            .ShouldBeFor(testing)
+            .ShouldHaveActionDescription("Start");
+    }
+    
+    [TestMethod]
+    public async Task Successor_PredecessorInProgress_NoActionItemForSuccessor()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        var workItemBuilder = _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItemBuilder.AddChild(out var coding);
+        workItemBuilder.AddChild(out var testing);
+        workItem.Fields.AssignedTo = People.Alice;
+        coding.Fields.AssignedTo = People.Bob;
+        coding.Fields.State = ScrumState.InProgress.ToApiValue();
+        testing.Fields.AssignedTo = People.Cathy;
+        testing.Fields.State = ScrumState.ToDo.ToApiValue();
+        _builder.AddLink(coding, LinkType.IsPredecessorOf, testing);
+
+        //Act
+        var actionItems = await GetActionItems(sprint);
+
+        //Assert
+        actionItems.ShouldBeOfType<TaskActionItem>()
+            .ShouldBeOn(People.Bob)
+            .ShouldBeFor(coding)
+            .ShouldHaveActionDescription("Resume");
+        actionItems.Length.ShouldBe(1);
+    }
+    
+    [TestMethod]
+    public async Task Successor_PredecessorIsDone_SuccessorShouldStart()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        var workItemBuilder = _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItemBuilder.AddChild(out var coding);
+        workItemBuilder.AddChild(out var testing);
+        workItem.Fields.AssignedTo = People.Alice;
+        coding.Fields.AssignedTo = People.Bob;
+        coding.Fields.State = ScrumState.Done.ToApiValue();
+        testing.Fields.AssignedTo = People.Cathy;
+        testing.Fields.State = ScrumState.ToDo.ToApiValue();
+        _builder.AddLink(coding, LinkType.IsPredecessorOf, testing);
+
+        //Act
+        var actionItems = await GetActionItems(sprint);
+
+        //Assert
+        actionItems.ShouldBeOfType<TaskActionItem>()
+            .ShouldBeOn(People.Cathy)
+            .ShouldBeFor(testing)
+            .ShouldHaveActionDescription("Start");
+        actionItems.Length.ShouldBe(1);
+    }
+    
+    [TestMethod]
+    public async Task Successor_InProgress_ShouldResume()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        var workItemBuilder = _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItemBuilder.AddChild(out var coding);
+        workItemBuilder.AddChild(out var testing);
+        workItem.Fields.AssignedTo = People.Alice;
+        coding.Fields.AssignedTo = People.Bob;
+        coding.Fields.State = ScrumState.InProgress.ToApiValue();
+        testing.Fields.AssignedTo = People.Cathy;
+        testing.Fields.State = ScrumState.InProgress.ToApiValue();
+        _builder.AddLink(coding, LinkType.IsPredecessorOf, testing);
+
+        //Act
+        var actionItems = await GetActionItems(sprint);
+
+        //Assert
+        actionItems.ShouldBeOfType<TaskActionItem>()
+            .ShouldBeOn(People.Bob)
+            .ShouldBeFor(coding)
+            .ShouldHaveActionDescription("Resume");
+        actionItems.ShouldBeOfType<TaskActionItem>()
+            .ShouldBeOn(People.Cathy)
+            .ShouldBeFor(testing)
+            .ShouldHaveActionDescription("Resume");
+    }
+
+    #endregion Predecessor/Successor
+
     #region Pull Requests
 
     [TestMethod]
