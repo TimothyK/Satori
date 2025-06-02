@@ -73,6 +73,9 @@ public class WorkItem
 
     public WorkItem? Parent { get; set; }
     public List<WorkItem> Children { get; init; } = [];
+    public List<WorkItem> Predecessors { get; init; } = [];
+    public List<WorkItem> Successors { get; init; } = [];
+
     public List<PullRequest> PullRequests { get; init; } = [];
     public Sprint? Sprint { get; set; }
     public int? SprintPriority { get; set; }

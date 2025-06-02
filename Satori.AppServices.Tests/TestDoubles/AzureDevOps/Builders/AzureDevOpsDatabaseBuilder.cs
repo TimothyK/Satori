@@ -1,5 +1,7 @@
 ﻿using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Database;
+using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps.Models;
+using WorkItem = Satori.AzureDevOps.Models.WorkItem;
 
 namespace Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 
@@ -40,4 +42,8 @@ internal class AzureDevOpsDatabaseBuilder(IAzureDevOpsDatabaseWriter database)
         return builder;
     }
 
+    public void AddLink(WorkItem leftWorkItem, LinkType linkType, WorkItem rightWorkItem)
+    {
+        database.AddWorkItemLink(leftWorkItem, linkType, rightWorkItem);
+    }
 }

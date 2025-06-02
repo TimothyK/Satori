@@ -306,6 +306,34 @@ public class RefreshWorkItemTests
 
     #endregion Children
 
+    #region Predecessor/Successor Links
+
+    [TestMethod]
+    public async Task HasPredecessors()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        var workItemBuilder = _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItemBuilder.AddChild(out var coding);
+        workItemBuilder.AddChild(out var testing);
+        _builder.AddLink(coding, LinkType.IsPredecessorOf, testing);
+
+        //Act
+        var (_, actual) = await RefreshWorkItemAsync(workItem);
+
+        //Assert
+        actual.ShouldNotBeNull();
+        var codingTask = actual.Children.Single(task => task.Id == coding.Id);
+        var testingTask = actual.Children.Single(task => task.Id == testing.Id);
+
+        codingTask.Predecessors.ShouldBeEmpty();
+        codingTask.Successors.Single().ShouldBe(testingTask);
+        testingTask.Predecessors.Single().ShouldBe(codingTask);
+        testingTask.Successors.ShouldBeEmpty();
+    }
+
+    #endregion Predecessor/Successor Links
+
     #region PullRequests
 
     [TestMethod]

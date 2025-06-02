@@ -229,6 +229,37 @@ public class SprintWorkItemTests
 
     #endregion Child Tasks
 
+    #region Predecessor/Successor
+
+    [TestMethod]
+    public void PredecessorSuccessorLink()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        var parentBuilder = _builder.BuildWorkItem().WithSprint(sprint);
+        parentBuilder.AddChild(out var codingChild);
+        parentBuilder.AddChild(out var testingChild);
+        codingChild.Fields.Title = "Coding";
+        testingChild.Fields.Title = "Testing";
+        _builder.AddLink(codingChild, LinkType.IsPredecessorOf, testingChild);
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        var workItem = workItems.Single();
+        var codingTask = workItem.Children.Single(wi => wi.Id == codingChild.Id);
+        var testingTask = workItem.Children.Single(wi => wi.Id == testingChild.Id);
+        codingTask.Predecessors.ShouldBeEmpty();
+        codingTask.Successors.Count.ShouldBe(1);
+        codingTask.Successors.ShouldContain(testingTask);
+        testingTask.Predecessors.Count.ShouldBe(1);
+        testingTask.Predecessors.ShouldContain(codingTask);
+        testingTask.Successors.ShouldBeEmpty();
+    }
+
+    #endregion Predecessor/Successor
+
     #region Pull Requests
 
     [TestMethod]
