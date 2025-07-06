@@ -59,7 +59,9 @@ public static class WorkItemExtensions
                 .AppendPathSegment("_workItems/edit")
                 .AppendPathSegment(id),
             ApiUrl = wi.Url,
-            Children = GetChildren(wi.Relations),
+            Children = GetRelatedWorkItemPlaceholders(wi.Relations, LinkType.IsChildOf),
+            Predecessors = GetRelatedWorkItemPlaceholders(wi.Relations, LinkType.IsPredecessorOf),
+            Successors = GetRelatedWorkItemPlaceholders(wi.Relations, LinkType.IsSuccessorOf),
             PullRequests = GetPullRequests(wi.Relations, UriParser.GetAzureDevOpsOrgUrl(wi.Url)),
         };
 
@@ -112,7 +114,9 @@ public static class WorkItemExtensions
     private static void ResetActionItems(WorkItem workItem)
     {
         var actionItems = workItem.Children.SelectMany(task => task.ActionItems).ToList();
-        if (workItem.Type == WorkItemType.Task && workItem.State < ScrumState.Done)
+        if (workItem.Type == WorkItemType.Task 
+            && workItem.State < ScrumState.Done
+            && (workItem.Predecessors.All(predecessor => ScrumState.Done <= predecessor.State) || workItem.State == ScrumState.InProgress))
         {
             actionItems.Add(new TaskActionItem(workItem));
         }
@@ -190,10 +194,10 @@ public static class WorkItemExtensions
         };
     }
 
-    private static List<WorkItem> GetChildren(List<WorkItemRelation> relations)
+    private static List<WorkItem> GetRelatedWorkItemPlaceholders(List<WorkItemRelation> relations, LinkType linkType)
     {
         return relations
-            .Where(r => r.RelationType == "System.LinkTypes.Hierarchy-Forward")
+            .Where(r => r.RelationType == linkType.ReverseLink.ToApiValue())
             .Select(r => CreateWorkItemPlaceholder(int.Parse(r.Url.Split('/').Last()), UriParser.GetAzureDevOpsOrgUrl(r.Url)))
             .ToList();
     }

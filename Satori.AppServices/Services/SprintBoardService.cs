@@ -174,10 +174,38 @@ public class SprintBoardService(
                 parent.Children.Add(task);
             }
         }
+
+        await ReplaceRelationPlaceholdersAsync(iterationWorkItems);
+
         iterationBoardItems.Values.ResetPeopleRelations();
         SetSprintPriority(iterationBoardItems.Values);
 
         return iterationBoardItems.Values.ToList();
+    }
+
+    private async Task ReplaceRelationPlaceholdersAsync(List<WorkItem> workItems)
+    {
+        var workItemsWithPlaceholders = workItems.Where(wi => wi.Predecessors.Any(linkedWorkItem => linkedWorkItem.Type == WorkItemType.Unknown))
+            .Concat(workItems.Where(wi => wi.Successors.Any(linkedWorkItem => linkedWorkItem.Type == WorkItemType.Unknown)))
+            .ToArray();
+
+        var placeholderIds = 
+            workItemsWithPlaceholders.SelectMany(workItem => workItem.Predecessors.Where(wi => wi.Type == WorkItemType.Unknown))
+                .Concat(workItemsWithPlaceholders.SelectMany(workItem => workItem.Successors.Where(wi => wi.Type == WorkItemType.Unknown)))
+                .Select(workItem => workItem.Id)
+                .Distinct();
+
+        var alreadyLoaded = workItems.Where(wi => wi.Id.IsIn(placeholderIds)).ToArray();
+
+        var needToLoadIds = placeholderIds.Except(alreadyLoaded.Select(wi => wi.Id)).ToArray();
+
+        var replacements = alreadyLoaded.Concat(await GetWorkItemsAsync(needToLoadIds)).ToArray();
+
+        foreach (var workItem in workItemsWithPlaceholders)
+        {
+            ReplacePlaceholders(workItem.Predecessors, replacements);
+            ReplacePlaceholders(workItem.Successors, replacements);
+        }
     }
 
     private static void SetSprintPriority(IEnumerable<WorkItem> workItems)
@@ -244,6 +272,8 @@ public class SprintBoardService(
         var index = allWorkItems.IndexOf(original);
         allWorkItems[index] = target;
 
+        await ReplaceRelationPlaceholdersAsync(allWorkItems.Concat(allWorkItems.SelectMany(wi => wi.Children)).ToList());
+
         SetSprintPriority(allWorkItems.Where(wi => wi.Sprint == target.Sprint));
         allWorkItems.ResetPeopleRelations();
     }
@@ -295,11 +325,20 @@ public class SprintBoardService(
                 child.Parent = workItem;
             }
         }
-        foreach (var placeholder in placeholderChildren)
-        {
-            workItem.Children.Remove(placeholder);
-        }
-        workItem.Children.AddRange(children.Where(child => child.Parent == workItem));
+
+        ReplacePlaceholders(workItem.Children, children.Where(child => child.Parent == workItem).ToArray());
+    }
+
+    private static void ReplacePlaceholders(List<WorkItem> list, WorkItem[] source)
+    {
+        var replacements = list
+            .Where(wi => wi.Type == WorkItemType.Unknown)
+            .Select(placeholder => source.FirstOrDefault(wi => wi.Id == placeholder.Id))
+            .OfType<WorkItem>()
+            .ToList();
+
+        list.RemoveAll(wi => wi.Type == WorkItemType.Unknown);
+        list.AddRange(replacements);
     }
 
     private async Task<IEnumerable<WorkItem>> GetWorkItemsAsync(IEnumerable<int> workItemIds) =>
