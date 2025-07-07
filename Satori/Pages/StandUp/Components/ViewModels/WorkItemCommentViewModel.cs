@@ -56,15 +56,14 @@ public class WorkItemCommentViewModel : CommentViewModel
 
         State = workItem.State;
 
-        UnexportedTime =  
+        UnexportedTimeEntries =  
             _period.Days
                 .Where(day => !day.AllExported)
                 .SelectMany(day => day.TimeEntries)
                 .Except(TimeEntries)
                 .Where(entry => entry.Task?.Id == workItem.Id)
                 .Where(entry => !entry.Exported)
-                .Select(entry => entry.TotalTime)
-                .Sum();
+                .ToArray();
 
         SetTimeRemaining();
         TimeRemainingInput = TimeRemaining?.TotalHours.ToNearest(0.1) ?? 0.0;
@@ -122,15 +121,25 @@ public class WorkItemCommentViewModel : CommentViewModel
         }
     }
 
+    private TimeEntry[] UnexportedTimeEntries { get; set; } = [];
+
     /// <summary>
     /// Time against <see cref="WorkItem"/> that is not exported yet and not under edit.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// This is a constant amount that should be removed from RemainingWork read from AzDO.
+    /// This is a *constant* amount that should be removed from RemainingWork read from AzDO.
+    /// </para>
+    /// <para>
+    /// By issue #88 it might not be constant.  One of the time entries might be actively timed.
+    /// It needs to be recomputed with based on the current clock time.
+    /// </para>
+    /// <para>
+    /// For typical use cases the active time entry would likely be in <see cref="SelectedTime"/>, not in <see cref="UnexportedTimeEntries"/>.
+    /// However, it is possible.  You'd have to be editing yesterday's unexported time, while actively timing the same AzDO task today.
     /// </para>
     /// </remarks>
-    public TimeSpan UnexportedTime { get; private set; } = TimeSpan.Zero;
+    public TimeSpan UnexportedTime => SumTotalTime(UnexportedTimeEntries);
 
     public TimeSpan? TimeRemaining { get; set; }
 
@@ -150,11 +159,23 @@ public class WorkItemCommentViewModel : CommentViewModel
         }
     }
 
-    public TimeSpan SelectedTime =>
-        TimeEntries
-            .Where(entry => IsActive[entry])
+    public TimeSpan SelectedTime => SumTotalTime(TimeEntries);
+
+    private static TimeSpan SumTotalTime(IEnumerable<TimeEntry> timeEntries) =>
+        SumTotalTime(timeEntries as TimeEntry[] ?? timeEntries.ToArray());
+
+    private static TimeSpan SumTotalTime(TimeEntry[] timeEntries)
+    {
+        var activeTimeEntry = timeEntries.SingleOrDefault(entry => entry.IsRunning);
+        if (activeTimeEntry != null)
+        {
+            activeTimeEntry.TotalTime = DateTimeOffset.UtcNow - activeTimeEntry.Begin;
+        }
+
+        return timeEntries
             .Select(entry => entry.TotalTime)
             .Sum();
+    }
 
     #endregion TimeRemaining
 
