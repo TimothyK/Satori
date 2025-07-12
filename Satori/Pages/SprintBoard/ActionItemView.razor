@@ -15,7 +15,54 @@
             <div class="priority-number">@personPriority.Priority</div>
         </div>
     }
-    <div class="action-description">@ActionItem.ActionDescription</div>
+    <div class="action-description-row">
+        <div class="action-description">@ActionItem.ActionDescription</div>
+        
+        @* Menu *@
+        @if (HasMenu)
+        {
+            <button class="hamburger-btn" title="More actions"
+                    @onclick="ShowMenu"
+                    @onmouseleave="OnButtonMouseLeaveAsync">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            @if (_isMenuOpen)
+            {
+                <div class="context-menu"
+                     @onmouseenter="OnMenuMouseEnter"
+                     @onmouseleave="OnMenuMouseLeaveAsync">
+                     
+                    @* Waits For *@
+                    @if (HasWaitsForMenu)
+                    {
+                        <div class="context-menu-item submenu-parent"
+                             @onmouseenter="OnWaitsForMouseEnter"
+                             @onmouseleave="OnWaitsForMouseLeaveAsync">
+                            Waits For ►
+                            @if (_isWaitsForSubMenuOpen)
+                            {
+                                <div class="submenu"
+                                     @onmouseenter="OnWaitsForWorkItemMouseEnter"
+                                     @onmouseleave="OnWaitsForWorkItemMouseLeaveAsync">
+                                    @foreach (var sibling in TaskSiblings())
+                                    {
+                                        <div class="context-menu-item" @onclick="CreateWaitsForLink">@sibling.Title</div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+
+                </div>
+            }
+        }
+        else
+        {
+            <div class="hamburger-placeholder"></div>
+        }
+    </div>
     @if (ActionItem is TaskActionItem taskAction)
     {
         <div class="work-item cell-link @taskAction.Task.Type.CssClass" @onclick="() => OpenWorkItemAsync(taskAction.Task)" title="Open D#@(taskAction.Task.Id)">
