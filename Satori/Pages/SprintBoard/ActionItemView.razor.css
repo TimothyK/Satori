@@ -75,11 +75,10 @@
     border-radius: 2px;
 }
 
-.hamburger-placeholder {
-    width: 38px;
-    height: 33px;
+.flex-menu {
     display: flex;
 }
+
 
 .work-item {
     margin-left: 5px;

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Satori.AppServices.ViewModels.Abstractions;
 using Satori.AppServices.ViewModels.PullRequests;
+using Satori.AppServices.ViewModels.PullRequests.ActionItems;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AppServices.ViewModels.WorkItems.ActionItems;
 
@@ -105,8 +106,6 @@ public partial class ActionItemView
         _isWaitsForSubMenuOpen = false;
     }
 
-    private bool HasMenu => HasWaitsForMenu;
-
     private bool HasWaitsForMenu => TaskSiblings().Any();
 
     private IEnumerable<WorkItem> TaskSiblings()
@@ -124,5 +123,21 @@ public partial class ActionItemView
                    .Except(actionItem.Task.Yield())
                    .Where(task => task.State < ScrumState.Done) 
                ?? [];
+    }
+
+    private async Task OnOpenClickAsync()
+    {
+        switch (ActionItem)
+        {
+            case TaskActionItem taskAction:
+                await OpenWorkItemAsync(taskAction.Task);
+                break;
+            case FinishActionItem finishAction:
+                await OpenWorkItemAsync(finishAction.WorkItem);
+                break;
+            case PullRequestActionItem prAction:
+                await OpenPullRequestAsync(prAction.PullRequest);
+                break;
+        }
     }
 }
