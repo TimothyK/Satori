@@ -106,9 +106,9 @@ public partial class ActionItemView
         _isWaitsForSubMenuOpen = false;
     }
 
-    private bool HasWaitsForMenu => TaskSiblings().Any();
+    private bool HasWaitsForMenu => WaitsForSiblings().Any();
 
-    private IEnumerable<WorkItem> TaskSiblings()
+    private IEnumerable<WorkItem> WaitsForSiblings()
     {
         if (ActionItem is not TaskActionItem actionItem 
             || actionItem.Task.State != ScrumState.ToDo

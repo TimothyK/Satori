@@ -92,7 +92,7 @@
                             <div class="submenu"
                                  @onmouseenter="OnWaitsForWorkItemMouseEnter"
                                  @onmouseleave="OnWaitsForWorkItemMouseLeaveAsync">
-                                @foreach (var sibling in TaskSiblings())
+                                @foreach (var sibling in WaitsForSiblings())
                                 {
 
                                     <div class="flex-menu work-item @sibling.Type.CssClass">
