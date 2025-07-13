@@ -14,6 +14,9 @@ public partial class ActionItemView
     [Parameter]
     public required ActionItem ActionItem { get; set; }
 
+    [Parameter]
+    public EventCallback HasChanged { get; set; }
+
     private async Task OpenWorkItemAsync(WorkItem workItem)
     {
         await JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
@@ -96,14 +99,14 @@ public partial class ActionItemView
         }
     }
 
-
-    private void CreateWaitsForLink()
+    private async Task CreateWaitsForLinkAsync()
     {
         // TODO: Create Link
 
-
         _isMenuOpen = false;
         _isWaitsForSubMenuOpen = false;
+
+        await HasChanged.InvokeAsync();
     }
 
     private bool HasWaitsForMenu => WaitsForSiblings().Any();
