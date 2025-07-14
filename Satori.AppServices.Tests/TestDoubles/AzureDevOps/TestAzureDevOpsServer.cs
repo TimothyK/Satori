@@ -286,7 +286,7 @@ internal class TestAzureDevOpsServer
 
     private void PatchRelation(WorkItem workItem, WorkItemPatchItem item)
     {
-        var relationEnvelope =(Dictionary<string, object>) item.Value;
+        var relationEnvelope = (Dictionary<string, object>)item.Value;
 
         var linkType = LinkType.FromApiValue(relationEnvelope["rel"].ToString() ?? throw new InvalidOperationException("rel unknown"));
         

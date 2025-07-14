@@ -1,5 +1,4 @@
-﻿using Builder;
-using CodeMonkeyProjectiles.Linq;
+﻿using CodeMonkeyProjectiles.Linq;
 using Satori.AppServices.Extensions;
 using Satori.AppServices.Services;
 using Satori.AppServices.Services.Converters;
@@ -11,7 +10,6 @@ using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.WorkItems;
 using Shouldly;
 using AzureDevOpsWorkItem = Satori.AzureDevOps.Models.WorkItem;
-using User = Satori.Kimai.Models.User;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.Tests.WorkItemUpdateTests;
