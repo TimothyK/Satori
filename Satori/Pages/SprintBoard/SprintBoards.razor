@@ -179,10 +179,10 @@ else
                                 <PullRequestView PullRequest="@pullRequest"></PullRequestView>
                             }
                         </td>
-                        <td>
+                        <td class="show-menus">
                             @foreach (var actionItem in OrderActionItems(workItem))
                             {
-                                <ActionItemView ActionItem="actionItem"></ActionItemView>
+                                <ActionItemView ActionItem="actionItem" HasChanged="async () => await RefreshAsync(workItem)"></ActionItemView>
                             }
                         </td>
                     </tr>

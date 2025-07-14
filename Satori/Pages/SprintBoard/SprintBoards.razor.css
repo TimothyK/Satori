@@ -209,6 +209,10 @@ td.status-done {
     content: "⛔\00a0 Blocked" /* \00a0 is for &nbsp;*/
 }
 
+.show-menus {
+    overflow: visible;
+}
+
 /* Slider - https://www.w3schools.com/howto/howto_css_switch.asp, https://stackoverflow.com/questions/70590125/how-to-change-the-size-of-a-css-toggle-switch */
 * {
 --switch-height: 20px;

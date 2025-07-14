@@ -39,7 +39,7 @@ public class WorkItemUpdateService(
 
         var relation = new Dictionary<string, object>()
         {
-            { "rel", "System.LinkTypes.Hierarchy-Reverse" },
+            { "rel", LinkType.IsChildOf.ToApiValue() },
             { "url", parent.ApiUrl},
         };
 
@@ -77,6 +77,28 @@ public class WorkItemUpdateService(
 
     #endregion Create Task
 
+    #region CreateDependencyLink
+
+    public async Task CreateDependencyLinkAsync(WorkItem predecessor, WorkItem successor)
+    {
+        var relation = new Dictionary<string, object>()
+        {
+            { "rel", LinkType.IsSuccessorOf.ToApiValue() },
+            { "url", predecessor.ApiUrl },
+        };
+        var fields = new List<WorkItemPatchItem>
+        {
+            new()
+            {
+                Operation = Operation.Add,
+                Path = "/relations/-",
+                Value = relation
+            }
+        };
+        await azureDevOps.PatchWorkItemAsync(successor.Id, fields);
+    }
+
+    #endregion CreateDependencyLink
 
     #region Update Task
 

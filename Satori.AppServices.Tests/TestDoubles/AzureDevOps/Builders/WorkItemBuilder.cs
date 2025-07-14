@@ -56,6 +56,7 @@ internal class WorkItemBuilder
         child.Fields.WorkItemType = GetChildType(WorkItem.Fields.WorkItemType).ToApiValue();
 
         child.Fields.ProjectName = WorkItem.Fields.ProjectName;
+        child.Url = $"http://devops.test/Org/{child.Fields.ProjectName}/_apis/wit/workItems/{child.Id}";
         child.Fields.IterationPath = WorkItem.Fields.IterationPath;
 
         return AddChild(child);

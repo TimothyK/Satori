@@ -33,12 +33,53 @@
     padding-right: 2px;
     min-width: 27px;
 }
-
+.action-description-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-right: 0;
+    position: relative;
+}
 .action-description {
     min-width: 75px;
     margin-left: 5px;
     margin-top: var(--border-width);
+    flex: 1;
 }
+.action-description-row .hamburger-btn {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.action-description-row:hover .hamburger-btn {
+    opacity: 1;
+    pointer-events: auto;
+}
+.hamburger-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+}
+
+.hamburger-btn span {
+    display: block;
+    width: 22px;
+    height: 3px;
+    background: #333;
+    border-radius: 2px;
+}
+
+.flex-menu {
+    display: flex;
+}
+
+
 .work-item {
     margin-left: 5px;
 }
@@ -54,5 +95,46 @@
     content: "PR#";
     font-size: 0.75em;
     vertical-align: top;
+}
+
+.context-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 1000;
+    min-width: 120px;
+    margin-top: 4px;
+    border-radius: 4px;
+    padding: 4px 0;
+}
+
+.context-menu-item {
+    padding: 8px 16px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.context-menu-item:hover {
+    background: #f0f0f0;
+}
+
+.submenu-parent {
+    position: relative;
+}
+
+.submenu {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    min-width: 140px;
+    background: #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 1100;
+    border-radius: 4px;
+    padding: 4px 0;
 }
 

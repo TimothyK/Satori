@@ -267,11 +267,8 @@ internal class TestAzureDevOpsServer
             return null;
         }
 
-        var person = Person.FromDisplayName(userDisplayName);
-        if (person == null)
-        {
-            throw new InvalidOperationException($"User {userDisplayName} is unknown");
-        }
+        var person = Person.FromDisplayName(userDisplayName) 
+                     ?? throw new InvalidOperationException($"User {userDisplayName} is unknown");
 
         var user = new User()
         {
@@ -286,7 +283,7 @@ internal class TestAzureDevOpsServer
 
     private void PatchRelation(WorkItem workItem, WorkItemPatchItem item)
     {
-        var relationEnvelope =(Dictionary<string, object>) item.Value;
+        var relationEnvelope = (Dictionary<string, object>)item.Value;
 
         var linkType = LinkType.FromApiValue(relationEnvelope["rel"].ToString() ?? throw new InvalidOperationException("rel unknown"));
         

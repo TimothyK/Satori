@@ -1,6 +1,9 @@
-﻿@using Satori.AppServices.ViewModels
+﻿@using Satori.AppServices.Services
+@using Satori.AppServices.ViewModels
 @using Satori.AppServices.ViewModels.PullRequests.ActionItems
 @using Satori.AppServices.ViewModels.WorkItems.ActionItems
+
+@inject WorkItemUpdateService WorkItemUpdateService
 @inject IJSRuntime JsRuntime
 
 <div class="flex-row">
@@ -15,7 +18,103 @@
             <div class="priority-number">@personPriority.Priority</div>
         </div>
     }
-    <div class="action-description">@ActionItem.ActionDescription</div>
+    <div class="action-description-row">
+        <div class="action-description">@ActionItem.ActionDescription</div>
+
+        @* Menu *@
+
+        <button class="hamburger-btn" title="More actions"
+                @onclick="ShowMenu"
+                @onmouseleave="OnButtonMouseLeaveAsync">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        @if (_isMenuOpen)
+        {
+            <div class="context-menu"
+                 @onmouseenter="OnMenuMouseEnter"
+                 @onmouseleave="OnMenuMouseLeaveAsync">
+                 
+                @* Open *@
+                <div class="context-menu-item"
+                     @onclick="OnOpenClickAsync">
+                    <div class="flex-menu">
+                        <div>Open</div>
+                        @if (ActionItem is TaskActionItem openTaskAction)
+                        {
+                            <div class="work-item @openTaskAction.Task.Type.CssClass">
+                                <div class="avatar-cell">
+                                    <img src="@openTaskAction.Task.AssignedTo.AvatarUrl"
+                                         alt="@openTaskAction.Task.AssignedTo.DisplayName"
+                                         title="@openTaskAction.Task.AssignedTo.DisplayName"/>
+                                </div>
+                                <div>@openTaskAction.Task.Title</div>
+                            </div>
+                        }
+                        @if (ActionItem is FinishActionItem openFinishAction)
+                        {
+                            <div class="work-item @openFinishAction.WorkItem.Type.CssClass">
+                                <div class="avatar-cell">
+                                    <img src="@openFinishAction.WorkItem.AssignedTo.AvatarUrl"
+                                         alt="@openFinishAction.WorkItem.AssignedTo.DisplayName"
+                                         title="@openFinishAction.WorkItem.AssignedTo.DisplayName" />
+                                </div>
+                                <div>@openFinishAction.WorkItem.Title</div>
+                            </div>
+                        }
+                        @if (ActionItem is PullRequestActionItem openPrAction)
+                        {
+                            <div class="work-item work-item-pr">
+                                <div class="avatar-cell">
+                                    <img src="@openPrAction.PullRequest.CreatedBy.AvatarUrl"
+                                         alt="@openPrAction.PullRequest.CreatedBy.DisplayName"
+                                         title="@openPrAction.PullRequest.CreatedBy.DisplayName" />
+                                </div>
+                                <div class="pull-request-id">@openPrAction.PullRequest.Id</div>
+                                <div>@openPrAction.PullRequest.Title</div>
+                            </div>
+                        }
+                        <div>...</div>
+                    </div>
+                </div>
+
+                @* Waits For *@
+                @if (HasWaitsForMenu)
+                {
+                    <div class="context-menu-item submenu-parent"
+                         @onmouseenter="OnWaitsForMouseEnter"
+                         @onmouseleave="OnWaitsForMouseLeaveAsync">
+                        <div class="flex-menu">
+                            <div>Waits For</div>
+                            <div class="flex-center-whitespace"></div>
+                            <div>►</div>
+                        </div>
+                        @if (_isWaitsForSubMenuOpen)
+                        {
+                            <div class="submenu"
+                                 @onmouseenter="OnWaitsForWorkItemMouseEnter"
+                                 @onmouseleave="OnWaitsForWorkItemMouseLeaveAsync">
+                                @foreach (var sibling in WaitsForSiblings())
+                                {
+
+                                    <div class="flex-menu work-item @sibling.Type.CssClass">
+                                        <div class="avatar-cell">
+                                            <img src="@sibling.AssignedTo.AvatarUrl"
+                                                 alt="@sibling.AssignedTo.DisplayName"
+                                                 title="@sibling.AssignedTo.DisplayName" />
+                                        </div>
+                                        <div class="context-menu-item" @onclick="async () => await CreateWaitsForLinkAsync(sibling)">@sibling.Title</div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+
+            </div>
+        }
+    </div>
     @if (ActionItem is TaskActionItem taskAction)
     {
         <div class="work-item cell-link @taskAction.Task.Type.CssClass" @onclick="() => OpenWorkItemAsync(taskAction.Task)" title="Open D#@(taskAction.Task.Id)">
