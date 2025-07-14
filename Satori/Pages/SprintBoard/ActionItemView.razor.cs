@@ -99,9 +99,10 @@ public partial class ActionItemView
         }
     }
 
-    private async Task CreateWaitsForLinkAsync()
+    private async Task CreateWaitsForLinkAsync(WorkItem predecessor)
     {
-        // TODO: Create Link
+        var successor = (ActionItem as TaskActionItem)?.Task ?? throw new InvalidOperationException("Action Item should be a Task");
+        await WorkItemUpdateService.CreateDependencyLinkAsync(predecessor, successor);
 
         _isMenuOpen = false;
         _isWaitsForSubMenuOpen = false;

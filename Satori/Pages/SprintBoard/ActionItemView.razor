@@ -1,6 +1,9 @@
-﻿@using Satori.AppServices.ViewModels
+﻿@using Satori.AppServices.Services
+@using Satori.AppServices.ViewModels
 @using Satori.AppServices.ViewModels.PullRequests.ActionItems
 @using Satori.AppServices.ViewModels.WorkItems.ActionItems
+
+@inject WorkItemUpdateService WorkItemUpdateService
 @inject IJSRuntime JsRuntime
 
 <div class="flex-row">
@@ -101,7 +104,7 @@
                                                  alt="@sibling.AssignedTo.DisplayName"
                                                  title="@sibling.AssignedTo.DisplayName" />
                                         </div>
-                                        <div class="context-menu-item" @onclick="CreateWaitsForLinkAsync">@sibling.Title</div>
+                                        <div class="context-menu-item" @onclick="async () => await CreateWaitsForLinkAsync(sibling)">@sibling.Title</div>
                                     </div>
                                 }
                             </div>
