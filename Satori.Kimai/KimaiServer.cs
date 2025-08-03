@@ -3,12 +3,12 @@ using Flurl;
 using Microsoft.Extensions.Logging;
 using Satori.Kimai.Models;
 using System.Text.Json;
-using System.Text.RegularExpressions;
+using Satori.Kimai.Utilities;
 using CustomerViewModel = Satori.Kimai.ViewModels.Customer;
 
 namespace Satori.Kimai;
 
-public partial class KimaiServer(
+public class KimaiServer(
     ConnectionSettings connectionSettings
     , HttpClient httpClient
     , ILoggerFactory loggerFactory
@@ -147,36 +147,9 @@ public partial class KimaiServer(
         {
             Id = dto.Id,
             Name = dto.Name,
-            Logo = GetCustomerLogo(dto.Comment)
+            Logo = CustomerLogoParser.GetCustomerLogo(dto.Comment)
         };
     }
-
-    [GeneratedRegex(@"\[Logo\]\((?'url'.*)\)", RegexOptions.IgnoreCase)]
-    private static partial Regex CustomerLogoRegex();
-
-    private static Uri? GetCustomerLogo(string? comment)
-    {
-        if (comment == null)
-        {
-            return null;
-        }
-        
-        var match = CustomerLogoRegex().Match(comment);
-        if (!match.Success)
-        {
-            return null;
-        }
-
-        try
-        {
-            return new Uri(match.Groups["url"].Value);
-        }
-        catch (UriFormatException)
-        {
-            return null;
-        }
-    }
-
 
     #endregion GetCustomers
 

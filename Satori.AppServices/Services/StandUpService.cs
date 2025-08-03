@@ -16,6 +16,7 @@ using System.Collections.Immutable;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using Satori.Kimai.Utilities;
 using KimaiTimeEntry = Satori.Kimai.Models.TimeEntry;
 using TimeEntry = Satori.AppServices.ViewModels.DailyStandUps.TimeEntry;
 using UriFormatException = System.UriFormatException;
@@ -219,7 +220,7 @@ public partial class StandUpService(
                     CustomerName = g.Key.CustomerName,
                     CustomerIsActive = g.Key.CustomerVisible,
                     CustomerAcronym = GetCustomerAcronym(g.Key.CustomerName),
-                    CustomerUrl = GetCustomerLogo(g.Key.CustomerComment),
+                    CustomerUrl = CustomerLogoParser.GetCustomerLogo(g.Key.CustomerComment),
                     TotalTime = GetDuration(g),
                     AllExported = GetAllExported(g),
                     CanExport = GetCanExport(g),
@@ -239,32 +240,6 @@ public partial class StandUpService(
     {
         var match = CustomerAcronymRegex().Match(customerName);
         return match.Success ? match.Groups["acronym"].Value : null;
-    }
-
-    [GeneratedRegex(@"\[Logo\]\((?'url'.*)\)", RegexOptions.IgnoreCase)]
-    private static partial Regex CustomerLogoRegex();
-
-    private static Uri? GetCustomerLogo(string? comment)
-    {
-        if (comment == null)
-        {
-            return null;
-        }
-        
-        var match = CustomerLogoRegex().Match(comment);
-        if (!match.Success)
-        {
-            return null;
-        }
-
-        try
-        {
-            return new Uri(match.Groups["url"].Value);
-        }
-        catch (UriFormatException)
-        {
-            return null;
-        }
     }
 
     private ActivitySummary[] ToActivitiesViewModel(IEnumerable<KimaiTimeEntry> entries, Url url, ProjectSummary project)
