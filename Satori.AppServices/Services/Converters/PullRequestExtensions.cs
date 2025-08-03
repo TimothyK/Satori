@@ -60,6 +60,7 @@ internal static class PullRequestExtensions
         return new Review()
         {
             IsRequired = reviewer.IsRequired,
+            HasDeclined = reviewer.HasDeclined,
             Vote = (ReviewVote)reviewer.Vote,
             Reviewer = reviewer,
         };

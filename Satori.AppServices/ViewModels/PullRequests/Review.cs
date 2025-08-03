@@ -4,5 +4,6 @@ public class Review
 {
     public required Person Reviewer { get; set; }
     public bool IsRequired { get; set; }
+    public bool HasDeclined { get; set; }
     public ReviewVote Vote { get; set; }
 }
