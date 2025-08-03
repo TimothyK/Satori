@@ -3,10 +3,12 @@ using Flurl;
 using Microsoft.Extensions.Logging;
 using Satori.Kimai.Models;
 using System.Text.Json;
+using System.Text.RegularExpressions;
+using CustomerViewModel = Satori.Kimai.ViewModels.Customer;
 
 namespace Satori.Kimai;
 
-public class KimaiServer(
+public partial class KimaiServer(
     ConnectionSettings connectionSettings
     , HttpClient httpClient
     , ILoggerFactory loggerFactory
@@ -126,6 +128,60 @@ public class KimaiServer(
         return GetAsync<TimeEntryCollapsed>(url);
     }
 
+    #region GetCustomers
+
+    public async Task<CustomerViewModel[]> GetCustomersAsync()
+    {
+        var url = connectionSettings.Url
+            .AppendPathSegment("api/customers")
+            .AppendQueryParam("visible", 1);
+
+        var customers = await GetAsync<Customer[]>(url);
+
+        return customers.Select(ToViewModel).ToArray();
+    }
+
+    private static CustomerViewModel ToViewModel(Customer dto)
+    {
+        return new CustomerViewModel()
+        {
+            Id = dto.Id,
+            Name = dto.Name,
+            Logo = GetCustomerLogo(dto.Comment)
+        };
+    }
+
+    [GeneratedRegex(@"\[Logo\]\((?'url'.*)\)", RegexOptions.IgnoreCase)]
+    private static partial Regex CustomerLogoRegex();
+
+    private static Uri? GetCustomerLogo(string? comment)
+    {
+        if (comment == null)
+        {
+            return null;
+        }
+        
+        var match = CustomerLogoRegex().Match(comment);
+        if (!match.Success)
+        {
+            return null;
+        }
+
+        try
+        {
+            return new Uri(match.Groups["url"].Value);
+        }
+        catch (UriFormatException)
+        {
+            return null;
+        }
+    }
+
+
+    #endregion GetCustomers
+
+    #region Common HTTP Methods
+
     private async Task<T> GetAsync<T>(Url url)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -201,4 +257,5 @@ public class KimaiServer(
         }
     }
 
+    #endregion
 }
