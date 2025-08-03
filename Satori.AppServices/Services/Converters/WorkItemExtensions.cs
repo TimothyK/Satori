@@ -122,7 +122,6 @@ public static class WorkItemExtensions
         }
 
         var pullRequests = workItem.PullRequests
-            .Union(workItem.Children.SelectMany(task => task.PullRequests))
             .Where(pr => pr.Status != Status.Complete);
         foreach (var pr in pullRequests)
         {
