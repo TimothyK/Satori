@@ -500,6 +500,35 @@ public class ActionItemTests
         actionItems.ShouldBeOfType<FinishActionItem>()
             .ShouldBeOn(People.Alice);
     }
+    
+    /// <summary>
+    /// When a task is assigned to the PR, it should have a single action item.
+    /// </summary>
+    /// <remarks><para>https://github.com/TimothyK/Satori/issues/96</para></remarks>
+    /// <returns></returns>
+    [TestMethod]
+    public async Task PullRequest_TaskAssigned_SingleActionItem()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint).AddChild(out var task);
+        _builder.BuildPullRequest(out var pullRequest).WithWorkItem(task);
+        workItem.Fields.AssignedTo = People.Alice;
+        pullRequest.CreatedBy = People.Bob;
+        pullRequest.AddReviewer(People.Cathy);
+
+        //Act
+        var actionItems = (await GetActionItems(sprint))
+            .OfType<PullRequestActionItem>().Cast<ActionItem>()
+            .ToArray();
+
+        //Assert
+        actionItems.Length.ShouldBe(1);
+        actionItems.ShouldBeOfType<ReviewActionItem>()
+            .ShouldBeOn(People.Cathy)
+            .ShouldBeFor(pullRequest)
+            .ShouldHaveActionDescription("Review");
+    }
 
     #endregion Pull Requests
 
