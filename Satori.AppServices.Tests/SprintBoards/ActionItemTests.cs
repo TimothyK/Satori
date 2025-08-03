@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+﻿using CodeMonkeyProjectiles.Linq;
+using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
@@ -528,6 +529,28 @@ public class ActionItemTests
             .ShouldBeOn(People.Cathy)
             .ShouldBeFor(pullRequest)
             .ShouldHaveActionDescription("Review");
+    }
+
+    [TestMethod]
+    public async Task PullRequest_DeclinedReviewer()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        _builder.BuildPullRequest(out var pullRequest).WithWorkItem(workItem);
+        workItem.Fields.AssignedTo = People.Alice;
+        pullRequest.CreatedBy = People.Bob;
+        pullRequest.AddReviewer(People.Cathy).With(reviewer => reviewer.HasDeclined = true);
+
+        //Act
+        var actionItems = await GetActionItems(sprint);
+
+        //Assert
+        actionItems.Length.ShouldBe(1);
+        actionItems.ShouldBeOfType<CompleteActionItem>()
+            .ShouldBeOn(People.Bob)
+            .ShouldBeFor(pullRequest)
+            .ShouldHaveActionDescription("Complete");
     }
 
     #endregion Pull Requests

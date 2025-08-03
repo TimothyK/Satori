@@ -105,6 +105,8 @@ public class PullRequestTests
     [TestMethod]
     public void ReviewerIsRequired() => SinglePullRequest().Reviewers.Single().IsRequired.ShouldBeTrue();
     [TestMethod]
+    public void ReviewerHasDeclined() => SinglePullRequest().Reviewers.Single().HasDeclined.ShouldBeFalse();
+    [TestMethod]
     public void ReviewerVote() => SinglePullRequest().Reviewers.Single().Vote.ShouldBe(10);
         
     [TestMethod]
