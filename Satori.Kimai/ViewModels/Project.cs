@@ -8,7 +8,7 @@ public class Project
     /// <summary>
     /// How this activity is identified in external systems (e.g. Azure DevOps)
     /// </summary>
-    public string? ProjectCode { get; set; }
+    public required string ProjectCode { get; set; }
 
     public required Customer Customer { get; set; }
 

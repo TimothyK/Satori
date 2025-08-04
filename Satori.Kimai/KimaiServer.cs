@@ -137,12 +137,25 @@ public class KimaiServer(
         var projects = await GetProjectMastersAsync();
 
         var customers = customerMasters.Select(AddToViewModel).ToArray();
+        
         foreach (var project in projects)
         {
             var customer = customers.FirstOrDefault(c => c.Id == project.Customer);
             if (customer != null)
             {
                 AddToViewModel(project, customer);
+            }
+        }
+
+        var activities = await GetActivityMastersAsync();
+        foreach (var activity in activities)
+        {
+            var project = customers
+                .SelectMany(customer => customer.Projects)
+                .FirstOrDefault(p => p.Id == activity.Project);
+            if (project != null)
+            {
+                AddToViewModel(activity, project);
             }
         }
 
@@ -159,6 +172,18 @@ public class KimaiServer(
             Customer = customer
         };
         customer.Projects.Add(projectViewModel);
+    }
+
+    private static void AddToViewModel(ActivityMaster activity, ProjectViewModel project)
+    {
+        var activityViewModel = new ViewModels.Activity
+        {
+            Id = activity.Id,
+            Name = activity.Name,
+            ActivityCode = ProjectCodeParser.GetActivityCode(activity.Name),
+            Project = project
+        };
+        project.Activities.Add(activityViewModel);
     }
 
     private async Task<Customer[]> GetCustomerMastersAsync()
@@ -179,6 +204,16 @@ public class KimaiServer(
 
         var projects = await GetAsync<ProjectMaster[]>(url);
         return projects;
+    }
+    
+    private async Task<ActivityMaster[]> GetActivityMastersAsync()
+    {
+        var url = connectionSettings.Url
+            .AppendPathSegment("api/activities")
+            .AppendQueryParam("visible", 1);
+
+        var activities = await GetAsync<ActivityMaster[]>(url);
+        return activities;
     }
 
     private static CustomerViewModel AddToViewModel(Customer dto)

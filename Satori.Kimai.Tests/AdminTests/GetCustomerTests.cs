@@ -24,7 +24,7 @@ public class GetCustomerTests
             .AppendPathSegment("api/customers")
             .AppendQueryParam("visible", 1);
 
-    private static int _customerId;
+    private static int _customerId = 10;
     private readonly List<Models.Customer> _customers = [];
 
     private Models.Customer BuildCustomer()
@@ -47,7 +47,7 @@ public class GetCustomerTests
             .AppendPathSegment("api/projects")
             .AppendQueryParam("visible", 1);
 
-    private static int _projectId;
+    private static int _projectId = 20;
     private readonly List<Models.ProjectMaster> _projects = [];
 
     private Models.ProjectMaster BuildProject()
@@ -66,7 +66,32 @@ public class GetCustomerTests
 
         return project;
     }
-    
+
+    private Url GetActivitiesUrl() =>
+        _connectionSettings.Url
+            .AppendPathSegment("api/activities")
+            .AppendQueryParam("visible", 1);
+
+    private static int _activityId = 30;
+    private readonly List<Models.ActivityMaster> _activities = [];
+
+    private Models.ActivityMaster BuildActivity()
+    {
+        var id = Interlocked.Increment(ref _activityId);
+        var project = _projects.FirstOrDefault() ?? BuildProject();
+        var activity = new Models.ActivityMaster()
+        {
+            Id = id,
+            Name = $"{id} Meetings",
+            Project = project.Id,
+            Visible = true,
+        };
+
+        _activities.Add(activity);
+
+        return activity;
+    }
+
     private void DefineMock()
     {
         _mockHttp.Clear();
@@ -75,6 +100,8 @@ public class GetCustomerTests
             .Respond("application/json", JsonSerializer.Serialize(_customers));
         _mockHttp.When(GetProjectsUrl())
             .Respond("application/json", JsonSerializer.Serialize(_projects));
+        _mockHttp.When(GetActivitiesUrl())
+            .Respond("application/json", JsonSerializer.Serialize(_activities));
     }
 
     #endregion Arrange
@@ -252,6 +279,21 @@ public class GetCustomerTests
         var actual = customers.Single().Projects.Single();
         actual.ProjectCode.ShouldBe("123");
     }
+    
+    [TestMethod]
+    public async Task ProjectCode_LeadingZerosWithNoProjectName_StripLeadingZeros()
+    {
+        //Arrange
+        var project = BuildProject();
+        project.Name = "0123";
+
+        //Act
+        var customers = await GetCustomersAsync();
+
+        //Assert
+        var actual = customers.Single().Projects.Single();
+        actual.ProjectCode.ShouldBe("123");
+    }
 
     [TestMethod]
     public async Task ProjectCode_PeriodSeparator()
@@ -282,6 +324,153 @@ public class GetCustomerTests
         var actual = customers.Single().Projects.Single();
         actual.ProjectCode.ShouldBe("123");
     }
+    
+    [TestMethod]
+    public async Task ProjectCode_NoNumberPrefix_UseWholeProjectName()
+    {
+        //Arrange
+        var project = BuildProject();
+        project.Name = "Ninja Project";
+
+        //Act
+        var customers = await GetCustomersAsync();
+
+        //Assert
+        var actual = customers.Single().Projects.Single();
+        actual.ProjectCode.ShouldBe("Ninja Project");
+    }
 
     #endregion Project Tests
+
+    #region Activity Tests
+
+    [TestMethod]
+    public async Task Activity()
+    {
+        //Arrange
+        var activity = BuildActivity();
+
+        //Act
+        var customers = await GetCustomersAsync();
+
+        //Assert
+        var project = customers.Single().Projects.Single();
+        project.Activities.ShouldNotBeEmpty();
+        project.Activities.Count.ShouldBe(1);
+        var actual = project.Activities.Single();
+        actual.Id.ShouldBe(activity.Id);
+        actual.Name.ShouldBe(activity.Name);
+    }
+    
+    [TestMethod]
+    public async Task ActivityBackNavigation()
+    {
+        //Arrange
+        BuildActivity();
+
+        //Act
+        var customers = await GetCustomersAsync();
+
+        //Assert
+        var project = customers.Single().Projects.Single();
+        var actual = project.Activities.Single();
+        actual.Project.ShouldBeSameAs(project);
+    }
+
+    [TestMethod]
+    public async Task ActivityCode_SmokeTest()
+    {
+        //Arrange
+        var activity = BuildActivity();
+        activity.Name = "1.2.3 Meetings";
+
+        //Act
+        var customers = await GetCustomersAsync();
+
+        //Assert
+        var project = customers.Single().Projects.Single();
+        var actual = project.Activities.Single();
+        actual.ActivityCode.ShouldBe("1.2.3");
+    }
+    
+    [TestMethod]
+    public async Task ActivityCode_StripLeadingZeros()
+    {
+        //Arrange
+        var activity = BuildActivity();
+        activity.Name = "01.02.03 Meetings";
+
+        //Act
+        var customers = await GetCustomersAsync();
+
+        //Assert
+        var project = customers.Single().Projects.Single();
+        var actual = project.Activities.Single();
+        actual.ActivityCode.ShouldBe("1.2.3");
+    }
+    
+    [TestMethod]
+    public async Task ActivityCode_PeriodSeparator()
+    {
+        //Arrange
+        var activity = BuildActivity();
+        activity.Name = "1.2.3. Meetings";
+
+        //Act
+        var customers = await GetCustomersAsync();
+
+        //Assert
+        var project = customers.Single().Projects.Single();
+        var actual = project.Activities.Single();
+        actual.ActivityCode.ShouldBe("1.2.3");
+    }
+    
+    [TestMethod]
+    public async Task ActivityCode_HyphenSeparator()
+    {
+        //Arrange
+        var activity = BuildActivity();
+        activity.Name = "1.2.3-Meetings";
+
+        //Act
+        var customers = await GetCustomersAsync();
+
+        //Assert
+        var project = customers.Single().Projects.Single();
+        var actual = project.Activities.Single();
+        actual.ActivityCode.ShouldBe("1.2.3");
+    }
+    
+    [TestMethod]
+    public async Task ActivityCode_CodeHasZeroSegments()
+    {
+        //Arrange
+        var activity = BuildActivity();
+        activity.Name = "1.0.3 Meetings";
+
+        //Act
+        var customers = await GetCustomersAsync();
+
+        //Assert
+        var project = customers.Single().Projects.Single();
+        var actual = project.Activities.Single();
+        actual.ActivityCode.ShouldBe("1.0.3");
+    }
+    
+    [TestMethod]
+    public async Task ActivityCode_NoNumericPrefix_UseWholeActivityName()
+    {
+        //Arrange
+        var activity = BuildActivity();
+        activity.Name = "Meetings";
+
+        //Act
+        var customers = await GetCustomersAsync();
+
+        //Assert
+        var project = customers.Single().Projects.Single();
+        var actual = project.Activities.Single();
+        actual.ActivityCode.ShouldBe("Meetings");
+    }
+    #endregion Activity Tests
 }

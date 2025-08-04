@@ -8,7 +8,7 @@ public class Activity
     /// <summary>
     /// How this activity is identified in external systems (e.g. Azure DevOps)
     /// </summary>
-    public required string ProjectCode { get; set; }
+    public required string ActivityCode { get; set; }
 
     public required Project Project { get; set; }
 }
