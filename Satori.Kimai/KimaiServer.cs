@@ -5,6 +5,7 @@ using Satori.Kimai.Models;
 using System.Text.Json;
 using Satori.Kimai.Utilities;
 using CustomerViewModel = Satori.Kimai.ViewModels.Customer;
+using ProjectViewModel = Satori.Kimai.ViewModels.Project;
 
 namespace Satori.Kimai;
 
@@ -132,16 +133,55 @@ public class KimaiServer(
 
     public async Task<CustomerViewModel[]> GetCustomersAsync()
     {
+        var customerMasters = await GetCustomerMastersAsync();
+        var projects = await GetProjectMastersAsync();
+
+        var customers = customerMasters.Select(AddToViewModel).ToArray();
+        foreach (var project in projects)
+        {
+            var customer = customers.FirstOrDefault(c => c.Id == project.Customer);
+            if (customer != null)
+            {
+                AddToViewModel(project, customer);
+            }
+        }
+
+        return customers;
+    }
+
+    private static void AddToViewModel(ProjectMaster project, CustomerViewModel customer)
+    {
+        var projectViewModel = new ProjectViewModel
+        {
+            Id = project.Id,
+            Name = project.Name,
+            ProjectCode = ProjectCodeParser.GetProjectCode(project.Name),
+            Customer = customer
+        };
+        customer.Projects.Add(projectViewModel);
+    }
+
+    private async Task<Customer[]> GetCustomerMastersAsync()
+    {
         var url = connectionSettings.Url
             .AppendPathSegment("api/customers")
             .AppendQueryParam("visible", 1);
 
         var customers = await GetAsync<Customer[]>(url);
+        return customers;
+    }
+    
+    private async Task<ProjectMaster[]> GetProjectMastersAsync()
+    {
+        var url = connectionSettings.Url
+            .AppendPathSegment("api/projects")
+            .AppendQueryParam("visible", 1);
 
-        return customers.Select(ToViewModel).ToArray();
+        var projects = await GetAsync<ProjectMaster[]>(url);
+        return projects;
     }
 
-    private static CustomerViewModel ToViewModel(Customer dto)
+    private static CustomerViewModel AddToViewModel(Customer dto)
     {
         return new CustomerViewModel()
         {

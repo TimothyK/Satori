@@ -42,12 +42,39 @@ public class GetCustomerTests
         return customer;
     }
 
+    private Url GetProjectsUrl() =>
+        _connectionSettings.Url
+            .AppendPathSegment("api/projects")
+            .AppendQueryParam("visible", 1);
+
+    private static int _projectId;
+    private readonly List<Models.ProjectMaster> _projects = [];
+
+    private Models.ProjectMaster BuildProject()
+    {
+        var id = Interlocked.Increment(ref _projectId);
+        var customer = _customers.FirstOrDefault() ?? BuildCustomer();
+        var project = new Models.ProjectMaster
+        {
+            Id = id,
+            Name = $"{100 + id} Project",
+            Customer = customer.Id,
+            Visible = true,
+        };
+
+        _projects.Add(project);
+
+        return project;
+    }
+    
     private void DefineMock()
     {
         _mockHttp.Clear();
 
         _mockHttp.When(GetCustomersUrl())
             .Respond("application/json", JsonSerializer.Serialize(_customers));
+        _mockHttp.When(GetProjectsUrl())
+            .Respond("application/json", JsonSerializer.Serialize(_projects));
     }
 
     #endregion Arrange
@@ -77,6 +104,8 @@ public class GetCustomerTests
         //Assert
         customers.ShouldBeEmpty();
     }
+
+    #region Customer Tests
 
     [TestMethod]
     public async Task ASmokeTest_SingleCustomer()
@@ -142,4 +171,117 @@ public class GetCustomerTests
         var actual = customers.Single();
         actual.Logo.ShouldBeNull();
     }
+
+    #endregion Customer Tests
+
+    #region Project Tests
+
+    [TestMethod]
+    public async Task NoProjects()
+    {
+        //Arrange
+        BuildCustomer();
+
+        //Act
+        var customers = await GetCustomersAsync();
+
+        //Assert
+        var actual = customers.Single();
+        actual.Projects.ShouldBeEmpty();
+    }
+    
+    [TestMethod]
+    public async Task SingleProject()
+    {
+        //Arrange
+        var project = BuildProject();
+
+        //Act
+        var customers = await GetCustomersAsync();
+
+        //Assert
+        var customer = customers.Single();
+        customer.Projects.ShouldNotBeEmpty();
+        customer.Projects.Count.ShouldBe(1);
+        var actual = customer.Projects[0];
+        actual.Id.ShouldBe(project.Id);
+        actual.Name.ShouldBe(project.Name);
+    }
+    
+    [TestMethod]
+    public async Task ProjectBackNavigation()
+    {
+        //Arrange
+        BuildProject();
+
+        //Act
+        var customers = await GetCustomersAsync();
+
+        //Assert
+        var customer = customers.Single();
+        var actual = customer.Projects.Single();
+        actual.Customer.ShouldBeSameAs(customer);
+    }
+    
+    [TestMethod]
+    public async Task ProjectCode()
+    {
+        //Arrange
+        var project = BuildProject();
+        project.Name = "123 Ninja Project";
+
+        //Act
+        var customers = await GetCustomersAsync();
+
+        //Assert
+        var actual = customers.Single().Projects.Single();
+        actual.ProjectCode.ShouldBe("123");
+    }
+    
+    [TestMethod]
+    public async Task ProjectCode_StripLeadingZeros()
+    {
+        //Arrange
+        var project = BuildProject();
+        project.Name = "0123 Ninja Project";
+
+        //Act
+        var customers = await GetCustomersAsync();
+
+        //Assert
+        var actual = customers.Single().Projects.Single();
+        actual.ProjectCode.ShouldBe("123");
+    }
+
+    [TestMethod]
+    public async Task ProjectCode_PeriodSeparator()
+    {
+        //Arrange
+        var project = BuildProject();
+        project.Name = "123. Ninja Project";
+
+        //Act
+        var customers = await GetCustomersAsync();
+
+        //Assert
+        var actual = customers.Single().Projects.Single();
+        actual.ProjectCode.ShouldBe("123");
+    }
+    
+    [TestMethod]
+    public async Task ProjectCode_HyphenSeparator()
+    {
+        //Arrange
+        var project = BuildProject();
+        project.Name = "123-Ninja Project";
+
+        //Act
+        var customers = await GetCustomersAsync();
+
+        //Assert
+        var actual = customers.Single().Projects.Single();
+        actual.ProjectCode.ShouldBe("123");
+    }
+
+    #endregion Project Tests
 }
