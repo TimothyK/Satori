@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
+using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AzureDevOps.Models;
 using Shouldly;
@@ -7,22 +9,38 @@ using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
 using Satori.AppServices.Tests.TestDoubles.AlertServices;
+using Satori.AppServices.Tests.TestDoubles.Kimai;
+using Satori.AzureDevOps;
+using Satori.TimeServices;
 
 namespace Satori.AppServices.Tests.SprintBoards;
 
 [TestClass]
 public class SprintBoardTests
 {
+    private readonly ServiceProvider _serviceProvider;
     private readonly TestAzureDevOpsServer _azureDevOpsServer;
     private readonly AzureDevOpsDatabaseBuilder _builder;
     private readonly TestTimeServer _timeServer = new();
-    private Uri AzureDevOpsRootUrl => _azureDevOpsServer.AsInterface().ConnectionSettings.Url;
     private readonly TestAlertService _alertService = new();
+    private Uri AzureDevOpsRootUrl => _serviceProvider.GetRequiredService<IAzureDevOpsServer>().ConnectionSettings.Url;
 
     public SprintBoardTests()
     {
         _azureDevOpsServer = new TestAzureDevOpsServer();
         _builder = _azureDevOpsServer.CreateBuilder();
+
+        var kimai = new TestKimaiServer();
+
+        var services = new ServiceCollection();
+        services.AddSingleton(_azureDevOpsServer.AsInterface());
+        services.AddSingleton(kimai.AsInterface());
+        services.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory>(NullLoggerFactory.Instance);
+        services.AddSingleton<IAlertService>(_alertService);
+        services.AddSingleton<ITimeServer>(_timeServer);
+        services.AddTransient<SprintBoardService>();
+
+        _serviceProvider = services.BuildServiceProvider();
     }
 
     #region Helpers
@@ -47,7 +65,7 @@ public class SprintBoardTests
     private Sprint[] GetSprints()
     {
         //Arrange
-        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), _timeServer, _alertService, new NullLoggerFactory());
+        var srv = _serviceProvider.GetRequiredService<SprintBoardService>();
 
         //Act
         return srv.GetActiveSprintsAsync().Result.ToArray();

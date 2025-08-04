@@ -1,10 +1,15 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
+using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.Tests.TestDoubles.AlertServices;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
+using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels.PullRequests;
+using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
+using Satori.Kimai;
 using Shouldly;
 using PullRequest = Satori.AzureDevOps.Models.PullRequest;
 
@@ -13,15 +18,26 @@ namespace Satori.AppServices.Tests.PullRequests;
 [TestClass]
 public class PullRequestTests
 {
+    private readonly ServiceProvider _serviceProvider;
     private readonly TestAzureDevOpsServer _azureDevOpsServer;
     private readonly AzureDevOpsDatabaseBuilder _builder;
-    private Uri AzureDevOpsRootUrl => _azureDevOpsServer.AsInterface().ConnectionSettings.Url;
     private readonly TestAlertService _alertService = new();
+    private Uri AzureDevOpsRootUrl => _serviceProvider.GetRequiredService<IAzureDevOpsServer>().ConnectionSettings.Url;
 
     public PullRequestTests()
     {
         _azureDevOpsServer = new TestAzureDevOpsServer();
         _builder = _azureDevOpsServer.CreateBuilder();
+        var kimai = new TestKimaiServer();
+
+        var services = new ServiceCollection();
+        services.AddSingleton(_azureDevOpsServer.AsInterface());
+        services.AddSingleton(kimai.AsInterface());
+        services.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory>(NullLoggerFactory.Instance);
+        services.AddSingleton<IAlertService>(_alertService);
+        services.AddTransient<PullRequestService>();
+
+        _serviceProvider = services.BuildServiceProvider();
     }
 
     #region Helpers
@@ -47,7 +63,7 @@ public class PullRequestTests
     private ViewModels.PullRequests.PullRequest[] GetPullRequests(WithChildren children = WithChildren.None)
     {
         //Act
-        var srv = new PullRequestService(_azureDevOpsServer.AsInterface(), NullLoggerFactory.Instance, _alertService);
+        var srv = _serviceProvider.GetRequiredService<PullRequestService>();
         var pullRequests = srv.GetPullRequestsAsync().Result.ToArray();
         if (children.HasFlag(WithChildren.WorkItems))
         {

@@ -1,4 +1,7 @@
-﻿using Satori.AppServices.Services;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+using Satori.AppServices.Services;
+using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
@@ -19,8 +22,17 @@ public class CreateDependencyLinkTests
 
         AzureDevOps.RequireRecordLocking = false;
 
-        var userService = new UserService(AzureDevOps.AsInterface(), Kimai.AsInterface(), new AlertService());
-        Server = new WorkItemUpdateService(AzureDevOps.AsInterface(), userService);
+        var services = new ServiceCollection();
+        services.AddSingleton(AzureDevOps.AsInterface());
+        services.AddSingleton(Kimai.AsInterface());
+        services.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory>(NullLoggerFactory.Instance);
+        services.AddSingleton<IAlertService>(new AlertService());
+        services.AddTransient<UserService>();
+        services.AddTransient<WorkItemUpdateService>();
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        Server = serviceProvider.GetRequiredService<WorkItemUpdateService>();
 
         AzureDevOpsBuilder = AzureDevOps.CreateBuilder();
     }

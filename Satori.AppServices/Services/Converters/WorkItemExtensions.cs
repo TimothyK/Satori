@@ -8,6 +8,7 @@ using Satori.AppServices.ViewModels.PullRequests.ActionItems;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AppServices.ViewModels.WorkItems.ActionItems;
 using Satori.AzureDevOps.Models;
+using Satori.Kimai;
 using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
@@ -15,6 +16,11 @@ namespace Satori.AppServices.Services.Converters;
 
 public static class WorkItemExtensions
 {
+    public static void InitializeKimaiLinks(IKimaiServer kimai)
+    {
+        //TODO
+    }
+
     public static WorkItem ToViewModel(this AzureDevOps.Models.WorkItem wi)
     {
         ArgumentNullException.ThrowIfNull(wi);

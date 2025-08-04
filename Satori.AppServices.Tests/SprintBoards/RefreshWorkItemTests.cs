@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
+using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.Tests.TestDoubles.AlertServices;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
@@ -7,6 +9,7 @@ using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
+using Satori.TimeServices;
 using Shouldly;
 
 namespace Satori.AppServices.Tests.SprintBoards;
@@ -24,7 +27,19 @@ public class RefreshWorkItemTests
         var azureDevOpsServer = new TestAzureDevOpsServer();
         _builder = azureDevOpsServer.CreateBuilder();
 
-        _sprintBoardService = new SprintBoardService(azureDevOpsServer.AsInterface(), _timeServer, _alertService, new NullLoggerFactory());
+        var kimai = new TestKimaiServer();
+
+        var services = new ServiceCollection();
+        services.AddSingleton(azureDevOpsServer.AsInterface());
+        services.AddSingleton(kimai.AsInterface());
+        services.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory>(NullLoggerFactory.Instance);
+        services.AddSingleton<IAlertService>(_alertService);
+        services.AddSingleton<ITimeServer>(_timeServer);
+        services.AddTransient<SprintBoardService>();
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        _sprintBoardService = serviceProvider.GetRequiredService<SprintBoardService>();
     }
 
     #region Helpers

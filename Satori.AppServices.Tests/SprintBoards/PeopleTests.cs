@@ -1,6 +1,9 @@
 ﻿using CodeMonkeyProjectiles.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
+using Satori.AppServices.Services.Abstractions;
+using Satori.AppServices.Tests.TestDoubles.AlertServices;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
@@ -9,6 +12,7 @@ using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AzureDevOps.Models;
+using Satori.TimeServices;
 using Shouldly;
 using PullRequest = Satori.AzureDevOps.Models.PullRequest;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
@@ -18,14 +22,27 @@ namespace Satori.AppServices.Tests.SprintBoards;
 [TestClass]
 public class PeopleTests
 {
-    private readonly TestAzureDevOpsServer _azureDevOpsServer;
+    private readonly ServiceProvider _serviceProvider;
     private readonly AzureDevOpsDatabaseBuilder _builder;
+    private readonly TestAlertService _alertService = new();
     private readonly TestTimeServer _timeServer = new();
 
     public PeopleTests()
     {
-        _azureDevOpsServer = new TestAzureDevOpsServer();
-        _builder = _azureDevOpsServer.CreateBuilder();
+        var azureDevOpsServer = new TestAzureDevOpsServer();
+        _builder = azureDevOpsServer.CreateBuilder();
+
+        var kimai = new TestKimaiServer();
+
+        var services = new ServiceCollection();
+        services.AddSingleton(azureDevOpsServer.AsInterface());
+        services.AddSingleton(kimai.AsInterface());
+        services.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory>(NullLoggerFactory.Instance);
+        services.AddSingleton<IAlertService>(_alertService);
+        services.AddSingleton<ITimeServer>(_timeServer);
+        services.AddTransient<SprintBoardService>();
+
+        _serviceProvider = services.BuildServiceProvider();
     }
 
     #region Helpers
@@ -43,7 +60,7 @@ public class PeopleTests
 
     private async Task<WorkItem[]> GetWorkItemsAsync(params Sprint[] sprints)
     {
-        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), _timeServer, new AlertService(), new NullLoggerFactory());
+        var srv = _serviceProvider.GetRequiredService<SprintBoardService>();
 
         var workItems = (await srv.GetWorkItemsAsync(sprints)).ToArray();
         await srv.GetPullRequestsAsync(workItems);

@@ -1,11 +1,16 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
+using Satori.AppServices.Services.Abstractions;
+using Satori.AppServices.Tests.TestDoubles.AlertServices;
+using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
+using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
+using Satori.TimeServices;
 using Shouldly;
 
 namespace Satori.AppServices.Tests.SprintBoards;
@@ -13,14 +18,26 @@ namespace Satori.AppServices.Tests.SprintBoards;
 [TestClass]
 public class GetPullRequestsTests
 {
-    private readonly TestAzureDevOpsServer _azureDevOpsServer;
+    private readonly ServiceProvider _serviceProvider;
     private readonly AzureDevOpsDatabaseBuilder _builder;
     private readonly TestTimeServer _timeServer = new();
 
     public GetPullRequestsTests()
     {
-        _azureDevOpsServer = new TestAzureDevOpsServer();
-        _builder = _azureDevOpsServer.CreateBuilder();
+        var azureDevOpsServer = new TestAzureDevOpsServer();
+        _builder = azureDevOpsServer.CreateBuilder();
+
+        var kimai = new TestKimaiServer();
+
+        var services = new ServiceCollection();
+        services.AddSingleton(azureDevOpsServer.AsInterface());
+        services.AddSingleton(kimai.AsInterface());
+        services.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory>(NullLoggerFactory.Instance);
+        services.AddSingleton<IAlertService>(new AlertService());
+        services.AddSingleton<ITimeServer>(_timeServer);
+        services.AddTransient<SprintBoardService>();
+
+        _serviceProvider = services.BuildServiceProvider();
     }
 
     #region Helpers
@@ -38,7 +55,7 @@ public class GetPullRequestsTests
 
     private async Task<WorkItem[]> GetWorkItemsAsync(params Sprint[] sprints)
     {
-        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), _timeServer, new AlertService(), new NullLoggerFactory());
+        var srv = _serviceProvider.GetRequiredService<SprintBoardService>();
 
         var workItems = (await srv.GetWorkItemsAsync(sprints)).ToArray();
         await srv.GetPullRequestsAsync(workItems);

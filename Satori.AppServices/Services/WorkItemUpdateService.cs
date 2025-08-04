@@ -4,6 +4,7 @@ using Satori.AppServices.Services.Converters;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
+using Satori.Kimai;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.Services;
@@ -11,20 +12,34 @@ namespace Satori.AppServices.Services;
 /// <summary>
 /// Service to create Azure DevOps tasks and update them with a new state and remaining work
 /// </summary>
-/// <param name="azureDevOps"></param>
-/// <param name="userService"></param>
-public class WorkItemUpdateService(
-    IAzureDevOpsServer azureDevOps
-    , UserService userService
-)
+public class WorkItemUpdateService
 {
+    private readonly IAzureDevOpsServer _azureDevOps;
+    private readonly UserService _userService;
+
+    /// <summary>
+    /// Service to create Azure DevOps tasks and update them with a new state and remaining work
+    /// </summary>
+    /// <param name="azureDevOps"></param>
+    /// <param name="userService"></param>
+    public WorkItemUpdateService(IAzureDevOpsServer azureDevOps
+        , UserService userService
+        ,IKimaiServer kimai
+        )
+    {
+        _azureDevOps = azureDevOps;
+        _userService = userService;
+
+        WorkItemExtensions.InitializeKimaiLinks(kimai);
+    }
+
     #region Create Task
 
     public async Task<WorkItem> CreateTaskAsync(WorkItem parent, string title, double estimate)
     {
         var fields = await BuildFieldsAsync(parent, title, estimate);
 
-        var task = (await azureDevOps.PostWorkItemAsync(parent.ProjectName, fields)).ToViewModel();
+        var task = (await _azureDevOps.PostWorkItemAsync(parent.ProjectName, fields)).ToViewModel();
         task = await SetInProgressAsync(task);
         
         task.Parent = parent;
@@ -35,7 +50,7 @@ public class WorkItemUpdateService(
 
     private async Task<List<WorkItemPatchItem>> BuildFieldsAsync(WorkItem parent, string title, double estimate)
     {
-        var me = await userService.GetCurrentUserAsync();
+        var me = await _userService.GetCurrentUserAsync();
 
         var relation = new Dictionary<string, object>()
         {
@@ -72,7 +87,7 @@ public class WorkItemUpdateService(
             new() { Operation = Operation.Test, Path = "/rev", Value = task.Rev },
         };
 
-        return (await azureDevOps.PatchWorkItemAsync(task.Id, fields)).ToViewModel();
+        return (await _azureDevOps.PatchWorkItemAsync(task.Id, fields)).ToViewModel();
     }
 
     #endregion Create Task
@@ -95,7 +110,7 @@ public class WorkItemUpdateService(
                 Value = relation
             }
         };
-        await azureDevOps.PatchWorkItemAsync(successor.Id, fields);
+        await _azureDevOps.PatchWorkItemAsync(successor.Id, fields);
     }
 
     #endregion CreateDependencyLink
@@ -108,7 +123,7 @@ public class WorkItemUpdateService(
         {
             return;
         }
-        var me = await userService.GetCurrentUserAsync();
+        var me = await _userService.GetCurrentUserAsync();
         if (task.AssignedTo != me)
         {
             throw new InvalidOperationException("Only the assigned user can update a task");
@@ -120,7 +135,7 @@ public class WorkItemUpdateService(
             return;
         }
 
-        var patchResult = await azureDevOps.PatchWorkItemAsync(task.Id, fields);
+        var patchResult = await _azureDevOps.PatchWorkItemAsync(task.Id, fields);
 
         UpdateViewModel(task, patchResult);
     }

@@ -5,21 +5,34 @@ using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using Satori.Kimai;
 using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using PullRequestDto = Satori.AzureDevOps.Models.PullRequest;
 
 
 namespace Satori.AppServices.Services;
 
-public class PullRequestService(
-    IAzureDevOpsServer azureDevOpsServer
-    , ILoggerFactory loggerFactory
-    , IAlertService alertService
-)
+public class PullRequestService
 {
-    private IAzureDevOpsServer AzureDevOpsServer { get; } = azureDevOpsServer;
+    private readonly ILoggerFactory _loggerFactory;
+    private readonly IAlertService _alertService;
 
-    private ILogger<PullRequestService> Logger => loggerFactory.CreateLogger<PullRequestService>();
+    public PullRequestService(IAzureDevOpsServer azureDevOpsServer
+        , ILoggerFactory loggerFactory
+        , IAlertService alertService
+        , IKimaiServer kimai
+        )
+    {
+        _loggerFactory = loggerFactory;
+        _alertService = alertService;
+        AzureDevOpsServer = azureDevOpsServer;
+
+        WorkItemExtensions.InitializeKimaiLinks(kimai);
+    }
+
+    private IAzureDevOpsServer AzureDevOpsServer { get; }
+
+    private ILogger<PullRequestService> Logger => _loggerFactory.CreateLogger<PullRequestService>();
 
     public async Task<IEnumerable<PullRequest>> GetPullRequestsAsync()
     {
@@ -31,7 +44,7 @@ public class PullRequestService(
         }
         catch (Exception ex)
         {
-            alertService.BroadcastAlert(ex);
+            _alertService.BroadcastAlert(ex);
             Logger.LogError(ex, "Failed to get pull requests");
         }
         Logger.LogDebug("Got {PullRequestCount} pull requests in {ElapsedMilliseconds}ms", pullRequests.Length, stopWatch.ElapsedMilliseconds);
