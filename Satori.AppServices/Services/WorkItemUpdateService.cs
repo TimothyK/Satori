@@ -29,8 +29,6 @@ public class WorkItemUpdateService
     {
         _azureDevOps = azureDevOps;
         _userService = userService;
-
-        WorkItemExtensions.InitializeKimaiLinks(kimai);
     }
 
     #region Create Task

@@ -12,27 +12,17 @@ using PullRequestDto = Satori.AzureDevOps.Models.PullRequest;
 
 namespace Satori.AppServices.Services;
 
-public class PullRequestService
+public class PullRequestService(
+    IAzureDevOpsServer azureDevOpsServer,
+    ILoggerFactory loggerFactory,
+    IAlertService alertService,
+    IKimaiServer kimai)
 {
-    private readonly ILoggerFactory _loggerFactory;
-    private readonly IAlertService _alertService;
+    private readonly IKimaiServer _kimai = kimai;
 
-    public PullRequestService(IAzureDevOpsServer azureDevOpsServer
-        , ILoggerFactory loggerFactory
-        , IAlertService alertService
-        , IKimaiServer kimai
-        )
-    {
-        _loggerFactory = loggerFactory;
-        _alertService = alertService;
-        AzureDevOpsServer = azureDevOpsServer;
+    private IAzureDevOpsServer AzureDevOpsServer { get; } = azureDevOpsServer;
 
-        WorkItemExtensions.InitializeKimaiLinks(kimai);
-    }
-
-    private IAzureDevOpsServer AzureDevOpsServer { get; }
-
-    private ILogger<PullRequestService> Logger => _loggerFactory.CreateLogger<PullRequestService>();
+    private ILogger<PullRequestService> Logger => loggerFactory.CreateLogger<PullRequestService>();
 
     public async Task<IEnumerable<PullRequest>> GetPullRequestsAsync()
     {
@@ -44,7 +34,7 @@ public class PullRequestService
         }
         catch (Exception ex)
         {
-            _alertService.BroadcastAlert(ex);
+            alertService.BroadcastAlert(ex);
             Logger.LogError(ex, "Failed to get pull requests");
         }
         Logger.LogDebug("Got {PullRequestCount} pull requests in {ElapsedMilliseconds}ms", pullRequests.Length, stopWatch.ElapsedMilliseconds);
@@ -56,6 +46,8 @@ public class PullRequestService
 
     public async Task<PullRequest[]> AddWorkItemsToPullRequestsAsync(PullRequest[] pullRequests)
     {
+        await kimai.InitializeCustomersForWorkItems();
+
         if (pullRequests.Length == 0)
         {
             return pullRequests;

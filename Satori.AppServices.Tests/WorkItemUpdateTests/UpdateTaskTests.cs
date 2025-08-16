@@ -61,6 +61,7 @@ public class UpdateTaskTests
 
         arrangeWorkItem?.Invoke(task);
 
+        Kimai.AsInterface().InitializeCustomersForWorkItems().GetAwaiter().GetResult();
         return task.ToViewModel();
     }
 

@@ -49,9 +49,18 @@ public class CreateTaskTests
 
     #region Act
 
-    private async Task<WorkItem> CreateTaskAsync(WorkItem parent, string title, double estimate)
+    private async Task<WorkItem> CreateTaskAsync(AzureDevOps.Models.WorkItem parent, string title, double estimate)
     {
-        return await Server.CreateTaskAsync(parent, title, estimate);
+        //Arrange
+        await Kimai.AsInterface().InitializeCustomersForWorkItems();
+
+        //Act
+        var viewModel = parent.ToViewModel();
+        var task = await Server.CreateTaskAsync(viewModel, title, estimate);
+
+        //Assert
+        task.Parent.ShouldBeSameAs(viewModel);
+        return task;
     }
 
     #endregion Act
@@ -68,7 +77,7 @@ public class CreateTaskTests
         var estimate = RandomGenerator.Number(2.5);
 
         //Act
-        var task = await CreateTaskAsync(parent.ToViewModel(), title, estimate);
+        var task = await CreateTaskAsync(parent, title, estimate);
 
         //Assert
         task.ShouldNotBeNull();
@@ -87,7 +96,7 @@ public class CreateTaskTests
         var estimate = expected + 0.034;
 
         //Act
-        var task = await CreateTaskAsync(parent.ToViewModel(), title, estimate);
+        var task = await CreateTaskAsync(parent, title, estimate);
 
         //Assert
         task.OriginalEstimate.ShouldNotBeNull();
@@ -106,7 +115,7 @@ public class CreateTaskTests
         var estimate = expected + 0.034;
 
         //Act
-        var task = await CreateTaskAsync(parent.ToViewModel(), title, estimate);
+        var task = await CreateTaskAsync(parent, title, estimate);
 
         //Assert
         task.OriginalEstimate.ShouldNotBeNull();
@@ -124,7 +133,7 @@ public class CreateTaskTests
         var estimate = RandomGenerator.Number(2.5);
 
         //Act
-        var task = await CreateTaskAsync(parent.ToViewModel(), title, estimate);
+        var task = await CreateTaskAsync(parent, title, estimate);
 
         //Assert
         task.AssignedTo.ShouldBe(Person.Me);
@@ -139,7 +148,7 @@ public class CreateTaskTests
         var estimate = RandomGenerator.Number(2.5);
 
         //Act
-        var task = await CreateTaskAsync(parent.ToViewModel(), title, estimate);
+        var task = await CreateTaskAsync(parent, title, estimate);
 
         //Assert
         task.State.ShouldBe(ScrumState.InProgress);
@@ -149,8 +158,7 @@ public class CreateTaskTests
     public async Task ParentChildLinked()
     {
         //Arrange
-        AzureDevOpsBuilder.BuildWorkItem(out var workItem);
-        var parent = workItem.ToViewModel();
+        AzureDevOpsBuilder.BuildWorkItem(out var parent);
         var title = RandomGenerator.String();
         var estimate = RandomGenerator.Number(2.5);
 
@@ -158,16 +166,15 @@ public class CreateTaskTests
         var task = await CreateTaskAsync(parent, title, estimate);
 
         //Assert
-        task.Parent.ShouldBe(parent);
-        parent.Children.ShouldContain(task);
+        task.Parent.ShouldNotBeNull();
+        task.Parent.Children.ShouldContain(task);
     }
     
     [TestMethod]
     public async Task AreaPath()
     {
         //Arrange
-        AzureDevOpsBuilder.BuildWorkItem(out var workItem);
-        var parent = workItem.ToViewModel();
+        AzureDevOpsBuilder.BuildWorkItem(out var parent);
         var title = RandomGenerator.String();
         var estimate = RandomGenerator.Number(2.5);
 
@@ -175,15 +182,15 @@ public class CreateTaskTests
         var task = await CreateTaskAsync(parent, title, estimate);
 
         //Assert
-        task.AreaPath.ShouldBe(parent.AreaPath);
+        task.Parent.ShouldNotBeNull();
+        task.AreaPath.ShouldBe(task.Parent.AreaPath);
     }
     
     [TestMethod]
     public async Task Iteration()
     {
         //Arrange
-        AzureDevOpsBuilder.BuildWorkItem(out var workItem);
-        var parent = workItem.ToViewModel();
+        AzureDevOpsBuilder.BuildWorkItem(out var parent);
         var title = RandomGenerator.String();
         var estimate = RandomGenerator.Number(2.5);
 
@@ -191,6 +198,7 @@ public class CreateTaskTests
         var task = await CreateTaskAsync(parent, title, estimate);
 
         //Assert
-        task.IterationPath.ShouldBe(parent.IterationPath);
+        task.Parent.ShouldNotBeNull();
+        task.IterationPath.ShouldBe(task.Parent.IterationPath);
     }
 }

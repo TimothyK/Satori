@@ -48,6 +48,9 @@ internal class TestKimaiServer
         Mock.Setup(srv => srv.CreateTimeEntryAsync(It.IsAny<TimeEntryForCreate>()))
             .ReturnsAsync((TimeEntryForCreate entry) => CreateTimeEntry(entry));
 
+        Mock.Setup(srv => srv.GetCustomersAsync())
+            .ReturnsAsync(() => []);
+
         CurrentUser = KimaiUserBuilder.BuildUser();
     }
 

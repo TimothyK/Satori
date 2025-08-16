@@ -19,27 +19,14 @@ using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.Services;
 
-public class SprintBoardService
+public class SprintBoardService(
+    IAzureDevOpsServer azureDevOpsServer,
+    ITimeServer timeServer,
+    IAlertService alertService,
+    ILoggerFactory loggerFactory,
+    IKimaiServer kimai)
 {
-    private readonly IAzureDevOpsServer _azureDevOpsServer;
-    private readonly ITimeServer _timeServer;
-    private readonly IAlertService _alertService;
-    private readonly ILoggerFactory _loggerFactory;
-
-    public SprintBoardService(IAzureDevOpsServer azureDevOpsServer
-        , ITimeServer timeServer
-        , IAlertService alertService
-        , ILoggerFactory loggerFactory
-        , IKimaiServer kimai
-        )
-    {
-        _azureDevOpsServer = azureDevOpsServer;
-        _timeServer = timeServer;
-        _alertService = alertService;
-        _loggerFactory = loggerFactory;
-
-        WorkItemExtensions.InitializeKimaiLinks(kimai);
-    }
+    private readonly IKimaiServer _kimai = kimai;
 
     #region GetActiveSptringsAsync
 
@@ -48,11 +35,11 @@ public class SprintBoardService
         Team[] teams = [];
         try
         {
-            teams = await _azureDevOpsServer.GetTeamsAsync();
+            teams = await azureDevOpsServer.GetTeamsAsync();
         }
         catch (Exception ex)
         {
-            _alertService.BroadcastAlert(ex);
+            alertService.BroadcastAlert(ex);
         }
 
         var iterations = await GetIterationsAsync(teams);
@@ -71,8 +58,8 @@ public class SprintBoardService
                 return;
             }
 
-            var iteration = await _azureDevOpsServer.GetCurrentIterationAsync(team);
-            if (iteration?.Attributes.FinishDate == null || iteration.Attributes.FinishDate.Value.AddDays(7) <= _timeServer.GetUtcNow())
+            var iteration = await azureDevOpsServer.GetCurrentIterationAsync(team);
+            if (iteration?.Attributes.FinishDate == null || iteration.Attributes.FinishDate.Value.AddDays(7) <= timeServer.GetUtcNow())
             {
                 return;
             }
@@ -96,7 +83,7 @@ public class SprintBoardService
             new() {Operation = Operation.Add, Path = "/fields/System.Title", Value = "TestTask"},
             new() {Operation = Operation.Add, Path = "/fields/System.IterationPath", Value = iteration.Path}
         ];
-        var hasPermissions = await _azureDevOpsServer.TestPostWorkItemAsync(team.ProjectName, patches);
+        var hasPermissions = await azureDevOpsServer.TestPostWorkItemAsync(team.ProjectName, patches);
         return hasPermissions;
     }
 
@@ -139,6 +126,8 @@ public class SprintBoardService
 
     public async Task<IEnumerable<WorkItem>> GetWorkItemsAsync(params Sprint[] sprints)
     {
+        await kimai.InitializeCustomersForWorkItems();
+
         var workItems = new ConcurrentBag<WorkItem>();
 
         var options = new ParallelOptions() { MaxDegreeOfParallelism = 8 };
@@ -165,9 +154,9 @@ public class SprintBoardService
     {
         var iteration = (IterationId)sprint;
 
-        var links = await _azureDevOpsServer.GetIterationWorkItemsAsync(iteration);
+        var links = await azureDevOpsServer.GetIterationWorkItemsAsync(iteration);
         var workItemIds = links.Select(x => x.Target.Id);
-        var items = await _azureDevOpsServer.GetWorkItemsAsync(workItemIds);
+        var items = await azureDevOpsServer.GetWorkItemsAsync(workItemIds);
         var iterationWorkItems = items.Select(wi => wi.ToViewModel()).ToList();
         foreach (var workItem in iterationWorkItems.OrderBy(wi => wi.AbsolutePriority))
         {
@@ -263,7 +252,7 @@ public class SprintBoardService
     /// <returns></returns>
     public async Task RefreshWorkItemAsync(List<WorkItem> allWorkItems, WorkItem original)
     {
-        var target = (await _azureDevOpsServer.GetWorkItemsAsync(original.Id.Yield()))
+        var target = (await azureDevOpsServer.GetWorkItemsAsync(original.Id.Yield()))
             .SingleOrDefault()
             ?.ToViewModel();
 
@@ -364,11 +353,11 @@ public class SprintBoardService
     {
         try
         {
-            return (await _azureDevOpsServer.GetWorkItemsAsync(workItemIds)).Select(wi => wi.ToViewModel());
+            return (await azureDevOpsServer.GetWorkItemsAsync(workItemIds)).Select(wi => wi.ToViewModel());
         }
         catch (Exception ex)
         {
-            var logger = _loggerFactory.CreateLogger<StandUpService>();
+            var logger = loggerFactory.CreateLogger<StandUpService>();
             logger.LogError(ex, "Failed to load work items {WorkItemIds}", workItemIds);
 
             var badIds = workItemIds.Where(id => ex.Message.Contains($" {id} ")).ToList();
@@ -419,11 +408,11 @@ public class SprintBoardService
             AzureDevOps.Models.PullRequest prDto;
             try
             {
-                prDto = await _azureDevOpsServer.GetPullRequestAsync(prId);
+                prDto = await azureDevOpsServer.GetPullRequestAsync(prId);
             }
             catch (Exception ex) when (ex.Message.Contains("TF401180"))
             {
-                var logger = _loggerFactory.CreateLogger<SprintBoardService>();
+                var logger = loggerFactory.CreateLogger<SprintBoardService>();
                 logger.LogInformation(ex, "Failed to load PR {PullRequestId}", prId);
                 return;
             }
@@ -433,12 +422,12 @@ public class SprintBoardService
             {
                 try
                 {
-                    var tags = await _azureDevOpsServer.GetTagsOfMergeAsync(prDto);
+                    var tags = await azureDevOpsServer.GetTagsOfMergeAsync(prDto);
                     prViewModel.VersionTags = tags.Select(t => t.Name).ToArray();
                 }
                 catch (SecurityException)
                 {
-                    _alertService.BroadcastAlert("Version tags of completed PRs is not available unless Full Control is granted to the Azure DevOps Personal Access Token");
+                    alertService.BroadcastAlert("Version tags of completed PRs is not available unless Full Control is granted to the Azure DevOps Personal Access Token");
                 }
             }
 
@@ -496,14 +485,14 @@ public class SprintBoardService
             (operation.PreviousId, operation.NextId) = (operation.NextId, operation.PreviousId);
         }
 
-        var engine = new SprintTemporaryReassignmentEngine(_azureDevOpsServer);
+        var engine = new SprintTemporaryReassignmentEngine(azureDevOpsServer);
         engine.Add(request.WorkItemsToMove);
         engine.Add(previousWorkItem);
         await using (await engine.ReassignAsync(nextWorkItem))
         {
             var iteration = (IterationId)nextWorkItem.Sprint!;
 
-            var reorderResults = await _azureDevOpsServer.ReorderBacklogWorkItemsAsync(iteration, operation);
+            var reorderResults = await azureDevOpsServer.ReorderBacklogWorkItemsAsync(iteration, operation);
 
             foreach (var map in reorderResults.Join(request.WorkItemsToMove,
                          reorderResult => reorderResult.Id,

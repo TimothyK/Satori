@@ -69,6 +69,7 @@ public class CreateDependencyLinkTests
     public async Task CreatesDependencyLinkBetweenTasks()
     {
         // Arrange
+        await Kimai.AsInterface().InitializeCustomersForWorkItems();
         var predecessor = BuildTask("Predecessor");
         var successor = BuildTask("Successor");
 

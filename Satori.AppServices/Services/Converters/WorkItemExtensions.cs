@@ -1,14 +1,14 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using CodeMonkeyProjectiles.Linq;
+﻿using CodeMonkeyProjectiles.Linq;
 using Flurl;
 using Satori.AppServices.ViewModels;
-using Satori.AppServices.ViewModels.Abstractions;
 using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.PullRequests.ActionItems;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AppServices.ViewModels.WorkItems.ActionItems;
 using Satori.AzureDevOps.Models;
 using Satori.Kimai;
+using System.Diagnostics.CodeAnalysis;
+using Satori.Kimai.ViewModels;
 using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
@@ -16,22 +16,35 @@ namespace Satori.AppServices.Services.Converters;
 
 public static class WorkItemExtensions
 {
-    public static void InitializeKimaiLinks(IKimaiServer kimai)
+
+    public static async Task InitializeCustomersForWorkItems(this IKimaiServer kimai)
     {
-        //TODO
+        if (Customers != null)
+        {
+            return;
+        }
+
+        Customers = await kimai.GetCustomersAsync();
     }
 
-    public static WorkItem ToViewModel(this AzureDevOps.Models.WorkItem wi)
+    private static Customer[]? Customers { get; set; }
+
+    public static WorkItem ToViewModel(this AzureDevOps.Models.WorkItem workItem)
     {
-        ArgumentNullException.ThrowIfNull(wi);
+        ArgumentNullException.ThrowIfNull(workItem);
+
+        if (Customers == null)
+        {
+            throw new InvalidOperationException($"Call {nameof(InitializeCustomersForWorkItems)} first");
+        }
 
         try
         {
-            return ToViewModelUnsafe(wi);
+            return ToViewModelUnsafe(workItem);
         }
         catch (Exception ex)
         {
-            throw new ApplicationException($"Failed to build view model for work item {wi.Id}.  {ex.Message}", ex);
+            throw new ApplicationException($"Failed to build view model for work item {workItem.Id}.  {ex.Message}", ex);
         }
     }
 

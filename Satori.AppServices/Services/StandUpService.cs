@@ -23,35 +23,15 @@ using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.Services;
 
-public partial class StandUpService
+public partial class StandUpService(
+    IKimaiServer kimai,
+    IAzureDevOpsServer azureDevOps,
+    UserService userService,
+    IDailyActivityExporter dailyActivityExporter,
+    ITaskAdjustmentExporter taskAdjustmentExporter,
+    ILoggerFactory loggerFactory,
+    IAlertService alertService)
 {
-    private readonly IKimaiServer _kimai;
-    private readonly IAzureDevOpsServer _azureDevOps;
-    private readonly UserService _userService;
-    private readonly IDailyActivityExporter _dailyActivityExporter;
-    private readonly ITaskAdjustmentExporter _taskAdjustmentExporter;
-    private readonly ILoggerFactory _loggerFactory;
-    private readonly IAlertService _alertService;
-
-    public StandUpService(IKimaiServer kimai
-        , IAzureDevOpsServer azureDevOps
-        , UserService userService
-        , IDailyActivityExporter dailyActivityExporter
-        , ITaskAdjustmentExporter taskAdjustmentExporter
-        , ILoggerFactory loggerFactory
-        , IAlertService alertService)
-    {
-        _kimai = kimai;
-        _azureDevOps = azureDevOps;
-        _userService = userService;
-        _dailyActivityExporter = dailyActivityExporter;
-        _taskAdjustmentExporter = taskAdjustmentExporter;
-        _loggerFactory = loggerFactory;
-        _alertService = alertService;
-
-        WorkItemExtensions.InitializeKimaiLinks(kimai);
-    }
-
     #region GetStandUpDaysAsync
 
     public async Task<PeriodSummary> GetStandUpPeriodAsync(DateOnly begin, DateOnly end)
@@ -71,7 +51,7 @@ public partial class StandUpService
             throw new ArgumentException("There are too many days requested in this report.  Please use a smaller date range");
         }
 
-        var getUserTask = _userService.GetCurrentUserAsync();
+        var getUserTask = userService.GetCurrentUserAsync();
         var getTimeSheetTask = GetTimeSheetAsync(begin, end);
 
         await Task.WhenAll(getUserTask, getTimeSheetTask);
@@ -123,7 +103,7 @@ public partial class StandUpService
         get
         {
             var language = Person.Me?.Language.Replace("-", "_") ?? "en";
-            var url = _kimai.BaseUrl.AppendPathSegments(language, "timesheet");
+            var url = kimai.BaseUrl.AppendPathSegments(language, "timesheet");
             return url;
         }
     }
@@ -146,7 +126,7 @@ public partial class StandUpService
         {
             try
             {
-                var page = await _kimai.GetTimeSheetAsync(filter);
+                var page = await kimai.GetTimeSheetAsync(filter);
                 timeSheet.AddRange(page);
                 done = page.Length < filter.Size;
                 filter.Page++;
@@ -157,7 +137,7 @@ public partial class StandUpService
             }
             catch (Exception ex)
             {
-                _alertService.BroadcastAlert(ex);
+                alertService.BroadcastAlert(ex);
                 done = true;
             }
         } while (!done);
@@ -307,7 +287,7 @@ public partial class StandUpService
 
         WorkItem? workItem = null;
         var workItemComment = comments.OfType<WorkItemComment>().FirstOrDefault();
-        if (workItemComment != null && _azureDevOps.Enabled)
+        if (workItemComment != null && azureDevOps.Enabled)
         {
             workItem = BuildWorkItem(workItemComment);
             comments.Remove(workItemComment);
@@ -353,8 +333,8 @@ public partial class StandUpService
             Id = id,
             Title = title.Trim(),
             ProjectName = "TeamProject",
-            Url = _azureDevOps.ConnectionSettings.Url.AppendPathSegments("_workItems", "edit", id),
-            ApiUrl = _azureDevOps.ConnectionSettings.Url.AppendPathSegments("_apis/wit/workItems", id),
+            Url = azureDevOps.ConnectionSettings.Url.AppendPathSegments("_workItems", "edit", id),
+            ApiUrl = azureDevOps.ConnectionSettings.Url.AppendPathSegments("_apis/wit/workItems", id),
             AssignedTo = Person.Empty,
             CreatedBy = Person.Empty,
             Type = WorkItemType.Unknown,
@@ -394,6 +374,8 @@ public partial class StandUpService
 
     public async Task GetWorkItemsAsync(PeriodSummary period)
     {
+        await kimai.InitializeCustomersForWorkItems();
+
         var activitySummaries = period.Days
             .SelectMany(day => day.Projects)
             .SelectMany(p => p.Activities)
@@ -462,6 +444,8 @@ public partial class StandUpService
 
     public async Task<WorkItem?> GetWorkItemAsync(int workItemId)
     {
+        await kimai.InitializeCustomersForWorkItems();
+
         var workItems = await GetWorkItemsAsync([workItemId]);
         var workItem = workItems.FirstOrDefault();
         if (workItem == null)
@@ -513,11 +497,11 @@ public partial class StandUpService
     {
         try
         {
-            return (await _azureDevOps.GetWorkItemsAsync(workItemIds)).Select(wi => wi.ToViewModel());
+            return (await azureDevOps.GetWorkItemsAsync(workItemIds)).Select(wi => wi.ToViewModel());
         }
         catch (Exception ex)
         {
-            var logger = _loggerFactory.CreateLogger<StandUpService>();
+            var logger = loggerFactory.CreateLogger<StandUpService>();
             logger.LogError(ex, "Failed to load work items {WorkItemIds}", workItemIds);
 
             var badIds = workItemIds.Where(id => ex.Message.Contains($" {id} ")).ToList();
@@ -663,7 +647,7 @@ public partial class StandUpService
         foreach (var activitySummary in exportableEntries.Select(entry => entry.ParentActivitySummary).Distinct())
         {
             var payload = await ToPayloadAsync(activitySummary, exportableEntries);
-            await _dailyActivityExporter.SendAsync(payload);
+            await dailyActivityExporter.SendAsync(payload);
         }
     }
 
@@ -765,7 +749,7 @@ public partial class StandUpService
                      .GroupBy(x => x.Task))
         {
             var adjustment = new TaskAdjustment(g.Key!.Id, g.Select(x => x.TotalTime).Sum());
-            await _taskAdjustmentExporter.SendAsync(adjustment);
+            await taskAdjustmentExporter.SendAsync(adjustment);
 
             g.Key.RemainingWork -= adjustment.Adjustment;
             g.Key.CompletedWork = (g.Key.CompletedWork ?? TimeSpan.Zero) + adjustment.Adjustment;
@@ -776,7 +760,7 @@ public partial class StandUpService
     {
         foreach (var entry in exportableEntries)
         {
-            await _kimai.ExportTimeSheetAsync(entry.Id);
+            await kimai.ExportTimeSheetAsync(entry.Id);
 
             entry.Exported = true;
             entry.CanExport = false;
@@ -839,7 +823,7 @@ public partial class StandUpService
     {
         foreach (var kvp in newDescriptionMap)
         {
-            await _kimai.UpdateTimeEntryDescriptionAsync(kvp.Key, kvp.Value);
+            await kimai.UpdateTimeEntryDescriptionAsync(kvp.Key, kvp.Value);
         }
     }
 
@@ -861,7 +845,7 @@ public partial class StandUpService
     
     public async Task StopTimerAsync(TimeEntry timeEntry)
     {
-        var end = await _kimai.StopTimerAsync(timeEntry.Id);
+        var end = await kimai.StopTimerAsync(timeEntry.Id);
 
         timeEntry.End = end;
         SetIsOverlapping(timeEntry);
