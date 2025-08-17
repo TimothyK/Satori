@@ -2,7 +2,7 @@
 
 namespace Satori.Kimai.Utilities;
 
-internal static partial class ProjectCodeParser
+public static partial class ProjectCodeParser
 {
     [GeneratedRegex(@"^0*(?'projectCode'\d+)\D?.*$", RegexOptions.IgnoreCase)]
     private static partial Regex ProjectCodeRegex();

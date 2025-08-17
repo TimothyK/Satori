@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
 using Satori.AppServices.Services.Abstractions;
+using Satori.AppServices.Services.Converters;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
@@ -25,17 +26,19 @@ public class SprintWorkItemTests
     private readonly TestAzureDevOpsServer _azureDevOpsServer;
     private readonly AzureDevOpsDatabaseBuilder _builder;
     private readonly TestTimeServer _timeServer = new();
+    private readonly TestKimaiServer _kimai;
 
     public SprintWorkItemTests()
     {
+        WorkItemExtensions.ResetCache();
         _azureDevOpsServer = new TestAzureDevOpsServer();
         _builder = _azureDevOpsServer.CreateBuilder();
 
-        var kimai = new TestKimaiServer();
+        _kimai = new TestKimaiServer();
 
         var services = new ServiceCollection();
         services.AddSingleton(_azureDevOpsServer.AsInterface());
-        services.AddSingleton(kimai.AsInterface());
+        services.AddSingleton(_kimai.AsInterface());
         services.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory>(NullLoggerFactory.Instance);
         services.AddSingleton<IAlertService>(new AlertService());
         services.AddSingleton<ITimeServer>(_timeServer);
@@ -527,6 +530,37 @@ public class SprintWorkItemTests
     }
 
     [TestMethod]
+    public void Url()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().Url.ShouldBe($"http://devops.test/Org/_workItems/edit/{workItem.Id}");
+    }
+
+    [TestMethod]
+    public void ApiUrl()
+    {
+        //Arrange
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Url.ShouldNotBeNull();
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().ApiUrl.ShouldBe(workItem.Url);
+    }
+
+    #region Kimai Project
+
+    [TestMethod]
     public void ProjectCode()
     {
         //Arrange
@@ -557,33 +591,54 @@ public class SprintWorkItemTests
     }
 
     [TestMethod]
-    public void Url()
+    public void KimaiProject()
     {
         //Arrange
+        var project = _kimai.AddProject();
         var sprint = BuildSprint();
         _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.ProjectCode = project.ProjectCode;
 
         //Act
         var workItems = GetWorkItems(sprint);
 
         //Assert
-        workItems.Single().Url.ShouldBe($"http://devops.test/Org/_workItems/edit/{workItem.Id}");
+        workItems.Single().KimaiProject.ShouldBeSameAs(project);
+    }
+    
+    [TestMethod]
+    public void KimaiProject_StripLeadingZeros()
+    {
+        //Arrange
+        var project = _kimai.AddProject();
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.ProjectCode = "0" + project.ProjectCode;
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        workItems.Single().KimaiProject.ShouldBeSameAs(project);
     }
 
     [TestMethod]
-    public void ApiUrl()
+    public void KimaiActivity()
     {
         //Arrange
+        var activity = _kimai.AddActivity();
         var sprint = BuildSprint();
         _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
-        workItem.Url.ShouldNotBeNull();
+        workItem.Fields.ProjectCode = activity.Project.ProjectCode + "." + activity.ActivityCode;
 
         //Act
         var workItems = GetWorkItems(sprint);
 
         //Assert
-        workItems.Single().ApiUrl.ShouldBe(workItem.Url);
+        workItems.Single().KimaiProject.ShouldBeSameAs(activity.Project);
+        workItems.Single().KimaiActivity.ShouldBeSameAs(activity);
     }
+    #endregion Kimai Project
 
     #region Estimates
 

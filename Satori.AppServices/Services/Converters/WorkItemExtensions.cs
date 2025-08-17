@@ -8,7 +8,10 @@ using Satori.AppServices.ViewModels.WorkItems.ActionItems;
 using Satori.AzureDevOps.Models;
 using Satori.Kimai;
 using System.Diagnostics.CodeAnalysis;
+using Satori.Kimai.Utilities;
 using Satori.Kimai.ViewModels;
+using KimaiProject = Satori.Kimai.ViewModels.Project;
+using KimaiActivity = Satori.Kimai.ViewModels.Activity;
 using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
@@ -16,6 +19,10 @@ namespace Satori.AppServices.Services.Converters;
 
 public static class WorkItemExtensions
 {
+    public static void ResetCache()
+    {
+        Customers = null;
+    }
 
     public static async Task InitializeCustomersForWorkItems(this IKimaiServer kimai)
     {
@@ -28,6 +35,38 @@ public static class WorkItemExtensions
     }
 
     private static Customer[]? Customers { get; set; }
+
+    private static KimaiProject? FindKimaiProject(string? rawProjectCode)
+    {
+        if (string.IsNullOrWhiteSpace(rawProjectCode))
+        {
+            return null;
+        }
+        var projectCode = ProjectCodeParser.GetProjectCode(rawProjectCode);
+        return Customers
+            ?.SelectMany(customers => customers.Projects)
+            .FirstOrDefault(project => project.ProjectCode.Equals(projectCode, StringComparison.CurrentCultureIgnoreCase));
+    }
+
+    private static KimaiActivity? FindKimaiActivity(KimaiProject? project, string? rawProjectCode)
+    {
+        if (project == null)
+        {
+            return null;
+        }
+        if (string.IsNullOrWhiteSpace(rawProjectCode))
+        {
+            return null;
+        }
+
+        var afterFirstPeriod = rawProjectCode.Contains('.')
+            ? rawProjectCode[(rawProjectCode.IndexOf('.') + 1)..]
+            : rawProjectCode;
+        var activityCode = ProjectCodeParser.GetActivityCode(afterFirstPeriod);
+
+        return project.Activities.FirstOrDefault(activity =>
+            string.Equals(activity.ActivityCode, activityCode, StringComparison.CurrentCultureIgnoreCase));
+    }
 
     public static WorkItem ToViewModel(this AzureDevOps.Models.WorkItem workItem)
     {
@@ -51,6 +90,8 @@ public static class WorkItemExtensions
     private static WorkItem ToViewModelUnsafe(this AzureDevOps.Models.WorkItem wi)
     {
         var id = wi.Id;
+        var kimaiProject = FindKimaiProject(wi.Fields.ProjectCode);
+        var kimaiActivity = FindKimaiActivity(kimaiProject, wi.Fields.ProjectCode);
         var workItem = new WorkItem()
         {
             Id = id,
@@ -73,6 +114,8 @@ public static class WorkItemExtensions
             CompletedWork = wi.Fields.CompletedWork.HoursToTimeSpan(),
             RemainingWork = wi.Fields.RemainingWork.HoursToTimeSpan(),
             ProjectCode = wi.Fields.ProjectCode ?? string.Empty,
+            KimaiProject = kimaiProject,
+            KimaiActivity = kimaiActivity,
             Parent = CreateWorkItemPlaceholder(wi.Fields.Parent, UriParser.GetAzureDevOpsOrgUrl(wi.Url)),
             Url = UriParser.GetAzureDevOpsOrgUrl(wi.Url)
                 .AppendPathSegment("_workItems/edit")

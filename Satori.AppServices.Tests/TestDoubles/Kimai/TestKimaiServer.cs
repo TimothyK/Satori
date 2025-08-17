@@ -49,7 +49,7 @@ internal class TestKimaiServer
             .ReturnsAsync((TimeEntryForCreate entry) => CreateTimeEntry(entry));
 
         Mock.Setup(srv => srv.GetCustomersAsync())
-            .ReturnsAsync(() => []);
+            .ReturnsAsync(() => _customers.ToArray());
 
         CurrentUser = KimaiUserBuilder.BuildUser();
     }
@@ -243,4 +243,48 @@ internal class TestKimaiServer
     }
 
     #endregion
+
+    private readonly List<Satori.Kimai.ViewModels.Customer> _customers = [];
+
+    public Satori.Kimai.ViewModels.Project AddProject()
+    {
+        var customer = _customers.FirstOrDefault();
+        if (customer == null)
+        {
+            customer = Builder<Satori.Kimai.ViewModels.Customer>.New().Build(c =>
+            {
+                c.Id = Sequence.CustomerId.Next();
+                c.Name = $"Customer {c.Id} (CUST{c.Id})";
+                c.Logo = new Uri($"https://placecats.com/{255+c.Id}/{255+c.Id}");
+            });
+            _customers.Add(customer);
+        }
+
+        var project = Builder<Satori.Kimai.ViewModels.Project>.New().Build(p =>
+        {
+            p.Id = Sequence.ProjectId.Next();
+            p.Name = $"{p.Id} Project";
+            p.ProjectCode = p.Id.ToString();
+            p.Customer = customer;
+        });
+        customer.Projects.Add(project);
+
+        return project;
+    }
+
+    public Satori.Kimai.ViewModels.Activity AddActivity()
+    {
+        var project = _customers.FirstOrDefault()?.Projects?.FirstOrDefault() ?? AddProject();
+
+        var activity = Builder<Satori.Kimai.ViewModels.Activity>.New().Build(a =>
+        {
+            a.Id = Sequence.ActivityId.Next();
+            a.Name = $"{a.Id}.1.1 Activity";
+            a.ActivityCode = $"{a.Id}.1.1";
+            a.Project = project;
+        });
+
+        project.Activities.Add(activity);
+        return activity;
+    }
 }

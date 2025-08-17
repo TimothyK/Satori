@@ -4,6 +4,7 @@ public class Sequence
 {
     private Sequence()
     {
+        _value = RandomGenerator.Integer(0, 99);
     }
 
     #region Next
