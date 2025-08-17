@@ -29,7 +29,7 @@ public class ActivityMaster
     public int Id { get; set; }
 
     [JsonPropertyName("project")]
-    public int Project { get; set; }
+    public int? Project { get; set; }
 
     [JsonPropertyName("name")]
     public required string Name { get; set; }
