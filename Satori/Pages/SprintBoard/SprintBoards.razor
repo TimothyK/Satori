@@ -1,6 +1,7 @@
 ﻿@page "/SprintBoards"
 @using Satori.AppServices.Services
 @using System.Web
+@using CodeMonkeyProjectiles.Linq
 @using Satori.AppServices.Models
 @using Satori.AppServices.Services.Abstractions
 @using Satori.AppServices.ViewModels.WorkItems
@@ -119,11 +120,19 @@ else
                                             alt="@workItem.AssignedTo.DisplayName"/>
                                         </div>
                                     </div>
-                                    <div class="work-item-status">@workItem.StatusLabel</div>
-                                    @if (!string.IsNullOrWhiteSpace(workItem.ProjectCode))
+                                    @foreach (var project in workItem.KimaiProject.Yield()
+                                                  .Union(workItem.Children.Select(task => task.KimaiProject))
+                                                  .Distinct()
+                                                  .Where(p => p != null).Select(p => p!))
                                     {
-                                        <div class="project-code">@workItem.ProjectCode</div>
+                                        <div class="flex-row project-row">
+                                            <div class="avatar-cell">
+                                                <img src="@project.Customer.Logo" alt="@project.Customer.Name">
+                                            </div>
+                                            <div class="project-code">@project.ProjectCode</div>
+                                        </div>
                                     }
+                                    <div class="work-item-status">@workItem.StatusLabel</div>
                                     @if (workItem.TargetDate.HasValue)
                                     {
                                         <div class="target-date @workItem.TargetDateCssClass">@workItem.TargetDate.Value.ToLocalTime().ToString("ddd, MMM d HH:mm")</div>

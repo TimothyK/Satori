@@ -55,6 +55,9 @@ th,td {
     font-size: 0.7em;
 }
 
+.flex-row.project-row {
+    align-items: center;
+}
 .project-code {
     text-align: left;
     font-size: 0.7em;
