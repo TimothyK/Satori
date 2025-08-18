@@ -59,10 +59,15 @@ else
                                 <span class="work-item-id">@workItem.Id</span> @workItem.Title
                             </div>
                         }
-                        @foreach (var projectCode in pullRequest.WorkItems.SelectWhereHasValue(wi => wi.ProjectCode).Distinct())
+                        @foreach (var project in pullRequest.WorkItems.SelectWhereHasValue(wi => wi.KimaiProject).Distinct())
                         {
-                            <div class="project-code">
-                                <span class="project-id">@projectCode</span>
+                            <div class="flex-row project-row">
+                                <div class="avatar-cell">
+                                    <img src="@project?.Customer.Logo" alt="@project?.Customer.Name"/>
+                                </div>
+                                <div class="project-code">
+                                    <span class="project-id">@project?.ProjectCode</span>
+                                </div>
                             </div>
                         }
                         @foreach (var label in pullRequest.Labels)

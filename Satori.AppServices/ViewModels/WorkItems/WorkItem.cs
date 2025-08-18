@@ -69,10 +69,6 @@ public class WorkItem
     public TimeSpan? CompletedWork { get; set; }
     public TimeSpan? RemainingWork { get; set; }
 
-    /// <summary>
-    /// Azure DevOps custom extended property to track the Kimai project number
-    /// </summary>
-    public string? ProjectCode { get; init; }
     public KimaiProject? KimaiProject { get; set; }
     public KimaiActivity? KimaiActivity { get; set; }
 

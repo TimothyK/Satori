@@ -561,36 +561,6 @@ public class SprintWorkItemTests
     #region Kimai Project
 
     [TestMethod]
-    public void ProjectCode()
-    {
-        //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
-        workItem.Fields.ProjectCode.ShouldNotBeNull();
-
-        //Act
-        var workItems = GetWorkItems(sprint);
-
-        //Assert
-        workItems.Single().ProjectCode.ShouldBe(workItem.Fields.ProjectCode);
-    }
-
-    [TestMethod]
-    public void ProjectCode_Missing()
-    {
-        //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
-        workItem.Fields.ProjectCode = null;
-
-        //Act
-        var workItems = GetWorkItems(sprint);
-
-        //Assert
-        workItems.Single().ProjectCode.ShouldBeNullOrEmpty();
-    }
-
-    [TestMethod]
     public void KimaiProject()
     {
         //Arrange

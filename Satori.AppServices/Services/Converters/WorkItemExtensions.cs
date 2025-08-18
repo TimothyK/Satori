@@ -113,7 +113,6 @@ public static class WorkItemExtensions
             OriginalEstimate = wi.Fields.OriginalEstimate.HoursToTimeSpan(),
             CompletedWork = wi.Fields.CompletedWork.HoursToTimeSpan(),
             RemainingWork = wi.Fields.RemainingWork.HoursToTimeSpan(),
-            ProjectCode = wi.Fields.ProjectCode ?? string.Empty,
             KimaiProject = kimaiProject,
             KimaiActivity = kimaiActivity,
             Parent = CreateWorkItemPlaceholder(wi.Fields.Parent, UriParser.GetAzureDevOpsOrgUrl(wi.Url)),

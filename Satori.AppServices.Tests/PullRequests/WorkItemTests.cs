@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
 using Satori.AppServices.Services.Abstractions;
+using Satori.AppServices.Services.Converters;
 using Satori.AppServices.Tests.TestDoubles.AlertServices;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
@@ -30,6 +31,8 @@ public class WorkItemTests
 
     private readonly TestAzureDevOpsServer _azureDevOpsServer;
     private readonly AzureDevOpsDatabaseBuilder _builder;
+    private TestKimaiServer _kimai;
+
     private Uri AzureDevOpsRootUrl => _azureDevOpsServer.AsInterface().ConnectionSettings.Url;
 
     public WorkItemTests()
@@ -37,11 +40,11 @@ public class WorkItemTests
         _azureDevOpsServer = new TestAzureDevOpsServer();
         _builder = _azureDevOpsServer.CreateBuilder();
 
-        var kimai = new TestKimaiServer();
+        _kimai = new TestKimaiServer();
 
         var services = new ServiceCollection();
         services.AddSingleton(_azureDevOpsServer.AsInterface());
-        services.AddSingleton(kimai.AsInterface());
+        services.AddSingleton(_kimai.AsInterface());
         services.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory>(NullLoggerFactory.Instance);
         services.AddSingleton<IAlertService>(_alertService);
         services.AddTransient<PullRequestService>();
@@ -54,6 +57,7 @@ public class WorkItemTests
     #region Arrange
 
     private WorkItem? _expected;
+
     private WorkItem Expected
     {
         get
@@ -161,7 +165,21 @@ public class WorkItemTests
 
     [TestMethod] public void State() => GetSingleWorkItem().State.ToApiValue().ShouldBe(Expected.Fields.State);
     
-    [TestMethod] public void ProjectCode() => GetSingleWorkItem().ProjectCode.ShouldBe(Expected.Fields.ProjectCode);
+    [TestMethod] public void ProjectCode()
+    {
+        //Arrange
+        WorkItemExtensions.ResetCache();
+        var project = _kimai.AddProject();
+
+        var workItem = Expected;
+        workItem.Fields.ProjectCode = project.ProjectCode;
+
+        //Act
+        var actual = GetSingleWorkItem();
+
+        //Assert
+        actual.KimaiProject.ShouldBeSameAs(project);
+    }
 
     [TestMethod] public void Url() => GetSingleWorkItem().Url.ShouldBe(AzureDevOpsRootUrl + "/_workItems/edit/" + Expected.Id);
 }
