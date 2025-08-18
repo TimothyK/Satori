@@ -41,26 +41,15 @@
                      @onclick="OnOpenClickAsync">
                     <div class="flex-menu">
                         <div>Open</div>
-                        @if (ActionItem is TaskActionItem openTaskAction)
+                        @if (ActionItem is WorkItemActionItem openWorkItemAction)
                         {
-                            <div class="work-item @openTaskAction.WorkItem.Type.CssClass">
+                            <div class="work-item @openWorkItemAction.WorkItem.Type.CssClass">
                                 <div class="avatar-cell">
-                                    <img src="@openTaskAction.WorkItem.AssignedTo.AvatarUrl"
-                                         alt="@openTaskAction.WorkItem.AssignedTo.DisplayName"
-                                         title="@openTaskAction.WorkItem.AssignedTo.DisplayName"/>
+                                    <img src="@openWorkItemAction.WorkItem.AssignedTo.AvatarUrl"
+                                         alt="@openWorkItemAction.WorkItem.AssignedTo.DisplayName"
+                                         title="@openWorkItemAction.WorkItem.AssignedTo.DisplayName"/>
                                 </div>
-                                <div>@openTaskAction.WorkItem.Title</div>
-                            </div>
-                        }
-                        @if (ActionItem is FinishActionItem openFinishAction)
-                        {
-                            <div class="work-item @openFinishAction.WorkItem.Type.CssClass">
-                                <div class="avatar-cell">
-                                    <img src="@openFinishAction.WorkItem.AssignedTo.AvatarUrl"
-                                         alt="@openFinishAction.WorkItem.AssignedTo.DisplayName"
-                                         title="@openFinishAction.WorkItem.AssignedTo.DisplayName" />
-                                </div>
-                                <div>@openFinishAction.WorkItem.Title</div>
+                                <div>@openWorkItemAction.WorkItem.Title</div>
                             </div>
                         }
                         @if (ActionItem is PullRequestActionItem openPrAction)
