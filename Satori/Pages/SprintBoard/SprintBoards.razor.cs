@@ -299,14 +299,13 @@ public partial class SprintBoards
             .OrderBy(actionItem =>
                 actionItem switch
                 {
-                    FinishActionItem => 0,
-                    TaskActionItem => 1,
-                    PullRequestActionItem => 2,
+                    WorkItemActionItem => 0,
+                    PullRequestActionItem => 1,
                     _ => 3
                 })
-            .ThenBy(actionItem => actionItem is FinishActionItem finish ? finish.WorkItem.Id : int.MaxValue)
-            .ThenByDescending(actionItem => actionItem is TaskActionItem task ? task.Task.State : ScrumState.Unknown)
-            .ThenBy(actionItem => actionItem is TaskActionItem task ? task.Task.Id : int.MaxValue)
+            .ThenBy(actionItem => actionItem is WorkItemActionItem workItemAction ? workItemAction.WorkItem.Type : WorkItemType.Task)
+            .ThenByDescending(actionItem => actionItem is WorkItemActionItem workItemAction ? workItemAction.WorkItem.State : ScrumState.Unknown)
+            .ThenBy(actionItem => actionItem is TaskActionItem task ? task.WorkItem.Id : int.MaxValue)
             .ThenBy(actionItem => actionItem is PullRequestActionItem pr ? pr.PullRequest.Id : int.MaxValue)
             .ThenBy(actionItem => actionItem is PullRequestActionItem pr ? (pr.PullRequest.CreatedBy.IsIn(pr.On.Select(x => x.Person)) ? 0 : 1) : int.MaxValue)
             ;

@@ -676,9 +676,9 @@ internal static class ActionItemAssertionExtensions
         actionItems.ShouldNotBeEmpty();
         
         var matches = actionItems
-            .Where(x => x.Task.Id == task.Id)
+            .Where(x => x.WorkItem.Id == task.Id)
             .ToArray();
-        matches.ShouldNotBeEmpty($"No action items were found for task {task.Id}.  They were for task(s) {string.Join(", ", actionItems.Select(x => x.Task.Id))}");
+        matches.ShouldNotBeEmpty($"No action items were found for task {task.Id}.  They were for task(s) {string.Join(", ", actionItems.Select(x => x.WorkItem.Id))}");
 
         return matches;
     }

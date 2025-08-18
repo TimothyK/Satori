@@ -101,7 +101,7 @@ public partial class ActionItemView
 
     private async Task CreateWaitsForLinkAsync(WorkItem predecessor)
     {
-        var successor = (ActionItem as TaskActionItem)?.Task ?? throw new InvalidOperationException("Action Item should be a Task");
+        var successor = (ActionItem as TaskActionItem)?.WorkItem ?? throw new InvalidOperationException("Action Item should be a Task");
         await WorkItemUpdateService.CreateDependencyLinkAsync(predecessor, successor);
 
         _isMenuOpen = false;
@@ -115,16 +115,16 @@ public partial class ActionItemView
     private IEnumerable<WorkItem> WaitsForSiblings()
     {
         if (ActionItem is not TaskActionItem actionItem 
-            || actionItem.Task.State != ScrumState.ToDo
+            || actionItem.WorkItem.State != ScrumState.ToDo
         )
         {
             return [];
         }
 
-        return actionItem.Task
+        return actionItem.WorkItem
                    .Parent
                    ?.Children
-                   .Except(actionItem.Task.Yield())
+                   .Except(actionItem.WorkItem.Yield())
                    .Where(task => task.State < ScrumState.Done) 
                ?? [];
     }
@@ -134,7 +134,7 @@ public partial class ActionItemView
         switch (ActionItem)
         {
             case TaskActionItem taskAction:
-                await OpenWorkItemAsync(taskAction.Task);
+                await OpenWorkItemAsync(taskAction.WorkItem);
                 break;
             case FinishActionItem finishAction:
                 await OpenWorkItemAsync(finishAction.WorkItem);

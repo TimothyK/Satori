@@ -43,13 +43,13 @@
                         <div>Open</div>
                         @if (ActionItem is TaskActionItem openTaskAction)
                         {
-                            <div class="work-item @openTaskAction.Task.Type.CssClass">
+                            <div class="work-item @openTaskAction.WorkItem.Type.CssClass">
                                 <div class="avatar-cell">
-                                    <img src="@openTaskAction.Task.AssignedTo.AvatarUrl"
-                                         alt="@openTaskAction.Task.AssignedTo.DisplayName"
-                                         title="@openTaskAction.Task.AssignedTo.DisplayName"/>
+                                    <img src="@openTaskAction.WorkItem.AssignedTo.AvatarUrl"
+                                         alt="@openTaskAction.WorkItem.AssignedTo.DisplayName"
+                                         title="@openTaskAction.WorkItem.AssignedTo.DisplayName"/>
                                 </div>
-                                <div>@openTaskAction.Task.Title</div>
+                                <div>@openTaskAction.WorkItem.Title</div>
                             </div>
                         }
                         @if (ActionItem is FinishActionItem openFinishAction)
@@ -117,8 +117,8 @@
     </div>
     @if (ActionItem is TaskActionItem taskAction)
     {
-        <div class="work-item cell-link @taskAction.Task.Type.CssClass" @onclick="() => OpenWorkItemAsync(taskAction.Task)" title="Open D#@(taskAction.Task.Id)">
-            <div>@taskAction.Task.Title</div>
+        <div class="work-item cell-link @taskAction.WorkItem.Type.CssClass" @onclick="() => OpenWorkItemAsync(taskAction.WorkItem)" title="Open D#@(taskAction.WorkItem.Id)">
+            <div>@taskAction.WorkItem.Title</div>
         </div>
     }
     @if (ActionItem is PullRequestActionItem prAction)
