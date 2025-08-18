@@ -138,3 +138,15 @@
     padding: 4px 0;
 }
 
+.customer-logo {
+    margin-right: 0;
+}
+.project-code {
+    text-align: left;
+    margin-left: 0;
+}
+.project-code::before {
+    content: "P#";
+    font-size: 0.75em;
+    vertical-align: top;
+}

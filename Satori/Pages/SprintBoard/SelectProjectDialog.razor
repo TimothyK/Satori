@@ -1,0 +1,52 @@
+﻿@using Satori.AppServices.ViewModels.WorkItems
+
+@inject IJSRuntime JsRuntime
+
+@if (!IsOpen)
+{
+    return;
+}
+
+<div class="dialog-backdrop">
+    <div class="dialog">
+        <div class="dialog-title">
+            <span class="dialog-close" @onclick="CancelAsync">&times;</span>
+            Select Project
+        </div>
+        <div class="dialog-body">
+            @if (WorkItem != null)
+            {
+                <div class="flex-row">
+                    <div>
+                        Add funding to:
+                    </div>
+                    @if (WorkItem.Type == WorkItemType.Task && WorkItem.Parent != null)
+                    {
+                        <span class="work-item @WorkItem.Parent.Type.CssClass cell-link" @onclick="() => OpenWorkItemAsync(WorkItem.Parent)" title="Open D#@WorkItem.Parent.Id">
+                            <span class="work-item-id">@WorkItem.Parent.Id</span>
+                            <span class="work-item-title">@WorkItem.Parent.Title</span>
+                        </span>
+                    }
+                    <div></div>
+
+                    <span class="work-item @WorkItem.Type.CssClass cell-link" @onclick="() => OpenWorkItemAsync(WorkItem)" title="Open D#@WorkItem.Id">
+                        @if (WorkItem.Parent == null || WorkItem.Type != WorkItemType.Task)
+                        {
+                            <label><span class="work-item-id">@WorkItem.Id</span>&nbsp;</label>
+                        }
+                        <span class="work-item-title">@WorkItem.Title</span>
+
+                    </span>
+                </div>
+            }
+
+
+        </div>
+        <div class="dialog-buttonbar">
+            <button class="btn btn-outline-primary" @onclick="OkAsync">OK</button>
+            <button class="btn btn-outline-secondary" @onclick="CancelAsync">Cancel</button>
+        </div>
+    </div>
+</div>
+
+

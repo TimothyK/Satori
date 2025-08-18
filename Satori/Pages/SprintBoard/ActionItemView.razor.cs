@@ -133,15 +133,26 @@ public partial class ActionItemView
     {
         switch (ActionItem)
         {
-            case TaskActionItem taskAction:
-                await OpenWorkItemAsync(taskAction.WorkItem);
-                break;
-            case FinishActionItem finishAction:
-                await OpenWorkItemAsync(finishAction.WorkItem);
+            case WorkItemActionItem workItemAction:
+                await OpenWorkItemAsync(workItemAction.WorkItem);
                 break;
             case PullRequestActionItem prAction:
                 await OpenPullRequestAsync(prAction.PullRequest);
                 break;
         }
+    }
+
+    private bool _showSelectProjectDialog;
+
+    private void OpenFundDialog()
+    {
+        _showSelectProjectDialog = true;
+    }
+
+    private Task OnIsOpenChangedAsync(bool arg)
+    {
+        _showSelectProjectDialog = false;
+
+        return Task.CompletedTask;
     }
 }

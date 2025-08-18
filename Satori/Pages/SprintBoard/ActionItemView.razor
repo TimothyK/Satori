@@ -18,6 +18,7 @@
             <div class="priority-number">@personPriority.Priority</div>
         </div>
     }
+    
     <div class="action-description-row">
         <div class="action-description">@ActionItem.ActionDescription</div>
 
@@ -67,6 +68,26 @@
                         <div>...</div>
                     </div>
                 </div>
+
+                @* Fund *@
+                @if (ActionItem is WorkItemActionItem workItemActionItem)
+                {
+                    <div class="context-menu-item"@onclick="OpenFundDialog">
+                        @if (workItemActionItem.WorkItem.KimaiProject == null)
+                        {
+                            <div>Fund...</div>
+                        }
+                        else
+                        {
+                            <div>Change funding from 
+                                <span class="avatar-cell customer-logo">
+                                    <img src="@workItemActionItem.WorkItem.KimaiProject.Customer.Logo" alt="@workItemActionItem.WorkItem.KimaiProject.Customer.Name" />
+                                </span>
+                                <span class="project-code">@workItemActionItem.WorkItem.KimaiProject.ProjectCode@(@workItemActionItem.WorkItem.KimaiActivity != null ? "." + @workItemActionItem.WorkItem.KimaiActivity.ActivityCode : "")</span>...
+                            </div>
+                        }
+                    </div>
+                }
 
                 @* Waits For *@
                 @if (HasWaitsForMenu)
@@ -118,3 +139,9 @@
         </div>
     }
 </div>
+
+@if (ActionItem is WorkItemActionItem workItemAction)
+{
+    <SelectProjectDialog WorkItem="workItemAction.WorkItem" IsOpen="_showSelectProjectDialog" IsOpenChanged="OnIsOpenChangedAsync" />
+}
+
