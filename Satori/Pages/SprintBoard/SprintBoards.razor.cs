@@ -301,7 +301,7 @@ public partial class SprintBoards
                 {
                     WorkItemActionItem => 0,
                     PullRequestActionItem => 1,
-                    _ => 3
+                    _ => 2
                 })
             .ThenBy(actionItem => actionItem is WorkItemActionItem workItemAction ? workItemAction.WorkItem.Type : WorkItemType.Task)
             .ThenByDescending(actionItem => actionItem is WorkItemActionItem workItemAction ? workItemAction.WorkItem.State : ScrumState.Unknown)
