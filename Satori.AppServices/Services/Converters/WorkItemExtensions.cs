@@ -210,10 +210,17 @@ public static class WorkItemExtensions
 
             actionItems.AddRange(prActionItems);
         }
+
+        if (workItem.Type.IsIn(WorkItemType.BoardTypes) && workItem.KimaiProject == null)
+        {
+            actionItems.Add(new FundActionItem(workItem));
+        }
+
         if (workItem.State < ScrumState.Done && actionItems.None() && workItem.Type != WorkItemType.Task)
         {
             actionItems.Add(new FinishActionItem(workItem));
         }
+
         workItem.ActionItems = actionItems;
     }
 

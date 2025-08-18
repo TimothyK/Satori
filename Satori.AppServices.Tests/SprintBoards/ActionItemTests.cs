@@ -66,6 +66,9 @@ public class ActionItemTests
         var sprint = DefaultSprint ??= BuildSprint();
         var workItemBuilder = _builder.BuildWorkItem(out workItem).WithSprint(sprint);
 
+        var project = _kimai.AddProject();
+        workItem.Fields.ProjectCode = project.ProjectCode;
+
         return workItemBuilder;
     }
 
@@ -225,6 +228,27 @@ public class ActionItemTests
 
     #endregion Tasks
 
+    #region Fund
+
+    [TestMethod]
+    public async Task Fund()
+    {
+        //Arrange
+        BuildWorkItem(out var workItem);
+        workItem.Fields.AssignedTo = People.Alice;
+        workItem.Fields.ProjectCode = null;
+
+        //Act
+        var actionItems = await GetActionItems();
+
+        //Assert
+        actionItems.Length.ShouldBe(1);
+        actionItems.ShouldBeOfType<FundActionItem>()
+            .ShouldBeOn(People.Alice)
+            .ShouldBeFor(workItem);
+    }
+
+    #endregion Fund
 
     #region Predecessor/Successor
 
