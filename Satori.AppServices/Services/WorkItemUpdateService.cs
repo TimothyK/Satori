@@ -16,12 +16,14 @@ public class WorkItemUpdateService
 {
     private readonly IAzureDevOpsServer _azureDevOps;
     private readonly UserService _userService;
+    private readonly IKimaiServer _kimai;
 
     /// <summary>
     /// Service to create Azure DevOps tasks and update them with a new state and remaining work
     /// </summary>
     /// <param name="azureDevOps"></param>
     /// <param name="userService"></param>
+    /// <param name="kimai"></param>
     public WorkItemUpdateService(IAzureDevOpsServer azureDevOps
         , UserService userService
         ,IKimaiServer kimai
@@ -29,6 +31,7 @@ public class WorkItemUpdateService
     {
         _azureDevOps = azureDevOps;
         _userService = userService;
+        _kimai = kimai;
     }
 
     #region Create Task
@@ -37,7 +40,7 @@ public class WorkItemUpdateService
     {
         var fields = await BuildFieldsAsync(parent, title, estimate);
 
-        var task = (await _azureDevOps.PostWorkItemAsync(parent.ProjectName, fields)).ToViewModel();
+        var task = await (await _azureDevOps.PostWorkItemAsync(parent.ProjectName, fields)).ToViewModelAsync(_kimai);
         task = await SetInProgressAsync(task);
         
         task.Parent = parent;
@@ -85,7 +88,7 @@ public class WorkItemUpdateService
             new() { Operation = Operation.Test, Path = "/rev", Value = task.Rev },
         };
 
-        return (await _azureDevOps.PatchWorkItemAsync(task.Id, fields)).ToViewModel();
+        return await (await _azureDevOps.PatchWorkItemAsync(task.Id, fields)).ToViewModelAsync(_kimai);
     }
 
     #endregion Create Task
@@ -135,7 +138,7 @@ public class WorkItemUpdateService
 
         var patchResult = await _azureDevOps.PatchWorkItemAsync(task.Id, fields);
 
-        UpdateViewModel(task, patchResult);
+        await UpdateViewModelAsync(task, patchResult, _kimai);
     }
 
     private static List<WorkItemPatchItem> BuildPatchItems(WorkItem task, ScrumState state, TimeSpan? remaining)
@@ -183,9 +186,9 @@ public class WorkItemUpdateService
         return fields;
     }
 
-    private static void UpdateViewModel(WorkItem task, AzureDevOps.Models.WorkItem patchResult)
+    private static async Task UpdateViewModelAsync(WorkItem task, AzureDevOps.Models.WorkItem patchResult, IKimaiServer kimai)
     {
-        var vm = patchResult.ToViewModel();
+        var vm = await patchResult.ToViewModelAsync(kimai);
 
         task.State = vm.State;
         task.OriginalEstimate = vm.OriginalEstimate;

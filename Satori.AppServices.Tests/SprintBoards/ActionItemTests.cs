@@ -95,7 +95,6 @@ public class ActionItemTests
     private async Task<WorkItem[]> GetWorkItemsAsync(params Sprint[] sprints)
     {
         //Arrange
-        WorkItemExtensions.ResetCache();
 
         //Act
         var srv = _serviceProvider.GetRequiredService<SprintBoardService>();

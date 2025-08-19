@@ -374,8 +374,6 @@ public partial class StandUpService(
 
     public async Task GetWorkItemsAsync(PeriodSummary period)
     {
-        await kimai.InitializeCustomersForWorkItems();
-
         var activitySummaries = period.Days
             .SelectMany(day => day.Projects)
             .SelectMany(p => p.Activities)
@@ -444,8 +442,6 @@ public partial class StandUpService(
 
     public async Task<WorkItem?> GetWorkItemAsync(int workItemId)
     {
-        await kimai.InitializeCustomersForWorkItems();
-
         var workItems = await GetWorkItemsAsync([workItemId]);
         var workItem = workItems.FirstOrDefault();
         if (workItem == null)
@@ -497,7 +493,7 @@ public partial class StandUpService(
     {
         try
         {
-            return (await azureDevOps.GetWorkItemsAsync(workItemIds)).Select(wi => wi.ToViewModel());
+            return await azureDevOps.GetWorkItemsAsync(workItemIds, kimai);
         }
         catch (Exception ex)
         {

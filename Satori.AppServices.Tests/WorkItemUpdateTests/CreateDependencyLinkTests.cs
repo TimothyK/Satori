@@ -44,14 +44,14 @@ public class CreateDependencyLinkTests
     private AzureDevOpsDatabaseBuilder AzureDevOpsBuilder { get; }
     private protected TestKimaiServer Kimai { get; } = new();
 
-    private WorkItem BuildTask(string? title = null)
+    private Task<WorkItem> BuildTaskAsync(string? title = null)
     {
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
 
         task.Fields.State = ScrumState.InProgress.ToApiValue();
         task.Fields.Title = title ?? "Task " + RandomGenerator.String(5);
 
-        return task.ToViewModel();
+        return task.ToViewModelAsync(Kimai.AsInterface());
     }
 
     #region Act
@@ -69,9 +69,8 @@ public class CreateDependencyLinkTests
     public async Task CreatesDependencyLinkBetweenTasks()
     {
         // Arrange
-        await Kimai.AsInterface().InitializeCustomersForWorkItems();
-        var predecessor = BuildTask("Predecessor");
-        var successor = BuildTask("Successor");
+        var predecessor = await BuildTaskAsync("Predecessor");
+        var successor = await BuildTaskAsync("Successor");
 
         // Act
         await CreateDependencyLinkAsync(predecessor, successor);

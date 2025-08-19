@@ -60,24 +60,24 @@ public class PullRequestTests
 
     #region Act
 
-    private ViewModels.PullRequests.PullRequest[] GetPullRequests(WithChildren children = WithChildren.None)
+    private async Task<ViewModels.PullRequests.PullRequest[]> GetPullRequestsAsync(WithChildren children = WithChildren.None)
     {
         //Act
         var srv = _serviceProvider.GetRequiredService<PullRequestService>();
-        var pullRequests = srv.GetPullRequestsAsync().Result.ToArray();
+        var pullRequests = (await srv.GetPullRequestsAsync()).ToArray();
         if (children.HasFlag(WithChildren.WorkItems))
         {
-            srv.AddWorkItemsToPullRequestsAsync(pullRequests).GetAwaiter().GetResult();
+            await srv.AddWorkItemsToPullRequestsAsync(pullRequests);
         }
         return pullRequests;
     }
 
-    private ViewModels.PullRequests.PullRequest GetSinglePullRequests(WithChildren children = WithChildren.None)
+    private async Task<ViewModels.PullRequests.PullRequest> GetSinglePullRequestsAsync(WithChildren children = WithChildren.None)
     {
         //Arrange
 
         //Act
-        var pullRequests = GetPullRequests(children);
+        var pullRequests = await GetPullRequestsAsync(children);
 
         //Assert
         pullRequests.Length.ShouldBe(1);
@@ -106,13 +106,13 @@ public class PullRequestTests
     #endregion Helpers
 
     [TestMethod]
-    public void ASmokeTest()
+    public async Task ASmokeTest()
     {
         //Arrange
         var pr = _builder.BuildPullRequest().PullRequest;
 
         //Act
-        var pullRequests = GetPullRequests();
+        var pullRequests = await GetPullRequestsAsync();
 
         //Assert
         pullRequests.Length.ShouldBe(1);
@@ -123,88 +123,88 @@ public class PullRequestTests
     #region Properties
 
     [TestMethod]
-    public void Title()
+    public async Task Title()
     {
         //Arrange
         var pr = BuildPullRequest();
 
         //Act
-        var actual = GetSinglePullRequests();
+        var actual = await GetSinglePullRequestsAsync();
 
         //Assert
         actual.Title.ShouldBe(pr.Title);
     }
 
     [TestMethod]
-    public void RepoName()
+    public async Task RepoName()
     {
         //Arrange
         var pr = BuildPullRequest();
 
         //Act
-        var actual = GetSinglePullRequests();
+        var actual = await GetSinglePullRequestsAsync();
 
         //Assert
         actual.RepositoryName.ShouldBe(pr.Repository.Name);
     }
         
     [TestMethod]
-    public void ProjectName()
+    public async Task ProjectName()
     {
         //Arrange
         var pr = BuildPullRequest();
 
         //Act
-        var actual = GetSinglePullRequests();
+        var actual = await GetSinglePullRequestsAsync();
 
         //Assert
         actual.Project.ShouldBe(pr.Repository.Project.Name);
     }
         
     [TestMethod]
-    public void Status_Draft()
+    public async Task Status_Draft()
     {
         //Arrange
         var pr = BuildPullRequest();
         pr.IsDraft = true;
 
         //Act
-        var actual = GetSinglePullRequests();
+        var actual = await GetSinglePullRequestsAsync();
 
         //Assert
         actual.Status.ShouldBe(Status.Draft);
     }
         
     [TestMethod]
-    public void Status_Open()
+    public async Task Status_Open()
     {
         //Arrange
         var pr = BuildPullRequest();
         pr.IsDraft = false;
 
         //Act
-        var actual = GetSinglePullRequests();
+        var actual = await GetSinglePullRequestsAsync();
 
         //Assert
         actual.Status.ShouldBe(Status.Open);
     }
         
     [TestMethod]
-    public void AutoComplete_Off()
+    public async Task AutoComplete_Off()
     {
         //Arrange
         var pr = BuildPullRequest();
         pr.CompletionOptions = null;
 
         //Act
-        var actual = GetSinglePullRequests();
+        var actual = await GetSinglePullRequestsAsync();
 
         //Assert
         actual.AutoComplete.ShouldBeFalse();
     }
         
     [TestMethod]
-    public void AutoComplete_On()
+    public async Task AutoComplete_On()
     {
         //Arrange
         var pr = BuildPullRequest();
@@ -212,34 +212,34 @@ public class PullRequestTests
         pr.CompletionOptions.MergeCommitMessage = "Feature X - now with awesomeness";
 
         //Act
-        var actual = GetSinglePullRequests();
+        var actual = await GetSinglePullRequestsAsync();
 
         //Assert
         actual.AutoComplete.ShouldBeTrue();
     }
         
     [TestMethod]
-    public void CreationDate()
+    public async Task CreationDate()
     {
         //Arrange
         var pr = BuildPullRequest();
 
         //Act
-        var actual = GetSinglePullRequests();
+        var actual = await GetSinglePullRequestsAsync();
 
         //Assert
         actual.CreationDate.ShouldBe(pr.CreationDate);
     }
         
     [TestMethod]
-    public void CreatedBy()
+    public async Task CreatedBy()
     {
         //Arrange
         var pr = BuildPullRequest();
         var expected = pr.CreatedBy;
 
         //Act
-        var actual = GetSinglePullRequests()
+        var actual = (await GetSinglePullRequestsAsync())
             .CreatedBy;
 
         //Assert
@@ -249,7 +249,7 @@ public class PullRequestTests
     }
         
     [TestMethod]
-    public void Reviewer()
+    public async Task Reviewer()
     {
         //Arrange
         var pr = BuildPullRequest();
@@ -257,7 +257,7 @@ public class PullRequestTests
         pr.Reviewers = [expected];
 
         //Act
-        var actual = GetSinglePullRequests()
+        var actual = (await GetSinglePullRequestsAsync())
             .Reviews.Single();
 
         //Assert
@@ -274,7 +274,7 @@ public class PullRequestTests
     [DataRow(ReviewVote.NoVote)]
     [DataRow(ReviewVote.WaitingForAuthor)]
     [DataRow(ReviewVote.Rejected)]
-    public void ReviewerVote(ReviewVote expected)
+    public async Task ReviewerVote(ReviewVote expected)
     {
         //Arrange
         var pr = BuildPullRequest();
@@ -282,7 +282,7 @@ public class PullRequestTests
         pr.Reviewers = [reviewer];
 
         //Act
-        var actual = GetSinglePullRequests()
+        var actual = (await GetSinglePullRequestsAsync())
             .Reviews.Single();
 
         //Assert
@@ -290,21 +290,21 @@ public class PullRequestTests
     }
 
     [TestMethod]
-    public void Labels_None()
+    public async Task Labels_None()
     {
         //Arrange
         var pr = BuildPullRequest();
         pr.Labels = null;
 
         //Act
-        var actual = GetSinglePullRequests();
+        var actual = await GetSinglePullRequestsAsync();
 
         //Assert
         actual.Labels.ShouldBeEmpty();
     }
         
     [TestMethod]
-    public void Labels_One()
+    public async Task Labels_One()
     {
         //Arrange
         var pr = BuildPullRequest();
@@ -312,7 +312,7 @@ public class PullRequestTests
         pr.Labels = [expected];
 
         //Act
-        var actual = GetSinglePullRequests();
+        var actual = await GetSinglePullRequestsAsync();
 
         //Assert
         actual.Labels.Count.ShouldBe(1);
@@ -320,7 +320,7 @@ public class PullRequestTests
     }
         
     [TestMethod]
-    public void Labels_Deactivated()
+    public async Task Labels_Deactivated()
     {
         //Arrange
         var pr = BuildPullRequest();
@@ -328,20 +328,20 @@ public class PullRequestTests
         pr.Labels = [expected];
 
         //Act
-        var actual = GetSinglePullRequests();
+        var actual = await GetSinglePullRequestsAsync();
 
         //Assert
         actual.Labels.ShouldBeEmpty();
     }
 
     [TestMethod]
-    public void Url()
+    public async Task Url()
     {
         //Arrange
         var pr = BuildPullRequest();
 
         //Act
-        var actual = GetSinglePullRequests();
+        var actual = await GetSinglePullRequestsAsync();
 
         //Assert
         actual.Url.ShouldBe($"{AzureDevOpsRootUrl}/{pr.Repository.Project.Name}/_git/{pr.Repository.Name}/pullRequest/{pr.PullRequestId}");
@@ -351,27 +351,27 @@ public class PullRequestTests
     #region Work Items
 
     [TestMethod]
-    public void WorkItems_Empty()
+    public async Task WorkItems_Empty()
     {
         //Arrange
         BuildPullRequest();
 
         //Act
-        var actual = GetSinglePullRequests();
+        var actual = await GetSinglePullRequestsAsync();
 
         //Assert
         actual.WorkItems.ShouldBeEmpty();
     }
     
     [TestMethod]
-    public void WorkItems_SmokeTest()
+    public async Task WorkItems_SmokeTest()
     {
         //Arrange
         _builder.BuildPullRequest()
             .WithWorkItem(out var expected);
 
         //Act
-        var pullRequest = GetSinglePullRequests(WithChildren.WorkItems);
+        var pullRequest = await GetSinglePullRequestsAsync(WithChildren.WorkItems);
 
         //Assert
         pullRequest.WorkItems.Count.ShouldBe(1);
@@ -380,15 +380,22 @@ public class PullRequestTests
     }
 
     [TestMethod]
-    public void MultiPullRequests_MultiWorkItems()
+    public async Task MultiPullRequests_MultiWorkItems()
     {
         //Arrange
         _builder.BuildPullRequest(out var pr1).WithWorkItem(out var workItem1);
         _builder.BuildPullRequest(out var pr2);
         _builder.BuildPullRequest(out var pr3).WithWorkItem(workItem1).WithWorkItem(out var workItem2);
         
+        Console.WriteLine("PR1 is " + pr1.PullRequestId);
+        Console.WriteLine("PR2 is " + pr2.PullRequestId);
+        Console.WriteLine("PR3 is " + pr3.PullRequestId);
+
+        Console.WriteLine("D#1 is " + workItem1.Id);
+        Console.WriteLine("D#2 is " + workItem2.Id);
+
         //Act
-        var prs = GetPullRequests(WithChildren.WorkItems);
+        var prs = await GetPullRequestsAsync(WithChildren.WorkItems);
 
         //Assert
         prs.Length.ShouldBe(3);
@@ -409,7 +416,7 @@ public class PullRequestTests
     #region Error Handling
 
     [TestMethod]
-    public void ConnectionError_ReturnsEmpty()
+    public async Task ConnectionError_ReturnsEmpty()
     {
         //Arrange
         _azureDevOpsServer.Mock
@@ -418,14 +425,14 @@ public class PullRequestTests
         _alertService.DisableVerifications();
 
         //Act
-        var pullRequests = GetPullRequests();
+        var pullRequests = await GetPullRequestsAsync();
 
         //Assert
         pullRequests.ShouldBeEmpty();
     }
     
     [TestMethod]
-    public void ConnectionError_BroadcastsError()
+    public async Task ConnectionError_BroadcastsError()
     {
         //Arrange
         _azureDevOpsServer.Mock
@@ -433,7 +440,7 @@ public class PullRequestTests
             .Throws<ApplicationException>();
 
         //Act
-        GetPullRequests();
+        await GetPullRequestsAsync();
 
         //Assert
         _alertService.LastException.ShouldNotBeNull();

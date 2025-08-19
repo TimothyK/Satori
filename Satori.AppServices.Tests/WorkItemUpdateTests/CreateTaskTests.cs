@@ -52,10 +52,9 @@ public class CreateTaskTests
     private async Task<WorkItem> CreateTaskAsync(AzureDevOps.Models.WorkItem parent, string title, double estimate)
     {
         //Arrange
-        await Kimai.AsInterface().InitializeCustomersForWorkItems();
 
         //Act
-        var viewModel = parent.ToViewModel();
+        var viewModel = await parent.ToViewModelAsync(Kimai.AsInterface());
         var task = await Server.CreateTaskAsync(viewModel, title, estimate);
 
         //Assert

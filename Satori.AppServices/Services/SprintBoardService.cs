@@ -126,8 +126,6 @@ public class SprintBoardService(
 
     public async Task<IEnumerable<WorkItem>> GetWorkItemsAsync(params Sprint[] sprints)
     {
-        await kimai.InitializeCustomersForWorkItems();
-
         var workItems = new ConcurrentBag<WorkItem>();
 
         var options = new ParallelOptions() { MaxDegreeOfParallelism = 8 };
@@ -155,9 +153,9 @@ public class SprintBoardService(
         var iteration = (IterationId)sprint;
 
         var links = await azureDevOpsServer.GetIterationWorkItemsAsync(iteration);
-        var workItemIds = links.Select(x => x.Target.Id);
-        var items = await azureDevOpsServer.GetWorkItemsAsync(workItemIds);
-        var iterationWorkItems = items.Select(wi => wi.ToViewModel()).ToList();
+        var workItemIds = links.Select(x => x.Target.Id).ToArray();
+        var iterationWorkItems = (await azureDevOpsServer.GetWorkItemsAsync(workItemIds, _kimai)).ToList();
+
         foreach (var workItem in iterationWorkItems.OrderBy(wi => wi.AbsolutePriority))
         {
             workItem.Children.Clear();
@@ -252,9 +250,10 @@ public class SprintBoardService(
     /// <returns></returns>
     public async Task RefreshWorkItemAsync(List<WorkItem> allWorkItems, WorkItem original)
     {
-        var target = (await azureDevOpsServer.GetWorkItemsAsync(original.Id.Yield()))
-            .SingleOrDefault()
-            ?.ToViewModel();
+        var workItem = (await azureDevOpsServer.GetWorkItemsAsync(original.Id.Yield()))
+            .SingleOrDefault();
+        var target = workItem == null ? null 
+            : await workItem.ToViewModelAsync(_kimai);
 
         if (target == null || target.State == ScrumState.Removed)
         {
@@ -353,7 +352,7 @@ public class SprintBoardService(
     {
         try
         {
-            return (await azureDevOpsServer.GetWorkItemsAsync(workItemIds)).Select(wi => wi.ToViewModel());
+            return await azureDevOpsServer.GetWorkItemsAsync(workItemIds, _kimai);
         }
         catch (Exception ex)
         {

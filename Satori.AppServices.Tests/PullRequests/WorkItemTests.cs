@@ -168,7 +168,6 @@ public class WorkItemTests
     [TestMethod] public void ProjectCode()
     {
         //Arrange
-        WorkItemExtensions.ResetCache();
         var project = _kimai.AddProject();
 
         var workItem = Expected;

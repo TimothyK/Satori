@@ -30,7 +30,6 @@ public class SprintWorkItemTests
 
     public SprintWorkItemTests()
     {
-        WorkItemExtensions.ResetCache();
         _azureDevOpsServer = new TestAzureDevOpsServer();
         _builder = _azureDevOpsServer.CreateBuilder();
 

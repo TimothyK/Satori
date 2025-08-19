@@ -48,7 +48,7 @@ public class UpdateTaskTests
     private AzureDevOpsDatabaseBuilder AzureDevOpsBuilder { get; }
     private protected TestKimaiServer Kimai { get; } = new();
 
-    private WorkItem BuildTask(Action<AzureDevOpsWorkItem>? arrangeWorkItem = null)
+    private async Task<WorkItem> BuildTaskAsync(Action<AzureDevOpsWorkItem>? arrangeWorkItem = null)
     {
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
         
@@ -61,8 +61,7 @@ public class UpdateTaskTests
 
         arrangeWorkItem?.Invoke(task);
 
-        Kimai.AsInterface().InitializeCustomersForWorkItems().GetAwaiter().GetResult();
-        return task.ToViewModel();
+        return await task.ToViewModelAsync(Kimai.AsInterface());
     }
 
     #endregion Arrange
@@ -82,7 +81,7 @@ public class UpdateTaskTests
     public async Task ASmokeTest_NoChanges_NotUpdated()
     {
         //Arrange
-        var task = BuildTask();
+        var task = await BuildTaskAsync();
 
         //Verify BuildTask behaviour
         task.State.ShouldBe(ScrumState.InProgress);
@@ -100,7 +99,7 @@ public class UpdateTaskTests
     public async Task Done_Updated()
     {
         //Arrange
-        var task = BuildTask();
+        var task = await BuildTaskAsync();
         var originalRev = task.Rev;
 
         //Act
@@ -117,7 +116,7 @@ public class UpdateTaskTests
         //Arrange
         var nonTask = WorkItemType.All().Except(WorkItemType.Task.Yield());
         var type = RandomGenerator.PickOne(nonTask);
-        var task = BuildTask(t => t.Fields.WorkItemType = type.ToApiValue());
+        var task = await BuildTaskAsync(t => t.Fields.WorkItemType = type.ToApiValue());
         var originalRev = task.Rev;
 
         //Act
@@ -131,7 +130,7 @@ public class UpdateTaskTests
     public async Task RemainingWork_Updated()
     {
         //Arrange
-        var task = BuildTask();
+        var task = await BuildTaskAsync();
         var remaining = (task.RemainingWork ?? throw new InvalidOperationException())
             .Add(TimeSpan.FromHours(1.5));
         var originalRev = task.Rev;
@@ -149,7 +148,7 @@ public class UpdateTaskTests
     public async Task RemainingWork_RoundedToDime()
     {
         //Arrange
-        var task = BuildTask();
+        var task = await BuildTaskAsync();
         var remaining = (task.RemainingWork ?? throw new InvalidOperationException())
             .Add(TimeSpan.FromHours(1.5))
             .Add(TimeSpan.FromMinutes(2.345));
@@ -168,7 +167,7 @@ public class UpdateTaskTests
     public async Task OriginalEstimate_Updated()
     {
         //Arrange
-        var task = BuildTask(t =>
+        var task = await BuildTaskAsync(t =>
         {
             t.Fields.State = ScrumState.New.ToApiValue();
             t.Fields.OriginalEstimate = null;
@@ -192,7 +191,7 @@ public class UpdateTaskTests
     public async Task OriginalEstimate_HasValue_NotUpdated()
     {
         //Arrange
-        var task = BuildTask();
+        var task = await BuildTaskAsync();
         var expected = task.OriginalEstimate;
         var remaining = (task.RemainingWork ?? throw new InvalidOperationException())
             .Add(TimeSpan.FromHours(1.5));
@@ -208,7 +207,7 @@ public class UpdateTaskTests
     public async Task State_ToDo_Updated()
     {
         //Arrange
-        var task = BuildTask();
+        var task = await BuildTaskAsync();
         var originalRev = task.Rev;
 
         //Act
@@ -223,7 +222,7 @@ public class UpdateTaskTests
     public async Task AssignToSomeoneElse_NotUpdated()
     {
         //Arrange
-        var task = BuildTask(t => t.Fields.AssignedTo = null);
+        var task = await BuildTaskAsync(t => t.Fields.AssignedTo = null);
         var originalRev = task.Rev;
 
         //Act

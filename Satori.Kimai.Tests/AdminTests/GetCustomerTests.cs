@@ -112,9 +112,10 @@ public class GetCustomerTests
     {
         //Arrange
         DefineMock();
+        var srv = Services.Scope.Resolve<IKimaiServer>();
+        srv.ResetCustomerCache();
 
         //Act
-        var srv = Services.Scope.Resolve<IKimaiServer>();
         return await srv.GetCustomersAsync();
     }
 

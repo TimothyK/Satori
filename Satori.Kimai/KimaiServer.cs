@@ -131,13 +131,40 @@ public class KimaiServer(
 
     #region GetCustomers
 
+    private static Task<CustomerViewModel[]>? _cachedCustomersTask;
+
+    public void ResetCustomerCache()
+    {
+        _cachedCustomersTask = null;
+    }
+
     public async Task<CustomerViewModel[]> GetCustomersAsync()
+    {
+        // If a fetch is already in progress or completed, await it
+        var task = _cachedCustomersTask;
+        if (task != null)
+        {
+            return await task;
+        }
+
+        // Only one thread should set _cachedCustomersTask
+        var newTask = FetchCustomersAsync();
+        var originalTask = Interlocked.CompareExchange(ref _cachedCustomersTask, newTask, null);
+        if (originalTask != null)
+        {
+            return await originalTask;
+        }
+
+        return await newTask;
+    }
+
+    private async Task<CustomerViewModel[]> FetchCustomersAsync()
     {
         var customerMasters = await GetCustomerMastersAsync();
         var projects = await GetProjectMastersAsync();
 
         var customers = customerMasters.Select(AddToViewModel).ToArray();
-        
+
         foreach (var project in projects)
         {
             var customer = customers.FirstOrDefault(c => c.Id == project.Customer);

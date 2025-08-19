@@ -8,6 +8,7 @@ using Satori.AppServices.ViewModels.WorkItems.ActionItems;
 using Satori.AzureDevOps.Models;
 using Satori.Kimai;
 using System.Diagnostics.CodeAnalysis;
+using Satori.AzureDevOps;
 using Satori.Kimai.Utilities;
 using Satori.Kimai.ViewModels;
 using KimaiProject = Satori.Kimai.ViewModels.Project;
@@ -19,32 +20,15 @@ namespace Satori.AppServices.Services.Converters;
 
 public static class WorkItemExtensions
 {
-    public static void ResetCache()
-    {
-        Customers = null;
-    }
-
-    public static async Task InitializeCustomersForWorkItems(this IKimaiServer kimai)
-    {
-        if (Customers != null)
-        {
-            return;
-        }
-
-        Customers = await kimai.GetCustomersAsync();
-    }
-
-    private static Customer[]? Customers { get; set; }
-
-    private static KimaiProject? FindKimaiProject(string? rawProjectCode)
+    private static KimaiProject? FindKimaiProject(Customer[] customers, string? rawProjectCode)
     {
         if (string.IsNullOrWhiteSpace(rawProjectCode))
         {
             return null;
         }
         var projectCode = ProjectCodeParser.GetProjectCode(rawProjectCode);
-        return Customers
-            ?.SelectMany(customers => customers.Projects)
+        return customers
+            ?.SelectMany(customer => customer.Projects)
             .FirstOrDefault(project => project.ProjectCode.Equals(projectCode, StringComparison.CurrentCultureIgnoreCase));
     }
 
@@ -68,18 +52,25 @@ public static class WorkItemExtensions
             string.Equals(activity.ActivityCode, activityCode, StringComparison.CurrentCultureIgnoreCase));
     }
 
-    public static WorkItem ToViewModel(this AzureDevOps.Models.WorkItem workItem)
+    public static async Task<IEnumerable<WorkItem>> GetWorkItemsAsync(
+        this IAzureDevOpsServer azureDevOpsServer,
+        int[] workItemIds,
+        IKimaiServer kimaiServer)
+    {
+        var models = await azureDevOpsServer.GetWorkItemsAsync(workItemIds);
+        var viewModels = await Task.WhenAll(models.Select(wi => wi.ToViewModelAsync(kimaiServer)));
+        return viewModels;
+    }
+
+    public static async Task<WorkItem> ToViewModelAsync(this AzureDevOps.Models.WorkItem workItem, IKimaiServer kimai)
     {
         ArgumentNullException.ThrowIfNull(workItem);
 
-        if (Customers == null)
-        {
-            throw new InvalidOperationException($"Call {nameof(InitializeCustomersForWorkItems)} first");
-        }
+        var customers = await kimai.GetCustomersAsync();
 
         try
         {
-            return ToViewModelUnsafe(workItem);
+            return ToViewModelUnsafe(workItem, customers);
         }
         catch (Exception ex)
         {
@@ -87,10 +78,10 @@ public static class WorkItemExtensions
         }
     }
 
-    private static WorkItem ToViewModelUnsafe(this AzureDevOps.Models.WorkItem wi)
+    private static WorkItem ToViewModelUnsafe(this AzureDevOps.Models.WorkItem wi, Customer[] customers)
     {
         var id = wi.Id;
-        var kimaiProject = FindKimaiProject(wi.Fields.ProjectCode);
+        var kimaiProject = FindKimaiProject(customers, wi.Fields.ProjectCode);
         var kimaiActivity = FindKimaiActivity(kimaiProject, wi.Fields.ProjectCode);
         var workItem = new WorkItem()
         {
