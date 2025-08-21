@@ -4,6 +4,8 @@ public class Customer
 {
     public int Id { get; set; }
     public required string Name { get; set; }
+    public override string ToString() => Name;
+
     public Uri? Logo { get; set; }
 
     public List<Project> Projects { get; set; } = [];

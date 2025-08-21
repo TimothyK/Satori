@@ -44,11 +44,15 @@
 }
 
 .dialog-body {
-    padding: 5px;
+    padding: 10px;
 }
 
 .dialog-buttonbar {
     padding: 5px;
     text-align: right;
     border-top: 1px ridge lightgray;
+}
+
+.work-item-header {
+    margin-bottom: 20px;
 }

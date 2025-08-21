@@ -1,5 +1,7 @@
 ﻿@using Satori.AppServices.ViewModels.WorkItems
 @using Satori.Kimai
+@using MudBlazor
+@using Satori.Kimai.ViewModels
 
 @inject IJSRuntime JsRuntime
 @inject IKimaiServer KimaiServer
@@ -18,7 +20,7 @@
         <div class="dialog-body">
             @if (WorkItem != null)
             {
-                <div class="flex-row">
+                <div class="flex-row work-item-header">
                     <div>
                         Add funding to:
                     </div>
@@ -42,6 +44,54 @@
                 </div>
             }
 
+            <div>
+                <MudAutocomplete Label="Customer" 
+                                 Value="@_selectedCustomer"
+                                 ValueChanged="(Customer? customer) => OnCustomerChanged(customer)"
+                                 SearchFunc="SearchCustomerAsync"
+                                 Placeholder="Select Customer"
+                                 Dense="true"
+                                 Clearable="true"
+                                 Variant="Variant.Outlined"
+                                 MaxItems="int.MaxValue">
+                    <ItemTemplate Context="customer">
+                        <div class="flex-row">
+                            @if (customer.Logo != null)
+                            {
+                                <div class="avatar-cell">
+                                    <img src="@customer.Logo" alt="@customer.Name Logo"/>
+                                </div>
+                            }
+                            <div>@customer.Name</div>
+                        </div>
+                    </ItemTemplate>
+                </MudAutocomplete>
+            </div>
+            <div>
+                <MudAutocomplete Label="Project" 
+                                 Value="@_selectedProject"
+                                 ValueChanged="(Project? project) => OnProjectChanged(project)"
+                                 SearchFunc="SearchProjectAsync"
+                                 Placeholder="Select Project"
+                                 Dense="true"
+                                 Clearable="true"
+                                 Variant="Variant.Outlined"
+                                 MaxItems="int.MaxValue">
+                </MudAutocomplete>
+            </div>
+            <div>
+                <MudAutocomplete Label="Activity"
+                                 Value="@_selectedActivity"
+                                 ValueChanged="(Activity? activity) => OnActivityChanged(activity)"
+                                 SearchFunc="SearchActivityAsync"
+                                 Placeholder="Select Activity"
+                                 Dense="true"
+                                 Clearable="true"
+                                 Disabled="_selectedProject == null"
+                                 Variant="Variant.Outlined"
+                                 MaxItems="int.MaxValue">
+                </MudAutocomplete>
+            </div>
 
         </div>
         <div class="dialog-buttonbar">

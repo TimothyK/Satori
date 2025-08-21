@@ -4,6 +4,8 @@ public class Activity
 {
     public int Id { get; set; }
     public required string Name { get; set; }
+    public override string ToString() => Name;
+
 
     /// <summary>
     /// How this activity is identified in external systems (e.g. Azure DevOps)
