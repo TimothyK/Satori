@@ -34,11 +34,12 @@ public static class WorkItemExtensions
     {
         ArgumentNullException.ThrowIfNull(workItem);
 
-        var customers = await kimai.GetCustomersAsync();
+        var customers = kimai.Enabled ? await kimai.GetCustomersAsync() 
+            : new Customers([]);
 
         try
         {
-            return ToViewModelUnsafe(workItem, customers);
+            return ToViewModelUnsafe(workItem, customers, kimai);
         }
         catch (Exception ex)
         {
@@ -46,7 +47,8 @@ public static class WorkItemExtensions
         }
     }
 
-    private static WorkItem ToViewModelUnsafe(this AzureDevOps.Models.WorkItem wi, Customers customers)
+    private static WorkItem ToViewModelUnsafe(this AzureDevOps.Models.WorkItem wi, Customers customers,
+        IKimaiServer kimai)
     {
         var id = wi.Id;
         var kimaiProject = customers.FindProject(wi.Fields.ProjectCode);
@@ -85,18 +87,18 @@ public static class WorkItemExtensions
             PullRequests = GetPullRequests(wi.Relations, UriParser.GetAzureDevOpsOrgUrl(wi.Url)),
         };
 
-        workItem.ResetPeopleRelations();
+        workItem.ResetPeopleRelations(kimai);
 
         return workItem;
     }
 
-    public static void ResetPeopleRelations(this IEnumerable<WorkItem> workItems)
+    public static void ResetPeopleRelations(this IEnumerable<WorkItem> workItems, IKimaiServer kimai)
     {
         var personPriority = new Dictionary<Person, int>();
 
         foreach (var workItem in workItems.OrderBy(wi => wi.AbsolutePriority))
         {
-            workItem.ResetPeopleRelations();
+            workItem.ResetPeopleRelations(kimai);
 
             foreach (var assignment in workItem.ActionItems.SelectMany(actionItem => actionItem.On))
             {
@@ -114,11 +116,11 @@ public static class WorkItemExtensions
         }
     }
 
-    public static void ResetPeopleRelations(this WorkItem workItem)
+    private static void ResetPeopleRelations(this WorkItem workItem, IKimaiServer kimai)
     {
         foreach (var child in workItem.Children)
         {
-            child.ResetPeopleRelations();
+            child.ResetPeopleRelations(kimai);
         }
 
         workItem.WithPeople = workItem.AssignedTo.Yield()
@@ -128,10 +130,10 @@ public static class WorkItemExtensions
             .Distinct()
             .ToList();
 
-        ResetActionItems(workItem);
+        ResetActionItems(workItem, kimai);
     }
 
-    private static void ResetActionItems(WorkItem workItem)
+    private static void ResetActionItems(WorkItem workItem, IKimaiServer kimai)
     {
         var actionItems = workItem.Children.SelectMany(task => task.ActionItems).ToList();
         if (workItem.Type == WorkItemType.Task 
@@ -170,7 +172,7 @@ public static class WorkItemExtensions
             actionItems.AddRange(prActionItems);
         }
 
-        if (workItem.Type.IsIn(WorkItemType.BoardTypes) && workItem.KimaiProject == null)
+        if (kimai.Enabled && workItem.Type.IsIn(WorkItemType.BoardTypes) && workItem.KimaiProject == null)
         {
             actionItems.Add(new FundActionItem(workItem));
         }

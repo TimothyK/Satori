@@ -257,6 +257,11 @@ public class KimaiServer(
 
     private void AddAuthHeader(HttpRequestMessage request)
     {
+        if (!Enabled)
+        {
+            throw new InvalidOperationException("Kimai is disabled");
+        }
+
         switch (connectionSettings.AuthenticationMethod)
         {
             case KimaiAuthenticationMethod.Token:

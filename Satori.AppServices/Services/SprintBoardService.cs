@@ -180,7 +180,7 @@ public class SprintBoardService(
 
         await ReplaceRelationPlaceholdersAsync(iterationWorkItems);
 
-        iterationBoardItems.Values.ResetPeopleRelations();
+        iterationBoardItems.Values.ResetPeopleRelations(_kimai);
         SetSprintPriority(iterationBoardItems.Values);
 
         return iterationBoardItems.Values.ToList();
@@ -279,7 +279,7 @@ public class SprintBoardService(
         await ReplaceRelationPlaceholdersAsync(allWorkItems.Concat(allWorkItems.SelectMany(wi => wi.Children)).ToList());
 
         SetSprintPriority(allWorkItems.Where(wi => wi.Sprint == target.Sprint));
-        allWorkItems.ResetPeopleRelations();
+        allWorkItems.ResetPeopleRelations(_kimai);
     }
 
     private static void SafeSetSprint(WorkItem target, WorkItem source)
@@ -379,7 +379,7 @@ public class SprintBoardService(
         var pullRequests = await PullRequestsAsync(pullRequestIds);
         ReplacePullRequests(workItems, pullRequests);
 
-        workItems.ResetPeopleRelations();
+        workItems.ResetPeopleRelations(_kimai);
     }
 
     private static int[] GetPullRequestIds(WorkItem[] workItems)
@@ -509,7 +509,7 @@ public class SprintBoardService(
         {
             SetSprintPriority(sprintWorkItems);
         }
-        request.AllWorkItems.ResetPeopleRelations();
+        request.AllWorkItems.ResetPeopleRelations(_kimai);
     }
 
     #endregion ReorderWorkItems

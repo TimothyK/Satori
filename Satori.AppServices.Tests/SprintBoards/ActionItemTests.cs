@@ -247,6 +247,25 @@ public class ActionItemTests
             .ShouldBeOn(People.Alice)
             .ShouldBeFor(workItem);
     }
+    
+    [TestMethod]
+    public async Task KimaiDisabled_NoFundActionItem()
+    {
+        //Arrange
+        _kimai.Enabled = false;
+        BuildWorkItem(out var workItem);
+        workItem.Fields.AssignedTo = People.Alice;
+        workItem.Fields.ProjectCode = null;
+
+        //Act
+        var actionItems = await GetActionItems();
+
+        //Assert
+        actionItems.Length.ShouldBe(1);
+        actionItems.ShouldBeOfType<FinishActionItem>()
+            .ShouldBeOn(People.Alice)
+            .ShouldBeFor(workItem);
+    }
 
     #endregion Fund
 

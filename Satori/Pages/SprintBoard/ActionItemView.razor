@@ -2,9 +2,11 @@
 @using Satori.AppServices.ViewModels
 @using Satori.AppServices.ViewModels.PullRequests.ActionItems
 @using Satori.AppServices.ViewModels.WorkItems.ActionItems
+@using Satori.Kimai
 
 @inject WorkItemUpdateService WorkItemUpdateService
 @inject IJSRuntime JsRuntime
+@inject IKimaiServer KimaiServer
 
 <div class="flex-row">
     @foreach (var personPriority in @ActionItem.On)
@@ -70,7 +72,7 @@
                 </div>
 
                 @* Fund *@
-                @if (ActionItem is WorkItemActionItem workItemActionItem)
+                @if (KimaiServer.Enabled && ActionItem is WorkItemActionItem workItemActionItem)
                 {
                     <div class="context-menu-item"@onclick="OpenFundDialog">
                         @if (workItemActionItem.WorkItem.KimaiProject == null)
