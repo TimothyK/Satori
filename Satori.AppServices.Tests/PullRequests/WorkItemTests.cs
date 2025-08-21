@@ -8,6 +8,7 @@ using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels.WorkItems;
+using Satori.Kimai.Utilities;
 using Shouldly;
 using WorkItem = Satori.AzureDevOps.Models.WorkItem;
 
@@ -31,7 +32,7 @@ public class WorkItemTests
 
     private readonly TestAzureDevOpsServer _azureDevOpsServer;
     private readonly AzureDevOpsDatabaseBuilder _builder;
-    private TestKimaiServer _kimai;
+    private readonly TestKimaiServer _kimai;
 
     private Uri AzureDevOpsRootUrl => _azureDevOpsServer.AsInterface().ConnectionSettings.Url;
 
@@ -171,13 +172,14 @@ public class WorkItemTests
         var project = _kimai.AddProject();
 
         var workItem = Expected;
-        workItem.Fields.ProjectCode = project.ProjectCode;
+        workItem.Fields.ProjectCode = ProjectCodeParser.GetProjectCode(project.Name);
 
         //Act
         var actual = GetSingleWorkItem();
 
         //Assert
-        actual.KimaiProject.ShouldBeSameAs(project);
+        actual.KimaiProject.ShouldNotBeNull();
+        actual.KimaiProject.Id.ShouldBe(project.Id);
     }
 
     [TestMethod] public void Url() => GetSingleWorkItem().Url.ShouldBe(AzureDevOpsRootUrl + "/_workItems/edit/" + Expected.Id);

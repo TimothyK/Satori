@@ -108,7 +108,7 @@ public class GetCustomerTests
 
     #region Act
 
-    private async Task<Customer[]> GetCustomersAsync()
+    private async Task<Customers> GetCustomersAsync()
     {
         //Arrange
         DefineMock();
@@ -146,8 +146,8 @@ public class GetCustomerTests
 
         //Assert
         customers.ShouldNotBeEmpty();
-        customers.Length.ShouldBe(1);
-        var actual = customers[0];
+        customers.Count().ShouldBe(1);
+        var actual = customers.Single();
         actual.Id.ShouldBe(customer.Id);
         actual.Name.ShouldBe(customer.Name);
     }

@@ -20,38 +20,6 @@ namespace Satori.AppServices.Services.Converters;
 
 public static class WorkItemExtensions
 {
-    private static KimaiProject? FindKimaiProject(Customer[] customers, string? rawProjectCode)
-    {
-        if (string.IsNullOrWhiteSpace(rawProjectCode))
-        {
-            return null;
-        }
-        var projectCode = ProjectCodeParser.GetProjectCode(rawProjectCode);
-        return customers
-            ?.SelectMany(customer => customer.Projects)
-            .FirstOrDefault(project => project.ProjectCode.Equals(projectCode, StringComparison.CurrentCultureIgnoreCase));
-    }
-
-    private static KimaiActivity? FindKimaiActivity(KimaiProject? project, string? rawProjectCode)
-    {
-        if (project == null)
-        {
-            return null;
-        }
-        if (string.IsNullOrWhiteSpace(rawProjectCode))
-        {
-            return null;
-        }
-
-        var afterFirstPeriod = rawProjectCode.Contains('.')
-            ? rawProjectCode[(rawProjectCode.IndexOf('.') + 1)..]
-            : rawProjectCode;
-        var activityCode = ProjectCodeParser.GetActivityCode(afterFirstPeriod);
-
-        return project.Activities.FirstOrDefault(activity =>
-            string.Equals(activity.ActivityCode, activityCode, StringComparison.CurrentCultureIgnoreCase));
-    }
-
     public static async Task<IEnumerable<WorkItem>> GetWorkItemsAsync(
         this IAzureDevOpsServer azureDevOpsServer,
         int[] workItemIds,
@@ -78,11 +46,11 @@ public static class WorkItemExtensions
         }
     }
 
-    private static WorkItem ToViewModelUnsafe(this AzureDevOps.Models.WorkItem wi, Customer[] customers)
+    private static WorkItem ToViewModelUnsafe(this AzureDevOps.Models.WorkItem wi, Customers customers)
     {
         var id = wi.Id;
-        var kimaiProject = FindKimaiProject(customers, wi.Fields.ProjectCode);
-        var kimaiActivity = FindKimaiActivity(kimaiProject, wi.Fields.ProjectCode);
+        var kimaiProject = customers.FindProject(wi.Fields.ProjectCode);
+        var kimaiActivity = kimaiProject?.FindActivity(wi.Fields.ProjectCode);
         var workItem = new WorkItem()
         {
             Id = id,

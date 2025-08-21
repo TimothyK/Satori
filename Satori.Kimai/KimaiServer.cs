@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Satori.Kimai.Models;
 using System.Text.Json;
 using Satori.Kimai.Utilities;
+using Customers = Satori.Kimai.ViewModels.Customers;
 using CustomerViewModel = Satori.Kimai.ViewModels.Customer;
 using ProjectViewModel = Satori.Kimai.ViewModels.Project;
 
@@ -131,14 +132,14 @@ public class KimaiServer(
 
     #region GetCustomers
 
-    private static Task<CustomerViewModel[]>? _cachedCustomersTask;
+    private static Task<Customers>? _cachedCustomersTask;
 
     public void ResetCustomerCache()
     {
         _cachedCustomersTask = null;
     }
 
-    public async Task<CustomerViewModel[]> GetCustomersAsync()
+    public async Task<Customers> GetCustomersAsync()
     {
         // If a fetch is already in progress or completed, await it
         var task = _cachedCustomersTask;
@@ -158,59 +159,24 @@ public class KimaiServer(
         return await newTask;
     }
 
-    private async Task<CustomerViewModel[]> FetchCustomersAsync()
+    private async Task<Customers> FetchCustomersAsync()
     {
         var customerMasters = await GetCustomerMastersAsync();
+        var customers = new Customers(customerMasters);
+
         var projects = await GetProjectMastersAsync();
-
-        var customers = customerMasters.Select(AddToViewModel).ToArray();
-
         foreach (var project in projects)
         {
-            var customer = customers.FirstOrDefault(c => c.Id == project.Customer);
-            if (customer != null)
-            {
-                AddToViewModel(project, customer);
-            }
+            customers.Add(project);
         }
 
         var activities = await GetActivityMastersAsync();
         foreach (var activity in activities)
         {
-            var project = customers
-                .SelectMany(customer => customer.Projects)
-                .FirstOrDefault(p => p.Id == activity.Project);
-            if (project != null)
-            {
-                AddToViewModel(activity, project);
-            }
+            customers.Add(activity);
         }
 
         return customers;
-    }
-
-    private static void AddToViewModel(ProjectMaster project, CustomerViewModel customer)
-    {
-        var projectViewModel = new ProjectViewModel
-        {
-            Id = project.Id,
-            Name = project.Name,
-            ProjectCode = ProjectCodeParser.GetProjectCode(project.Name),
-            Customer = customer
-        };
-        customer.Projects.Add(projectViewModel);
-    }
-
-    private static void AddToViewModel(ActivityMaster activity, ProjectViewModel project)
-    {
-        var activityViewModel = new ViewModels.Activity
-        {
-            Id = activity.Id,
-            Name = activity.Name,
-            ActivityCode = ProjectCodeParser.GetActivityCode(activity.Name),
-            Project = project
-        };
-        project.Activities.Add(activityViewModel);
     }
 
     private async Task<Customer[]> GetCustomerMastersAsync()
@@ -222,7 +188,7 @@ public class KimaiServer(
         var customers = await GetAsync<Customer[]>(url);
         return customers;
     }
-    
+
     private async Task<ProjectMaster[]> GetProjectMastersAsync()
     {
         var url = connectionSettings.Url
@@ -232,7 +198,7 @@ public class KimaiServer(
         var projects = await GetAsync<ProjectMaster[]>(url);
         return projects;
     }
-    
+
     private async Task<ActivityMaster[]> GetActivityMastersAsync()
     {
         var url = connectionSettings.Url
@@ -241,16 +207,6 @@ public class KimaiServer(
 
         var activities = await GetAsync<ActivityMaster[]>(url);
         return activities;
-    }
-
-    private static CustomerViewModel AddToViewModel(Customer dto)
-    {
-        return new CustomerViewModel()
-        {
-            Id = dto.Id,
-            Name = dto.Name,
-            Logo = CustomerLogoParser.GetCustomerLogo(dto.Comment)
-        };
     }
 
     #endregion GetCustomers

@@ -1,4 +1,6 @@
-﻿namespace Satori.Kimai.ViewModels;
+﻿using Satori.Kimai.Utilities;
+
+namespace Satori.Kimai.ViewModels;
 
 public class Project
 {
@@ -13,4 +15,22 @@ public class Project
     public required Customer Customer { get; set; }
 
     public List<Activity> Activities { get; set; } = [];
+
+    public Activity? FindActivity(string? rawProjectCode)
+    {
+        if (string.IsNullOrWhiteSpace(rawProjectCode))
+        {
+            return null;
+        }
+
+        if (!rawProjectCode.Contains('.'))
+        {
+            return null;
+        }
+        var afterFirstPeriod = rawProjectCode[(rawProjectCode.IndexOf('.') + 1)..];
+        var activityCode = ProjectCodeParser.GetActivityCode(afterFirstPeriod);
+
+        return Activities.FirstOrDefault(activity =>
+            string.Equals(activity.ActivityCode, activityCode, StringComparison.CurrentCultureIgnoreCase));
+    }
 }

@@ -13,6 +13,7 @@ using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps.Models;
+using Satori.Kimai.Utilities;
 using Satori.TimeServices;
 using Shouldly;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
@@ -566,13 +567,15 @@ public class SprintWorkItemTests
         var project = _kimai.AddProject();
         var sprint = BuildSprint();
         _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
-        workItem.Fields.ProjectCode = project.ProjectCode;
+        workItem.Fields.ProjectCode = ProjectCodeParser.GetProjectCode(project.Name);
 
         //Act
         var workItems = GetWorkItems(sprint);
 
         //Assert
-        workItems.Single().KimaiProject.ShouldBeSameAs(project);
+        var kimaiProject = workItems.Single().KimaiProject;
+        kimaiProject.ShouldNotBeNull();
+        kimaiProject.Id.ShouldBe(project.Id);
     }
     
     [TestMethod]
@@ -582,30 +585,39 @@ public class SprintWorkItemTests
         var project = _kimai.AddProject();
         var sprint = BuildSprint();
         _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
-        workItem.Fields.ProjectCode = "0" + project.ProjectCode;
+        workItem.Fields.ProjectCode = "0" + ProjectCodeParser.GetProjectCode(project.Name);
 
         //Act
         var workItems = GetWorkItems(sprint);
 
         //Assert
-        workItems.Single().KimaiProject.ShouldBeSameAs(project);
+        var kimaiProject = workItems.Single().KimaiProject;
+        kimaiProject.ShouldNotBeNull();
+        kimaiProject.Id.ShouldBe(project.Id);
     }
 
     [TestMethod]
     public void KimaiActivity()
     {
         //Arrange
-        var activity = _kimai.AddActivity();
+        var project = _kimai.AddProject();
+        var activity = _kimai.AddActivity(project);
         var sprint = BuildSprint();
         _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
-        workItem.Fields.ProjectCode = activity.Project.ProjectCode + "." + activity.ActivityCode;
+        workItem.Fields.ProjectCode = ProjectCodeParser.GetProjectCode(project.Name) 
+                                      + "." + ProjectCodeParser.GetActivityCode(activity.Name);
 
         //Act
         var workItems = GetWorkItems(sprint);
 
         //Assert
-        workItems.Single().KimaiProject.ShouldBeSameAs(activity.Project);
-        workItems.Single().KimaiActivity.ShouldBeSameAs(activity);
+        var kimaiProject = workItems.Single().KimaiProject;
+        kimaiProject.ShouldNotBeNull();
+        kimaiProject.Id.ShouldBe(project.Id);
+
+        var kimaiActivity = workItems.Single().KimaiActivity;
+        kimaiActivity.ShouldNotBeNull();
+        kimaiActivity.Id.ShouldBe(activity.Id);
     }
     #endregion Kimai Project
 

@@ -7,6 +7,7 @@ using Builder;
 using Satori.AppServices.Extensions;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
 using Satori.TimeServices;
+using Customers = Satori.Kimai.ViewModels.Customers;
 
 namespace Satori.AppServices.Tests.TestDoubles.Kimai;
 
@@ -49,7 +50,7 @@ internal class TestKimaiServer
             .ReturnsAsync((TimeEntryForCreate entry) => CreateTimeEntry(entry));
 
         Mock.Setup(srv => srv.GetCustomersAsync())
-            .ReturnsAsync(() => _customers.ToArray());
+            .ReturnsAsync(BuildCustomers);
 
         CurrentUser = KimaiUserBuilder.BuildUser();
     }
@@ -244,47 +245,65 @@ internal class TestKimaiServer
 
     #endregion
 
-    private readonly List<Satori.Kimai.ViewModels.Customer> _customers = [];
+    private readonly List<Customer> _customers = [];
+    private readonly List<ProjectMaster> _projects = [];
+    private readonly List<ActivityMaster> _activities = [];
 
-    public Satori.Kimai.ViewModels.Project AddProject()
+    public Customers BuildCustomers()
     {
-        var customer = _customers.FirstOrDefault();
-        if (customer == null)
+        var customers = new Customers(_customers);
+        foreach (var project in _projects)
         {
-            customer = Builder<Satori.Kimai.ViewModels.Customer>.New().Build(c =>
-            {
-                c.Id = Sequence.CustomerId.Next();
-                c.Name = $"Customer {c.Id} (CUST{c.Id})";
-                c.Logo = new Uri($"https://placecats.com/{255+c.Id}/{255+c.Id}");
-            });
-            _customers.Add(customer);
+            customers.Add(project);
+        }
+        foreach (var activity in _activities)
+        {
+            customers.Add(activity);
         }
 
-        var project = Builder<Satori.Kimai.ViewModels.Project>.New().Build(p =>
+        return customers;
+    }
+
+    public Customer AddCustomer()
+    {
+        var customer = Builder<Customer>.New().Build(c =>
+        {
+            c.Id = Sequence.CustomerId.Next();
+            c.Name = $"Customer {c.Id} (CUST{c.Id})";
+            c.Comment = $"[Logo]({new Uri($"https://placecats.com/{255 + c.Id}/{255 + c.Id}")})";
+        });
+        _customers.Add(customer);
+
+        return customer;
+    }
+
+    public ProjectMaster AddProject(Customer? customer = null)
+    {
+        customer ??= _customers.FirstOrDefault() ?? AddCustomer();
+
+        var project = Builder<ProjectMaster>.New().Build(p =>
         {
             p.Id = Sequence.ProjectId.Next();
             p.Name = $"{p.Id} Project";
-            p.ProjectCode = p.Id.ToString();
-            p.Customer = customer;
+            p.Customer = customer.Id;
         });
-        customer.Projects.Add(project);
 
+        _projects.Add(project);
         return project;
     }
 
-    public Satori.Kimai.ViewModels.Activity AddActivity()
+    public ActivityMaster AddActivity(ProjectMaster? project = null)
     {
-        var project = _customers.FirstOrDefault()?.Projects?.FirstOrDefault() ?? AddProject();
+        project ??= _projects.FirstOrDefault() ?? AddProject();
 
-        var activity = Builder<Satori.Kimai.ViewModels.Activity>.New().Build(a =>
+        var activity = Builder<ActivityMaster>.New().Build(a =>
         {
             a.Id = Sequence.ActivityId.Next();
             a.Name = $"{a.Id}.1.1 Activity";
-            a.ActivityCode = $"{a.Id}.1.1";
-            a.Project = project;
+            a.Project = project.Id;
         });
 
-        project.Activities.Add(activity);
+        _activities.Add(activity);
         return activity;
     }
 }

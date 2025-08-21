@@ -16,6 +16,7 @@ using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AppServices.ViewModels.WorkItems.ActionItems;
 using Satori.AzureDevOps.Models;
+using Satori.Kimai.Utilities;
 using Satori.TimeServices;
 using Shouldly;
 using PullRequest = Satori.AzureDevOps.Models.PullRequest;
@@ -67,7 +68,7 @@ public class ActionItemTests
         var workItemBuilder = _builder.BuildWorkItem(out workItem).WithSprint(sprint);
 
         var project = _kimai.AddProject();
-        workItem.Fields.ProjectCode = project.ProjectCode;
+        workItem.Fields.ProjectCode = ProjectCodeParser.GetProjectCode(project.Name);
 
         return workItemBuilder;
     }

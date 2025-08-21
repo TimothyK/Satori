@@ -1,5 +1,5 @@
 ﻿using Satori.Kimai.Models;
-using Customer = Satori.Kimai.ViewModels.Customer;
+using Customers = Satori.Kimai.ViewModels.Customers;
 
 namespace Satori.Kimai;
 
@@ -27,6 +27,6 @@ public interface IKimaiServer
     
     Task<TimeEntryCollapsed> GetTimeEntryAsync(int id);
 
-    Task<Customer[]> GetCustomersAsync();
+    Task<Customers> GetCustomersAsync();
     void ResetCustomerCache();
 }
