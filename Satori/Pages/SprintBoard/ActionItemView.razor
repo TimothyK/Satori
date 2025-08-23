@@ -144,6 +144,6 @@
 
 @if (ActionItem is WorkItemActionItem workItemAction)
 {
-    <SelectProjectDialog WorkItem="workItemAction.WorkItem" IsOpen="_showSelectProjectDialog" IsOpenChanged="OnIsOpenChangedAsync" />
+    <SelectProjectDialog @ref="_fundDialog" Save="OnFundDialogSave" />
 }
 

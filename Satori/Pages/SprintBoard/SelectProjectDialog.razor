@@ -14,7 +14,7 @@
 <div class="dialog-backdrop">
     <div class="dialog">
         <div class="dialog-title">
-            <span class="dialog-close" @onclick="CancelAsync">&times;</span>
+            <span class="dialog-close" @onclick="Cancel">&times;</span>
             Select Project
         </div>
         <div class="dialog-body">
@@ -96,7 +96,7 @@
         </div>
         <div class="dialog-buttonbar">
             <button class="btn btn-outline-primary" @onclick="OkAsync">OK</button>
-            <button class="btn btn-outline-secondary" @onclick="CancelAsync">Cancel</button>
+            <button class="btn btn-outline-secondary" @onclick="Cancel">Cancel</button>
         </div>
     </div>
 </div>

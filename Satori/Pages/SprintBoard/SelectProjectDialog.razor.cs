@@ -7,9 +7,9 @@ namespace Satori.Pages.SprintBoard;
 
 public partial class SelectProjectDialog : ComponentBase
 {
-    [Parameter] public WorkItem? WorkItem { get; set; }
-    [Parameter] public bool IsOpen { get; set; }
-    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+    private WorkItem? WorkItem { get; set; }
+    private bool IsOpen { get; set; }
+    [Parameter] public EventCallback<(Project?, Activity?)> Save { get; set; }
 
     public Customers? Customers { get; set; }
 
@@ -23,6 +23,13 @@ public partial class SelectProjectDialog : ComponentBase
         await base.OnAfterRenderAsync(firstRender);
     }
 
+    public void ShowDialog(WorkItem workItem)
+    {
+        WorkItem = workItem;
+        SetValueFromCurrentWorkItem();
+        IsOpen = true;
+    }
+
     private void SetValueFromCurrentWorkItem()
     {
         var project = WorkItem?.KimaiProject ?? WorkItem?.Parent?.KimaiProject;
@@ -31,29 +38,15 @@ public partial class SelectProjectDialog : ComponentBase
         _selectedActivity = WorkItem?.KimaiActivity ?? WorkItem?.Parent?.KimaiActivity;
     }
 
-    private async Task OnIsOpenChangedAsync(bool value)
-    {
-        if (value)
-        {
-            SetValueFromCurrentWorkItem();
-        }
-        IsOpen = value;
-        await IsOpenChanged.InvokeAsync(value);
-    }
-
-    private async Task CloseAsync()
-    {
-        await OnIsOpenChangedAsync(false);
-    }
-
     private async Task OkAsync()
     {
-        await CloseAsync();
+        IsOpen = false;
+        await Save.InvokeAsync((_selectedProject, _selectedActivity));
     }
 
-    private async Task CancelAsync()
+    private void Cancel()
     {
-        await CloseAsync();
+        IsOpen = false;
     }
 
     private async Task OpenWorkItemAsync(WorkItem workItem)

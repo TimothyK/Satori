@@ -6,6 +6,7 @@ using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.PullRequests.ActionItems;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AppServices.ViewModels.WorkItems.ActionItems;
+using Satori.Kimai.ViewModels;
 
 namespace Satori.Pages.SprintBoard;
 
@@ -142,16 +143,18 @@ public partial class ActionItemView
         }
     }
 
-    private bool _showSelectProjectDialog;
+    private SelectProjectDialog? _fundDialog;
 
     private void OpenFundDialog()
     {
-        _showSelectProjectDialog = true;
+        var workItem = (ActionItem as WorkItemActionItem)?.WorkItem ?? throw new InvalidOperationException();
+        _fundDialog?.ShowDialog(workItem);
     }
 
-    private Task OnIsOpenChangedAsync(bool arg)
+    private Task OnFundDialogSave((Project?, Activity?) value)
     {
-        _showSelectProjectDialog = false;
+        var (project, activity) = value;
+        var workItem = (ActionItem as WorkItemActionItem)?.WorkItem ?? throw new InvalidOperationException();
 
         return Task.CompletedTask;
     }
