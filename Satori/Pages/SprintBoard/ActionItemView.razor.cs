@@ -148,14 +148,19 @@ public partial class ActionItemView
     private void OpenFundDialog()
     {
         var workItem = (ActionItem as WorkItemActionItem)?.WorkItem ?? throw new InvalidOperationException();
+        _isMenuOpen = false;
+        _isWaitsForSubMenuOpen = false;
+
         _fundDialog?.ShowDialog(workItem);
     }
 
-    private Task OnFundDialogSave((Project?, Activity?) value)
+    private async Task OnFundDialogSaveAsync((Project?, Activity?) value)
     {
         var (project, activity) = value;
         var workItem = (ActionItem as WorkItemActionItem)?.WorkItem ?? throw new InvalidOperationException();
 
-        return Task.CompletedTask;
+        await WorkItemUpdateService.UpdateProjectCodeAsync(workItem, project, activity);
+
+        await HasChanged.InvokeAsync();
     }
 }

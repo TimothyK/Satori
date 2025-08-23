@@ -5,6 +5,8 @@ using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 using Satori.Kimai;
+using Satori.Kimai.ViewModels;
+using Project = Satori.Kimai.ViewModels.Project;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.Services;
@@ -92,6 +94,42 @@ public class WorkItemUpdateService
     }
 
     #endregion Create Task
+
+    #region UpdateProjectCode
+
+    public async Task UpdateProjectCodeAsync(WorkItem workItem, Project? project, Activity? activity)
+    {
+        project = activity?.Project ?? project;
+        var projectCode = project?.ProjectCode;
+        if (activity != null)
+        {
+            projectCode += "." + activity.ActivityCode;
+        }
+        projectCode ??= string.Empty;
+
+        await UpdateProjectCodeAsync(workItem, projectCode);
+
+        workItem.KimaiProject = project;
+        workItem.KimaiActivity = activity;
+        workItem.Rev++;
+    }
+
+    private async Task UpdateProjectCodeAsync(WorkItem workItem, string projectCode)
+    {
+        var fields = new List<WorkItemPatchItem>
+        {
+            new()
+            {
+                Operation = Operation.Add, 
+                Path = "/fields/Custom.ProjectCode", 
+                Value = projectCode
+            }
+        };
+
+        await _azureDevOps.PatchWorkItemAsync(workItem.Id, fields);
+    }
+
+    #endregion UpdateProjectCode
 
     #region CreateDependencyLink
 
