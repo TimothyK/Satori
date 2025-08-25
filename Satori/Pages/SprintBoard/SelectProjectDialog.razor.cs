@@ -64,12 +64,12 @@ public partial class SelectProjectDialog : ComponentBase
         _selectedProject = null;
     }
 
-    private Task<IEnumerable<Customer>> SearchCustomerAsync(string value, CancellationToken token)
+    private Task<IEnumerable<Customer?>> SearchCustomerAsync(string value, CancellationToken token)
     {
         return Task.FromResult(SearchCustomer(value));
     }
 
-    private IEnumerable<Customer> SearchCustomer(string value)
+    private IEnumerable<Customer?> SearchCustomer(string value)
     {
         if (Customers == null)
         {
