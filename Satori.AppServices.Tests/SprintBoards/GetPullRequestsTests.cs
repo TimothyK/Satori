@@ -1,16 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
-using Satori.AppServices.Services.Abstractions;
-using Satori.AppServices.Tests.TestDoubles.AlertServices;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
+using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
-using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
-using Satori.TimeServices;
 using Shouldly;
 
 namespace Satori.AppServices.Tests.SprintBoards;
@@ -20,24 +14,14 @@ public class GetPullRequestsTests
 {
     private readonly ServiceProvider _serviceProvider;
     private readonly AzureDevOpsDatabaseBuilder _builder;
-    private readonly TestTimeServer _timeServer = new();
 
     public GetPullRequestsTests()
     {
-        var azureDevOpsServer = new TestAzureDevOpsServer();
-        _builder = azureDevOpsServer.CreateBuilder();
-
-        var kimai = new TestKimaiServer();
-
-        var services = new ServiceCollection();
-        services.AddSingleton(azureDevOpsServer.AsInterface());
-        services.AddSingleton(kimai.AsInterface());
-        services.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory>(NullLoggerFactory.Instance);
-        services.AddSingleton<IAlertService>(new AlertService());
-        services.AddSingleton<ITimeServer>(_timeServer);
+        var services = new SatoriServiceCollection();
         services.AddTransient<SprintBoardService>();
-
         _serviceProvider = services.BuildServiceProvider();
+
+        _builder = _serviceProvider.GetRequiredService<AzureDevOpsDatabaseBuilder>();
     }
 
     #region Helpers

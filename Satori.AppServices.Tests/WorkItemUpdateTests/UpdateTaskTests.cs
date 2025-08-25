@@ -11,6 +11,7 @@ using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.WorkItems;
+using Satori.Kimai;
 using Shouldly;
 using AzureDevOpsWorkItem = Satori.AzureDevOps.Models.WorkItem;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
@@ -20,23 +21,21 @@ namespace Satori.AppServices.Tests.WorkItemUpdateTests;
 [TestClass]
 public class UpdateTaskTests
 {
+    private readonly ServiceProvider _serviceProvider;
+
     public UpdateTaskTests()
     {
         Person.Me = null;  //Clear cache
 
-        var services = new ServiceCollection();
-        services.AddSingleton(AzureDevOps.AsInterface());
-        services.AddSingleton(Kimai.AsInterface());
-        services.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory>(NullLoggerFactory.Instance);
-        services.AddSingleton<IAlertService>(new AlertService());
+        var services = new SatoriServiceCollection();
         services.AddTransient<UserService>();
         services.AddTransient<WorkItemUpdateService>();
 
-        var serviceProvider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
 
-        Server = serviceProvider.GetRequiredService<WorkItemUpdateService>();
+        Server = _serviceProvider.GetRequiredService<WorkItemUpdateService>();
 
-        AzureDevOpsBuilder = AzureDevOps.CreateBuilder();
+        AzureDevOpsBuilder = _serviceProvider.GetRequiredService<AzureDevOpsDatabaseBuilder>();
     }
 
     #region Helpers
@@ -44,9 +43,7 @@ public class UpdateTaskTests
     #region Arrange
 
     public WorkItemUpdateService Server { get; set; }
-    private TestAzureDevOpsServer AzureDevOps { get; } = new();
     private AzureDevOpsDatabaseBuilder AzureDevOpsBuilder { get; }
-    private protected TestKimaiServer Kimai { get; } = new();
 
     private async Task<WorkItem> BuildTaskAsync(Action<AzureDevOpsWorkItem>? arrangeWorkItem = null)
     {
@@ -57,11 +54,13 @@ public class UpdateTaskTests
         var remaining = RandomGenerator.TimeSpan(TimeSpan.FromHours(2.5)).ToNearest(TimeSpan.FromMinutes(6));
         task.Fields.OriginalEstimate = remaining.TotalHours;
         task.Fields.RemainingWork = remaining.TotalHours;
-        task.Fields.AssignedTo = AzureDevOps.Identity.ToUser();
+        var azureDevOpsServer = _serviceProvider.GetRequiredService<TestAzureDevOpsServer>();
+        task.Fields.AssignedTo = azureDevOpsServer.Identity.ToUser();
 
         arrangeWorkItem?.Invoke(task);
 
-        return await task.ToViewModelAsync(Kimai.AsInterface());
+        var kimai = _serviceProvider.GetRequiredService<IKimaiServer>();
+        return await task.ToViewModelAsync(kimai);
     }
 
     #endregion Arrange

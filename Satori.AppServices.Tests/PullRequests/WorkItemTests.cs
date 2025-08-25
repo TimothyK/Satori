@@ -1,13 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
-using Satori.AppServices.Services.Abstractions;
-using Satori.AppServices.Services.Converters;
-using Satori.AppServices.Tests.TestDoubles.AlertServices;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
+using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels.WorkItems;
+using Satori.AzureDevOps;
 using Satori.Kimai.Utilities;
 using Shouldly;
 using WorkItem = Satori.AzureDevOps.Models.WorkItem;
@@ -28,28 +25,13 @@ namespace Satori.AppServices.Tests.PullRequests;
 public class WorkItemTests
 {
     private readonly ServiceProvider _serviceProvider;
-    private readonly TestAlertService _alertService = new();
 
-    private readonly TestAzureDevOpsServer _azureDevOpsServer;
-    private readonly AzureDevOpsDatabaseBuilder _builder;
-    private readonly TestKimaiServer _kimai;
-
-    private Uri AzureDevOpsRootUrl => _azureDevOpsServer.AsInterface().ConnectionSettings.Url;
+    private Uri AzureDevOpsRootUrl => _serviceProvider.GetRequiredService<IAzureDevOpsServer>().ConnectionSettings.Url;
 
     public WorkItemTests()
     {
-        _azureDevOpsServer = new TestAzureDevOpsServer();
-        _builder = _azureDevOpsServer.CreateBuilder();
-
-        _kimai = new TestKimaiServer();
-
-        var services = new ServiceCollection();
-        services.AddSingleton(_azureDevOpsServer.AsInterface());
-        services.AddSingleton(_kimai.AsInterface());
-        services.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory>(NullLoggerFactory.Instance);
-        services.AddSingleton<IAlertService>(_alertService);
+        var services = new SatoriServiceCollection();
         services.AddTransient<PullRequestService>();
-
         _serviceProvider = services.BuildServiceProvider();
     }
 
@@ -68,7 +50,8 @@ public class WorkItemTests
                 return _expected;
             }
 
-            _builder.BuildPullRequest().WithWorkItem(out _expected);
+            var builder = _serviceProvider.GetRequiredService<AzureDevOpsDatabaseBuilder>();
+            builder.BuildPullRequest().WithWorkItem(out _expected);
             return _expected;
         }
     }
@@ -169,7 +152,8 @@ public class WorkItemTests
     [TestMethod] public void ProjectCode()
     {
         //Arrange
-        var project = _kimai.AddProject();
+        var kimai = _serviceProvider.GetRequiredService<TestKimaiServer>();
+        var project = kimai.AddProject();
 
         var workItem = Expected;
         workItem.Fields.ProjectCode = ProjectCodeParser.GetProjectCode(project.Name);

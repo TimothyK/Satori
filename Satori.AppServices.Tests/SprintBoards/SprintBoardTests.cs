@@ -1,17 +1,14 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
-using Satori.AppServices.Services.Abstractions;
-using Satori.AppServices.ViewModels.Sprints;
-using Satori.AzureDevOps.Models;
-using Shouldly;
+using Satori.AppServices.Tests.TestDoubles;
+using Satori.AppServices.Tests.TestDoubles.AlertServices;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
-using Satori.AppServices.Tests.TestDoubles.AlertServices;
-using Satori.AppServices.Tests.TestDoubles.Kimai;
+using Satori.AppServices.ViewModels.Sprints;
 using Satori.AzureDevOps;
-using Satori.TimeServices;
+using Satori.AzureDevOps.Models;
+using Shouldly;
 
 namespace Satori.AppServices.Tests.SprintBoards;
 
@@ -19,28 +16,18 @@ namespace Satori.AppServices.Tests.SprintBoards;
 public class SprintBoardTests
 {
     private readonly ServiceProvider _serviceProvider;
-    private readonly TestAzureDevOpsServer _azureDevOpsServer;
-    private readonly AzureDevOpsDatabaseBuilder _builder;
-    private readonly TestTimeServer _timeServer = new();
-    private readonly TestAlertService _alertService = new();
     private Uri AzureDevOpsRootUrl => _serviceProvider.GetRequiredService<IAzureDevOpsServer>().ConnectionSettings.Url;
+    private readonly TestAlertService _alertService;
+    private readonly TestTimeServer _timeServer;
 
     public SprintBoardTests()
     {
-        _azureDevOpsServer = new TestAzureDevOpsServer();
-        _builder = _azureDevOpsServer.CreateBuilder();
-
-        var kimai = new TestKimaiServer();
-
-        var services = new ServiceCollection();
-        services.AddSingleton(_azureDevOpsServer.AsInterface());
-        services.AddSingleton(kimai.AsInterface());
-        services.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory>(NullLoggerFactory.Instance);
-        services.AddSingleton<IAlertService>(_alertService);
-        services.AddSingleton<ITimeServer>(_timeServer);
+        var services = new SatoriServiceCollection();
         services.AddTransient<SprintBoardService>();
-
         _serviceProvider = services.BuildServiceProvider();
+
+        _alertService = _serviceProvider.GetRequiredService<TestAlertService>();
+        _timeServer = _serviceProvider.GetRequiredService<TestTimeServer>();
     }
 
     #region Helpers
@@ -54,7 +41,8 @@ public class SprintBoardTests
 
     private Iteration BuildIteration(out Team team)
     {
-        _builder.BuildTeam(out team).WithIteration(out var iteration);
+        var builder = _serviceProvider.GetRequiredService<AzureDevOpsDatabaseBuilder>();
+        builder.BuildTeam(out team).WithIteration(out var iteration);
         return iteration;
     }
 
@@ -119,7 +107,8 @@ public class SprintBoardTests
     public void NoIteration_NoSprints()
     {
         //Arrange
-        _builder.BuildTeam();
+        var builder = _serviceProvider.GetRequiredService<AzureDevOpsDatabaseBuilder>();
+        builder.BuildTeam();
 
         //Act
         var sprints = GetSprints();
@@ -359,7 +348,8 @@ public class SprintBoardTests
     {
         //Arrange
         BuildIteration(out var team);
-        _azureDevOpsServer.RevokeProject(team.ProjectName);
+        var azureDevOpsServer = _serviceProvider.GetRequiredService<TestAzureDevOpsServer>();
+        azureDevOpsServer.RevokeProject(team.ProjectName);
 
         //Act
         var sprints = GetSprints();
@@ -376,7 +366,8 @@ public class SprintBoardTests
     public void ConnectionError_ReturnEmpty()
     {
         //Arrange
-        _azureDevOpsServer.Mock.Setup(srv => srv.GetTeamsAsync()).Throws<ApplicationException>();
+        var azureDevOpsServer = _serviceProvider.GetRequiredService<TestAzureDevOpsServer>();
+        azureDevOpsServer.Mock.Setup(srv => srv.GetTeamsAsync()).Throws<ApplicationException>();
 
         //Act
         var sprints = GetSprints();
@@ -390,7 +381,8 @@ public class SprintBoardTests
     public void ConnectionError_BroadcastsError()
     {
         //Arrange
-        _azureDevOpsServer.Mock.Setup(srv => srv.GetTeamsAsync()).Throws<ApplicationException>();
+        var azureDevOpsServer = _serviceProvider.GetRequiredService<TestAzureDevOpsServer>();
+        azureDevOpsServer.Mock.Setup(srv => srv.GetTeamsAsync()).Throws<ApplicationException>();
 
         //Act
         GetSprints();

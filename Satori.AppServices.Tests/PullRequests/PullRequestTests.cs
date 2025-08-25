@@ -1,15 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
-using Satori.AppServices.Services.Abstractions;
+using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AlertServices;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
-using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
-using Satori.Kimai;
 using Shouldly;
 using PullRequest = Satori.AzureDevOps.Models.PullRequest;
 
@@ -19,24 +16,13 @@ namespace Satori.AppServices.Tests.PullRequests;
 public class PullRequestTests
 {
     private readonly ServiceProvider _serviceProvider;
-    private readonly TestAzureDevOpsServer _azureDevOpsServer;
-    private readonly AzureDevOpsDatabaseBuilder _builder;
-    private readonly TestAlertService _alertService = new();
     private Uri AzureDevOpsRootUrl => _serviceProvider.GetRequiredService<IAzureDevOpsServer>().ConnectionSettings.Url;
 
     public PullRequestTests()
     {
-        _azureDevOpsServer = new TestAzureDevOpsServer();
-        _builder = _azureDevOpsServer.CreateBuilder();
-        var kimai = new TestKimaiServer();
 
-        var services = new ServiceCollection();
-        services.AddSingleton(_azureDevOpsServer.AsInterface());
-        services.AddSingleton(kimai.AsInterface());
-        services.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory>(NullLoggerFactory.Instance);
-        services.AddSingleton<IAlertService>(_alertService);
+        var services = new SatoriServiceCollection();
         services.AddTransient<PullRequestService>();
-
         _serviceProvider = services.BuildServiceProvider();
     }
 
@@ -46,7 +32,8 @@ public class PullRequestTests
 
     private PullRequest BuildPullRequest()
     {
-        return _builder.BuildPullRequest().PullRequest;
+        var builder = _serviceProvider.GetRequiredService<AzureDevOpsDatabaseBuilder>();
+        return builder.BuildPullRequest().PullRequest;
     }
 
     private static Reviewer BuildReviewerWithVote(int vote)
@@ -98,7 +85,8 @@ public class PullRequestTests
     [TestCleanup]
     public void TearDown()
     {
-        _alertService.VerifyNoMessagesWereBroadcast();
+        var alertService = _serviceProvider.GetRequiredService<TestAlertService>();
+        alertService.VerifyNoMessagesWereBroadcast();
     }
 
     #endregion Assert
@@ -109,7 +97,7 @@ public class PullRequestTests
     public async Task ASmokeTest()
     {
         //Arrange
-        var pr = _builder.BuildPullRequest().PullRequest;
+        var pr = BuildPullRequest();
 
         //Act
         var pullRequests = await GetPullRequestsAsync();
@@ -367,7 +355,8 @@ public class PullRequestTests
     public async Task WorkItems_SmokeTest()
     {
         //Arrange
-        _builder.BuildPullRequest()
+        var builder = _serviceProvider.GetRequiredService<AzureDevOpsDatabaseBuilder>();
+        builder.BuildPullRequest()
             .WithWorkItem(out var expected);
 
         //Act
@@ -383,9 +372,10 @@ public class PullRequestTests
     public async Task MultiPullRequests_MultiWorkItems()
     {
         //Arrange
-        _builder.BuildPullRequest(out var pr1).WithWorkItem(out var workItem1);
-        _builder.BuildPullRequest(out var pr2);
-        _builder.BuildPullRequest(out var pr3).WithWorkItem(workItem1).WithWorkItem(out var workItem2);
+        var builder = _serviceProvider.GetRequiredService<AzureDevOpsDatabaseBuilder>();
+        builder.BuildPullRequest(out var pr1).WithWorkItem(out var workItem1);
+        builder.BuildPullRequest(out var pr2);
+        builder.BuildPullRequest(out var pr3).WithWorkItem(workItem1).WithWorkItem(out var workItem2);
         
         //Act
         var prs = await GetPullRequestsAsync(WithChildren.WorkItems);
@@ -412,10 +402,12 @@ public class PullRequestTests
     public async Task ConnectionError_ReturnsEmpty()
     {
         //Arrange
-        _azureDevOpsServer.Mock
+        var azureDevOpsServer = _serviceProvider.GetRequiredService<TestAzureDevOpsServer>();
+        var alertService = _serviceProvider.GetRequiredService<TestAlertService>();
+        azureDevOpsServer.Mock
             .Setup(srv => srv.GetPullRequestsAsync())
             .Throws<ApplicationException>();
-        _alertService.DisableVerifications();
+        alertService.DisableVerifications();
 
         //Act
         var pullRequests = await GetPullRequestsAsync();
@@ -428,7 +420,9 @@ public class PullRequestTests
     public async Task ConnectionError_BroadcastsError()
     {
         //Arrange
-        _azureDevOpsServer.Mock
+        var azureDevOpsServer = _serviceProvider.GetRequiredService<TestAzureDevOpsServer>();
+        var alertService = _serviceProvider.GetRequiredService<TestAlertService>();
+        azureDevOpsServer.Mock
             .Setup(srv => srv.GetPullRequestsAsync())
             .Throws<ApplicationException>();
 
@@ -436,9 +430,9 @@ public class PullRequestTests
         await GetPullRequestsAsync();
 
         //Assert
-        _alertService.LastException.ShouldNotBeNull();
-        _alertService.LastException.ShouldBeOfType<ApplicationException>();
-        _alertService.DisableVerifications();
+        alertService.LastException.ShouldNotBeNull();
+        alertService.LastException.ShouldBeOfType<ApplicationException>();
+        alertService.DisableVerifications();
     }
 
     #endregion Error Handling

@@ -1,15 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Extensions;
 using Satori.AppServices.Services;
-using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.Tests.TestDoubles;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
-using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.WorkItems;
+using Satori.Kimai;
 using Shouldly;
 
 namespace Satori.AppServices.Tests.WorkItemUpdateTests;
@@ -17,23 +14,18 @@ namespace Satori.AppServices.Tests.WorkItemUpdateTests;
 [TestClass]
 public class CreateTaskTests
 {
+    private readonly ServiceProvider _serviceProvider;
+
     public CreateTaskTests()
     {
-        Person.Me = null;  //Clear cache
-
-        var services = new ServiceCollection();
-        services.AddSingleton(AzureDevOps.AsInterface());
-        services.AddSingleton(Kimai.AsInterface());
-        services.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory>(NullLoggerFactory.Instance);
-        services.AddSingleton<IAlertService>(new AlertService());
+        var services = new SatoriServiceCollection();
         services.AddTransient<UserService>();
         services.AddTransient<WorkItemUpdateService>();
+        _serviceProvider = services.BuildServiceProvider();
 
-        var serviceProvider = services.BuildServiceProvider();
+        Server = _serviceProvider.GetRequiredService<WorkItemUpdateService>();
 
-        Server = serviceProvider.GetRequiredService<WorkItemUpdateService>();
-
-        AzureDevOpsBuilder = AzureDevOps.CreateBuilder();
+        AzureDevOpsBuilder = _serviceProvider.GetRequiredService<AzureDevOpsDatabaseBuilder>();
     }
 
     #region Helpers
@@ -41,9 +33,7 @@ public class CreateTaskTests
     #region Arrange
 
     public WorkItemUpdateService Server { get; set; }
-    private TestAzureDevOpsServer AzureDevOps { get; } = new();
     private AzureDevOpsDatabaseBuilder AzureDevOpsBuilder { get; }
-    private protected TestKimaiServer Kimai { get; } = new();
 
     #endregion Arrange
 
@@ -54,7 +44,8 @@ public class CreateTaskTests
         //Arrange
 
         //Act
-        var viewModel = await parent.ToViewModelAsync(Kimai.AsInterface());
+        var kimai = _serviceProvider.GetRequiredService<IKimaiServer>();
+        var viewModel = await parent.ToViewModelAsync(kimai);
         var task = await Server.CreateTaskAsync(viewModel, title, estimate);
 
         //Assert

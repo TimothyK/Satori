@@ -1,13 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
-using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.Services.Converters;
+using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
-using Satori.AppServices.ViewModels;
-using Satori.Kimai.Utilities;
+using Satori.AzureDevOps;
+using Satori.Kimai;
 using Satori.Kimai.ViewModels;
 using Shouldly;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
@@ -18,29 +17,21 @@ namespace Satori.AppServices.Tests.WorkItemUpdateTests;
 [TestClass]
 public class UpdateProjectCodeTests
 {
+    private readonly ServiceProvider _serviceProvider;
     public WorkItemUpdateService Server { get; set; }
-    private TestAzureDevOpsServer AzureDevOps { get; } = new();
     private AzureDevOpsDatabaseBuilder AzureDevOpsBuilder { get; }
-    private protected TestKimaiServer Kimai { get; } = new();
 
     public UpdateProjectCodeTests()
     {
-        //Person.Me = null;  //Clear cache
-        AzureDevOps.RequireRecordLocking = false;
-
-        var services = new ServiceCollection();
-        services.AddSingleton(AzureDevOps.AsInterface());
-        services.AddSingleton(Kimai.AsInterface());
-        services.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory>(NullLoggerFactory.Instance);
-        services.AddSingleton<IAlertService>(new AlertService());
+        var services = new SatoriServiceCollection();
         services.AddTransient<UserService>();
         services.AddTransient<WorkItemUpdateService>();
+        _serviceProvider = services.BuildServiceProvider();
 
-        var serviceProvider = services.BuildServiceProvider();
+        Server = _serviceProvider.GetRequiredService<WorkItemUpdateService>();
 
-        Server = serviceProvider.GetRequiredService<WorkItemUpdateService>();
-
-        AzureDevOpsBuilder = AzureDevOps.CreateBuilder();
+        AzureDevOpsBuilder = _serviceProvider.GetRequiredService<AzureDevOpsDatabaseBuilder>();
+        _serviceProvider.GetRequiredService<TestAzureDevOpsServer>().RequireRecordLocking = false;
 
     }
 
@@ -53,16 +44,18 @@ public class UpdateProjectCodeTests
 
         arrangeWorkItem?.Invoke(workItem);
 
-        return await workItem.ToViewModelAsync(Kimai.AsInterface());
+        var kimai = _serviceProvider.GetRequiredService<IKimaiServer>();
+        return await workItem.ToViewModelAsync(kimai);
     }
 
     private async Task<Activity> BuildActivityAsync()
     {
-        var projectModel = Kimai.AddProject();
-        var activityModel = Kimai.AddActivity(projectModel);
+        var kimai = _serviceProvider.GetRequiredService<TestKimaiServer>();
+        var projectModel = kimai.AddProject();
+        var activityModel = kimai.AddActivity(projectModel);
 
         //Let the Kimai server turn convert to ViewModels
-        var customers = await Kimai.AsInterface().GetCustomersAsync();
+        var customers = await _serviceProvider.GetRequiredService<IKimaiServer>().GetCustomersAsync();
         var projectViewModel = customers.SelectMany(customer => customer.Projects).Single(p => p.Id == projectModel.Id);
         var activityViewModel = projectViewModel.Activities.Single(a => a.Id == activityModel.Id);
 
@@ -97,7 +90,8 @@ public class UpdateProjectCodeTests
         await UpdateProjectCodeAsync(workItem, activity.Project, activity);
 
         //Assert
-        var actual = (await AzureDevOps.AsInterface().GetWorkItemsAsync(workItem.Id)).Single();
+        var azureDevOpsServer = _serviceProvider.GetRequiredService<IAzureDevOpsServer>();
+        var actual = (await azureDevOpsServer.GetWorkItemsAsync(workItem.Id)).Single();
 
         actual.Fields.ProjectCode.ShouldNotBeNull();
         actual.Fields.ProjectCode.ShouldBe($"{activity.Project.ProjectCode}.{activity.ActivityCode}");
@@ -140,7 +134,8 @@ public class UpdateProjectCodeTests
         await UpdateProjectCodeAsync(workItem, activity.Project);
 
         //Assert
-        var actual = (await AzureDevOps.AsInterface().GetWorkItemsAsync(workItem.Id)).Single();
+        var azureDevOpsServer = _serviceProvider.GetRequiredService<IAzureDevOpsServer>();
+        var actual = (await azureDevOpsServer.GetWorkItemsAsync(workItem.Id)).Single();
         actual.Fields.ProjectCode.ShouldNotBeNull();
         actual.Fields.ProjectCode.ShouldBe($"{activity.Project.ProjectCode}");
 
@@ -158,7 +153,8 @@ public class UpdateProjectCodeTests
         await UpdateProjectCodeAsync(workItem, null);
 
         //Assert
-        var actual = (await AzureDevOps.AsInterface().GetWorkItemsAsync(workItem.Id)).Single();
+        var azureDevOpsServer = _serviceProvider.GetRequiredService<IAzureDevOpsServer>();
+        var actual = (await azureDevOpsServer.GetWorkItemsAsync(workItem.Id)).Single();
         actual.Fields.ProjectCode.ShouldBeNullOrEmpty();
 
         workItem.KimaiProject.ShouldBeNull();

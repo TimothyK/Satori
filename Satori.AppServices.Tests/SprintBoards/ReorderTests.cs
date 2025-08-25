@@ -1,19 +1,17 @@
 ﻿using Builder;
 using CodeMonkeyProjectiles.Linq;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
-using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.Services.Converters;
-using Satori.AppServices.Tests.TestDoubles.AlertServices;
+using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
+using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
-using Satori.TimeServices;
+using Satori.Kimai;
 using Shouldly;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
@@ -23,29 +21,14 @@ namespace Satori.AppServices.Tests.SprintBoards;
 public class ReorderTests
 {
     private readonly ServiceProvider _serviceProvider;
-    private readonly TestAzureDevOpsServer _azureDevOpsServer;
-    private readonly AzureDevOpsDatabaseBuilder _builder;
-    private readonly TestAlertService _alertService = new();
-    private readonly TestTimeServer _timeServer = new();
-    private TestKimaiServer _kimai;
 
     public ReorderTests()
     {
-        _azureDevOpsServer = new TestAzureDevOpsServer()
-            .With(srv => srv.RequireRecordLocking = false);
-        _builder = _azureDevOpsServer.CreateBuilder();
-
-        _kimai = new TestKimaiServer();
-
-        var services = new ServiceCollection();
-        services.AddSingleton(_azureDevOpsServer.AsInterface());
-        services.AddSingleton(_kimai.AsInterface());
-        services.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory>(NullLoggerFactory.Instance);
-        services.AddSingleton<IAlertService>(_alertService);
-        services.AddSingleton<ITimeServer>(_timeServer);
+        var services = new SatoriServiceCollection();
         services.AddTransient<SprintBoardService>();
-
         _serviceProvider = services.BuildServiceProvider();
+
+        _serviceProvider.GetRequiredService<TestAzureDevOpsServer>().RequireRecordLocking = false;
     }
 
     #region Helpers
@@ -61,14 +44,16 @@ public class ReorderTests
     {
         var sprint = BuildSprint();
         var workItems = new List<WorkItem>();
+        var builder = _serviceProvider.GetRequiredService<AzureDevOpsDatabaseBuilder>();
+        var kimai = _serviceProvider.GetRequiredService<IKimaiServer>();
 
         for (var i = 0; i < count; i++)
         {
-            _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+            builder.BuildWorkItem(out var workItem).WithSprint(sprint);
             workItem.Fields.BacklogPriority = (i + 1) * 10.0;
             workItem.Fields.AssignedTo = People.Alice;
 
-            var viewModel = await workItem.ToViewModelAsync(_kimai.AsInterface());
+            var viewModel = await workItem.ToViewModelAsync(kimai);
             viewModel.Sprint = sprint;
             viewModel.SprintPriority = i + 1;
 
@@ -314,7 +299,8 @@ public class ReorderTests
         };
 
         //Act
-        await Should.ThrowAsync<ShouldAssertException>(() => _azureDevOpsServer.AsInterface().ReorderBacklogWorkItemsAsync(iteration, operation));
+        var azureDevOpsServer = _serviceProvider.GetRequiredService<IAzureDevOpsServer>();
+        await Should.ThrowAsync<ShouldAssertException>(() => azureDevOpsServer.ReorderBacklogWorkItemsAsync(iteration, operation));
     }
     
     [TestMethod]
@@ -333,7 +319,8 @@ public class ReorderTests
         };
 
         //Act
-        await Should.ThrowAsync<ShouldAssertException>(() => _azureDevOpsServer.AsInterface().ReorderBacklogWorkItemsAsync(iteration, operation));
+        var azureDevOpsServer = _serviceProvider.GetRequiredService<IAzureDevOpsServer>();
+        await Should.ThrowAsync<ShouldAssertException>(() => azureDevOpsServer.ReorderBacklogWorkItemsAsync(iteration, operation));
     }
 
     [TestMethod]

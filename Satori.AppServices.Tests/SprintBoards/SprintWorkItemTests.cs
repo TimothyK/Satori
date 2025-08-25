@@ -1,20 +1,15 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services;
-using Satori.AppServices.Services.Abstractions;
-using Satori.AppServices.Services.Converters;
 using Satori.AppServices.Tests.TestDoubles;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
+using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 using Satori.Kimai.Utilities;
-using Satori.TimeServices;
 using Shouldly;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
@@ -24,27 +19,15 @@ namespace Satori.AppServices.Tests.SprintBoards;
 public class SprintWorkItemTests
 {
     private readonly ServiceProvider _serviceProvider;
-    private readonly TestAzureDevOpsServer _azureDevOpsServer;
     private readonly AzureDevOpsDatabaseBuilder _builder;
-    private readonly TestTimeServer _timeServer = new();
-    private readonly TestKimaiServer _kimai;
 
     public SprintWorkItemTests()
     {
-        _azureDevOpsServer = new TestAzureDevOpsServer();
-        _builder = _azureDevOpsServer.CreateBuilder();
-
-        _kimai = new TestKimaiServer();
-
-        var services = new ServiceCollection();
-        services.AddSingleton(_azureDevOpsServer.AsInterface());
-        services.AddSingleton(_kimai.AsInterface());
-        services.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory>(NullLoggerFactory.Instance);
-        services.AddSingleton<IAlertService>(new AlertService());
-        services.AddSingleton<ITimeServer>(_timeServer);
+        var services = new SatoriServiceCollection();
         services.AddTransient<SprintBoardService>();
-
         _serviceProvider = services.BuildServiceProvider();
+
+        _builder = _serviceProvider.GetRequiredService<AzureDevOpsDatabaseBuilder>();
     }
 
     #region Helpers
@@ -207,9 +190,9 @@ public class SprintWorkItemTests
             .AddChild(bug);
 
         //Act
-        var srv = _azureDevOpsServer.AsInterface();
+        var azureDevOpServer = _serviceProvider.GetRequiredService<IAzureDevOpsServer>();
         var iterationId = (IterationId)sprint;
-        var relations = srv.GetIterationWorkItemsAsync(iterationId).Result;
+        var relations = azureDevOpServer.GetIterationWorkItemsAsync(iterationId).Result;
 
         //Assert
         relations.Any(r => r.Source?.Id == pbi.Id && r.Target.Id == bug.Id).ShouldBeTrue();
@@ -564,7 +547,8 @@ public class SprintWorkItemTests
     public void KimaiProject()
     {
         //Arrange
-        var project = _kimai.AddProject();
+        var kimai = _serviceProvider.GetRequiredService<TestKimaiServer>();
+        var project = kimai.AddProject();
         var sprint = BuildSprint();
         _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
         workItem.Fields.ProjectCode = ProjectCodeParser.GetProjectCode(project.Name);
@@ -582,7 +566,8 @@ public class SprintWorkItemTests
     public void KimaiProject_StripLeadingZeros()
     {
         //Arrange
-        var project = _kimai.AddProject();
+        var kimai = _serviceProvider.GetRequiredService<TestKimaiServer>();
+        var project = kimai.AddProject();
         var sprint = BuildSprint();
         _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
         workItem.Fields.ProjectCode = "0" + ProjectCodeParser.GetProjectCode(project.Name);
@@ -600,8 +585,9 @@ public class SprintWorkItemTests
     public void KimaiActivity()
     {
         //Arrange
-        var project = _kimai.AddProject();
-        var activity = _kimai.AddActivity(project);
+        var kimai = _serviceProvider.GetRequiredService<TestKimaiServer>();
+        var project = kimai.AddProject();
+        var activity = kimai.AddActivity(project);
         var sprint = BuildSprint();
         _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
         workItem.Fields.ProjectCode = ProjectCodeParser.GetProjectCode(project.Name) 
