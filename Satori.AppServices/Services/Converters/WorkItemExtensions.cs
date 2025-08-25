@@ -5,14 +5,11 @@ using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.PullRequests.ActionItems;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AppServices.ViewModels.WorkItems.ActionItems;
+using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 using Satori.Kimai;
-using System.Diagnostics.CodeAnalysis;
-using Satori.AzureDevOps;
-using Satori.Kimai.Utilities;
 using Satori.Kimai.ViewModels;
-using KimaiProject = Satori.Kimai.ViewModels.Project;
-using KimaiActivity = Satori.Kimai.ViewModels.Activity;
+using System.Diagnostics.CodeAnalysis;
 using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
