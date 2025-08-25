@@ -387,13 +387,6 @@ public class PullRequestTests
         _builder.BuildPullRequest(out var pr2);
         _builder.BuildPullRequest(out var pr3).WithWorkItem(workItem1).WithWorkItem(out var workItem2);
         
-        Console.WriteLine("PR1 is " + pr1.PullRequestId);
-        Console.WriteLine("PR2 is " + pr2.PullRequestId);
-        Console.WriteLine("PR3 is " + pr3.PullRequestId);
-
-        Console.WriteLine("D#1 is " + workItem1.Id);
-        Console.WriteLine("D#2 is " + workItem2.Id);
-
         //Act
         var prs = await GetPullRequestsAsync(WithChildren.WorkItems);
 
