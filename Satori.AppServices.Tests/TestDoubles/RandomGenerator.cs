@@ -1,6 +1,4 @@
-﻿using Satori.AppServices.ViewModels.WorkItems;
-
-namespace Satori.AppServices.Tests.TestDoubles;
+﻿namespace Satori.AppServices.Tests.TestDoubles;
 
 public static class RandomGenerator
 {

@@ -34,57 +34,46 @@ public partial class WorkItemView
         VerifyProjectCode();
     }
 
-    private CssClass ParentProjectCodeCssClass { get; set; } = CssClass.None;
     private CssClass ProjectCodeCssClass { get; set; } = CssClass.None;
+
+    private string ProjectCode
+    {
+        get
+        {
+            var requiredActivity = WorkItem?.KimaiActivity ?? WorkItem?.Parent?.KimaiActivity;
+
+            if (requiredActivity != null)
+            {
+                return $"{requiredActivity.Project.ProjectCode}.{requiredActivity.ActivityCode}";
+            }
+
+            var requiredProject = WorkItem?.KimaiProject ?? WorkItem?.Parent?.KimaiProject;
+            return requiredProject != null ? requiredProject.ProjectCode 
+                : string.Empty;
+        }
+    }
 
     private void VerifyProjectCode()
     {
-        var kimaiProjectNumber = GetFirstInteger(Activity.ParentProjectSummary.ProjectName);
+        var requiredActivity = WorkItem?.KimaiActivity ?? WorkItem?.Parent?.KimaiActivity;
+        var requiredProject = requiredActivity?.Project ?? WorkItem?.KimaiProject ?? WorkItem?.Parent?.KimaiProject;
 
-        if (string.IsNullOrEmpty(WorkItem?.Parent?.ProjectCode))
+        bool isValid;
+        if (requiredActivity != null)
         {
-            ParentProjectCodeCssClass = VisibleCssClass.Hidden;
+            isValid = requiredActivity.Id == Activity.ActivityId;
         }
-        else if (kimaiProjectNumber != GetFirstInteger(WorkItem?.Parent?.ProjectCode))
+        else if (requiredProject != null)
         {
-            ParentProjectCodeCssClass = new CssClass("project-code-invalid");
+            isValid = requiredProject.Id == Activity.ParentProjectSummary.ProjectId;
         }
         else
         {
-            ParentProjectCodeCssClass = VisibleCssClass.Hidden;
+            isValid = true;
         }
 
-        if (string.IsNullOrEmpty(WorkItem?.ProjectCode))
-        {
-            ProjectCodeCssClass = VisibleCssClass.Hidden;
-        }
-        else if (kimaiProjectNumber != GetFirstInteger(WorkItem?.ProjectCode))
-        {
-            ProjectCodeCssClass = new CssClass("project-code-invalid");
-        }
-        else
-        {
-            ProjectCodeCssClass = VisibleCssClass.Hidden;
-        }
-
-    }
-
-    private static int? GetFirstInteger(string? value)
-    {
-        if (string.IsNullOrEmpty(value))
-        {
-            return null;
-        }
-
-        const string pattern = @"\d+";
-        var match = Regex.Match(value, pattern);
-
-        if (match.Success && int.TryParse(match.Value, out var result))
-        {
-            return result;
-        }
-
-        return null;
+        ProjectCodeCssClass = isValid ? VisibleCssClass.Hidden
+            : new CssClass("project-code-invalid");
     }
 
     private async Task OpenWorkItemAsync(WorkItem workItem)

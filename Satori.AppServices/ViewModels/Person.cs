@@ -65,7 +65,7 @@ public class Person
         }
     }
 
-    private static readonly object PeopleLock = new();
+    private static readonly Lock PeopleLock = new();
 
     /// <summary>
     /// Cache of Person objects.  The Key of this dictionary is from <see cref="GetUserId"/>

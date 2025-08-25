@@ -1,6 +1,9 @@
 ﻿using CodeMonkeyProjectiles.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Extensions;
 using Satori.AppServices.Services;
+using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
@@ -8,6 +11,7 @@ using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.WorkItems;
+using Satori.Kimai;
 using Shouldly;
 using AzureDevOpsWorkItem = Satori.AzureDevOps.Models.WorkItem;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
@@ -17,14 +21,21 @@ namespace Satori.AppServices.Tests.WorkItemUpdateTests;
 [TestClass]
 public class UpdateTaskTests
 {
+    private readonly ServiceProvider _serviceProvider;
+
     public UpdateTaskTests()
     {
         Person.Me = null;  //Clear cache
 
-        var userService = new UserService(AzureDevOps.AsInterface(), Kimai.AsInterface(), new AlertService());
-        Server = new WorkItemUpdateService(AzureDevOps.AsInterface(), userService);
+        var services = new SatoriServiceCollection();
+        services.AddTransient<UserService>();
+        services.AddTransient<WorkItemUpdateService>();
 
-        AzureDevOpsBuilder = AzureDevOps.CreateBuilder();
+        _serviceProvider = services.BuildServiceProvider();
+
+        Server = _serviceProvider.GetRequiredService<WorkItemUpdateService>();
+
+        AzureDevOpsBuilder = _serviceProvider.GetRequiredService<AzureDevOpsDatabaseBuilder>();
     }
 
     #region Helpers
@@ -32,11 +43,9 @@ public class UpdateTaskTests
     #region Arrange
 
     public WorkItemUpdateService Server { get; set; }
-    private TestAzureDevOpsServer AzureDevOps { get; } = new();
     private AzureDevOpsDatabaseBuilder AzureDevOpsBuilder { get; }
-    private protected TestKimaiServer Kimai { get; } = new();
 
-    private WorkItem BuildTask(Action<AzureDevOpsWorkItem>? arrangeWorkItem = null)
+    private async Task<WorkItem> BuildTaskAsync(Action<AzureDevOpsWorkItem>? arrangeWorkItem = null)
     {
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
         
@@ -45,11 +54,13 @@ public class UpdateTaskTests
         var remaining = RandomGenerator.TimeSpan(TimeSpan.FromHours(2.5)).ToNearest(TimeSpan.FromMinutes(6));
         task.Fields.OriginalEstimate = remaining.TotalHours;
         task.Fields.RemainingWork = remaining.TotalHours;
-        task.Fields.AssignedTo = AzureDevOps.Identity.ToUser();
+        var azureDevOpsServer = _serviceProvider.GetRequiredService<TestAzureDevOpsServer>();
+        task.Fields.AssignedTo = azureDevOpsServer.Identity.ToUser();
 
         arrangeWorkItem?.Invoke(task);
 
-        return task.ToViewModel();
+        var kimai = _serviceProvider.GetRequiredService<IKimaiServer>();
+        return await task.ToViewModelAsync(kimai);
     }
 
     #endregion Arrange
@@ -69,7 +80,7 @@ public class UpdateTaskTests
     public async Task ASmokeTest_NoChanges_NotUpdated()
     {
         //Arrange
-        var task = BuildTask();
+        var task = await BuildTaskAsync();
 
         //Verify BuildTask behaviour
         task.State.ShouldBe(ScrumState.InProgress);
@@ -87,7 +98,7 @@ public class UpdateTaskTests
     public async Task Done_Updated()
     {
         //Arrange
-        var task = BuildTask();
+        var task = await BuildTaskAsync();
         var originalRev = task.Rev;
 
         //Act
@@ -104,7 +115,7 @@ public class UpdateTaskTests
         //Arrange
         var nonTask = WorkItemType.All().Except(WorkItemType.Task.Yield());
         var type = RandomGenerator.PickOne(nonTask);
-        var task = BuildTask(t => t.Fields.WorkItemType = type.ToApiValue());
+        var task = await BuildTaskAsync(t => t.Fields.WorkItemType = type.ToApiValue());
         var originalRev = task.Rev;
 
         //Act
@@ -118,7 +129,7 @@ public class UpdateTaskTests
     public async Task RemainingWork_Updated()
     {
         //Arrange
-        var task = BuildTask();
+        var task = await BuildTaskAsync();
         var remaining = (task.RemainingWork ?? throw new InvalidOperationException())
             .Add(TimeSpan.FromHours(1.5));
         var originalRev = task.Rev;
@@ -136,7 +147,7 @@ public class UpdateTaskTests
     public async Task RemainingWork_RoundedToDime()
     {
         //Arrange
-        var task = BuildTask();
+        var task = await BuildTaskAsync();
         var remaining = (task.RemainingWork ?? throw new InvalidOperationException())
             .Add(TimeSpan.FromHours(1.5))
             .Add(TimeSpan.FromMinutes(2.345));
@@ -155,7 +166,7 @@ public class UpdateTaskTests
     public async Task OriginalEstimate_Updated()
     {
         //Arrange
-        var task = BuildTask(t =>
+        var task = await BuildTaskAsync(t =>
         {
             t.Fields.State = ScrumState.New.ToApiValue();
             t.Fields.OriginalEstimate = null;
@@ -179,7 +190,7 @@ public class UpdateTaskTests
     public async Task OriginalEstimate_HasValue_NotUpdated()
     {
         //Arrange
-        var task = BuildTask();
+        var task = await BuildTaskAsync();
         var expected = task.OriginalEstimate;
         var remaining = (task.RemainingWork ?? throw new InvalidOperationException())
             .Add(TimeSpan.FromHours(1.5));
@@ -195,7 +206,7 @@ public class UpdateTaskTests
     public async Task State_ToDo_Updated()
     {
         //Arrange
-        var task = BuildTask();
+        var task = await BuildTaskAsync();
         var originalRev = task.Rev;
 
         //Act
@@ -210,7 +221,7 @@ public class UpdateTaskTests
     public async Task AssignToSomeoneElse_NotUpdated()
     {
         //Arrange
-        var task = BuildTask(t => t.Fields.AssignedTo = null);
+        var task = await BuildTaskAsync(t => t.Fields.AssignedTo = null);
         var originalRev = task.Rev;
 
         //Act

@@ -1,15 +1,17 @@
 ﻿using Builder;
 using CodeMonkeyProjectiles.Linq;
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 using Satori.AppServices.Services;
 using Satori.AppServices.Services.Converters;
+using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
+using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
-using Satori.TimeServices;
+using Satori.Kimai;
 using Shouldly;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
@@ -18,14 +20,15 @@ namespace Satori.AppServices.Tests.SprintBoards;
 [TestClass]
 public class ReorderTests
 {
-    private readonly TestAzureDevOpsServer _azureDevOpsServer;
-    private readonly AzureDevOpsDatabaseBuilder _builder;
+    private readonly ServiceProvider _serviceProvider;
 
     public ReorderTests()
     {
-        _azureDevOpsServer = new TestAzureDevOpsServer()
-            .With(srv => srv.RequireRecordLocking = false);
-        _builder = _azureDevOpsServer.CreateBuilder();
+        var services = new SatoriServiceCollection();
+        services.AddTransient<SprintBoardService>();
+        _serviceProvider = services.BuildServiceProvider();
+
+        _serviceProvider.GetRequiredService<TestAzureDevOpsServer>().RequireRecordLocking = false;
     }
 
     #region Helpers
@@ -37,18 +40,20 @@ public class ReorderTests
         return Builder<Sprint>.New().Build(int.MaxValue);
     }
 
-    private List<WorkItem> BuildWorkItems(int count)
+    private async Task<List<WorkItem>> BuildWorkItemsAsync(int count)
     {
         var sprint = BuildSprint();
         var workItems = new List<WorkItem>();
+        var builder = _serviceProvider.GetRequiredService<AzureDevOpsDatabaseBuilder>();
+        var kimai = _serviceProvider.GetRequiredService<IKimaiServer>();
 
         for (var i = 0; i < count; i++)
         {
-            _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+            builder.BuildWorkItem(out var workItem).WithSprint(sprint);
             workItem.Fields.BacklogPriority = (i + 1) * 10.0;
             workItem.Fields.AssignedTo = People.Alice;
 
-            var viewModel = workItem.ToViewModel();
+            var viewModel = await workItem.ToViewModelAsync(kimai);
             viewModel.Sprint = sprint;
             viewModel.SprintPriority = i + 1;
 
@@ -66,7 +71,7 @@ public class ReorderTests
     {
         //Arrange
         var workItems = request.AllWorkItems;
-        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), new TimeServer(), new AlertService(), new NullLoggerFactory());
+        var srv = _serviceProvider.GetRequiredService<SprintBoardService>();
         LogRequest(request);
 
         //Act
@@ -102,10 +107,10 @@ public class ReorderTests
     /// Sanity check on BuildWorkItem
     /// </summary>
     [TestMethod]
-    public void BuildWorkItems_ReturnsOrderedWorkItems()
+    public async Task BuildWorkItems_ReturnsOrderedWorkItems()
     {
         //Act 
-        var workItems = BuildWorkItems(3);
+        var workItems = await BuildWorkItemsAsync(3);
 
         //Assert
         workItems.Count.ShouldBe(3);
@@ -120,7 +125,7 @@ public class ReorderTests
     public async Task ASmokeTest_ChangesAbsolutePriority()
     {
         //Arrange
-        var workItems = BuildWorkItems(3);
+        var workItems = await BuildWorkItemsAsync(3);
         var request = new ReorderRequest(workItems.ToArray(), workItems[0].Yield().ToArray(), RelativePosition.Below, target: workItems[1]);
 
         //Act
@@ -135,7 +140,7 @@ public class ReorderTests
     public async Task Reorder_ChangesSprintPriority()
     {
         //Arrange
-        var workItems = BuildWorkItems(3);
+        var workItems = await BuildWorkItemsAsync(3);
         var request = new ReorderRequest(workItems.ToArray(), workItems[0], RelativePosition.Below, target: workItems[1]);
 
         //Act
@@ -150,7 +155,7 @@ public class ReorderTests
     public async Task Reorder_ChangesActionItemPriority()
     {
         //Arrange
-        var workItems = BuildWorkItems(3);
+        var workItems = await BuildWorkItemsAsync(3);
         workItems[0].AssignedTo.ShouldBeSameAs(workItems[1].AssignedTo);
         var request = new ReorderRequest(workItems.ToArray(), workItems[0], RelativePosition.Below, target: workItems[1]);
 
@@ -166,7 +171,7 @@ public class ReorderTests
     public async Task Reorder_MoveToBottomImplicit()
     {
         //Arrange
-        var workItems = BuildWorkItems(3);
+        var workItems = await BuildWorkItemsAsync(3);
         var first = workItems.First();
         var last = workItems.Last();
         var request = new ReorderRequest(workItems.ToArray(), first, RelativePosition.Below, target: last);
@@ -182,7 +187,7 @@ public class ReorderTests
     public async Task Reorder_MoveToBottomExplicit()
     {
         //Arrange
-        var workItems = BuildWorkItems(3);
+        var workItems = await BuildWorkItemsAsync(3);
         var first = workItems.First();
         var last = workItems.Last();
         var request = new ReorderRequest(workItems.ToArray(), first, RelativePosition.Below, target: null);
@@ -198,7 +203,7 @@ public class ReorderTests
     public async Task Reorder_MoveAbove()
     {
         //Arrange
-        var workItems = BuildWorkItems(3);
+        var workItems = await BuildWorkItemsAsync(3);
         var first = workItems.First();
         var middle = workItems[1];
         var target = workItems.Last();
@@ -216,7 +221,7 @@ public class ReorderTests
     public async Task Reorder_MoveToTopImplicit()
     {
         //Arrange
-        var workItems = BuildWorkItems(3);
+        var workItems = await BuildWorkItemsAsync(3);
         var first = workItems.First();
         var movingItem = workItems[1];
         var request = new ReorderRequest(workItems.ToArray(), movingItem, RelativePosition.Above, target: first);
@@ -232,7 +237,7 @@ public class ReorderTests
     public async Task Reorder_MoveToTopExplicit()
     {
         //Arrange
-        var workItems = BuildWorkItems(3);
+        var workItems = await BuildWorkItemsAsync(3);
         var first = workItems.First();
         var movingItem = workItems[1];
         var request = new ReorderRequest(workItems.ToArray(), movingItem, RelativePosition.Above, target: null);
@@ -248,7 +253,7 @@ public class ReorderTests
     public async Task Reorder_NoneSelected_ThrowsInvalidOp()
     {
         //Arrange
-        var workItems = BuildWorkItems(3);
+        var workItems = await BuildWorkItemsAsync(3);
         var request = new ReorderRequest(workItems.ToArray(), [], RelativePosition.Above, target: null);
 
         //Act
@@ -259,10 +264,12 @@ public class ReorderTests
     }
 
     [TestMethod]
-    public void BuildWorkItems_ReturnsNewSprintOnEachCall()
+    public async Task BuildWorkItems_ReturnsNewSprintOnEachCall()
     {
         //Act
-        var workItems = BuildWorkItems(3).Concat(BuildWorkItems(3)).ToArray();
+        var workItems = (await BuildWorkItemsAsync(3))
+            .Concat(await BuildWorkItemsAsync(3))
+            .ToArray();
 
         //Assert
         var sprints = workItems.Select(wi => wi.Sprint).Distinct().ToArray();
@@ -273,7 +280,9 @@ public class ReorderTests
     public async Task ReorderBacklogWorkItemsAsync_MoveWorkItemsForMultipleTeams_ThrowsInvalidOp()
     {
         //Arrange
-        var allWorkItems = BuildWorkItems(3).Concat(BuildWorkItems(3)).OrderBy(wi => wi.AbsolutePriority).ToArray();
+        var allWorkItems = (await BuildWorkItemsAsync(3))
+            .Concat(await BuildWorkItemsAsync(3))
+            .OrderBy(wi => wi.AbsolutePriority).ToArray();
         var sprintGroups = allWorkItems.GroupBy(wi => wi.Sprint!).ToArray();
         sprintGroups.Length.ShouldBe(2);
 
@@ -290,14 +299,15 @@ public class ReorderTests
         };
 
         //Act
-        await Should.ThrowAsync<ShouldAssertException>(() => _azureDevOpsServer.AsInterface().ReorderBacklogWorkItemsAsync(iteration, operation));
+        var azureDevOpsServer = _serviceProvider.GetRequiredService<IAzureDevOpsServer>();
+        await Should.ThrowAsync<ShouldAssertException>(() => azureDevOpsServer.ReorderBacklogWorkItemsAsync(iteration, operation));
     }
     
     [TestMethod]
     public async Task ReorderBacklogWorkItemsAsync_MoveWorkItemsForDifferentTeam_ThrowsInvalidOp()
     {
         //Arrange
-        var allWorkItems = BuildWorkItems(3);
+        var allWorkItems = await BuildWorkItemsAsync(3);
 
         var iteration = Builder<IterationId>.New().Build();
 
@@ -309,14 +319,17 @@ public class ReorderTests
         };
 
         //Act
-        await Should.ThrowAsync<ShouldAssertException>(() => _azureDevOpsServer.AsInterface().ReorderBacklogWorkItemsAsync(iteration, operation));
+        var azureDevOpsServer = _serviceProvider.GetRequiredService<IAzureDevOpsServer>();
+        await Should.ThrowAsync<ShouldAssertException>(() => azureDevOpsServer.ReorderBacklogWorkItemsAsync(iteration, operation));
     }
 
     [TestMethod]
     public async Task Reorder_MixedSprints()
     {
         //Arrange
-        var allWorkItems = BuildWorkItems(10).Concat(BuildWorkItems(10)).OrderBy(wi => wi.AbsolutePriority).ToArray();
+        var allWorkItems = (await BuildWorkItemsAsync(10))
+            .Concat(await BuildWorkItemsAsync(10))
+            .OrderBy(wi => wi.AbsolutePriority).ToArray();
         var sprintGroups = allWorkItems.GroupBy(wi => wi.Sprint!).ToArray();
 
         var itemsToMove = sprintGroups

@@ -1,14 +1,12 @@
-﻿using Builder;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Satori.AppServices.Extensions;
 using Satori.AppServices.Services;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.Tests.TestDoubles;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
-using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.WorkItems;
-using Satori.Kimai.Models;
+using Satori.Kimai;
 using Shouldly;
 
 namespace Satori.AppServices.Tests.WorkItemUpdateTests;
@@ -16,14 +14,18 @@ namespace Satori.AppServices.Tests.WorkItemUpdateTests;
 [TestClass]
 public class CreateTaskTests
 {
+    private readonly ServiceProvider _serviceProvider;
+
     public CreateTaskTests()
     {
-        Person.Me = null;  //Clear cache
+        var services = new SatoriServiceCollection();
+        services.AddTransient<UserService>();
+        services.AddTransient<WorkItemUpdateService>();
+        _serviceProvider = services.BuildServiceProvider();
 
-        var userService = new UserService(AzureDevOps.AsInterface(), Kimai.AsInterface(), new AlertService());
-        Server = new WorkItemUpdateService(AzureDevOps.AsInterface(), userService);
+        Server = _serviceProvider.GetRequiredService<WorkItemUpdateService>();
 
-        AzureDevOpsBuilder = AzureDevOps.CreateBuilder();
+        AzureDevOpsBuilder = _serviceProvider.GetRequiredService<AzureDevOpsDatabaseBuilder>();
     }
 
     #region Helpers
@@ -31,17 +33,24 @@ public class CreateTaskTests
     #region Arrange
 
     public WorkItemUpdateService Server { get; set; }
-    private TestAzureDevOpsServer AzureDevOps { get; } = new();
     private AzureDevOpsDatabaseBuilder AzureDevOpsBuilder { get; }
-    private protected TestKimaiServer Kimai { get; } = new();
 
     #endregion Arrange
 
     #region Act
 
-    private async Task<WorkItem> CreateTaskAsync(WorkItem parent, string title, double estimate)
+    private async Task<WorkItem> CreateTaskAsync(AzureDevOps.Models.WorkItem parent, string title, double estimate)
     {
-        return await Server.CreateTaskAsync(parent, title, estimate);
+        //Arrange
+
+        //Act
+        var kimai = _serviceProvider.GetRequiredService<IKimaiServer>();
+        var viewModel = await parent.ToViewModelAsync(kimai);
+        var task = await Server.CreateTaskAsync(viewModel, title, estimate);
+
+        //Assert
+        task.Parent.ShouldBeSameAs(viewModel);
+        return task;
     }
 
     #endregion Act
@@ -58,7 +67,7 @@ public class CreateTaskTests
         var estimate = RandomGenerator.Number(2.5);
 
         //Act
-        var task = await CreateTaskAsync(parent.ToViewModel(), title, estimate);
+        var task = await CreateTaskAsync(parent, title, estimate);
 
         //Assert
         task.ShouldNotBeNull();
@@ -77,7 +86,7 @@ public class CreateTaskTests
         var estimate = expected + 0.034;
 
         //Act
-        var task = await CreateTaskAsync(parent.ToViewModel(), title, estimate);
+        var task = await CreateTaskAsync(parent, title, estimate);
 
         //Assert
         task.OriginalEstimate.ShouldNotBeNull();
@@ -96,7 +105,7 @@ public class CreateTaskTests
         var estimate = expected + 0.034;
 
         //Act
-        var task = await CreateTaskAsync(parent.ToViewModel(), title, estimate);
+        var task = await CreateTaskAsync(parent, title, estimate);
 
         //Assert
         task.OriginalEstimate.ShouldNotBeNull();
@@ -114,7 +123,7 @@ public class CreateTaskTests
         var estimate = RandomGenerator.Number(2.5);
 
         //Act
-        var task = await CreateTaskAsync(parent.ToViewModel(), title, estimate);
+        var task = await CreateTaskAsync(parent, title, estimate);
 
         //Assert
         task.AssignedTo.ShouldBe(Person.Me);
@@ -129,7 +138,7 @@ public class CreateTaskTests
         var estimate = RandomGenerator.Number(2.5);
 
         //Act
-        var task = await CreateTaskAsync(parent.ToViewModel(), title, estimate);
+        var task = await CreateTaskAsync(parent, title, estimate);
 
         //Assert
         task.State.ShouldBe(ScrumState.InProgress);
@@ -139,8 +148,7 @@ public class CreateTaskTests
     public async Task ParentChildLinked()
     {
         //Arrange
-        AzureDevOpsBuilder.BuildWorkItem(out var workItem);
-        var parent = workItem.ToViewModel();
+        AzureDevOpsBuilder.BuildWorkItem(out var parent);
         var title = RandomGenerator.String();
         var estimate = RandomGenerator.Number(2.5);
 
@@ -148,16 +156,15 @@ public class CreateTaskTests
         var task = await CreateTaskAsync(parent, title, estimate);
 
         //Assert
-        task.Parent.ShouldBe(parent);
-        parent.Children.ShouldContain(task);
+        task.Parent.ShouldNotBeNull();
+        task.Parent.Children.ShouldContain(task);
     }
     
     [TestMethod]
     public async Task AreaPath()
     {
         //Arrange
-        AzureDevOpsBuilder.BuildWorkItem(out var workItem);
-        var parent = workItem.ToViewModel();
+        AzureDevOpsBuilder.BuildWorkItem(out var parent);
         var title = RandomGenerator.String();
         var estimate = RandomGenerator.Number(2.5);
 
@@ -165,15 +172,15 @@ public class CreateTaskTests
         var task = await CreateTaskAsync(parent, title, estimate);
 
         //Assert
-        task.AreaPath.ShouldBe(parent.AreaPath);
+        task.Parent.ShouldNotBeNull();
+        task.AreaPath.ShouldBe(task.Parent.AreaPath);
     }
     
     [TestMethod]
     public async Task Iteration()
     {
         //Arrange
-        AzureDevOpsBuilder.BuildWorkItem(out var workItem);
-        var parent = workItem.ToViewModel();
+        AzureDevOpsBuilder.BuildWorkItem(out var parent);
         var title = RandomGenerator.String();
         var estimate = RandomGenerator.Number(2.5);
 
@@ -181,6 +188,7 @@ public class CreateTaskTests
         var task = await CreateTaskAsync(parent, title, estimate);
 
         //Assert
-        task.IterationPath.ShouldBe(parent.IterationPath);
+        task.Parent.ShouldNotBeNull();
+        task.IterationPath.ShouldBe(task.Parent.IterationPath);
     }
 }

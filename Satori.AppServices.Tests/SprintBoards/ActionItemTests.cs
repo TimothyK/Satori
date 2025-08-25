@@ -1,9 +1,8 @@
 ﻿using CodeMonkeyProjectiles.Linq;
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 using Satori.AppServices.Services;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
+using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels.Abstractions;
 using Satori.AppServices.ViewModels.PullRequests;
@@ -12,6 +11,7 @@ using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AppServices.ViewModels.WorkItems.ActionItems;
 using Satori.AzureDevOps.Models;
+using Satori.Kimai.Utilities;
 using Shouldly;
 using PullRequest = Satori.AzureDevOps.Models.PullRequest;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
@@ -21,37 +21,51 @@ namespace Satori.AppServices.Tests.SprintBoards;
 [TestClass]
 public class ActionItemTests
 {
-    private readonly TestAzureDevOpsServer _azureDevOpsServer;
+    private readonly ServiceProvider _serviceProvider;
     private readonly AzureDevOpsDatabaseBuilder _builder;
-    private readonly TestTimeServer _timeServer = new();
+    private readonly TestKimaiServer _kimai;
 
     public ActionItemTests()
     {
-        _azureDevOpsServer = new TestAzureDevOpsServer();
-        _builder = _azureDevOpsServer.CreateBuilder();
+        var services = new SatoriServiceCollection();
+        services.AddTransient<SprintBoardService>();
+        _serviceProvider = services.BuildServiceProvider();
+
+        _builder = _serviceProvider.GetRequiredService<AzureDevOpsDatabaseBuilder>();
+        _kimai = _serviceProvider.GetRequiredService<TestKimaiServer>();
     }
 
     #region Helpers
 
     #region Arrange
 
+    private static Sprint? DefaultSprint { get; set; }
+
     private static Sprint BuildSprint()
     {
         return Builder.Builder<Sprint>.New().Build(int.MaxValue);
+    }
+
+    private WorkItemBuilder BuildWorkItem(out AzureDevOps.Models.WorkItem workItem)
+    {
+        var sprint = DefaultSprint ??= BuildSprint();
+        var workItemBuilder = _builder.BuildWorkItem(out workItem).WithSprint(sprint);
+
+        var project = _kimai.AddProject();
+        workItem.Fields.ProjectCode = ProjectCodeParser.GetProjectCode(project.Name);
+
+        return workItemBuilder;
     }
 
     #endregion Arrange
 
     #region Act
 
-    private async Task<WorkItem[]> GetWorkItemsAsync(params Sprint[] sprints)
+    private async Task<ActionItem[]> GetActionItems()
     {
-        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), _timeServer, new AlertService(), new NullLoggerFactory());
+        if (DefaultSprint == null) throw new InvalidOperationException();
 
-        var workItems = (await srv.GetWorkItemsAsync(sprints)).ToArray();
-        await srv.GetPullRequestsAsync(workItems);
-
-        return workItems;
+        return await GetActionItems(DefaultSprint);
     }
 
     private async Task<ActionItem[]> GetActionItems(params Sprint[] sprints)
@@ -63,6 +77,19 @@ public class ActionItemTests
             .ToArray();
     }
 
+    private async Task<WorkItem[]> GetWorkItemsAsync(params Sprint[] sprints)
+    {
+        //Arrange
+
+        //Act
+        var srv = _serviceProvider.GetRequiredService<SprintBoardService>();
+
+        var workItems = (await srv.GetWorkItemsAsync(sprints)).ToArray();
+        await srv.GetPullRequestsAsync(workItems);
+
+        return workItems;
+    }
+
     #endregion Act
 
     #endregion Helpers
@@ -71,12 +98,11 @@ public class ActionItemTests
     public async Task ASmokeTest()
     {
         //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        BuildWorkItem(out var workItem);
         workItem.Fields.AssignedTo = People.Alice;
-
+        
         //Act
-        var actionItems = await GetActionItems(sprint);
+        var actionItems = await GetActionItems();
 
         //Assert
         actionItems.Length.ShouldBe(1);
@@ -90,12 +116,11 @@ public class ActionItemTests
     public async Task Done()
     {
         //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        BuildWorkItem(out var workItem);
         workItem.Fields.State = ScrumState.Done.ToApiValue();
 
         //Act
-        var actionItems = await GetActionItems(sprint);
+        var actionItems = await GetActionItems();
 
         //Assert
         actionItems.ShouldBeEmpty();
@@ -107,15 +132,14 @@ public class ActionItemTests
     public async Task Task_ToDo()
     {
         //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint)
+        BuildWorkItem(out var workItem)
             .AddChild(out var task);
         workItem.Fields.AssignedTo = People.Alice;
         task.Fields.AssignedTo = People.Bob;
         task.Fields.State = ScrumState.ToDo.ToApiValue();
 
         //Act
-        var actionItems = await GetActionItems(sprint);
+        var actionItems = await GetActionItems();
 
         //Assert
         actionItems.ShouldBeOfType<TaskActionItem>()
@@ -128,15 +152,14 @@ public class ActionItemTests
     public async Task Task_InProgress()
     {
         //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint)
+        BuildWorkItem(out var workItem)
             .AddChild(out var task);
         workItem.Fields.AssignedTo = People.Alice;
         task.Fields.AssignedTo = People.Bob;
         task.Fields.State = ScrumState.InProgress.ToApiValue();
 
         //Act
-        var actionItems = await GetActionItems(sprint);
+        var actionItems = await GetActionItems();
 
         //Assert
         actionItems.Length.ShouldBe(1);
@@ -150,15 +173,14 @@ public class ActionItemTests
     public async Task Task_Unassigned()
     {
         //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint)
+        BuildWorkItem(out var workItem)
             .AddChild(out var task);
         workItem.Fields.AssignedTo = People.Alice;
         task.Fields.AssignedTo = null;
         task.Fields.State = ScrumState.InProgress.ToApiValue();
 
         //Act
-        var actionItems = await GetActionItems(sprint);
+        var actionItems = await GetActionItems();
 
         //Assert
         actionItems.Length.ShouldBe(1);
@@ -172,15 +194,14 @@ public class ActionItemTests
     public async Task Task_Done()
     {
         //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint)
+        BuildWorkItem(out var workItem)
             .AddChild(out var task);
         workItem.Fields.AssignedTo = People.Alice;
         task.Fields.AssignedTo = People.Bob;
         task.Fields.State = ScrumState.Done.ToApiValue();
 
         //Act
-        var actionItems = await GetActionItems(sprint);
+        var actionItems = await GetActionItems();
 
         //Assert
         actionItems.Length.ShouldBe(1);
@@ -191,14 +212,54 @@ public class ActionItemTests
 
     #endregion Tasks
 
+    #region Fund
+
+    [TestMethod]
+    public async Task Fund()
+    {
+        //Arrange
+        BuildWorkItem(out var workItem);
+        workItem.Fields.AssignedTo = People.Alice;
+        workItem.Fields.ProjectCode = null;
+
+        //Act
+        var actionItems = await GetActionItems();
+
+        //Assert
+        actionItems.Length.ShouldBe(1);
+        actionItems.ShouldBeOfType<FundActionItem>()
+            .ShouldBeOn(People.Alice)
+            .ShouldBeFor(workItem);
+    }
+    
+    [TestMethod]
+    public async Task KimaiDisabled_NoFundActionItem()
+    {
+        //Arrange
+        _kimai.Enabled = false;
+        BuildWorkItem(out var workItem);
+        workItem.Fields.AssignedTo = People.Alice;
+        workItem.Fields.ProjectCode = null;
+
+        //Act
+        var actionItems = await GetActionItems();
+
+        //Assert
+        actionItems.Length.ShouldBe(1);
+        actionItems.ShouldBeOfType<FinishActionItem>()
+            .ShouldBeOn(People.Alice)
+            .ShouldBeFor(workItem);
+    }
+
+    #endregion Fund
+
     #region Predecessor/Successor
 
     [TestMethod]
     public async Task Tasks_NoPredecessors_AllReadyToStartInParallel()
     {
         //Arrange
-        var sprint = BuildSprint();
-        var workItemBuilder = _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        var workItemBuilder = BuildWorkItem(out var workItem);
         workItemBuilder.AddChild(out var coding);
         workItemBuilder.AddChild(out var testing);
         workItem.Fields.AssignedTo = People.Alice;
@@ -208,7 +269,7 @@ public class ActionItemTests
         testing.Fields.State = ScrumState.ToDo.ToApiValue();
 
         //Act
-        var actionItems = await GetActionItems(sprint);
+        var actionItems = await GetActionItems();
 
         //Assert
         actionItems.ShouldBeOfType<TaskActionItem>()
@@ -225,8 +286,7 @@ public class ActionItemTests
     public async Task Successor_PredecessorInProgress_NoActionItemForSuccessor()
     {
         //Arrange
-        var sprint = BuildSprint();
-        var workItemBuilder = _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        var workItemBuilder = BuildWorkItem(out var workItem);
         workItemBuilder.AddChild(out var coding);
         workItemBuilder.AddChild(out var testing);
         workItem.Fields.AssignedTo = People.Alice;
@@ -237,7 +297,7 @@ public class ActionItemTests
         _builder.AddLink(coding, LinkType.IsPredecessorOf, testing);
 
         //Act
-        var actionItems = await GetActionItems(sprint);
+        var actionItems = await GetActionItems();
 
         //Assert
         actionItems.ShouldBeOfType<TaskActionItem>()
@@ -251,8 +311,7 @@ public class ActionItemTests
     public async Task Successor_PredecessorIsDone_SuccessorShouldStart()
     {
         //Arrange
-        var sprint = BuildSprint();
-        var workItemBuilder = _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        var workItemBuilder = BuildWorkItem(out var workItem);
         workItemBuilder.AddChild(out var coding);
         workItemBuilder.AddChild(out var testing);
         workItem.Fields.AssignedTo = People.Alice;
@@ -263,7 +322,7 @@ public class ActionItemTests
         _builder.AddLink(coding, LinkType.IsPredecessorOf, testing);
 
         //Act
-        var actionItems = await GetActionItems(sprint);
+        var actionItems = await GetActionItems();
 
         //Assert
         actionItems.ShouldBeOfType<TaskActionItem>()
@@ -277,8 +336,7 @@ public class ActionItemTests
     public async Task Successor_InProgress_ShouldResume()
     {
         //Arrange
-        var sprint = BuildSprint();
-        var workItemBuilder = _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        var workItemBuilder = BuildWorkItem(out var workItem);
         workItemBuilder.AddChild(out var coding);
         workItemBuilder.AddChild(out var testing);
         workItem.Fields.AssignedTo = People.Alice;
@@ -289,7 +347,7 @@ public class ActionItemTests
         _builder.AddLink(coding, LinkType.IsPredecessorOf, testing);
 
         //Act
-        var actionItems = await GetActionItems(sprint);
+        var actionItems = await GetActionItems();
 
         //Assert
         actionItems.ShouldBeOfType<TaskActionItem>()
@@ -310,15 +368,14 @@ public class ActionItemTests
     public async Task PullRequest_Draft()
     {
         //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        BuildWorkItem(out var workItem);
         _builder.BuildPullRequest(out var pullRequest).WithWorkItem(workItem);
         workItem.Fields.AssignedTo = People.Alice;
         pullRequest.CreatedBy = People.Bob;
         pullRequest.IsDraft = true;
         
         //Act
-        var actionItems = await GetActionItems(sprint);
+        var actionItems = await GetActionItems();
 
         //Assert
         actionItems.Length.ShouldBe(1);
@@ -332,8 +389,7 @@ public class ActionItemTests
     public async Task PullRequest_DraftWithReviewer()
     {
         //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        BuildWorkItem(out var workItem);
         _builder.BuildPullRequest(out var pullRequest).WithWorkItem(workItem);
         workItem.Fields.AssignedTo = People.Alice;
         pullRequest.CreatedBy = People.Bob;
@@ -341,7 +397,7 @@ public class ActionItemTests
         pullRequest.AddReviewer(People.Cathy);
 
         //Act
-        var actionItems = await GetActionItems(sprint);
+        var actionItems = await GetActionItems();
 
         //Assert
         actionItems.Length.ShouldBe(1);
@@ -354,14 +410,13 @@ public class ActionItemTests
     public async Task PullRequest_NeedsReviewer()
     {
         //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        BuildWorkItem(out var workItem);
         _builder.BuildPullRequest(out var pullRequest).WithWorkItem(workItem);
         workItem.Fields.AssignedTo = People.Alice;
         pullRequest.CreatedBy = People.Bob;
 
         //Act
-        var actionItems = await GetActionItems(sprint);
+        var actionItems = await GetActionItems();
 
         //Assert
         actionItems.Length.ShouldBe(1);
@@ -375,15 +430,14 @@ public class ActionItemTests
     public async Task PullRequest_NeedsReview()
     {
         //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        BuildWorkItem(out var workItem);
         _builder.BuildPullRequest(out var pullRequest).WithWorkItem(workItem);
         workItem.Fields.AssignedTo = People.Alice;
         pullRequest.CreatedBy = People.Bob;
         pullRequest.AddReviewer(People.Cathy);
 
         //Act
-        var actionItems = await GetActionItems(sprint);
+        var actionItems = await GetActionItems();
 
         //Assert
         actionItems.Length.ShouldBe(1);
@@ -397,15 +451,14 @@ public class ActionItemTests
     public async Task PullRequest_WaitsForAuthor()
     {
         //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        BuildWorkItem(out var workItem);
         _builder.BuildPullRequest(out var pullRequest).WithWorkItem(workItem);
         workItem.Fields.AssignedTo = People.Alice;
         pullRequest.CreatedBy = People.Bob;
         pullRequest.AddReviewer(People.Cathy).Vote = (int)ReviewVote.WaitingForAuthor;
 
         //Act
-        var actionItems = await GetActionItems(sprint);
+        var actionItems = await GetActionItems();
 
         //Assert
         actionItems.Length.ShouldBe(1);
@@ -419,8 +472,7 @@ public class ActionItemTests
     public async Task PullRequest_MultipleReviewersWaiting_OneReplyActionItem()
     {
         //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        BuildWorkItem(out var workItem);
         _builder.BuildPullRequest(out var pullRequest).WithWorkItem(workItem);
         workItem.Fields.AssignedTo = People.Alice;
         pullRequest.CreatedBy = People.Bob;
@@ -428,7 +480,7 @@ public class ActionItemTests
         pullRequest.AddReviewer(People.Dave).Vote = (int)ReviewVote.WaitingForAuthor;
 
         //Act
-        var actionItems = await GetActionItems(sprint);
+        var actionItems = await GetActionItems();
 
         //Assert
         actionItems.Length.ShouldBe(1);
@@ -442,15 +494,14 @@ public class ActionItemTests
     public async Task PullRequest_ReviewerRejects()
     {
         //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        BuildWorkItem(out var workItem);
         _builder.BuildPullRequest(out var pullRequest).WithWorkItem(workItem);
         workItem.Fields.AssignedTo = People.Alice;
         pullRequest.CreatedBy = People.Bob;
         pullRequest.AddReviewer(People.Cathy).Vote = (int)ReviewVote.Rejected;
 
         //Act
-        var actionItems = await GetActionItems(sprint);
+        var actionItems = await GetActionItems();
 
         //Assert
         actionItems.Length.ShouldBe(1);
@@ -464,15 +515,14 @@ public class ActionItemTests
     public async Task PullRequest_Approved()
     {
         //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        BuildWorkItem(out var workItem);
         _builder.BuildPullRequest(out var pullRequest).WithWorkItem(workItem);
         workItem.Fields.AssignedTo = People.Alice;
         pullRequest.CreatedBy = People.Bob;
         pullRequest.AddReviewer(People.Cathy).Vote = (int)ReviewVote.Approved;
 
         //Act
-        var actionItems = await GetActionItems(sprint);
+        var actionItems = await GetActionItems();
 
         //Assert
         actionItems.Length.ShouldBe(1);
@@ -485,8 +535,7 @@ public class ActionItemTests
     public async Task PullRequest_Completed()
     {
         //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        BuildWorkItem(out var workItem);
         _builder.BuildPullRequest(out var pullRequest).WithWorkItem(workItem);
         workItem.Fields.AssignedTo = People.Alice;
         pullRequest.CreatedBy = People.Bob;
@@ -494,7 +543,7 @@ public class ActionItemTests
         pullRequest.Status = Status.Complete.ToApiValue();
 
         //Act
-        var actionItems = await GetActionItems(sprint);
+        var actionItems = await GetActionItems();
 
         //Assert
         actionItems.Length.ShouldBe(1);
@@ -511,15 +560,15 @@ public class ActionItemTests
     public async Task PullRequest_TaskAssigned_SingleActionItem()
     {
         //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint).AddChild(out var task);
+        BuildWorkItem(out var workItem)
+            .AddChild(out var task);
         _builder.BuildPullRequest(out var pullRequest).WithWorkItem(task);
         workItem.Fields.AssignedTo = People.Alice;
         pullRequest.CreatedBy = People.Bob;
         pullRequest.AddReviewer(People.Cathy);
 
         //Act
-        var actionItems = (await GetActionItems(sprint))
+        var actionItems = (await GetActionItems())
             .OfType<PullRequestActionItem>().Cast<ActionItem>()
             .ToArray();
 
@@ -535,15 +584,14 @@ public class ActionItemTests
     public async Task PullRequest_DeclinedReviewer()
     {
         //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        BuildWorkItem(out var workItem);
         _builder.BuildPullRequest(out var pullRequest).WithWorkItem(workItem);
         workItem.Fields.AssignedTo = People.Alice;
         pullRequest.CreatedBy = People.Bob;
         pullRequest.AddReviewer(People.Cathy).With(reviewer => reviewer.HasDeclined = true);
 
         //Act
-        var actionItems = await GetActionItems(sprint);
+        var actionItems = await GetActionItems();
 
         //Assert
         actionItems.Length.ShouldBe(1);
@@ -561,20 +609,19 @@ public class ActionItemTests
     public async Task Priority()
     {
         //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem1).WithSprint(sprint);
+        BuildWorkItem(out var workItem1);
         workItem1.Fields.AssignedTo = People.Alice;
 
-        _builder.BuildWorkItem(out var workItem2).WithSprint(sprint);
+        BuildWorkItem(out var workItem2);
         workItem2.Fields.AssignedTo = People.Bob;
         workItem2.Fields.BacklogPriority = workItem1.Fields.BacklogPriority + 1;
 
-        _builder.BuildWorkItem(out var workItem3).WithSprint(sprint);
+        BuildWorkItem(out var workItem3);
         workItem3.Fields.AssignedTo = People.Alice;
         workItem3.Fields.BacklogPriority = workItem2.Fields.BacklogPriority + 1;
 
         //Act
-        var actionItems = await GetActionItems(sprint);
+        var actionItems = await GetActionItems();
 
         //Assert
         actionItems.Length.ShouldBe(3);
@@ -654,26 +701,14 @@ internal static class ActionItemAssertionExtensions
         return matches;
     }
     
-    public static TaskActionItem[] ShouldBeFor(this TaskActionItem[] actionItems, AzureDevOps.Models.WorkItem task)
-    {
-        actionItems.ShouldNotBeEmpty();
-        
-        var matches = actionItems
-            .Where(x => x.Task.Id == task.Id)
-            .ToArray();
-        matches.ShouldNotBeEmpty($"No action items were found for task {task.Id}.  They were for task(s) {string.Join(", ", actionItems.Select(x => x.Task.Id))}");
-
-        return matches;
-    }
-    
-    public static FinishActionItem[] ShouldBeFor(this FinishActionItem[] actionItems, AzureDevOps.Models.WorkItem workItem)
+    public static T[] ShouldBeFor<T>(this T[] actionItems, AzureDevOps.Models.WorkItem workItem) where T : WorkItemActionItem
     {
         actionItems.ShouldNotBeEmpty();
         
         var matches = actionItems
             .Where(x => x.WorkItem.Id == workItem.Id)
             .ToArray();
-        matches.ShouldNotBeEmpty($"No action items were found for task {workItem.Id}.  They were for task(s) {string.Join(", ", actionItems.Select(x => x.WorkItem.Id))}");
+        matches.ShouldNotBeEmpty($"No action items were found for work item {workItem.Id}.  They were for work item(s) {string.Join(", ", actionItems.Select(x => x.WorkItem.Id))}");
 
         return matches;
     }

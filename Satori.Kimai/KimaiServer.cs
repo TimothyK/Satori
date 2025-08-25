@@ -3,6 +3,10 @@ using Flurl;
 using Microsoft.Extensions.Logging;
 using Satori.Kimai.Models;
 using System.Text.Json;
+using Satori.Kimai.Utilities;
+using Customers = Satori.Kimai.ViewModels.Customers;
+using CustomerViewModel = Satori.Kimai.ViewModels.Customer;
+using ProjectViewModel = Satori.Kimai.ViewModels.Project;
 
 namespace Satori.Kimai;
 
@@ -126,6 +130,89 @@ public class KimaiServer(
         return GetAsync<TimeEntryCollapsed>(url);
     }
 
+    #region GetCustomers
+
+    private static Task<Customers>? _cachedCustomersTask;
+
+    public void ResetCustomerCache()
+    {
+        _cachedCustomersTask = null;
+    }
+
+    public async Task<Customers> GetCustomersAsync()
+    {
+        // If a fetch is already in progress or completed, await it
+        var task = _cachedCustomersTask;
+        if (task != null)
+        {
+            return await task;
+        }
+
+        // Only one thread should set _cachedCustomersTask
+        var newTask = FetchCustomersAsync();
+        var originalTask = Interlocked.CompareExchange(ref _cachedCustomersTask, newTask, null);
+        if (originalTask != null)
+        {
+            return await originalTask;
+        }
+
+        return await newTask;
+    }
+
+    private async Task<Customers> FetchCustomersAsync()
+    {
+        var customerMasters = await GetCustomerMastersAsync();
+        var customers = new Customers(customerMasters);
+
+        var projects = await GetProjectMastersAsync();
+        foreach (var project in projects)
+        {
+            customers.Add(project);
+        }
+
+        var activities = await GetActivityMastersAsync();
+        foreach (var activity in activities)
+        {
+            customers.Add(activity);
+        }
+
+        return customers;
+    }
+
+    private async Task<Customer[]> GetCustomerMastersAsync()
+    {
+        var url = connectionSettings.Url
+            .AppendPathSegment("api/customers")
+            .AppendQueryParam("visible", 1);
+
+        var customers = await GetAsync<Customer[]>(url);
+        return customers;
+    }
+
+    private async Task<ProjectMaster[]> GetProjectMastersAsync()
+    {
+        var url = connectionSettings.Url
+            .AppendPathSegment("api/projects")
+            .AppendQueryParam("visible", 1);
+
+        var projects = await GetAsync<ProjectMaster[]>(url);
+        return projects;
+    }
+
+    private async Task<ActivityMaster[]> GetActivityMastersAsync()
+    {
+        var url = connectionSettings.Url
+            .AppendPathSegment("api/activities")
+            .AppendQueryParam("visible", 1);
+
+        var activities = await GetAsync<ActivityMaster[]>(url);
+        return activities;
+    }
+
+    #endregion GetCustomers
+
+    #region Common HTTP Methods
+
     private async Task<T> GetAsync<T>(Url url)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -170,6 +257,11 @@ public class KimaiServer(
 
     private void AddAuthHeader(HttpRequestMessage request)
     {
+        if (!Enabled)
+        {
+            throw new InvalidOperationException("Kimai is disabled");
+        }
+
         switch (connectionSettings.AuthenticationMethod)
         {
             case KimaiAuthenticationMethod.Token:
@@ -201,4 +293,5 @@ public class KimaiServer(
         }
     }
 
+    #endregion
 }

@@ -2,9 +2,11 @@
 @using Satori.AppServices.ViewModels
 @using Satori.AppServices.ViewModels.PullRequests.ActionItems
 @using Satori.AppServices.ViewModels.WorkItems.ActionItems
+@using Satori.Kimai
 
 @inject WorkItemUpdateService WorkItemUpdateService
 @inject IJSRuntime JsRuntime
+@inject IKimaiServer KimaiServer
 
 <div class="flex-row">
     @foreach (var personPriority in @ActionItem.On)
@@ -18,6 +20,7 @@
             <div class="priority-number">@personPriority.Priority</div>
         </div>
     }
+    
     <div class="action-description-row">
         <div class="action-description">@ActionItem.ActionDescription</div>
 
@@ -41,26 +44,15 @@
                      @onclick="OnOpenClickAsync">
                     <div class="flex-menu">
                         <div>Open</div>
-                        @if (ActionItem is TaskActionItem openTaskAction)
+                        @if (ActionItem is WorkItemActionItem openWorkItemAction)
                         {
-                            <div class="work-item @openTaskAction.Task.Type.CssClass">
+                            <div class="work-item @openWorkItemAction.WorkItem.Type.CssClass">
                                 <div class="avatar-cell">
-                                    <img src="@openTaskAction.Task.AssignedTo.AvatarUrl"
-                                         alt="@openTaskAction.Task.AssignedTo.DisplayName"
-                                         title="@openTaskAction.Task.AssignedTo.DisplayName"/>
+                                    <img src="@openWorkItemAction.WorkItem.AssignedTo.AvatarUrl"
+                                         alt="@openWorkItemAction.WorkItem.AssignedTo.DisplayName"
+                                         title="@openWorkItemAction.WorkItem.AssignedTo.DisplayName"/>
                                 </div>
-                                <div>@openTaskAction.Task.Title</div>
-                            </div>
-                        }
-                        @if (ActionItem is FinishActionItem openFinishAction)
-                        {
-                            <div class="work-item @openFinishAction.WorkItem.Type.CssClass">
-                                <div class="avatar-cell">
-                                    <img src="@openFinishAction.WorkItem.AssignedTo.AvatarUrl"
-                                         alt="@openFinishAction.WorkItem.AssignedTo.DisplayName"
-                                         title="@openFinishAction.WorkItem.AssignedTo.DisplayName" />
-                                </div>
-                                <div>@openFinishAction.WorkItem.Title</div>
+                                <div>@openWorkItemAction.WorkItem.Title</div>
                             </div>
                         }
                         @if (ActionItem is PullRequestActionItem openPrAction)
@@ -78,6 +70,26 @@
                         <div>...</div>
                     </div>
                 </div>
+
+                @* Fund *@
+                @if (KimaiServer.Enabled && ActionItem is WorkItemActionItem workItemActionItem)
+                {
+                    <div class="context-menu-item"@onclick="OpenFundDialog">
+                        @if (workItemActionItem.WorkItem.KimaiProject == null)
+                        {
+                            <div>Fund...</div>
+                        }
+                        else
+                        {
+                            <div>Change funding from 
+                                <span class="avatar-cell customer-logo">
+                                    <img src="@workItemActionItem.WorkItem.KimaiProject.Customer.Logo" alt="@workItemActionItem.WorkItem.KimaiProject.Customer.Name" />
+                                </span>
+                                <span class="project-code">@workItemActionItem.WorkItem.KimaiProject.ProjectCode@(@workItemActionItem.WorkItem.KimaiActivity != null ? "." + @workItemActionItem.WorkItem.KimaiActivity.ActivityCode : "")</span>...
+                            </div>
+                        }
+                    </div>
+                }
 
                 @* Waits For *@
                 @if (HasWaitsForMenu)
@@ -117,8 +129,8 @@
     </div>
     @if (ActionItem is TaskActionItem taskAction)
     {
-        <div class="work-item cell-link @taskAction.Task.Type.CssClass" @onclick="() => OpenWorkItemAsync(taskAction.Task)" title="Open D#@(taskAction.Task.Id)">
-            <div>@taskAction.Task.Title</div>
+        <div class="work-item cell-link @taskAction.WorkItem.Type.CssClass" @onclick="() => OpenWorkItemAsync(taskAction.WorkItem)" title="Open D#@(taskAction.WorkItem.Id)">
+            <div>@taskAction.WorkItem.Title</div>
         </div>
     }
     @if (ActionItem is PullRequestActionItem prAction)
@@ -129,3 +141,9 @@
         </div>
     }
 </div>
+
+@if (ActionItem is WorkItemActionItem workItemAction)
+{
+    <SelectProjectDialog @ref="_fundDialog" Save="OnFundDialogSaveAsync" />
+}
+

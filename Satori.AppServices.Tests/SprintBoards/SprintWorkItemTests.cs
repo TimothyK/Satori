@@ -1,14 +1,15 @@
 ﻿using CodeMonkeyProjectiles.Linq;
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
+using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
+using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
+using Satori.Kimai.Utilities;
 using Shouldly;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
@@ -17,15 +18,16 @@ namespace Satori.AppServices.Tests.SprintBoards;
 [TestClass]
 public class SprintWorkItemTests
 {
-    private readonly TestAzureDevOpsServer _azureDevOpsServer;
+    private readonly ServiceProvider _serviceProvider;
     private readonly AzureDevOpsDatabaseBuilder _builder;
-    private readonly TestTimeServer _timeServer = new();
 
     public SprintWorkItemTests()
     {
-        _azureDevOpsServer = new TestAzureDevOpsServer();
-        _builder = _azureDevOpsServer.CreateBuilder();
+        var services = new SatoriServiceCollection();
+        services.AddTransient<SprintBoardService>();
+        _serviceProvider = services.BuildServiceProvider();
 
+        _builder = _serviceProvider.GetRequiredService<AzureDevOpsDatabaseBuilder>();
     }
 
     #region Helpers
@@ -43,7 +45,7 @@ public class SprintWorkItemTests
 
     private WorkItem[] GetWorkItems(params Sprint[] sprints)
     {
-        var srv = new SprintBoardService(_azureDevOpsServer.AsInterface(), _timeServer, new AlertService(), new NullLoggerFactory());
+        var srv = _serviceProvider.GetRequiredService<SprintBoardService>();
 
         return srv.GetWorkItemsAsync(sprints).Result.ToArray();
     }
@@ -188,9 +190,9 @@ public class SprintWorkItemTests
             .AddChild(bug);
 
         //Act
-        var srv = _azureDevOpsServer.AsInterface();
+        var azureDevOpServer = _serviceProvider.GetRequiredService<IAzureDevOpsServer>();
         var iterationId = (IterationId)sprint;
-        var relations = srv.GetIterationWorkItemsAsync(iterationId).Result;
+        var relations = azureDevOpServer.GetIterationWorkItemsAsync(iterationId).Result;
 
         //Assert
         relations.Any(r => r.Source?.Id == pbi.Id && r.Target.Id == bug.Id).ShouldBeTrue();
@@ -511,36 +513,6 @@ public class SprintWorkItemTests
     }
 
     [TestMethod]
-    public void ProjectCode()
-    {
-        //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
-        workItem.Fields.ProjectCode.ShouldNotBeNull();
-
-        //Act
-        var workItems = GetWorkItems(sprint);
-
-        //Assert
-        workItems.Single().ProjectCode.ShouldBe(workItem.Fields.ProjectCode);
-    }
-
-    [TestMethod]
-    public void ProjectCode_Missing()
-    {
-        //Arrange
-        var sprint = BuildSprint();
-        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
-        workItem.Fields.ProjectCode = null;
-
-        //Act
-        var workItems = GetWorkItems(sprint);
-
-        //Assert
-        workItems.Single().ProjectCode.ShouldBeNullOrEmpty();
-    }
-
-    [TestMethod]
     public void Url()
     {
         //Arrange
@@ -568,6 +540,72 @@ public class SprintWorkItemTests
         //Assert
         workItems.Single().ApiUrl.ShouldBe(workItem.Url);
     }
+
+    #region Kimai Project
+
+    [TestMethod]
+    public void KimaiProject()
+    {
+        //Arrange
+        var kimai = _serviceProvider.GetRequiredService<TestKimaiServer>();
+        var project = kimai.AddProject();
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.ProjectCode = ProjectCodeParser.GetProjectCode(project.Name);
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        var kimaiProject = workItems.Single().KimaiProject;
+        kimaiProject.ShouldNotBeNull();
+        kimaiProject.Id.ShouldBe(project.Id);
+    }
+    
+    [TestMethod]
+    public void KimaiProject_StripLeadingZeros()
+    {
+        //Arrange
+        var kimai = _serviceProvider.GetRequiredService<TestKimaiServer>();
+        var project = kimai.AddProject();
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.ProjectCode = "0" + ProjectCodeParser.GetProjectCode(project.Name);
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        var kimaiProject = workItems.Single().KimaiProject;
+        kimaiProject.ShouldNotBeNull();
+        kimaiProject.Id.ShouldBe(project.Id);
+    }
+
+    [TestMethod]
+    public void KimaiActivity()
+    {
+        //Arrange
+        var kimai = _serviceProvider.GetRequiredService<TestKimaiServer>();
+        var project = kimai.AddProject();
+        var activity = kimai.AddActivity(project);
+        var sprint = BuildSprint();
+        _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
+        workItem.Fields.ProjectCode = ProjectCodeParser.GetProjectCode(project.Name) 
+                                      + "." + ProjectCodeParser.GetActivityCode(activity.Name);
+
+        //Act
+        var workItems = GetWorkItems(sprint);
+
+        //Assert
+        var kimaiProject = workItems.Single().KimaiProject;
+        kimaiProject.ShouldNotBeNull();
+        kimaiProject.Id.ShouldBe(project.Id);
+
+        var kimaiActivity = workItems.Single().KimaiActivity;
+        kimaiActivity.ShouldNotBeNull();
+        kimaiActivity.Id.ShouldBe(activity.Id);
+    }
+    #endregion Kimai Project
 
     #region Estimates
 

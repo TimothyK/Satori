@@ -1,6 +1,8 @@
 ﻿using Satori.AppServices.ViewModels.Abstractions;
 using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.Sprints;
+using KimaiProject = Satori.Kimai.ViewModels.Project;
+using KimaiActivity = Satori.Kimai.ViewModels.Activity;
 
 namespace Satori.AppServices.ViewModels.WorkItems;
 
@@ -66,10 +68,10 @@ public class WorkItem
     public TimeSpan? OriginalEstimate { get; set; }
     public TimeSpan? CompletedWork { get; set; }
     public TimeSpan? RemainingWork { get; set; }
-    /// <summary>
-    /// Azure DevOps custom extended property to track the Kimai project number
-    /// </summary>
-    public string? ProjectCode { get; init; }
+
+    public KimaiProject? KimaiProject { get; set; }
+    public KimaiActivity? KimaiActivity { get; set; }
+
 
     public WorkItem? Parent { get; set; }
     public List<WorkItem> Children { get; init; } = [];

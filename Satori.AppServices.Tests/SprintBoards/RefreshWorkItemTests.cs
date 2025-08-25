@@ -1,9 +1,7 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Satori.AppServices.Services;
-using Satori.AppServices.Tests.TestDoubles.AlertServices;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
+using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
@@ -15,16 +13,16 @@ namespace Satori.AppServices.Tests.SprintBoards;
 public class RefreshWorkItemTests
 {
     private readonly AzureDevOpsDatabaseBuilder _builder;
-    private readonly TestTimeServer _timeServer = new();
-    private readonly TestAlertService _alertService = new();
     private readonly SprintBoardService _sprintBoardService;
 
     public RefreshWorkItemTests()
     {
-        var azureDevOpsServer = new TestAzureDevOpsServer();
-        _builder = azureDevOpsServer.CreateBuilder();
+        var services = new SatoriServiceCollection();
+        services.AddTransient<SprintBoardService>();
+        var serviceProvider = services.BuildServiceProvider();
 
-        _sprintBoardService = new SprintBoardService(azureDevOpsServer.AsInterface(), _timeServer, _alertService, new NullLoggerFactory());
+        _sprintBoardService = serviceProvider.GetRequiredService<SprintBoardService>();
+        _builder = serviceProvider.GetRequiredService<AzureDevOpsDatabaseBuilder>();
     }
 
     #region Helpers

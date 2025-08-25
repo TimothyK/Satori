@@ -1,13 +1,15 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using CodeMonkeyProjectiles.Linq;
+﻿using CodeMonkeyProjectiles.Linq;
 using Flurl;
 using Satori.AppServices.ViewModels;
-using Satori.AppServices.ViewModels.Abstractions;
 using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.PullRequests.ActionItems;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AppServices.ViewModels.WorkItems.ActionItems;
+using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
+using Satori.Kimai;
+using Satori.Kimai.ViewModels;
+using System.Diagnostics.CodeAnalysis;
 using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
@@ -15,23 +17,39 @@ namespace Satori.AppServices.Services.Converters;
 
 public static class WorkItemExtensions
 {
-    public static WorkItem ToViewModel(this AzureDevOps.Models.WorkItem wi)
+    public static async Task<IEnumerable<WorkItem>> GetWorkItemsAsync(
+        this IAzureDevOpsServer azureDevOpsServer,
+        int[] workItemIds,
+        IKimaiServer kimaiServer)
     {
-        ArgumentNullException.ThrowIfNull(wi);
+        var models = await azureDevOpsServer.GetWorkItemsAsync(workItemIds);
+        var viewModels = await Task.WhenAll(models.Select(wi => wi.ToViewModelAsync(kimaiServer)));
+        return viewModels;
+    }
+
+    public static async Task<WorkItem> ToViewModelAsync(this AzureDevOps.Models.WorkItem workItem, IKimaiServer kimai)
+    {
+        ArgumentNullException.ThrowIfNull(workItem);
+
+        var customers = kimai.Enabled ? await kimai.GetCustomersAsync() 
+            : new Customers([]);
 
         try
         {
-            return ToViewModelUnsafe(wi);
+            return ToViewModelUnsafe(workItem, customers, kimai);
         }
         catch (Exception ex)
         {
-            throw new ApplicationException($"Failed to build view model for work item {wi.Id}.  {ex.Message}", ex);
+            throw new ApplicationException($"Failed to build view model for work item {workItem.Id}.  {ex.Message}", ex);
         }
     }
 
-    private static WorkItem ToViewModelUnsafe(this AzureDevOps.Models.WorkItem wi)
+    private static WorkItem ToViewModelUnsafe(this AzureDevOps.Models.WorkItem wi, Customers customers,
+        IKimaiServer kimai)
     {
         var id = wi.Id;
+        var kimaiProject = customers.FindProject(wi.Fields.ProjectCode);
+        var kimaiActivity = kimaiProject?.FindActivity(wi.Fields.ProjectCode);
         var workItem = new WorkItem()
         {
             Id = id,
@@ -53,7 +71,8 @@ public static class WorkItemExtensions
             OriginalEstimate = wi.Fields.OriginalEstimate.HoursToTimeSpan(),
             CompletedWork = wi.Fields.CompletedWork.HoursToTimeSpan(),
             RemainingWork = wi.Fields.RemainingWork.HoursToTimeSpan(),
-            ProjectCode = wi.Fields.ProjectCode ?? string.Empty,
+            KimaiProject = kimaiProject,
+            KimaiActivity = kimaiActivity,
             Parent = CreateWorkItemPlaceholder(wi.Fields.Parent, UriParser.GetAzureDevOpsOrgUrl(wi.Url)),
             Url = UriParser.GetAzureDevOpsOrgUrl(wi.Url)
                 .AppendPathSegment("_workItems/edit")
@@ -65,18 +84,18 @@ public static class WorkItemExtensions
             PullRequests = GetPullRequests(wi.Relations, UriParser.GetAzureDevOpsOrgUrl(wi.Url)),
         };
 
-        workItem.ResetPeopleRelations();
+        workItem.ResetPeopleRelations(kimai);
 
         return workItem;
     }
 
-    public static void ResetPeopleRelations(this IEnumerable<WorkItem> workItems)
+    public static void ResetPeopleRelations(this IEnumerable<WorkItem> workItems, IKimaiServer kimai)
     {
         var personPriority = new Dictionary<Person, int>();
 
         foreach (var workItem in workItems.OrderBy(wi => wi.AbsolutePriority))
         {
-            workItem.ResetPeopleRelations();
+            workItem.ResetPeopleRelations(kimai);
 
             foreach (var assignment in workItem.ActionItems.SelectMany(actionItem => actionItem.On))
             {
@@ -94,11 +113,11 @@ public static class WorkItemExtensions
         }
     }
 
-    public static void ResetPeopleRelations(this WorkItem workItem)
+    private static void ResetPeopleRelations(this WorkItem workItem, IKimaiServer kimai)
     {
         foreach (var child in workItem.Children)
         {
-            child.ResetPeopleRelations();
+            child.ResetPeopleRelations(kimai);
         }
 
         workItem.WithPeople = workItem.AssignedTo.Yield()
@@ -108,10 +127,10 @@ public static class WorkItemExtensions
             .Distinct()
             .ToList();
 
-        ResetActionItems(workItem);
+        ResetActionItems(workItem, kimai);
     }
 
-    private static void ResetActionItems(WorkItem workItem)
+    private static void ResetActionItems(WorkItem workItem, IKimaiServer kimai)
     {
         var actionItems = workItem.Children.SelectMany(task => task.ActionItems).ToList();
         if (workItem.Type == WorkItemType.Task 
@@ -149,10 +168,17 @@ public static class WorkItemExtensions
 
             actionItems.AddRange(prActionItems);
         }
+
+        if (kimai.Enabled && workItem.Type.IsIn(WorkItemType.BoardTypes) && workItem.KimaiProject == null)
+        {
+            actionItems.Add(new FundActionItem(workItem));
+        }
+
         if (workItem.State < ScrumState.Done && actionItems.None() && workItem.Type != WorkItemType.Task)
         {
             actionItems.Add(new FinishActionItem(workItem));
         }
+
         workItem.ActionItems = actionItems;
     }
 

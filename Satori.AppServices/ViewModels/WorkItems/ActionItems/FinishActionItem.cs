@@ -1,14 +1,8 @@
-﻿using Satori.AppServices.ViewModels.Abstractions;
+﻿namespace Satori.AppServices.ViewModels.WorkItems.ActionItems;
 
-namespace Satori.AppServices.ViewModels.WorkItems.ActionItems;
-
-public class FinishActionItem : ActionItem
+public class FinishActionItem : WorkItemActionItem
 {
-    internal FinishActionItem(WorkItem workItem) : base($"Finish this {workItem.Type}", workItem.AssignedTo)
+    internal FinishActionItem(WorkItem workItem) : base(workItem, $"Finish this {workItem.Type}")
     {
-        WorkItem = workItem;
     }
-
-    public WorkItem WorkItem { get; set; }
-
 }

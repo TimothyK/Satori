@@ -1,4 +1,5 @@
 ﻿@using Satori.Pages.Components
+@using MudBlazor
 @inherits LayoutComponentBase
 
 <div class="page">
@@ -8,7 +9,12 @@
 
     <main>
         <article class="content px-4">
-            <AlertBanner />
+            <MudThemeProvider />
+            <MudPopoverProvider />
+            <MudDialogProvider />
+            <MudSnackbarProvider />
+
+            <AlertBanner/>
             @Body
         </article>
     </main>

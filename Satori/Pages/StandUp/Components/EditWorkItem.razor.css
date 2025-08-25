@@ -44,6 +44,7 @@
 .number-box {
     width: 80px;
     font-size: 0.9em;
+    border: 1px solid black;
 }
 
 .validation-error {

@@ -6,6 +6,7 @@ using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.PullRequests.ActionItems;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AppServices.ViewModels.WorkItems.ActionItems;
+using Satori.Kimai.ViewModels;
 
 namespace Satori.Pages.SprintBoard;
 
@@ -101,7 +102,7 @@ public partial class ActionItemView
 
     private async Task CreateWaitsForLinkAsync(WorkItem predecessor)
     {
-        var successor = (ActionItem as TaskActionItem)?.Task ?? throw new InvalidOperationException("Action Item should be a Task");
+        var successor = (ActionItem as TaskActionItem)?.WorkItem ?? throw new InvalidOperationException("Action Item should be a Task");
         await WorkItemUpdateService.CreateDependencyLinkAsync(predecessor, successor);
 
         _isMenuOpen = false;
@@ -115,16 +116,16 @@ public partial class ActionItemView
     private IEnumerable<WorkItem> WaitsForSiblings()
     {
         if (ActionItem is not TaskActionItem actionItem 
-            || actionItem.Task.State != ScrumState.ToDo
+            || actionItem.WorkItem.State != ScrumState.ToDo
         )
         {
             return [];
         }
 
-        return actionItem.Task
+        return actionItem.WorkItem
                    .Parent
                    ?.Children
-                   .Except(actionItem.Task.Yield())
+                   .Except(actionItem.WorkItem.Yield())
                    .Where(task => task.State < ScrumState.Done) 
                ?? [];
     }
@@ -133,15 +134,33 @@ public partial class ActionItemView
     {
         switch (ActionItem)
         {
-            case TaskActionItem taskAction:
-                await OpenWorkItemAsync(taskAction.Task);
-                break;
-            case FinishActionItem finishAction:
-                await OpenWorkItemAsync(finishAction.WorkItem);
+            case WorkItemActionItem workItemAction:
+                await OpenWorkItemAsync(workItemAction.WorkItem);
                 break;
             case PullRequestActionItem prAction:
                 await OpenPullRequestAsync(prAction.PullRequest);
                 break;
         }
+    }
+
+    private SelectProjectDialog? _fundDialog;
+
+    private void OpenFundDialog()
+    {
+        var workItem = (ActionItem as WorkItemActionItem)?.WorkItem ?? throw new InvalidOperationException();
+        _isMenuOpen = false;
+        _isWaitsForSubMenuOpen = false;
+
+        _fundDialog?.ShowDialog(workItem);
+    }
+
+    private async Task OnFundDialogSaveAsync((Project?, Activity?) value)
+    {
+        var (project, activity) = value;
+        var workItem = (ActionItem as WorkItemActionItem)?.WorkItem ?? throw new InvalidOperationException();
+
+        await WorkItemUpdateService.UpdateProjectCodeAsync(workItem, project, activity);
+
+        await HasChanged.InvokeAsync();
     }
 }

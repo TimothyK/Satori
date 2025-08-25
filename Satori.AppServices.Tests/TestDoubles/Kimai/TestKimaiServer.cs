@@ -7,6 +7,7 @@ using Builder;
 using Satori.AppServices.Extensions;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
 using Satori.TimeServices;
+using Customers = Satori.Kimai.ViewModels.Customers;
 
 namespace Satori.AppServices.Tests.TestDoubles.Kimai;
 
@@ -47,6 +48,9 @@ internal class TestKimaiServer
 
         Mock.Setup(srv => srv.CreateTimeEntryAsync(It.IsAny<TimeEntryForCreate>()))
             .ReturnsAsync((TimeEntryForCreate entry) => CreateTimeEntry(entry));
+
+        Mock.Setup(srv => srv.GetCustomersAsync())
+            .ReturnsAsync(BuildCustomers);
 
         CurrentUser = KimaiUserBuilder.BuildUser();
     }
@@ -240,4 +244,66 @@ internal class TestKimaiServer
     }
 
     #endregion
+
+    private readonly List<Customer> _customers = [];
+    private readonly List<ProjectMaster> _projects = [];
+    private readonly List<ActivityMaster> _activities = [];
+
+    public Customers BuildCustomers()
+    {
+        var customers = new Customers(_customers);
+        foreach (var project in _projects)
+        {
+            customers.Add(project);
+        }
+        foreach (var activity in _activities)
+        {
+            customers.Add(activity);
+        }
+
+        return customers;
+    }
+
+    public Customer AddCustomer()
+    {
+        var customer = Builder<Customer>.New().Build(c =>
+        {
+            c.Id = Sequence.CustomerId.Next();
+            c.Name = $"Customer {c.Id} (CUST{c.Id})";
+            c.Comment = $"[Logo]({new Uri($"https://placecats.com/{255 + c.Id}/{255 + c.Id}")})";
+        });
+        _customers.Add(customer);
+
+        return customer;
+    }
+
+    public ProjectMaster AddProject(Customer? customer = null)
+    {
+        customer ??= _customers.FirstOrDefault() ?? AddCustomer();
+
+        var project = Builder<ProjectMaster>.New().Build(p =>
+        {
+            p.Id = Sequence.ProjectId.Next();
+            p.Name = $"{p.Id} Project";
+            p.Customer = customer.Id;
+        });
+
+        _projects.Add(project);
+        return project;
+    }
+
+    public ActivityMaster AddActivity(ProjectMaster? project = null)
+    {
+        project ??= _projects.FirstOrDefault() ?? AddProject();
+
+        var activity = Builder<ActivityMaster>.New().Build(a =>
+        {
+            a.Id = Sequence.ActivityId.Next();
+            a.Name = $"{a.Id}.1.1 Activity";
+            a.Project = project.Id;
+        });
+
+        _activities.Add(activity);
+        return activity;
+    }
 }

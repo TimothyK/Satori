@@ -5,18 +5,22 @@ using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using Satori.Kimai;
 using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using PullRequestDto = Satori.AzureDevOps.Models.PullRequest;
+using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 
 namespace Satori.AppServices.Services;
 
 public class PullRequestService(
-    IAzureDevOpsServer azureDevOpsServer
-    , ILoggerFactory loggerFactory
-    , IAlertService alertService
-)
+    IAzureDevOpsServer azureDevOpsServer,
+    ILoggerFactory loggerFactory,
+    IAlertService alertService,
+    IKimaiServer kimai)
 {
+    private readonly IKimaiServer _kimai = kimai;
+
     private IAzureDevOpsServer AzureDevOpsServer { get; } = azureDevOpsServer;
 
     private ILogger<PullRequestService> Logger => loggerFactory.CreateLogger<PullRequestService>();
@@ -52,11 +56,8 @@ public class PullRequestService(
         var workItemMap = await GetWorkItemMap(pullRequests.Select(x => (PullRequestId)x));
         Logger.LogDebug("WorkItem Map loaded in {ElapsedMilliseconds}ms", stopWatch.ElapsedMilliseconds);
 
-        stopWatch = Stopwatch.StartNew();
-        var workItemIds = workItemMap.SelectMany(kvp => kvp.Value).Distinct();
-        var workItems = (await AzureDevOpsServer.GetWorkItemsAsync(workItemIds))
-            .ToDictionary(wi => wi.Id, wi => wi.ToViewModel());
-        Logger.LogDebug("Got {WorkItemCount} work items in {ElapsedMilliseconds}ms", workItems.Count, stopWatch.ElapsedMilliseconds);
+        var workItemIds = workItemMap.SelectMany(kvp => kvp.Value).Distinct().ToArray();
+        var workItems = await GetWorkItemsAsync(workItemIds);
 
         foreach (var pr in pullRequests)
         {
@@ -90,5 +91,16 @@ public class PullRequestService(
         return pullRequestWorkItemMappings
             .GroupBy(map => map.pullRequestId)
             .ToDictionary(g => g.Key, g => g.Select(map => map.workItemId).ToList());
+    }
+
+    private async Task<Dictionary<int, WorkItem>> GetWorkItemsAsync(int[] workItemIds)
+    {
+        var stopWatch = Stopwatch.StartNew();
+
+        var viewModels = await AzureDevOpsServer.GetWorkItemsAsync(workItemIds, _kimai);
+        var workItems = viewModels.ToDictionary(workItem => workItem.Id, workItem => workItem);
+
+        Logger.LogDebug("Got {WorkItemCount} work items in {ElapsedMilliseconds}ms", workItems.Count, stopWatch.ElapsedMilliseconds);
+        return workItems;
     }
 }

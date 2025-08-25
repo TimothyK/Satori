@@ -1,8 +1,11 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Satori.AppServices.Services;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
+using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
+using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels.WorkItems;
+using Satori.AzureDevOps;
+using Satori.Kimai.Utilities;
 using Shouldly;
 using WorkItem = Satori.AzureDevOps.Models.WorkItem;
 
@@ -21,14 +24,15 @@ namespace Satori.AppServices.Tests.PullRequests;
 [TestClass]
 public class WorkItemTests
 {
-    private readonly TestAzureDevOpsServer _azureDevOpsServer;
-    private readonly AzureDevOpsDatabaseBuilder _builder;
-    private Uri AzureDevOpsRootUrl => _azureDevOpsServer.AsInterface().ConnectionSettings.Url;
+    private readonly ServiceProvider _serviceProvider;
+
+    private Uri AzureDevOpsRootUrl => _serviceProvider.GetRequiredService<IAzureDevOpsServer>().ConnectionSettings.Url;
 
     public WorkItemTests()
     {
-        _azureDevOpsServer = new TestAzureDevOpsServer();
-        _builder = _azureDevOpsServer.CreateBuilder();
+        var services = new SatoriServiceCollection();
+        services.AddTransient<PullRequestService>();
+        _serviceProvider = services.BuildServiceProvider();
     }
 
     #region Helpers
@@ -36,6 +40,7 @@ public class WorkItemTests
     #region Arrange
 
     private WorkItem? _expected;
+
     private WorkItem Expected
     {
         get
@@ -45,7 +50,8 @@ public class WorkItemTests
                 return _expected;
             }
 
-            _builder.BuildPullRequest().WithWorkItem(out _expected);
+            var builder = _serviceProvider.GetRequiredService<AzureDevOpsDatabaseBuilder>();
+            builder.BuildPullRequest().WithWorkItem(out _expected);
             return _expected;
         }
     }
@@ -56,7 +62,7 @@ public class WorkItemTests
 
     private IEnumerable<ViewModels.WorkItems.WorkItem> GetWorkItems()
     {
-        var srv = new PullRequestService(_azureDevOpsServer.AsInterface(), NullLoggerFactory.Instance, new AlertService());
+        var srv = _serviceProvider.GetRequiredService<PullRequestService>();
         var pullRequests = srv.GetPullRequestsAsync().Result.ToArray();
         srv.AddWorkItemsToPullRequestsAsync(pullRequests).GetAwaiter().GetResult();
         return [.. pullRequests.Single().WorkItems];
@@ -143,7 +149,22 @@ public class WorkItemTests
 
     [TestMethod] public void State() => GetSingleWorkItem().State.ToApiValue().ShouldBe(Expected.Fields.State);
     
-    [TestMethod] public void ProjectCode() => GetSingleWorkItem().ProjectCode.ShouldBe(Expected.Fields.ProjectCode);
+    [TestMethod] public void ProjectCode()
+    {
+        //Arrange
+        var kimai = _serviceProvider.GetRequiredService<TestKimaiServer>();
+        var project = kimai.AddProject();
+
+        var workItem = Expected;
+        workItem.Fields.ProjectCode = ProjectCodeParser.GetProjectCode(project.Name);
+
+        //Act
+        var actual = GetSingleWorkItem();
+
+        //Assert
+        actual.KimaiProject.ShouldNotBeNull();
+        actual.KimaiProject.Id.ShouldBe(project.Id);
+    }
 
     [TestMethod] public void Url() => GetSingleWorkItem().Url.ShouldBe(AzureDevOpsRootUrl + "/_workItems/edit/" + Expected.Id);
 }

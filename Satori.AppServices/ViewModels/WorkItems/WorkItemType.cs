@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 
 namespace Satori.AppServices.ViewModels.WorkItems;
 
-public class WorkItemType
+public class WorkItemType : IComparable<WorkItemType>
 {
     private WorkItemType(string apiValue, string? cssClassSuffix = null)
     {
@@ -59,6 +59,38 @@ public class WorkItemType
 
     private string CssClassSuffix { get; }
     public string CssClass => "work-item-" + CssClassSuffix;
+
+    #region IComparable
+
+    private static readonly Dictionary<WorkItemType, int> OrdinalMap = new()
+    {
+        { Epic, 10 },
+        { Feature, 20 },
+        { ProductBacklogItem, 30 },
+        { Bug, 31 },
+        { Impediment, 32 },
+        { Task, 100 },
+        { Unknown, int.MaxValue }
+    };
+    private int OrdinalValue => OrdinalMap[this];
+
+    public int CompareTo(WorkItemType? other)
+    {
+        var results = new[]
+        {
+            OrdinalValue.CompareTo(other?.OrdinalValue ?? int.MinValue)
+        };
+        return results
+            .SkipWhile(diff => diff == 0)
+            .FirstOrDefault();
+    }
+
+    public static bool operator <(WorkItemType lhs, WorkItemType rhs) => lhs.CompareTo(rhs) < 0;
+    public static bool operator <=(WorkItemType lhs, WorkItemType rhs) => lhs.CompareTo(rhs) <= 0;
+    public static bool operator >(WorkItemType lhs, WorkItemType rhs) => lhs.CompareTo(rhs) > 0;
+    public static bool operator >=(WorkItemType lhs, WorkItemType rhs) => lhs.CompareTo(rhs) >= 0;
+
+    #endregion IComparable
 }
 
 

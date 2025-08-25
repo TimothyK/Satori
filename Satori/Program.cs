@@ -1,6 +1,7 @@
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using MudBlazor.Services;
 using Satori.Utilities;
 using Toolbelt.Blazor.Extensions.DependencyInjection;
 
@@ -18,6 +19,7 @@ public class Program
 
         builder.Services.AddBlazoredLocalStorage();
         builder.Services.AddHotKeys2();
+        builder.Services.AddMudServices();
         
         builder.Services.AddSatoriServices();
 

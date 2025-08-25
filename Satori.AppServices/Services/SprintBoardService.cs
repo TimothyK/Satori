@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AzureDevOps.Exceptions;
+using Satori.Kimai;
 using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using UriParser = Satori.AppServices.Services.Converters.UriParser;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
@@ -19,12 +20,14 @@ using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 namespace Satori.AppServices.Services;
 
 public class SprintBoardService(
-    IAzureDevOpsServer azureDevOpsServer
-    , ITimeServer timeServer
-    , IAlertService alertService
-    , ILoggerFactory loggerFactory
-)
+    IAzureDevOpsServer azureDevOpsServer,
+    ITimeServer timeServer,
+    IAlertService alertService,
+    ILoggerFactory loggerFactory,
+    IKimaiServer kimai)
 {
+    private readonly IKimaiServer _kimai = kimai;
+
     #region GetActiveSptringsAsync
 
     public async Task<IEnumerable<Sprint>> GetActiveSprintsAsync()
@@ -150,9 +153,9 @@ public class SprintBoardService(
         var iteration = (IterationId)sprint;
 
         var links = await azureDevOpsServer.GetIterationWorkItemsAsync(iteration);
-        var workItemIds = links.Select(x => x.Target.Id);
-        var items = await azureDevOpsServer.GetWorkItemsAsync(workItemIds);
-        var iterationWorkItems = items.Select(wi => wi.ToViewModel()).ToList();
+        var workItemIds = links.Select(x => x.Target.Id).ToArray();
+        var iterationWorkItems = (await azureDevOpsServer.GetWorkItemsAsync(workItemIds, _kimai)).ToList();
+
         foreach (var workItem in iterationWorkItems.OrderBy(wi => wi.AbsolutePriority))
         {
             workItem.Children.Clear();
@@ -177,7 +180,7 @@ public class SprintBoardService(
 
         await ReplaceRelationPlaceholdersAsync(iterationWorkItems);
 
-        iterationBoardItems.Values.ResetPeopleRelations();
+        iterationBoardItems.Values.ResetPeopleRelations(_kimai);
         SetSprintPriority(iterationBoardItems.Values);
 
         return iterationBoardItems.Values.ToList();
@@ -247,9 +250,10 @@ public class SprintBoardService(
     /// <returns></returns>
     public async Task RefreshWorkItemAsync(List<WorkItem> allWorkItems, WorkItem original)
     {
-        var target = (await azureDevOpsServer.GetWorkItemsAsync(original.Id.Yield()))
-            .SingleOrDefault()
-            ?.ToViewModel();
+        var workItem = (await azureDevOpsServer.GetWorkItemsAsync(original.Id.Yield()))
+            .SingleOrDefault();
+        var target = workItem == null ? null 
+            : await workItem.ToViewModelAsync(_kimai);
 
         if (target == null || target.State == ScrumState.Removed)
         {
@@ -275,7 +279,7 @@ public class SprintBoardService(
         await ReplaceRelationPlaceholdersAsync(allWorkItems.Concat(allWorkItems.SelectMany(wi => wi.Children)).ToList());
 
         SetSprintPriority(allWorkItems.Where(wi => wi.Sprint == target.Sprint));
-        allWorkItems.ResetPeopleRelations();
+        allWorkItems.ResetPeopleRelations(_kimai);
     }
 
     private static void SafeSetSprint(WorkItem target, WorkItem source)
@@ -348,7 +352,7 @@ public class SprintBoardService(
     {
         try
         {
-            return (await azureDevOpsServer.GetWorkItemsAsync(workItemIds)).Select(wi => wi.ToViewModel());
+            return await azureDevOpsServer.GetWorkItemsAsync(workItemIds, _kimai);
         }
         catch (Exception ex)
         {
@@ -375,7 +379,7 @@ public class SprintBoardService(
         var pullRequests = await PullRequestsAsync(pullRequestIds);
         ReplacePullRequests(workItems, pullRequests);
 
-        workItems.ResetPeopleRelations();
+        workItems.ResetPeopleRelations(_kimai);
     }
 
     private static int[] GetPullRequestIds(WorkItem[] workItems)
@@ -505,7 +509,7 @@ public class SprintBoardService(
         {
             SetSprintPriority(sprintWorkItems);
         }
-        request.AllWorkItems.ResetPeopleRelations();
+        request.AllWorkItems.ResetPeopleRelations(_kimai);
     }
 
     #endregion ReorderWorkItems
