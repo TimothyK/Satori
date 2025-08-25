@@ -1,9 +1,14 @@
-﻿using Satori.Kimai.Utilities;
+﻿using System.Collections.ObjectModel;
+using Satori.Kimai.Utilities;
 
 namespace Satori.Kimai.ViewModels;
 
 public class Project
 {
+    internal Project()
+    {
+    }
+
     public int Id { get; set; }
     public required string Name { get; set; }
     public override string ToString() => Name;
@@ -16,7 +21,9 @@ public class Project
 
     public required Customer Customer { get; set; }
 
-    public List<Activity> Activities { get; set; } = [];
+    private readonly List<Activity> _activities = [];
+    public ReadOnlyCollection<Activity> Activities => _activities.AsReadOnly();
+    internal void AddActivity(Activity activity) => _activities.Add(activity);
 
     public Activity? FindActivity(string? rawProjectCode)
     {

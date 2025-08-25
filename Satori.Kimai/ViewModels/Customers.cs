@@ -34,7 +34,7 @@ public class Customers(IEnumerable<CustomerModel> customers) : IEnumerable<Custo
         }
 
         var viewModel = Mappers.ToViewModel(model, customer);
-        customer.Projects.Add(viewModel);
+        customer.AddProject(viewModel);
 
         _projects.Add(viewModel.ProjectCode, viewModel);
     }
@@ -52,7 +52,7 @@ public class Customers(IEnumerable<CustomerModel> customers) : IEnumerable<Custo
             return;
         }
         var viewModel = Mappers.ToViewModel(model, project);
-        project.Activities.Add(viewModel);
+        project.AddActivity(viewModel);
     }
 
     public Project? FindProject(string? projectCode)
