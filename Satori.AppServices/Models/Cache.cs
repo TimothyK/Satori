@@ -2,28 +2,36 @@
 
 namespace Satori.AppServices.Models;
 
-public class Cache<T>(ITimeServer timeServer)
+public class Cache<T>(Func<Task<T>> fetchAsync, ITimeServer timeServer)
 {
-    public DateTimeOffset LastUpdateTime { get; private set; } = DateTimeOffset.MinValue;
     public TimeSpan MaxAge { get; set; } = TimeSpan.FromMinutes(1);
+    public bool IsExpired => LastUpdateTime + MaxAge <= timeServer.GetUtcNow();
 
-    private T? _value;
-    public T? Value
+
+    public DateTimeOffset LastUpdateTime { get; private set; } = DateTimeOffset.MinValue;
+    private T? Value { get; set; }
+
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
+
+    public async Task<T> GetValueAsync(CachingAlgorithm cachingAlgorithm = CachingAlgorithm.UseCache)
     {
-        get => _value;
-        set
+        await _semaphore.WaitAsync();
+        try
         {
-            _value = value;
+            if (cachingAlgorithm == CachingAlgorithm.UseCache && !IsExpired)
+            {
+                return Value!;
+            }
+
+            Value = await fetchAsync();
             LastUpdateTime = timeServer.GetUtcNow();
+            return Value;
+        }
+        finally
+        {
+            _semaphore.Release();
         }
     }
-
-    public bool IsExpired => LastUpdateTime + MaxAge < timeServer.GetUtcNow();
-
-    /// <summary>
-    /// This Semaphore can be used when updating the cache
-    /// </summary>
-    public readonly SemaphoreSlim Semaphore = new(1, 1);
 }
 
 public enum CachingAlgorithm

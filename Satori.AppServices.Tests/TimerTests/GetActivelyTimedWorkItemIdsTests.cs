@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Satori.AppServices.Extensions;
-using Satori.AppServices.Models;
 using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
+using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.Kimai.Models;
 using Shouldly;
@@ -19,7 +19,7 @@ public class GetActivelyTimedWorkItemIdsTests
     {
         var serviceCollection = new SatoriServiceCollection();
         serviceCollection.AddSingleton<UserService>();
-        serviceCollection.AddTransient<TimerService>();
+        serviceCollection.AddScoped<TimerService>();  // Scoped will reset the cache on GetActivelyTimesWorkItems for each test
         _serviceProvider = serviceCollection.BuildServiceProvider();
 
         _kimai = _serviceProvider.GetRequiredService<TestKimaiServer>();
@@ -65,7 +65,7 @@ public class GetActivelyTimedWorkItemIdsTests
     }
 
     
-    private User CreateUser()
+    private static User BuildUser()
     {
         return Builder.Builder<User>.New().Build(user =>
         {
@@ -82,7 +82,7 @@ public class GetActivelyTimedWorkItemIdsTests
     private async Task<IReadOnlyCollection<int>> GetActivelyTimedWorkItemIds()
     {
         var srv = _serviceProvider.GetRequiredService<TimerService>();
-        return await srv.GetActivelyTimedWorkItemIdsAsync(CachingAlgorithm.ForceRefresh);
+        return await srv.GetActivelyTimedWorkItemIdsAsync();
     }
 
     #endregion Act
@@ -158,7 +158,7 @@ public class GetActivelyTimedWorkItemIdsTests
         entry1.Description = "D#12345 App Crashes";
 
         entry2.End = null;
-        entry2.User = CreateUser();
+        entry2.User = BuildUser();
         entry2.Description = "D#12348 App Hangs";
 
         //Act
@@ -170,6 +170,33 @@ public class GetActivelyTimedWorkItemIdsTests
         workItemIds.ShouldContain(12348);
     }
 
+    [TestMethod]
+    public async Task IsCached()
+    {
+        // Arrange
+        var timeServer = _serviceProvider.GetRequiredService<TestTimeServer>();
+        var t = DateTimeOffset.Now;
+        timeServer.SetTime(t);
 
-    
+        // Act 1
+        var workItemIds1 = await GetActivelyTimedWorkItemIds();
+        workItemIds1.ShouldBeEmpty();
+
+        // Add time entry
+        var entry = BuildTimeEntry();
+        entry.End = null;
+        entry.Description = "D#12345";
+
+        // Act 2
+        var workItemIds2 = await GetActivelyTimedWorkItemIds();
+        workItemIds2.ShouldBeEmpty();  // Still using the cached value
+
+        // Act 3
+        timeServer.SetTime(t + TimeSpan.FromMinutes(1));
+        var workItemIds3 = await GetActivelyTimedWorkItemIds();
+
+        // Assert
+        workItemIds3.Count.ShouldBe(1);
+        workItemIds3.ShouldContain(12345);
+    }
 }

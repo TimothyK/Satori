@@ -18,8 +18,9 @@ internal static class AppServiceBuilder
         services.AddScoped<UserService>();
         services.AddScoped<StandUpService>();
         services.AddScoped<WorkItemUpdateService>();
-        services.AddScoped<TimerService>();
-        
+
+        services.AddSingleton<TimerService>();  //Must be singleton because of caching on GetActivelyTimedWorkItemIdsAsync
+
         services.AddScoped(serviceProvider => serviceProvider.GetRequiredService<IConnectionSettingsStore>().GetAzureDevOpsSettings());
         services.AddScoped<IAzureDevOpsServer, AzureDevOpsServer>();
         

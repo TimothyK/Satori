@@ -1,4 +1,5 @@
 ﻿using CodeMonkeyProjectiles.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Satori.AppServices.Extensions;
 using Satori.AppServices.Services;
@@ -17,14 +18,23 @@ namespace Satori.AppServices.Tests.TimerTests;
 public class RestartTimerTests
 {
 
-    protected readonly TestAlertService AlertService = new();
-    private protected TestKimaiServer Kimai { get; } = new();
-    private protected TestAzureDevOpsServer AzureDevOps { get; } = new();
+    protected readonly TestAlertService AlertService;
+    private readonly ServiceProvider _serviceProvider;
+    private protected TestKimaiServer Kimai { get; }
+    private protected TestAzureDevOpsServer AzureDevOps { get; }
 
     public RestartTimerTests()
     {
         Person.Me = null;  //Clear cache
 
+        var serviceCollection = new SatoriServiceCollection();
+        serviceCollection.AddSingleton<UserService>();
+        serviceCollection.AddScoped<TimerService>();
+        _serviceProvider = serviceCollection.BuildServiceProvider();
+
+        Kimai = _serviceProvider.GetRequiredService<TestKimaiServer>();
+        AzureDevOps = _serviceProvider.GetRequiredService<TestAzureDevOpsServer>();
+        AlertService = _serviceProvider.GetRequiredService<TestAlertService>();
     }
 
     #region Helpers
@@ -71,9 +81,8 @@ public class RestartTimerTests
     #region Act
 
     private async Task<TimeEntry> RestartTimerAsync(params int[] entryIds)
-    {   
-        var userService = new UserService(AzureDevOps.AsInterface(), Kimai.AsInterface(), AlertService);
-        var timerServer = new TimerService(Kimai.AsInterface(), userService, AlertService);
+    {
+        var timerServer = _serviceProvider.GetRequiredService<TimerService>();
 
         //Act
         await timerServer.RestartTimerAsync(entryIds);

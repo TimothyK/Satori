@@ -7,16 +7,41 @@ namespace Satori.AppServices.Tests.TimerTests;
 [TestClass]
 public class CacheTests
 {
-    private static readonly TimeSpan OneSecond = TimeSpan.FromSeconds(1);
-    private static readonly TimeSpan OneMinute = TimeSpan.FromMinutes(1);
     private readonly TestTimeServer _timeServer = new();
-    private readonly Cache<int> _cache; //object under test
+    private readonly Cache<int> _cache; // object under test
 
     public CacheTests()
     {
         _timeServer.SetTime(DateTimeOffset.Now);
-        _cache = new Cache<int>(_timeServer);
+        _cache = new Cache<int>(FetchValueAsync, _timeServer);
     }
+
+    #region Helpers
+
+    #region Arrange
+
+    private readonly ManualResetEventSlim _fetchSignal = new(true);
+
+    #endregion Arrange
+
+    #region Act
+
+    private Task<int> FetchValueAsync()
+    {
+        _fetchSignal.Wait(TimeSpan.FromMilliseconds(100));
+        Interlocked.Increment(ref _fetchCallCount);
+        return Task.FromResult(1);
+    }
+
+    #endregion Act
+
+    #region Assert
+
+    private int _fetchCallCount;
+    
+    #endregion Assert
+
+    #endregion Helpers
 
     [TestMethod]
     public void CacheInitialization()
@@ -26,44 +51,78 @@ public class CacheTests
     }
 
     [TestMethod]
-    public void SetValue_SetsLastUpdateTime()
+    public async Task SetValue_SetsLastUpdateTime()
     {
         //Arrange
         var t = _timeServer.GetUtcNow();
 
         //Act
-        _cache.Value = 1;
+        _ = await _cache.GetValueAsync();
 
         //Assert
         _cache.LastUpdateTime.ShouldBe(t);
     }
 
     [TestMethod]
-    public void OneSecond_NotExpired()
+    public async Task OneSecond_NotExpired()
     {
         //Arrange
         var t = _timeServer.GetUtcNow();
-        _cache.Value = 1;
+        _ = await _cache.GetValueAsync();
 
         //Act
-        _timeServer.SetTime(t + OneSecond);
+        _timeServer.SetTime(t + _cache.MaxAge - TimeSpan.FromTicks(1));
 
         //Assert
         _cache.IsExpired.ShouldBeFalse();
     }
     
     [TestMethod]
-    public void OneMinute_Expired()
+    public async Task OneMinute_Expired()
     {
         //Arrange
         var t = _timeServer.GetUtcNow();
-        _cache.Value = 1;
-        _cache.MaxAge.ShouldBe(OneMinute);
+        _ = await _cache.GetValueAsync();
 
         //Act
-        _timeServer.SetTime(t + OneMinute);
+        _timeServer.SetTime(t + _cache.MaxAge);
 
         //Assert
-        _cache.IsExpired.ShouldBeFalse();
+        _cache.IsExpired.ShouldBeTrue();
+    }
+
+    [TestMethod]
+    public async Task ConcurrentThreads_OnlyOneFetch()
+    {
+        // Arrange
+        _fetchSignal.Reset();
+
+        // Act
+        var task1 = Task.Run(() => _cache.GetValueAsync());
+        var task2 = Task.Run(() => _cache.GetValueAsync());
+        
+        _fetchSignal.Set();
+
+        await Task.WhenAll(task1, task2);
+
+        // Assert
+        _fetchCallCount.ShouldBe(1);
+
+    }
+    
+    [TestMethod]
+    public async Task CacheExpiresBetweenCalls_TwoFetches()
+    {
+        // Arrange
+        var t = _timeServer.GetUtcNow();
+
+        // Act
+        _ = await _cache.GetValueAsync();
+        _timeServer.SetTime(t + _cache.MaxAge);
+        _ = await _cache.GetValueAsync();
+
+        // Assert
+        _fetchCallCount.ShouldBe(2);
+
     }
 }
