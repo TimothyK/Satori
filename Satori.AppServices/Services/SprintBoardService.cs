@@ -26,7 +26,7 @@ public class SprintBoardService(
     ILoggerFactory loggerFactory,
     IKimaiServer kimai)
 {
-    #region GetActiveSptringsAsync
+    #region GetActiveSprintsAsync
 
     public async Task<IEnumerable<Sprint>> GetActiveSprintsAsync()
     {
@@ -118,7 +118,7 @@ public class SprintBoardService(
         };
     }
 
-    #endregion GetActiveSptringsAsync
+    #endregion GetActiveSprintsAsync
 
     #region GetWorkItemsAsync
 
