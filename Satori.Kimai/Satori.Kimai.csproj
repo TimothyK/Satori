@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Satori.Converters\Satori.Converters.csproj" />
+    <ProjectReference Include="..\Satori.TimeServices\Satori.TimeServices.csproj" />
   </ItemGroup>
 
 </Project>
