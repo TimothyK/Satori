@@ -1,8 +1,6 @@
-﻿using Satori.AppServices.Models;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
-using Shouldly;
+﻿using Shouldly;
 
-namespace Satori.AppServices.Tests.TimerTests;
+namespace Satori.TimeServices.Tests.Caching;
 
 [TestClass]
 public class CacheTests

@@ -1,6 +1,8 @@
-﻿using Satori.TimeServices;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Satori.AppServices.Models;
+namespace Satori.TimeServices;
 
 public class Cache<T>(Func<Task<T>> fetchAsync, ITimeServer timeServer)
 {
@@ -9,7 +11,7 @@ public class Cache<T>(Func<Task<T>> fetchAsync, ITimeServer timeServer)
 
 
     public DateTimeOffset LastUpdateTime { get; private set; } = DateTimeOffset.MinValue;
-    private T? Value { get; set; }
+    private T Value { get; set; }
 
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 

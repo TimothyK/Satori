@@ -5,7 +5,6 @@ using Shouldly;
 using System.Net;
 using Builder;
 using Satori.AppServices.Extensions;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
 using Satori.TimeServices;
 using Customers = Satori.Kimai.ViewModels.Customers;
 

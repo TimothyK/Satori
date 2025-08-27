@@ -1,8 +1,8 @@
-﻿using Satori.TimeServices;
+﻿using System;
 
-namespace Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
+namespace Satori.TimeServices;
 
-internal class TestTimeServer : ITimeServer
+public class TestTimeServer : ITimeServer
 {
     private DateTimeOffset? _currentTime;
 

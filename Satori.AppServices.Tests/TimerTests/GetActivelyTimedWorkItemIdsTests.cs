@@ -2,9 +2,9 @@
 using Satori.AppServices.Extensions;
 using Satori.AppServices.Services;
 using Satori.AppServices.Tests.TestDoubles;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.Kimai.Models;
+using Satori.TimeServices;
 using Shouldly;
 
 namespace Satori.AppServices.Tests.TimerTests;

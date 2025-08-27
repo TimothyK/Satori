@@ -4,10 +4,10 @@ using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AlertServices;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
+using Satori.TimeServices;
 using Shouldly;
 
 namespace Satori.AppServices.Tests.SprintBoards;
