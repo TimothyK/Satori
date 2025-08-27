@@ -1,9 +1,11 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Satori.AppServices.Extensions;
+using Satori.AppServices.Models;
 using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.Services.CommentParsing;
 using Satori.Kimai;
 using Satori.Kimai.Models;
+using Satori.TimeServices;
 
 namespace Satori.AppServices.Services;
 
@@ -16,6 +18,8 @@ public class TimerService(
     , IAlertService alertService
 )
 {
+    #region RestartTimerAsync
+
     /// <summary>
     /// Restarts and existing timer
     /// </summary>
@@ -81,4 +85,67 @@ public class TimerService(
 
         return await kimai.StopTimerAsync(timeSheet.Single().Id);
     }
+
+    #endregion RestartTimerAsync
+
+    #region GetActivelyTimedWorkItemIdsAsync
+
+    private static readonly Cache<IReadOnlyCollection<int>> ActivelyTimedWorkItemIdsCache = new(new TimeServer());
+
+    /// <summary>
+    /// Returns the Work Item IDs of the tasks that are actively being timed in Kimai.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This will return all active work item IDs for all users in Kimai.
+    /// The current user must have permissions to view other user's time sheets in Kimai.
+    /// If not, only the current user's active time entries will be returned.
+    /// </para>
+    /// <para>
+    /// Only the WorkItemIDs are returned.
+    /// This doesn't return which user is actively working which work item.
+    /// However, it can be assumed that the user assigned to the Azure DevOps Task is the person working on it.
+    /// </para>
+    /// </remarks>
+    /// <returns>Azure DevOps Work Item IDs</returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    public async Task<IReadOnlyCollection<int>> GetActivelyTimedWorkItemIdsAsync(CachingAlgorithm cachingAlgorithm = CachingAlgorithm.UseCache)
+    {
+        var cache = ActivelyTimedWorkItemIdsCache;
+
+        await cache.Semaphore.WaitAsync();
+        try
+        {
+            if (!cache.IsExpired && cachingAlgorithm == CachingAlgorithm.UseCache)
+            {
+                return cache.Value ?? throw new InvalidOperationException("Cache value should not be null if cache is not expired");
+            }
+
+            return cache.Value = await GetActivelyTimedWorkItemIdsFromKimaiAsync();
+        }
+        finally
+        {
+            cache.Semaphore.Release();
+        }
+    }
+
+    private async Task<IReadOnlyCollection<int>> GetActivelyTimedWorkItemIdsFromKimaiAsync()
+    {
+        var filter = new TimeSheetFilter()
+        {
+            IsRunning = true,
+            AllUsers = true,
+        };
+
+        var timeSheets = await kimai.GetTimeSheetAsync(filter);
+        return timeSheets
+            .SelectMany(timeEntry => CommentParser.Parse(timeEntry.Description))
+            .OfType<WorkItemComment>()
+            .SelectMany(comment => comment.WorkItems.Select(workItem => workItem.Id))
+            .Distinct()
+            .ToList().AsReadOnly();
+    }
+
+    #endregion GetActivelyTimedWorkItemIdsAsync
+
 }

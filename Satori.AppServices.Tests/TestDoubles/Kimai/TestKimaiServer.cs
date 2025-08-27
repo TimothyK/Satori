@@ -82,7 +82,7 @@ internal class TestKimaiServer
             .Where(x => filter.End == null || x.Begin <= filter.End)
             .Where(x => filter.IsRunning == null || (filter.IsRunning.Value && x.End == null) || (!filter.IsRunning.Value && x.End != null))
             .Where(x => filter.Term == null || (x.Description?.Contains(filter.Term) ?? false))
-            .Where(x => x.User == CurrentUser) // Kimai will filter by current user by default.  Our Kimai implementation doesn't support user filtering yet, so the Kimai behaviour will be to filter on current user.
+            .Where(x => filter.AllUsers || x.User == CurrentUser)
             .OrderByDescending(x => x.Begin)
             .Skip((filter.Page-1) * filter.Size)
             .Take(filter.Size)

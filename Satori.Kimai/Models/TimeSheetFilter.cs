@@ -19,6 +19,17 @@ public class TimeSheetFilter
     public bool? IsRunning { get; set; }
 
     /// <summary>
+    /// Returns time entries for all users in Kimai.  By default, only the current user is returned.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This does require in Kimai that the user has access to see other user's time sheets.
+    /// Otherwise, it will jus the current user's time sheet.
+    /// </para>
+    /// </remarks>
+    public bool AllUsers { get; set; }
+
+    /// <summary>
     /// Free text search on the description (e.g "D#12345")
     /// </summary>
     public string? Term { get; set; }
@@ -27,24 +38,31 @@ public class TimeSheetFilter
     /// For pagination, the page number to return
     /// </summary>
     public int Page { get; set; } = 1;
+
     /// <summary>
     /// Number of Time Entries to return (max per page)
     /// </summary>
     public int Size { get; set; } = 50;
-
 }
 
 public static class TimeSheetFilterExtensions
 {
     public static Url AppendQueryParams(this Url url, TimeSheetFilter filter)
     {
-        return url
+        var result = url
             .AppendQueryParam("begin", filter.Begin?.ToString("s"))
             .AppendQueryParam("end", filter.End?.ToString("s"))
             .AppendQueryParam("active", BoolParameter(filter.IsRunning))
             .AppendQueryParam("term", filter.Term)
             .AppendQueryParam("page", filter.Page == 1 ? null : filter.Page)
             .AppendQueryParam("size", filter.Size == 50 ? null : filter.Size);
+
+        if (filter.AllUsers)
+        {
+            result.AppendQueryParam("user", "all");
+        }
+
+        return url;
 
         static int? BoolParameter(bool? value)
         {
