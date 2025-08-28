@@ -15,8 +15,15 @@ public partial class ActionItemView
     [Parameter]
     public required ActionItem ActionItem { get; set; }
 
+    private WorkItem? WorkItem => (ActionItem as WorkItemActionItem)?.WorkItem;
+
     [Parameter]
     public EventCallback HasChanged { get; set; }
+
+    [Parameter] 
+    public required IReadOnlyCollection<int> RunningWorkItemIds { get; set; }
+
+    private bool IsRunning => (ActionItem as TaskActionItem)?.WorkItem.Id.IsIn(RunningWorkItemIds) ?? false;
 
     private async Task OpenWorkItemAsync(WorkItem workItem)
     {
@@ -147,7 +154,7 @@ public partial class ActionItemView
 
     private void OpenFundDialog()
     {
-        var workItem = (ActionItem as WorkItemActionItem)?.WorkItem ?? throw new InvalidOperationException();
+        var workItem = WorkItem ?? throw new InvalidOperationException();
         _isMenuOpen = false;
         _isWaitsForSubMenuOpen = false;
 
@@ -157,7 +164,7 @@ public partial class ActionItemView
     private async Task OnFundDialogSaveAsync((Project?, Activity?) value)
     {
         var (project, activity) = value;
-        var workItem = (ActionItem as WorkItemActionItem)?.WorkItem ?? throw new InvalidOperationException();
+        var workItem = WorkItem ?? throw new InvalidOperationException();
 
         await WorkItemUpdateService.UpdateProjectCodeAsync(workItem, project, activity);
 

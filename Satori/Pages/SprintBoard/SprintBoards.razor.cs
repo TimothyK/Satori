@@ -11,6 +11,7 @@ using Satori.AppServices.ViewModels.PullRequests.ActionItems;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AppServices.ViewModels.WorkItems.ActionItems;
+using Satori.TimeServices;
 using Satori.Utilities;
 using Toolbelt.Blazor.HotKeys2;
 
@@ -97,7 +98,24 @@ public partial class SprintBoards
         StateHasChanged();
         ResetWorkItemCounts();
 
+        await RefreshRunningWorkItemIdsAsync();
+
         InLoading = CssClass.None;
+    }
+
+    private IReadOnlyCollection<int> _runningWorkItemIds = [];
+
+    private async Task RefreshRunningWorkItemIdsAsync()
+    {
+        try
+        {
+            _runningWorkItemIds = await TimerService.GetActivelyTimedWorkItemIdsAsync(CachingAlgorithm.ForceRefresh);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            AlertService.BroadcastAlert(ex);
+        }
     }
 
     private void SetWorkItems(IEnumerable<WorkItem> workItems) =>
@@ -119,6 +137,8 @@ public partial class SprintBoards
 
         InLoadingWorkItem[workItem] = InLoadingCssClass;
         StateHasChanged();
+
+        await RefreshRunningWorkItemIdsAsync();
 
         try
         {
