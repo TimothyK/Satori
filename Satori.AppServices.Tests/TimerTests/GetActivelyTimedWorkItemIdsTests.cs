@@ -169,34 +169,4 @@ public class GetActivelyTimedWorkItemIdsTests
         workItemIds.ShouldContain(12345);
         workItemIds.ShouldContain(12348);
     }
-
-    [TestMethod]
-    public async Task IsCached()
-    {
-        // Arrange
-        var timeServer = _serviceProvider.GetRequiredService<TestTimeServer>();
-        var t = DateTimeOffset.Now;
-        timeServer.SetTime(t);
-
-        // Act 1
-        var workItemIds1 = await GetActivelyTimedWorkItemIds();
-        workItemIds1.ShouldBeEmpty();
-
-        // Add time entry
-        var entry = BuildTimeEntry();
-        entry.End = null;
-        entry.Description = "D#12345";
-
-        // Act 2
-        var workItemIds2 = await GetActivelyTimedWorkItemIds();
-        workItemIds2.ShouldBeEmpty();  // Still using the cached value
-
-        // Act 3
-        timeServer.SetTime(t + TimeSpan.FromMinutes(1));
-        var workItemIds3 = await GetActivelyTimedWorkItemIds();
-
-        // Assert
-        workItemIds3.Count.ShouldBe(1);
-        workItemIds3.ShouldContain(12345);
-    }
 }

@@ -109,8 +109,8 @@ public partial class SprintBoards
     {
         try
         {
-            _runningWorkItemIds = await TimerService.GetActivelyTimedWorkItemIdsAsync(CachingAlgorithm.ForceRefresh);
-            await InvokeAsync(StateHasChanged);
+            _runningWorkItemIds = await TimerService.GetActivelyTimedWorkItemIdsAsync();
+            StateHasChanged();
         }
         catch (Exception ex)
         {

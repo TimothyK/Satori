@@ -1,38 +1,21 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Satori.AppServices.Extensions;
-using Satori.AppServices.Models;
 using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.Services.CommentParsing;
 using Satori.Kimai;
 using Satori.Kimai.Models;
-using Satori.TimeServices;
 
 namespace Satori.AppServices.Services;
 
 /// <summary>
 /// Service to work with the actively running time entries in Kimai
 /// </summary>
-public class TimerService
+public class TimerService(
+    IKimaiServer kimai
+    , UserService userService
+    , IAlertService alertService
+)
 {
-    private readonly Cache<IReadOnlyCollection<int>> _activelyTimedWorkItemIdsCache;
-    private readonly IKimaiServer _kimai;
-    private readonly UserService _userService;
-    private readonly IAlertService _alertService;
-
-    public TimerService(
-        IKimaiServer kimai
-        , UserService userService
-        , IAlertService alertService
-        , ITimeServer timeServer
-    )
-    {
-        _kimai = kimai;
-        _userService = userService;
-        _alertService = alertService;
-
-        _activelyTimedWorkItemIdsCache = new Cache<IReadOnlyCollection<int>>(FetchActivelyTimedWorkItemIdsAsync, timeServer);
-    }
-
     #region RestartTimerAsync
 
     /// <summary>
@@ -48,7 +31,7 @@ public class TimerService
         }
         catch (Exception ex)
         {
-            _alertService.BroadcastAlert(ex);
+            alertService.BroadcastAlert(ex);
         }
     }
 
@@ -59,10 +42,10 @@ public class TimerService
         List<TimeEntryCollapsed> entries = [];
         foreach (var id in timeEntryIds)
         {
-            entries.Add(await _kimai.GetTimeEntryAsync(id));
+            entries.Add(await kimai.GetTimeEntryAsync(id));
         }
 
-        var me = await _userService.GetCurrentUserAsync();
+        var me = await userService.GetCurrentUserAsync();
 
         var descriptions = string.Join('\n', entries.Select(t => t.Description));
         var comments = CommentParser.Parse(descriptions);
@@ -75,7 +58,7 @@ public class TimerService
             Begin = startTime,
             Description = comments.Join(type => type.IsNotIn(CommentType.ScrumTypes)),
         };
-        await _kimai.CreateTimeEntryAsync(entry);
+        await kimai.CreateTimeEntryAsync(entry);
     }
 
     /// <summary>
@@ -92,13 +75,13 @@ public class TimerService
             IsRunning = true
         };
 
-        var timeSheet = await _kimai.GetTimeSheetAsync(filter);
+        var timeSheet = await kimai.GetTimeSheetAsync(filter);
         if (timeSheet.None())
         {
             return null;  //No active time entry to stop
         }
 
-        return await _kimai.StopTimerAsync(timeSheet.Single().Id);
+        return await kimai.StopTimerAsync(timeSheet.Single().Id);
     }
 
     #endregion RestartTimerAsync
@@ -122,10 +105,7 @@ public class TimerService
     /// </remarks>
     /// <returns>Azure DevOps Work Item IDs</returns>
     /// <exception cref="InvalidOperationException"></exception>
-    public async Task<IReadOnlyCollection<int>> GetActivelyTimedWorkItemIdsAsync(CachingAlgorithm cachingAlgorithm = CachingAlgorithm.UseCache) => 
-        await _activelyTimedWorkItemIdsCache.GetValueAsync(cachingAlgorithm);
-
-    private async Task<IReadOnlyCollection<int>> FetchActivelyTimedWorkItemIdsAsync()
+    public async Task<IReadOnlyCollection<int>> GetActivelyTimedWorkItemIdsAsync()
     {
         var filter = new TimeSheetFilter()
         {
@@ -133,7 +113,7 @@ public class TimerService
             AllUsers = true,
         };
 
-        var timeSheets = await _kimai.GetTimeSheetAsync(filter);
+        var timeSheets = await kimai.GetTimeSheetAsync(filter);
         return timeSheets
             .SelectMany(timeEntry => CommentParser.Parse(timeEntry.Description))
             .OfType<WorkItemComment>()
