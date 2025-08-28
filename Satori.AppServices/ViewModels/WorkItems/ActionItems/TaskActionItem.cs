@@ -1,6 +1,4 @@
-﻿using Satori.AppServices.ViewModels.Abstractions;
-
-namespace Satori.AppServices.ViewModels.WorkItems.ActionItems;
+﻿namespace Satori.AppServices.ViewModels.WorkItems.ActionItems;
 
 public class TaskActionItem(WorkItem task) 
     : WorkItemActionItem(task, GetActionDescription(task), GetPerson(task))
