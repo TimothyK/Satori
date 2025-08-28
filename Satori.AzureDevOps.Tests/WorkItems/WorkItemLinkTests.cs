@@ -1,7 +1,8 @@
-﻿using Autofac;
-using Flurl;
+﻿using Flurl;
+using Microsoft.Extensions.DependencyInjection;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Models;
+using Satori.AzureDevOps.Tests.Globals;
 using Shouldly;
 
 namespace Satori.AzureDevOps.Tests.WorkItems;
@@ -12,11 +13,23 @@ namespace Satori.AzureDevOps.Tests.WorkItems;
 [TestClass]
 public class WorkItemLinkTests
 {
+    private readonly ServiceProvider _serviceProvider;
+
+    public WorkItemLinkTests()
+    {
+        var services = new AzureDevOpsServiceCollection();
+        _serviceProvider = services.BuildServiceProvider();
+
+        _connectionSettings = _serviceProvider.GetRequiredService<ConnectionSettings>();
+        _mockHttp = _serviceProvider.GetRequiredService<MockHttpMessageHandler>();
+    }
+
     #region Helpers
 
     #region Arrange
 
-    private readonly ConnectionSettings _connectionSettings = Globals.Services.Scope.Resolve<ConnectionSettings>();
+    private readonly ConnectionSettings _connectionSettings;
+
 
     private Url GetIterationWorkItemsUrl(IterationId iteration) =>
         _connectionSettings.Url
@@ -27,7 +40,7 @@ public class WorkItemLinkTests
             .AppendPathSegment("workItems")
             .AppendQueryParam("api-version", "6.1-preview");
 
-    private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
+    private readonly MockHttpMessageHandler _mockHttp;
 
     private void SetResponse(Url url, string response)
     {
@@ -58,7 +71,7 @@ public class WorkItemLinkTests
     private WorkItemLink[] GetIterationWorkItems(IterationId iteration)
     {
         //Arrange
-        var srv = Globals.Services.Scope.Resolve<IAzureDevOpsServer>();
+        var srv = _serviceProvider.GetRequiredService<IAzureDevOpsServer>();
         SetResponse(GetIterationWorkItemsUrl(iteration), GetPayload(iteration));
 
         //Act

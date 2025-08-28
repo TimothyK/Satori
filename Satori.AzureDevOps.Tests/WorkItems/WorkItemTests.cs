@@ -1,5 +1,5 @@
-﻿using Autofac;
-using Flurl;
+﻿using Flurl;
+using Microsoft.Extensions.DependencyInjection;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Models;
 using Satori.AzureDevOps.Tests.Globals;
@@ -11,20 +11,30 @@ namespace Satori.AzureDevOps.Tests.WorkItems;
 [TestClass]
 public class WorkItemTests
 {
+    private readonly ServiceProvider _serviceProvider;
+
+    public WorkItemTests()
+    {
+        var services = new AzureDevOpsServiceCollection();
+        _serviceProvider = services.BuildServiceProvider();
+
+        _mockHttp = _serviceProvider.GetRequiredService<MockHttpMessageHandler>();
+    }
+
     #region Helpers
 
     #region Arrange
 
-    private readonly ConnectionSettings _connectionSettings = Services.Scope.Resolve<ConnectionSettings>();
+    private ConnectionSettings ConnectionSettings => _serviceProvider.GetRequiredService<ConnectionSettings>();
 
     private Url GetWorkItemUrl(params int[] workItemIds) =>
-        _connectionSettings.Url
+        ConnectionSettings.Url
             .AppendPathSegment("_apis/wit/workItems")
             .AppendQueryParam("ids", string.Join(',', workItemIds))
             .AppendQueryParam("$expand", "all")
             .AppendQueryParam("api-version", "6.0");
 
-    private readonly MockHttpMessageHandler _mockHttp = Services.Scope.Resolve<MockHttpMessageHandler>();
+    private readonly MockHttpMessageHandler _mockHttp;
 
     private void SetResponse(Url url, string response)
     {
@@ -35,22 +45,22 @@ public class WorkItemTests
 
     #region Act
 
-    private static WorkItem[] GetWorkItems(int workItemId)
-    {
-        var srv = Services.Scope.Resolve<IAzureDevOpsServer>();
-        return srv.GetWorkItemsAsync(workItemId).Result;
-    }
-
-    private WorkItem SingleWorkItem(int workItemId = SingleWorkItemId)
+    private async Task<WorkItem> SingleWorkItemAsync(int workItemId = SingleWorkItemId)
     {
         //Arrange
         SetResponse(GetWorkItemUrl(workItemId), GetPayload(workItemId));
 
         //Act
-        var workItems = GetWorkItems(workItemId);
+        var workItems = await GetWorkItemsAsync(workItemId);
 
         //Assert
         return workItems.Single(wi => wi.Id == workItemId);
+    }
+
+    private async Task<WorkItem[]> GetWorkItemsAsync(int workItemId)
+    {
+        var srv = _serviceProvider.GetRequiredService<IAzureDevOpsServer>();
+        return await srv.GetWorkItemsAsync(workItemId);
     }
 
     private const int SingleWorkItemId = 2;
@@ -80,13 +90,13 @@ public class WorkItemTests
     #endregion Helpers
 
     [TestMethod]
-    public void ASmokeTest() => SingleWorkItem().Id.ShouldBe(SingleWorkItemId);
+    public async Task ASmokeTest() => (await SingleWorkItemAsync()).Id.ShouldBe(SingleWorkItemId);
 
     [TestMethod]
-    public void AzureDisabled_ThrowsInvalidOp()
+    public async Task AzureDisabled_ThrowsInvalidOp()
     {
         //Arrange
-        var factory = Services.Scope.Resolve<ConnectionSettingsFactory>();
+        var factory = _serviceProvider.GetRequiredService<ConnectionSettingsFactory>();
         var connectionSettings = new ConnectionSettings()
         {
             Enabled = false,
@@ -95,17 +105,14 @@ public class WorkItemTests
         };
 
         //Act
-        AggregateException ex;
+        InvalidOperationException ex;
         using (factory.Set(connectionSettings))
         {
-            ex = Should.Throw<AggregateException>(() => SingleWorkItem());
+            ex = await Should.ThrowAsync<InvalidOperationException>(async () => await SingleWorkItemAsync());
         }
 
         //Assert
-        ex.InnerExceptions.Count.ShouldBe(1);
-        var innerException = ex.InnerExceptions.Single();
-        innerException.ShouldBeOfType<InvalidOperationException>();
-        innerException.Message.ShouldBe("Azure DevOps is not enabled.  Check settings on Home page.");
+        ex.Message.ShouldBe("Azure DevOps is not enabled.  Check settings on Home page.");
     }
 
     [TestMethod]
@@ -115,7 +122,7 @@ public class WorkItemTests
         _mockHttp.Fallback.Throw(new Exception("Should not call the web API"));
 
         //Act
-        var srv = Services.Scope.Resolve<IAzureDevOpsServer>();
+        var srv = _serviceProvider.GetRequiredService<IAzureDevOpsServer>();
         var workItems = srv.GetWorkItemsAsync().Result;
 
         //Assert
@@ -123,28 +130,28 @@ public class WorkItemTests
     }
 
     [TestMethod]
-    public void Title() => SingleWorkItem().Fields.Title.ShouldBe("Program no longer crashes on startup");
+    public async Task Title() => (await SingleWorkItemAsync()).Fields.Title.ShouldBe("Program no longer crashes on startup");
 
     [TestMethod]
-    public void Revision() => SingleWorkItem().Rev.ShouldBe(16);
+    public async Task Revision() => (await SingleWorkItemAsync()).Rev.ShouldBe(16);
 
     [TestMethod]
-    public void WorkItemType() => SingleWorkItem().Fields.WorkItemType.ShouldBe("Product Backlog Item");
+    public async Task WorkItemType() => (await SingleWorkItemAsync()).Fields.WorkItemType.ShouldBe("Product Backlog Item");
 
 
     [TestMethod]
-    public void Area() => SingleWorkItem().Fields.AreaPath.ShouldBe("Product\\AppArea");
+    public async Task Area() => (await SingleWorkItemAsync()).Fields.AreaPath.ShouldBe("Product\\AppArea");
 
     [TestMethod]
-    public void IterationPath() => SingleWorkItem().Fields.IterationPath.ShouldBe("CD\\Skunk\\Sprint 2024-02");
+    public async Task IterationPath() => (await SingleWorkItemAsync()).Fields.IterationPath.ShouldBe("CD\\Skunk\\Sprint 2024-02");
 
     [TestMethod]
-    public void State() => SingleWorkItem().Fields.State.ShouldBe("New");
+    public async Task State() => (await SingleWorkItemAsync()).Fields.State.ShouldBe("New");
 
     [TestMethod]
-    public void AssignedTo()
+    public async Task AssignedTo()
     {
-        var assignedTo = SingleWorkItem().Fields.AssignedTo;
+        var assignedTo = (await SingleWorkItemAsync()).Fields.AssignedTo;
         assignedTo.ShouldNotBeNull();
         assignedTo.Id.ShouldBe(new Guid("c00ef764-dc77-4b32-9a19-590db59f039b"));
         assignedTo.DisplayName.ShouldBe("Timothy Klenke");
@@ -152,9 +159,9 @@ public class WorkItemTests
     }
         
     [TestMethod]
-    public void CreatedBy()
+    public async Task CreatedBy()
     {
-        var createdBy = SingleWorkItem().Fields.CreatedBy;
+        var createdBy = (await SingleWorkItemAsync()).Fields.CreatedBy;
         createdBy.ShouldNotBeNull();
         createdBy.Id.ShouldBe(new Guid("c00ef764-dc77-4b32-9a19-590db59f039b"));
         createdBy.DisplayName.ShouldBe("Timothy Klenke");
@@ -162,31 +169,31 @@ public class WorkItemTests
     }
 
     [TestMethod]
-    public void CreationDate() => SingleWorkItem().Fields.SystemCreatedDate
+    public async Task CreationDate() => (await SingleWorkItemAsync()).Fields.SystemCreatedDate
         .ShouldBe(new DateTimeOffset(2024, 1, 13, 20, 16, 53, TimeSpan.Zero).AddMilliseconds(407));
 
 
     [TestMethod]
-    public void Priority() => SingleWorkItem().Fields.Priority.ShouldBe(2);
+    public async Task Priority() => (await SingleWorkItemAsync()).Fields.Priority.ShouldBe(2);
 
     [TestMethod]
-    public void TargetDate() => SingleWorkItem().Fields.TargetDate
+    public async Task TargetDate() => (await SingleWorkItemAsync()).Fields.TargetDate
         .ShouldBe(new DateTimeOffset(2025, 4, 14, 6, 0, 0, TimeSpan.Zero));
 
     [TestMethod]
-    public void BacklogPriority() => SingleWorkItem().Fields.BacklogPriority.ShouldBe(27103990.0);
+    public async Task BacklogPriority() => (await SingleWorkItemAsync()).Fields.BacklogPriority.ShouldBe(27103990.0);
 
     [TestMethod]
-    public void Blocked_No() => SingleWorkItem().Fields.Blocked.ShouldBeFalse();
+    public async Task Blocked_No() => (await SingleWorkItemAsync()).Fields.Blocked.ShouldBeFalse();
         
     [TestMethod]
-    public void Blocked_Yes() => SingleWorkItem(BlockedWorkItemId).Fields.Blocked.ShouldBeTrue();
+    public async Task Blocked_Yes() => (await SingleWorkItemAsync(BlockedWorkItemId)).Fields.Blocked.ShouldBeTrue();
 
     [TestMethod]
-    public void ProjectCode() => SingleWorkItem().Fields.ProjectCode.ShouldBe("1.2.3 - Skunk Works");
+    public async Task ProjectCode() => (await SingleWorkItemAsync()).Fields.ProjectCode.ShouldBe("1.2.3 - Skunk Works");
         
     [TestMethod]
-    public void CommentCount() => SingleWorkItem().Fields.CommentCount.ShouldBe(0);
+    public async Task CommentCount() => (await SingleWorkItemAsync()).Fields.CommentCount.ShouldBe(0);
 
     [TestMethod]
     [DataRow(28655, "Epic")]
@@ -195,46 +202,46 @@ public class WorkItemTests
     [DataRow(29923, "Task")]
     [DataRow(27850, "Bug")]
     [DataRow(30343, "Impediment")]
-    public void Type(int workItemId, string type) => SingleWorkItem(workItemId).Fields.WorkItemType.ShouldBe(type);
+    public async Task Type(int workItemId, string type) => (await SingleWorkItemAsync(workItemId)).Fields.WorkItemType.ShouldBe(type);
 
     /// <summary>
     /// Original Estimate is only available on Task work items
     /// </summary>
     [TestMethod]
-    public void OriginalEstimate_Missing() => SingleWorkItem().Fields.OriginalEstimate.ShouldBeNull();
+    public async Task OriginalEstimate_Missing() => (await SingleWorkItemAsync()).Fields.OriginalEstimate.ShouldBeNull();
     /// <summary>
     /// Completed Work is only available on Task work items
     /// </summary>
     [TestMethod]
-    public void CompletedWork_Missing() => SingleWorkItem().Fields.CompletedWork.ShouldBeNull();
+    public async Task CompletedWork_Missing() => (await SingleWorkItemAsync()).Fields.CompletedWork.ShouldBeNull();
     /// <summary>
     /// Remaining Work is only available on Task work items
     /// </summary>
     [TestMethod]
-    public void RemainingWork_Missing() => SingleWorkItem().Fields.RemainingWork.ShouldBeNull();
+    public async Task RemainingWork_Missing() => (await SingleWorkItemAsync()).Fields.RemainingWork.ShouldBeNull();
     
     [TestMethod]
-    public void OriginalEstimate() => SingleWorkItem(29923).Fields.OriginalEstimate.ShouldBe(12.0);
+    public async Task OriginalEstimate() => (await SingleWorkItemAsync(29923)).Fields.OriginalEstimate.ShouldBe(12.0);
     [TestMethod]
-    public void CompletedWork() => SingleWorkItem(29923).Fields.CompletedWork.ShouldBe(9.0);
+    public async Task CompletedWork() => (await SingleWorkItemAsync(29923)).Fields.CompletedWork.ShouldBe(9.0);
     [TestMethod]
-    public void RemainingWork() => SingleWorkItem(29923).Fields.RemainingWork.ShouldBe(3.0);
+    public async Task RemainingWork() => (await SingleWorkItemAsync(29923)).Fields.RemainingWork.ShouldBe(3.0);
 
     [TestMethod]
-    public void Tags() => SingleWorkItem().Fields.Tags.ShouldBe("Needs_Design_Review; Waiting_For_Client");
+    public async Task Tags() => (await SingleWorkItemAsync()).Fields.Tags.ShouldBe("Needs_Design_Review; Waiting_For_Client");
     
     [TestMethod]
-    public void Triage() => SingleWorkItem(27850).Fields.Triage.ShouldBe("Pending");
+    public async Task Triage() => (await SingleWorkItemAsync(27850)).Fields.Triage.ShouldBe("Pending");
 
     [TestMethod]
-    public void Parent() => SingleWorkItem(ExpandedWorkItemId).Fields.Parent.ShouldBe(12344);
+    public async Task Parent() => (await SingleWorkItemAsync(ExpandedWorkItemId)).Fields.Parent.ShouldBe(12344);
 
     
     [TestMethod]
-    public void ParentViaRelations()
+    public async Task ParentViaRelations()
     {
         //Act
-        var workItem = SingleWorkItem(ExpandedWorkItemId);
+        var workItem = await SingleWorkItemAsync(ExpandedWorkItemId);
 
         //Assert
         workItem.Relations.ShouldNotBeNull();

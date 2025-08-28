@@ -1,9 +1,10 @@
-﻿using Autofac;
-using Flurl;
+﻿using Flurl;
+using Microsoft.Extensions.DependencyInjection;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Exceptions;
 using Satori.AzureDevOps.Models;
 using Satori.AzureDevOps.Tests.Extensions;
+using Satori.AzureDevOps.Tests.Globals;
 using Satori.AzureDevOps.Tests.PullRequests.SampleFiles;
 using Shouldly;
 
@@ -12,11 +13,23 @@ namespace Satori.AzureDevOps.Tests.PullRequests;
 [TestClass]
 public class GetTagsOfMergeTests
 {
+    private readonly ServiceProvider _serviceProvider;
+
+    public GetTagsOfMergeTests()
+    {
+        var services = new AzureDevOpsServiceCollection();
+        _serviceProvider = services.BuildServiceProvider();
+
+        _connectionSettings = _serviceProvider.GetRequiredService<ConnectionSettings>();
+        _mockHttp = _serviceProvider.GetRequiredService<MockHttpMessageHandler>();
+    }
+
     #region Helpers
 
     #region Arrange
 
-    private readonly ConnectionSettings _connectionSettings = Globals.Services.Scope.Resolve<ConnectionSettings>();
+    private readonly ConnectionSettings _connectionSettings;
+
 
     private Url GetUrl(PullRequest pullRequest) =>
         _connectionSettings.Url
@@ -24,7 +37,7 @@ public class GetTagsOfMergeTests
             .AppendPathSegment(pullRequest.Repository.Project.Name)
             .AppendQueryParam("api-version", "5.0-preview.1");
 
-    private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
+    private readonly MockHttpMessageHandler _mockHttp;
 
     private static PullRequest BuildPullRequest()
     {
@@ -53,7 +66,7 @@ public class GetTagsOfMergeTests
             .When(url).With(verifyRequest)
             .Respond("application/json", payload);
 
-        var srv = Globals.Services.Scope.Resolve<IAzureDevOpsServer>();
+        var srv = _serviceProvider.GetRequiredService<IAzureDevOpsServer>();
 
         //Act
         return await srv.GetTagsOfMergeAsync(pullRequest);

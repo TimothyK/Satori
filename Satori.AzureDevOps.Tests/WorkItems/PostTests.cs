@@ -1,23 +1,35 @@
-﻿using Autofac;
-using Flurl;
+﻿using Flurl;
+using Microsoft.Extensions.DependencyInjection;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Models;
+using Satori.AzureDevOps.Tests.Extensions;
+using Satori.AzureDevOps.Tests.Globals;
 using Satori.AzureDevOps.Tests.WorkItems.SampleFiles;
 using Shouldly;
 using System.Text.Json;
-using Satori.AzureDevOps.Tests.Extensions;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Satori.AzureDevOps.Tests.WorkItems;
 
 [TestClass]
 public class PostTests
 {
+    private readonly ServiceProvider _serviceProvider;
+
+    public PostTests()
+    {
+        var services = new AzureDevOpsServiceCollection();
+        _serviceProvider = services.BuildServiceProvider();
+
+        _connectionSettings = _serviceProvider.GetRequiredService<ConnectionSettings>();
+        _mockHttp = _serviceProvider.GetRequiredService<MockHttpMessageHandler>();
+    }
+
     #region Helpers
 
     #region Arrange
 
-    private readonly ConnectionSettings _connectionSettings = Globals.Services.Scope.Resolve<ConnectionSettings>();
+    private readonly ConnectionSettings _connectionSettings;
+
 
     private Url GetUrl(string projectName) =>
         _connectionSettings.Url
@@ -27,7 +39,7 @@ public class PostTests
             .AppendQueryParam("$expand", "all")
             .AppendQueryParam("api-version", "6.0");
 
-    private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
+    private readonly MockHttpMessageHandler _mockHttp;
 
     private const string ProjectName = "Skunk Works";
 
@@ -45,7 +57,7 @@ public class PostTests
             .When(url).With(verifyRequest)
             .Respond("application/json", response);
 
-        var srv = Globals.Services.Scope.Resolve<IAzureDevOpsServer>();
+        var srv = _serviceProvider.GetRequiredService<IAzureDevOpsServer>();
 
         //Act
         return await srv.PostWorkItemAsync(projectName, fields);

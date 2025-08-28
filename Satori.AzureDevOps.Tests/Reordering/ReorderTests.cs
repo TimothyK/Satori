@@ -1,21 +1,35 @@
-﻿using Autofac;
-using Builder;
+﻿using Builder;
 using Flurl;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Models;
 using Shouldly;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
+using Satori.AzureDevOps.Tests.Globals;
 
 namespace Satori.AzureDevOps.Tests.Reordering;
 
 [TestClass]
 public class ReorderTests
 {
+    private readonly ServiceProvider _serviceProvider;
+
+    public ReorderTests()
+    {
+        var services = new AzureDevOpsServiceCollection();
+        _serviceProvider = services.BuildServiceProvider();
+
+        _connectionSettings = _serviceProvider.GetRequiredService<ConnectionSettings>();
+        _mockHttp = _serviceProvider.GetRequiredService<MockHttpMessageHandler>();
+
+    }
+
     #region Helpers
 
     #region Arrange
 
-    private readonly ConnectionSettings _connectionSettings = Globals.Services.Scope.Resolve<ConnectionSettings>();
+    private readonly ConnectionSettings _connectionSettings;
+
 
     private Url GetUrl(IterationId iteration) =>
         _connectionSettings.Url
@@ -25,7 +39,7 @@ public class ReorderTests
             .AppendPathSegment("workItemsOrder")
             .AppendQueryParam("api-version", "6.0-preview.1");
 
-    private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
+    private readonly MockHttpMessageHandler _mockHttp;
 
     #endregion Arrange
 
@@ -39,7 +53,7 @@ public class ReorderTests
             .WithContent(JsonSerializer.Serialize(operation))
             .Respond("application/json",  JsonSerializer.Serialize(expected));
         
-        var srv = Globals.Services.Scope.Resolve<IAzureDevOpsServer>();
+        var srv = _serviceProvider.GetRequiredService<IAzureDevOpsServer>();
         //Act
         return await srv.ReorderBacklogWorkItemsAsync(iteration, operation);
     }

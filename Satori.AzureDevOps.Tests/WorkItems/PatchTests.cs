@@ -1,10 +1,11 @@
-﻿using Autofac;
-using Flurl;
+﻿using Flurl;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Models;
 using Satori.AzureDevOps.Tests.WorkItems.SampleFiles;
 using Shouldly;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
+using Satori.AzureDevOps.Tests.Globals;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Satori.AzureDevOps.Tests.WorkItems;
@@ -12,11 +13,22 @@ namespace Satori.AzureDevOps.Tests.WorkItems;
 [TestClass]
 public class PatchTests
 {
+    private readonly ServiceProvider _serviceProvider;
+
+    public PatchTests()
+    {
+        var services = new AzureDevOpsServiceCollection();
+        _serviceProvider = services.BuildServiceProvider();
+
+        _connectionSettings = _serviceProvider.GetRequiredService<ConnectionSettings>();
+        _mockHttp = _serviceProvider.GetRequiredService<MockHttpMessageHandler>();
+    }
+
     #region Helpers
 
     #region Arrange
 
-    private readonly ConnectionSettings _connectionSettings = Globals.Services.Scope.Resolve<ConnectionSettings>();
+    private readonly ConnectionSettings _connectionSettings;
 
     private Url GetUrl(int workItemId) =>
         _connectionSettings.Url
@@ -25,7 +37,7 @@ public class PatchTests
             .AppendQueryParam("$expand", "all")
             .AppendQueryParam("api-version", "6.0");
 
-    private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
+    private readonly MockHttpMessageHandler _mockHttp;
 
     #endregion Arrange
 
@@ -40,7 +52,7 @@ public class PatchTests
             .When(url).With(verifyRequest)
             .Respond("application/json", response);
 
-        var srv = Globals.Services.Scope.Resolve<IAzureDevOpsServer>();
+        var srv = _serviceProvider.GetRequiredService<IAzureDevOpsServer>();
 
         //Act
         return await srv.PatchWorkItemAsync(id, patches);

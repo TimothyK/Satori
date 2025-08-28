@@ -2,7 +2,7 @@
 
 internal class ConnectionSettingsFactory
 {
-    private readonly object _setterLock = new();
+    private readonly Lock _setterLock = new();
     private ConnectionSettingsSetter? _setter;
 
     private ConnectionSettings DefaultConnectionSettings { get; } = new()

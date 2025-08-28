@@ -1,7 +1,8 @@
-﻿using Autofac;
-using Flurl;
+﻿using Flurl;
+using Microsoft.Extensions.DependencyInjection;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Models;
+using Satori.AzureDevOps.Tests.Globals;
 using Shouldly;
 
 namespace Satori.AzureDevOps.Tests.Users;
@@ -9,11 +10,23 @@ namespace Satori.AzureDevOps.Tests.Users;
 [TestClass]
 public class GetIdentityTests
 {
+    private readonly ServiceProvider _serviceProvider;
+
+    public GetIdentityTests()
+    {
+        var services = new AzureDevOpsServiceCollection();
+        _serviceProvider = services.BuildServiceProvider();
+
+        _connectionSettings = _serviceProvider.GetRequiredService<ConnectionSettings>();
+        _mockHttp = _serviceProvider.GetRequiredService<MockHttpMessageHandler>();
+    }
+
     #region Helpers
 
     #region Arrange
 
-    private readonly ConnectionSettings _connectionSettings = Globals.Services.Scope.Resolve<ConnectionSettings>();
+    private readonly ConnectionSettings _connectionSettings;
+
 
     private Url GetUrl(Guid id) =>
         _connectionSettings.Url
@@ -21,7 +34,7 @@ public class GetIdentityTests
             .AppendPathSegment(id)
             .AppendQueryParam("api-version", "6.0-preview.1");
 
-    private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
+    private readonly MockHttpMessageHandler _mockHttp;
 
     private void SetResponse(Guid id) => SetResponse(GetUrl(id), GetPayload(id));
     private void SetResponse(Url url, byte[] response)
@@ -51,7 +64,7 @@ public class GetIdentityTests
         SetResponse(id);
 
         //Act
-        var srv = Globals.Services.Scope.Resolve<IAzureDevOpsServer>();
+        var srv = _serviceProvider.GetRequiredService<IAzureDevOpsServer>();
         return srv.GetIdentityAsync(id).Result;
     }
 
