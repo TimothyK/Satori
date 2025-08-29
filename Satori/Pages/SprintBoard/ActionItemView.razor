@@ -87,6 +87,19 @@
                         <div>Start Timer@(WillShowStartTimerDialog ? "..." : "")</div>
                     </div>
                 }
+                
+                @* Pull Request Start Timers *@
+                @foreach (var task in PullRequestTimerTasks)
+                {
+                    <div class="context-menu-item" @onclick="() => OnPullRequestStartTimerClickAsync(task)">
+                        <div class="flex-menu">
+                            <div>Start Timer for</div>
+                            <div class="work-item @task.Type.CssClass">
+                                <div>@task.Title@(task.KimaiActivity == null ? "..." : "")</div>
+                            </div>
+                        </div>
+                    </div>
+                }
 
                 @* Fund *@
                 @if (KimaiServer.Enabled && WorkItem != null)
@@ -159,9 +172,10 @@
     }
 </div>
 
+<SelectProjectDialog @ref="_startTimerDialog" RequireActivity="true" Save="OnStartTimerDialogSaveAsync" />
+
 @if (WorkItem != null)
 {
-    <SelectProjectDialog @ref="_startTimerDialog" RequireActivity="true" Save="OnStartTimerDialogSaveAsync" />
     <SelectProjectDialog @ref="_fundDialog" Save="OnFundDialogSaveAsync" />
 }
 
