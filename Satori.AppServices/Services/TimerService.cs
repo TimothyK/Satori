@@ -5,6 +5,7 @@ using Satori.AppServices.Services.CommentParsing;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.Kimai;
 using Satori.Kimai.Models;
+using Satori.TimeServices;
 using Activity = Satori.Kimai.ViewModels.Activity;
 
 namespace Satori.AppServices.Services;
@@ -16,6 +17,8 @@ public class TimerService(
     IKimaiServer kimai
     , UserService userService
     , IAlertService alertService
+    , ITimeServer timeServer
+    , WorkItemUpdateService workItemUpdateService
 )
 {
     #region RestartTimerAsync
@@ -39,7 +42,7 @@ public class TimerService(
 
     private async Task RestartTimerUnsafeAsync(int[] timeEntryIds)
     {
-        var startTime = await StopRunningTimeEntryAsync() ?? DateTimeOffset.Now.TruncateSeconds();
+        var startTime = await StopRunningTimeEntryAsync() ?? timeServer.GetUtcNow().TruncateSeconds();
 
         List<TimeEntryCollapsed> entries = [];
         foreach (var id in timeEntryIds)
@@ -92,14 +95,35 @@ public class TimerService(
 
     public async Task StartTimerAsync(WorkItem workItem, Activity activity)
     {
-        try
+        await UpdateWorkItem(workItem, activity);
+        await CreateTimeEntry(workItem, activity);
+    }
+
+    private async Task UpdateWorkItem(WorkItem workItem, Activity activity)
+    {
+        if (workItem.KimaiActivity == activity && workItem.State == ScrumState.InProgress)
         {
-            throw new NotImplementedException("Starting the timer has not been implemented yet");
+            return;
         }
-        catch (Exception ex)
+
+        await workItemUpdateService.UpdateProjectCodeAndStatus(workItem, activity);
+    }
+
+    private async Task CreateTimeEntry(WorkItem workItem, Activity activity)
+    {
+        var startTime = await StopRunningTimeEntryAsync() ?? timeServer.GetUtcNow().TruncateSeconds();
+
+        var me = await userService.GetCurrentUserAsync();
+
+        var entry = new TimeEntryForCreate
         {
-            alertService.BroadcastAlert(ex);
-        }
+            User = me.KimaiId ?? throw new InvalidOperationException("Kimai UserId is unknown"),
+            Activity = activity.Id,
+            Project = activity.Project.Id,
+            Begin = startTime,
+            Description = workItem.ToKimaiDescription(),
+        };
+        await kimai.CreateTimeEntryAsync(entry);
     }
 
     #endregion Start Timer

@@ -24,8 +24,6 @@ public class UpdateProjectCodeTests
     public UpdateProjectCodeTests()
     {
         var services = new SatoriServiceCollection();
-        services.AddTransient<UserService>();
-        services.AddTransient<WorkItemUpdateService>();
         _serviceProvider = services.BuildServiceProvider();
 
         Server = _serviceProvider.GetRequiredService<WorkItemUpdateService>();

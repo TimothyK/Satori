@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using Satori.AppServices.Services;
 using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.Tests.TestDoubles.AlertServices;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
@@ -13,24 +14,27 @@ internal class SatoriServiceCollection : ServiceCollection
     public SatoriServiceCollection()
     {
         var azureDevOpsServer = new TestAzureDevOpsServer();
-        this.AddSingleton(azureDevOpsServer);
-        this.AddSingleton(azureDevOpsServer.AsInterface());
-        
+        this.AddScoped(_ => azureDevOpsServer);
+        this.AddScoped(_ => azureDevOpsServer.AsInterface());
+
         var builder = azureDevOpsServer.CreateBuilder();
-        this.AddSingleton(builder);
+        this.AddScoped(_ => builder);
 
         var kimai = new TestKimaiServer();
-        this.AddSingleton(kimai);
-        this.AddSingleton(kimai.AsInterface());
+        this.AddScoped(_ => kimai);
+        this.AddScoped(_ => kimai.AsInterface());
 
         this.AddSingleton<Microsoft.Extensions.Logging.ILoggerFactory>(NullLoggerFactory.Instance);
 
         var alertService = new TestAlertService();
-        this.AddSingleton(alertService);
-        this.AddSingleton<IAlertService>(alertService);
+        this.AddScoped(_ => alertService);
+        this.AddScoped<IAlertService>(_ => alertService);
 
         var timeServer = new TestTimeServer();
-        this.AddSingleton(timeServer);
-        this.AddSingleton<ITimeServer>(timeServer);
+        this.AddScoped(_ => timeServer);
+        this.AddScoped<ITimeServer>(_ => timeServer);
+
+        this.AddScoped<UserService>();
+        this.AddScoped<WorkItemUpdateService>();
     }
 }

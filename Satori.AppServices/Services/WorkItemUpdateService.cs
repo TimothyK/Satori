@@ -131,6 +131,33 @@ public class WorkItemUpdateService
 
     #endregion UpdateProjectCode
 
+    #region UpdateProjectCodeAndStatus
+
+    public async Task UpdateProjectCodeAndStatus(WorkItem workItem, Activity activity)
+    {
+        var projectCode = activity.Project.ProjectCode + "." + activity.ActivityCode;
+
+        var fields = new List<WorkItemPatchItem>
+        {
+            new()
+            {
+                Operation = Operation.Add, 
+                Path = "/fields/Custom.ProjectCode", 
+                Value = projectCode,
+            },
+            new()
+            {
+                Operation = Operation.Add, 
+                Path = "/fields/System.State", 
+                Value = ScrumState.InProgress.ToApiValue() 
+            }
+        };
+
+        await _azureDevOps.PatchWorkItemAsync(workItem.Id, fields);
+    }
+
+    #endregion UpdateProjectCodeAndState
+
     #region CreateDependencyLink
 
     public async Task CreateDependencyLinkAsync(WorkItem predecessor, WorkItem successor)

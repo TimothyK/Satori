@@ -103,11 +103,7 @@ public class CommentType : IComparable<CommentType>
         { Accomplishment, entry => entry.Accomplishments },
         { Impediment, entry => entry.Impediments },
         { Learning, entry => entry.Learnings },
-        {
-            WorkItem, entry => entry.Task == null ? null
-                : entry.Task.Parent == null ? $"D#{entry.Task.Id} {entry.Task.Title}"
-                : $"D#{entry.Task.Parent.Id} {entry.Task.Parent.Title} » D#{entry.Task.Id} {entry.Task.Title}"
-        }
+        { WorkItem, entry => entry.Task?.ToKimaiDescription() }
     };
 
     public string? GetComment(TimeEntry? entry) => entry == null ? null : GetCommentMap[this](entry);
