@@ -22,8 +22,6 @@ public class CreateDependencyLinkTests
         Person.Me = null;  // Clear cache
 
         var services = new SatoriServiceCollection();
-        services.AddTransient<UserService>();
-        services.AddTransient<WorkItemUpdateService>();
         _serviceProvider = services.BuildServiceProvider();
 
         Server = _serviceProvider.GetRequiredService<WorkItemUpdateService>();

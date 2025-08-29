@@ -45,9 +45,10 @@
             }
 
             <div>
-                <MudAutocomplete Label="Customer" 
+                <MudAutocomplete T="Customer" 
+                                 Label="Customer" 
                                  Value="@_selectedCustomer"
-                                 ValueChanged="(Customer? customer) => OnCustomerChanged(customer)"
+                                 ValueChanged="(Customer customer) => OnCustomerChanged(customer)"
                                  SearchFunc="SearchCustomerAsync"
                                  Placeholder="Select Customer"
                                  Dense="true"
@@ -95,7 +96,12 @@
 
         </div>
         <div class="dialog-buttonbar">
-            <button class="btn btn-outline-primary" @onclick="OkAsync">OK</button>
+            <button class="btn btn-outline-primary"
+                    @onclick="OkAsync"
+                    disabled="@(RequireActivity && _selectedActivity == null)"
+            >
+                OK
+            </button>
             <button class="btn btn-outline-secondary" @onclick="Cancel">Cancel</button>
         </div>
     </div>

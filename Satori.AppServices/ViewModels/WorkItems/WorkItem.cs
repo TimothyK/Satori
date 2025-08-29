@@ -1,4 +1,5 @@
-﻿using Satori.AppServices.ViewModels.Abstractions;
+﻿using CodeMonkeyProjectiles.Linq;
+using Satori.AppServices.ViewModels.Abstractions;
 using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.Sprints;
 using KimaiProject = Satori.Kimai.ViewModels.Project;
@@ -84,6 +85,11 @@ public class WorkItem
     public double AbsolutePriority { get; internal set; }
 
     public override string ToString() => $"D#{Id} {Title}";
+
+    public string ToKimaiDescription() =>
+        Parent == null || Parent.Type.IsNotIn(WorkItemType.BoardTypes)
+            ? $"D#{Id} {Title}"
+            : $"D#{Parent.Id} {Parent.Title} » D#{Id} {Title}";
 
     public string? StatusLabel
     {

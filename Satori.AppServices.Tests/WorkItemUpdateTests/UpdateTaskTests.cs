@@ -1,14 +1,11 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Extensions;
 using Satori.AppServices.Services;
-using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
-using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.Kimai;
@@ -28,9 +25,6 @@ public class UpdateTaskTests
         Person.Me = null;  //Clear cache
 
         var services = new SatoriServiceCollection();
-        services.AddTransient<UserService>();
-        services.AddTransient<WorkItemUpdateService>();
-
         _serviceProvider = services.BuildServiceProvider();
 
         Server = _serviceProvider.GetRequiredService<WorkItemUpdateService>();

@@ -10,6 +10,7 @@ public partial class SelectProjectDialog : ComponentBase
     private WorkItem? WorkItem { get; set; }
     private bool IsOpen { get; set; }
     [Parameter] public EventCallback<(Project?, Activity?)> Save { get; set; }
+    [Parameter] public bool RequireActivity { get; set; }
 
     public Customers? Customers { get; set; }
 
@@ -58,7 +59,7 @@ public partial class SelectProjectDialog : ComponentBase
 
     private Customer? _selectedCustomer;
 
-    private void OnCustomerChanged(Customer? customer)
+    private void OnCustomerChanged(Customer customer)
     {
         _selectedCustomer = customer;
         _selectedProject = null;

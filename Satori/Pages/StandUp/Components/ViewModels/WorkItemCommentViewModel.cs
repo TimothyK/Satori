@@ -70,10 +70,7 @@ public class WorkItemCommentViewModel : CommentViewModel
         OnHasChanged();
     }
 
-    public override string? KimaiDescription => 
-        WorkItem == null ? null
-        : WorkItem.Parent == null || WorkItem.Parent.Type.IsNotIn(WorkItemType.BoardTypes) ? $"D#{WorkItem.Id} {WorkItem.Title}"
-        : $"D#{WorkItem.Parent.Id} {WorkItem.Parent.Title} » D#{WorkItem.Id} {WorkItem.Title}";
+    public override string? KimaiDescription => WorkItem?.ToKimaiDescription();
 
     public IEnumerable<WorkItem> Children
     {

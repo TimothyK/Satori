@@ -1,5 +1,4 @@
-﻿@using CodeMonkeyProjectiles.Linq
-@using Satori.AppServices.Services
+﻿@using Satori.AppServices.Services
 @using Satori.AppServices.ViewModels
 @using Satori.AppServices.ViewModels.PullRequests.ActionItems
 @using Satori.AppServices.ViewModels.WorkItems.ActionItems
@@ -8,9 +7,10 @@
 @inject WorkItemUpdateService WorkItemUpdateService
 @inject IJSRuntime JsRuntime
 @inject IKimaiServer KimaiServer
+@inject TimerService TimerService
 
 <div class="flex-row">
-    @foreach (var personPriority in @ActionItem.On)
+    @foreach (var personPriority in ActionItem.On)
     {
         <div class="priority-block @(personPriority.Person == Person.Me ? "highlight" : "")">
             <div class="avatar-cell">
@@ -80,6 +80,14 @@
                     </div>
                 </div>
 
+                @* Start Timer *@
+                @if (ShouldShowStartTimer)
+                {
+                    <div class="context-menu-item" @onclick="OnStartTimerClickAsync">
+                        <div>Start Timer@(WillShowStartTimerDialog ? "..." : "")</div>
+                    </div>
+                }
+
                 @* Fund *@
                 @if (KimaiServer.Enabled && WorkItem != null)
                 {
@@ -94,7 +102,7 @@
                                 <span class="avatar-cell customer-logo">
                                     <img src="@WorkItem.KimaiProject.Customer.Logo" alt="@WorkItem.KimaiProject.Customer.Name"/>
                                 </span>
-                                <span class="project-code">@WorkItem.KimaiProject.ProjectCode@(@WorkItem.KimaiActivity != null ? "." + @WorkItem.KimaiActivity.ActivityCode : "")</span>...
+                                <span class="project-code">@WorkItem.KimaiProject.ProjectCode@(WorkItem.KimaiActivity != null ? "." + WorkItem.KimaiActivity.ActivityCode : "")</span>...
                             </div>
                         }
                     </div>
@@ -125,7 +133,7 @@
                                                  alt="@sibling.AssignedTo.DisplayName"
                                                  title="@sibling.AssignedTo.DisplayName"/>
                                         </div>
-                                        <div class="context-menu-item" @onclick="async () => await CreateWaitsForLinkAsync(sibling)">@sibling.Title</div>
+                                        <div class="context-menu-item" @onclick="async () => await OnCreatePredecessorLinkClickAsync(sibling)">@sibling.Title</div>
                                     </div>
                                 }
                             </div>
@@ -153,6 +161,7 @@
 
 @if (WorkItem != null)
 {
+    <SelectProjectDialog @ref="_startTimerDialog" RequireActivity="true" Save="OnStartTimerDialogSaveAsync" />
     <SelectProjectDialog @ref="_fundDialog" Save="OnFundDialogSaveAsync" />
 }
 
