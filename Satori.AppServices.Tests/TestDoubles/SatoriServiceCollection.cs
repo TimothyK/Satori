@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.Tests.TestDoubles.AlertServices;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;
-using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Services;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
 using Satori.TimeServices;
 

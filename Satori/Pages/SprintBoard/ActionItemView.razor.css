@@ -40,6 +40,22 @@
     margin-right: 0;
     position: relative;
 }
+
+.running-work-item {
+    position: relative;
+    text-align: left;
+    margin-left: 1px;
+    margin-right: 5px;
+    padding: 4px;
+}
+.running-work-item img {
+    width: 24px;
+    height: 24px;
+}
+.action-description-row:hover .running-work-item {
+    display: none;
+}
+
 .action-description {
     min-width: 75px;
     margin-left: 5px;
@@ -50,18 +66,22 @@
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s;
+    display: flex;
+}
+.action-description-row .hamburger-btn.hidden {
+    display: none;
 }
 
 .action-description-row:hover .hamburger-btn {
     opacity: 1;
     pointer-events: auto;
+    display: flex;
 }
 .hamburger-btn {
     background: none;
     border: none;
     cursor: pointer;
     padding: 0.5rem;
-    display: flex;
     flex-direction: column;
     justify-content: center;
     gap: 4px;

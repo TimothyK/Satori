@@ -32,6 +32,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Satori.Converters", "Satori
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Satori.Converters.Tests", "Satori.Converters.Tests\Satori.Converters.Tests.csproj", "{021D5FD2-BD0F-4BA7-87D1-5513A5EC8F70}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Satori.TimeServices.Tests", "Satori.TimeServices.Tests\Satori.TimeServices.Tests.csproj", "{4FC5A1E9-F602-4532-84A1-172693215E54}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -86,6 +88,10 @@ Global
 		{021D5FD2-BD0F-4BA7-87D1-5513A5EC8F70}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{021D5FD2-BD0F-4BA7-87D1-5513A5EC8F70}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{021D5FD2-BD0F-4BA7-87D1-5513A5EC8F70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4FC5A1E9-F602-4532-84A1-172693215E54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FC5A1E9-F602-4532-84A1-172693215E54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FC5A1E9-F602-4532-84A1-172693215E54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FC5A1E9-F602-4532-84A1-172693215E54}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

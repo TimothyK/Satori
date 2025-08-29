@@ -1,4 +1,5 @@
-﻿@using Satori.AppServices.Services
+﻿@using CodeMonkeyProjectiles.Linq
+@using Satori.AppServices.Services
 @using Satori.AppServices.ViewModels
 @using Satori.AppServices.ViewModels.PullRequests.ActionItems
 @using Satori.AppServices.ViewModels.WorkItems.ActionItems
@@ -22,11 +23,19 @@
     }
     
     <div class="action-description-row">
+
         <div class="action-description">@ActionItem.ActionDescription</div>
+
+        @if (IsRunning)
+        {
+            <div class="running-work-item">
+                <img src="images/Running.png" alt="work item is actively being timed" />
+            </div>
+        }
 
         @* Menu *@
 
-        <button class="hamburger-btn" title="More actions"
+        <button class="hamburger-btn @(IsRunning ? "hidden" : "")" title="More actions"
                 @onclick="ShowMenu"
                 @onmouseleave="OnButtonMouseLeaveAsync">
             <span></span>
@@ -38,21 +47,21 @@
             <div class="context-menu"
                  @onmouseenter="OnMenuMouseEnter"
                  @onmouseleave="OnMenuMouseLeaveAsync">
-                 
+
                 @* Open *@
                 <div class="context-menu-item"
                      @onclick="OnOpenClickAsync">
                     <div class="flex-menu">
                         <div>Open</div>
-                        @if (ActionItem is WorkItemActionItem openWorkItemAction)
+                        @if (WorkItem != null)
                         {
-                            <div class="work-item @openWorkItemAction.WorkItem.Type.CssClass">
+                            <div class="work-item @WorkItem.Type.CssClass">
                                 <div class="avatar-cell">
-                                    <img src="@openWorkItemAction.WorkItem.AssignedTo.AvatarUrl"
-                                         alt="@openWorkItemAction.WorkItem.AssignedTo.DisplayName"
-                                         title="@openWorkItemAction.WorkItem.AssignedTo.DisplayName"/>
+                                    <img src="@WorkItem.AssignedTo.AvatarUrl"
+                                         alt="@WorkItem.AssignedTo.DisplayName"
+                                         title="@WorkItem.AssignedTo.DisplayName"/>
                                 </div>
-                                <div>@openWorkItemAction.WorkItem.Title</div>
+                                <div>@WorkItem.Title</div>
                             </div>
                         }
                         @if (ActionItem is PullRequestActionItem openPrAction)
@@ -61,7 +70,7 @@
                                 <div class="avatar-cell">
                                     <img src="@openPrAction.PullRequest.CreatedBy.AvatarUrl"
                                          alt="@openPrAction.PullRequest.CreatedBy.DisplayName"
-                                         title="@openPrAction.PullRequest.CreatedBy.DisplayName" />
+                                         title="@openPrAction.PullRequest.CreatedBy.DisplayName"/>
                                 </div>
                                 <div class="pull-request-id">@openPrAction.PullRequest.Id</div>
                                 <div>@openPrAction.PullRequest.Title</div>
@@ -72,20 +81,20 @@
                 </div>
 
                 @* Fund *@
-                @if (KimaiServer.Enabled && ActionItem is WorkItemActionItem workItemActionItem)
+                @if (KimaiServer.Enabled && WorkItem != null)
                 {
                     <div class="context-menu-item"@onclick="OpenFundDialog">
-                        @if (workItemActionItem.WorkItem.KimaiProject == null)
+                        @if (WorkItem.KimaiProject == null)
                         {
                             <div>Fund...</div>
                         }
                         else
                         {
-                            <div>Change funding from 
+                            <div>Change funding from
                                 <span class="avatar-cell customer-logo">
-                                    <img src="@workItemActionItem.WorkItem.KimaiProject.Customer.Logo" alt="@workItemActionItem.WorkItem.KimaiProject.Customer.Name" />
+                                    <img src="@WorkItem.KimaiProject.Customer.Logo" alt="@WorkItem.KimaiProject.Customer.Name"/>
                                 </span>
-                                <span class="project-code">@workItemActionItem.WorkItem.KimaiProject.ProjectCode@(@workItemActionItem.WorkItem.KimaiActivity != null ? "." + @workItemActionItem.WorkItem.KimaiActivity.ActivityCode : "")</span>...
+                                <span class="project-code">@WorkItem.KimaiProject.ProjectCode@(@WorkItem.KimaiActivity != null ? "." + @WorkItem.KimaiActivity.ActivityCode : "")</span>...
                             </div>
                         }
                     </div>
@@ -114,7 +123,7 @@
                                         <div class="avatar-cell">
                                             <img src="@sibling.AssignedTo.AvatarUrl"
                                                  alt="@sibling.AssignedTo.DisplayName"
-                                                 title="@sibling.AssignedTo.DisplayName" />
+                                                 title="@sibling.AssignedTo.DisplayName"/>
                                         </div>
                                         <div class="context-menu-item" @onclick="async () => await CreateWaitsForLinkAsync(sibling)">@sibling.Title</div>
                                     </div>
@@ -142,7 +151,7 @@
     }
 </div>
 
-@if (ActionItem is WorkItemActionItem workItemAction)
+@if (WorkItem != null)
 {
     <SelectProjectDialog @ref="_fundDialog" Save="OnFundDialogSaveAsync" />
 }

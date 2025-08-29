@@ -18,8 +18,12 @@ internal static class AppServiceBuilder
         services.AddScoped<UserService>();
         services.AddScoped<StandUpService>();
         services.AddScoped<WorkItemUpdateService>();
+
+        services.AddScoped<IAlertService, AlertService>();
+        services.AddScoped<ITimeServer, TimeServer>();
+
         services.AddScoped<TimerService>();
-        
+
         services.AddScoped(serviceProvider => serviceProvider.GetRequiredService<IConnectionSettingsStore>().GetAzureDevOpsSettings());
         services.AddScoped<IAzureDevOpsServer, AzureDevOpsServer>();
         
@@ -29,9 +33,6 @@ internal static class AppServiceBuilder
         services.AddScoped(serviceProvider => serviceProvider.GetRequiredService<IConnectionSettingsStore>().GetMessageQueueSettings());
         services.AddScoped<ITaskAdjustmentExporter, CompletedWorkService>();
         services.AddScoped<IDailyActivityExporter, DailyActivityExporter>();
-
-        services.AddSingleton<ITimeServer, TimeServer>();
-        services.AddSingleton<IAlertService, AlertService>();
 
         return services;
     }

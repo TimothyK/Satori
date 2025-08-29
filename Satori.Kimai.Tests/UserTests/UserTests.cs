@@ -1,8 +1,9 @@
-﻿using Autofac;
-using Flurl;
+﻿using Flurl;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RichardSzalay.MockHttp;
 using Satori.Kimai.Models;
+using Satori.Kimai.Tests.Globals;
 using Satori.Kimai.Tests.UserTests.SampleFiles;
 using Shouldly;
 
@@ -11,17 +12,29 @@ namespace Satori.Kimai.Tests.UserTests;
 [TestClass]
 public class UserTests
 {
+    private readonly ServiceProvider _serviceProvider;
+
+    public UserTests()
+    {
+        var services = new KimaiServiceCollection();
+        _serviceProvider = services.BuildServiceProvider();
+
+        _connectionSettings = _serviceProvider.GetRequiredService<ConnectionSettings>();
+        _mockHttp = _serviceProvider.GetRequiredService<MockHttpMessageHandler>();
+    }
+
     #region Helpers
 
     #region Arrange
 
-    private readonly ConnectionSettings _connectionSettings = Globals.Services.Scope.Resolve<ConnectionSettings>();
+    private readonly ConnectionSettings _connectionSettings;
+
 
     private Url GetUrl() =>
         _connectionSettings.Url
             .AppendPathSegment("api/users/me");
 
-    private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
+    private readonly MockHttpMessageHandler _mockHttp;
 
     private void SetResponse(Url url, byte[] response)
     {
@@ -38,7 +51,7 @@ public class UserTests
         SetResponse(GetUrl(), SampleUsers.SampleUser);
 
         //Act
-        var srv = Globals.Services.Scope.Resolve<IKimaiServer>();
+        var srv = _serviceProvider.GetRequiredService<IKimaiServer>();
         return srv.GetMyUserAsync().Result;
     }
 

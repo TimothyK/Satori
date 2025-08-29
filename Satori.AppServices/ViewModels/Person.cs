@@ -68,11 +68,11 @@ public class Person
     private static readonly Lock PeopleLock = new();
 
     /// <summary>
-    /// Cache of Person objects.  The Key of this dictionary is from <see cref="GetUserId"/>
+    /// Cache of Person objects.  The Key of this dictionary is from <see cref="GetUserId(Identity?, KimaiUser?)"/>
     /// </summary>
     /// <remarks>
     /// <para>
-    /// This cache is thread safe.  Use the <see cref="PeopleLock"/> to synchronize access to this cache.
+    /// Use the <see cref="PeopleLock"/> to synchronize access to this cache.
     /// </para>
     /// </remarks>
     private static readonly Dictionary<Guid, Person> People = [];

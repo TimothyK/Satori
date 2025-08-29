@@ -1,28 +1,36 @@
-﻿using Autofac;
-using Flurl;
+﻿using Flurl;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RichardSzalay.MockHttp;
 using Satori.Kimai.Models;
 using Shouldly;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Satori.Kimai.Tests.Extensions;
+using Satori.Kimai.Tests.Globals;
 
 namespace Satori.Kimai.Tests.TimeSheetTests;
 
 [TestClass]
 public class CreateTimeEntryTests
 {
+    private readonly ServiceProvider _serviceProvider;
+
     public CreateTimeEntryTests()
     {
-        _mockHttp.Clear();
+        var services = new KimaiServiceCollection();
+        _serviceProvider = services.BuildServiceProvider();
+
+        _connectionSettings = _serviceProvider.GetRequiredService<ConnectionSettings>();
+        _mockHttp = _serviceProvider.GetRequiredService<MockHttpMessageHandler>();
     }
 
     #region Helpers
 
     #region Arrange
-    private readonly ConnectionSettings _connectionSettings = Globals.Services.Scope.Resolve<ConnectionSettings>();
 
-    private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
+    private readonly ConnectionSettings _connectionSettings;
+
+    private readonly MockHttpMessageHandler _mockHttp;
 
     private Url GetUrl() =>
         _connectionSettings.Url
@@ -51,7 +59,7 @@ public class CreateTimeEntryTests
             .Respond("application/json", JsonSerializer.Serialize(response));
 
         //Act
-        var srv = Globals.Services.Scope.Resolve<IKimaiServer>();
+        var srv = _serviceProvider.GetRequiredService<IKimaiServer>();
         return await srv.CreateTimeEntryAsync(entry);
     }
     

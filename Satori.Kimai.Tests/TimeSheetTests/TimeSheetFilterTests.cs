@@ -50,4 +50,5 @@ public class TimeSheetFilterTests
     [TestMethod] public void Term() => BuildUrlWith(filter => filter.Term = "D#12345").Query.ShouldBe("term=D%2312345");
     [TestMethod] public void Page() => BuildUrlWith(filter => filter.Page = 2).Query.ShouldBe("page=2");
     [TestMethod] public void Size() => BuildUrlWith(filter => filter.Size = 1).Query.ShouldBe("size=1");
+    [TestMethod] public void AllUsers() => BuildUrlWith(filter => filter.AllUsers = true).Query.ShouldBe("user=all");
 }

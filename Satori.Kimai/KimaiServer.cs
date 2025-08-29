@@ -1,30 +1,46 @@
-﻿using System.Text;
-using Flurl;
+﻿using Flurl;
 using Microsoft.Extensions.Logging;
 using Satori.Kimai.Models;
+using System.Text;
 using System.Text.Json;
-using Satori.Kimai.Utilities;
+using Satori.TimeServices;
 using Customers = Satori.Kimai.ViewModels.Customers;
-using CustomerViewModel = Satori.Kimai.ViewModels.Customer;
-using ProjectViewModel = Satori.Kimai.ViewModels.Project;
 
 namespace Satori.Kimai;
 
-public class KimaiServer(
-    ConnectionSettings connectionSettings
-    , HttpClient httpClient
-    , ILoggerFactory loggerFactory
-) : IKimaiServer
+public class KimaiServer : IKimaiServer
 {
-    public bool Enabled => connectionSettings.Enabled;
+    private readonly ConnectionSettings _connectionSettings;
+    private readonly HttpClient _httpClient;
+    private readonly ILoggerFactory _loggerFactory;
 
-    private ILogger<KimaiServer> Logger => loggerFactory.CreateLogger<KimaiServer>();
+    public KimaiServer(ConnectionSettings connectionSettings
+        , HttpClient httpClient
+        , ILoggerFactory loggerFactory
+        , ITimeServer timeServer
+    )
+    {
+        _connectionSettings = connectionSettings;
+        _httpClient = httpClient;
+        _loggerFactory = loggerFactory;
 
-    public Uri BaseUrl => connectionSettings.Url;
+        // The customers change very rarely.
+        // It is more likely that the user will reload the WASM application before the cache expires.
+        _customersCache = new Cache<Customers>(FetchCustomersAsync, timeServer)
+        {
+            MaxAge = TimeSpan.FromHours(1)
+        };
+    }
+
+    public bool Enabled => _connectionSettings.Enabled;
+
+    private ILogger<KimaiServer> Logger => _loggerFactory.CreateLogger<KimaiServer>();
+
+    public Uri BaseUrl => _connectionSettings.Url;
 
     public async Task<TimeEntry[]> GetTimeSheetAsync(TimeSheetFilter filter)
     {
-        var url = connectionSettings.Url
+        var url = _connectionSettings.Url
             .AppendPathSegment("api/timesheets")
             .AppendQueryParam("full", "true")
             .AppendQueryParams(filter);
@@ -34,7 +50,7 @@ public class KimaiServer(
 
     public async Task<User> GetMyUserAsync()
     {
-        var url = connectionSettings.Url
+        var url = _connectionSettings.Url
             .AppendPathSegment("api/users/me");
 
         return await GetAsync<User>(url);
@@ -42,7 +58,7 @@ public class KimaiServer(
 
     public async Task ExportTimeSheetAsync(int id)
     {
-        var url = connectionSettings.Url
+        var url = _connectionSettings.Url
             .AppendPathSegment("api/timesheets")
             .AppendPathSegment(id)
             .AppendPathSegment("export");
@@ -57,7 +73,7 @@ public class KimaiServer(
 
     public async Task<DateTimeOffset> StopTimerAsync(int id)
     {
-        var url = connectionSettings.Url
+        var url = _connectionSettings.Url
             .AppendPathSegment("api/timesheets")
             .AppendPathSegment(id)
             .AppendPathSegment("stop");
@@ -89,7 +105,7 @@ public class KimaiServer(
 
     public async Task UpdateTimeEntryDescriptionAsync(int id, string description)
     {        
-        var url = connectionSettings.Url
+        var url = _connectionSettings.Url
             .AppendPathSegment("api/timesheets")
             .AppendPathSegment(id);
 
@@ -109,7 +125,7 @@ public class KimaiServer(
 
     public async Task<TimeEntry> CreateTimeEntryAsync(TimeEntryForCreate entry)
     {
-        var url = connectionSettings.Url
+        var url = _connectionSettings.Url
             .AppendPathSegment("api/timesheets")
             .AppendQueryParam("full", "true");
 
@@ -123,7 +139,7 @@ public class KimaiServer(
 
     public Task<TimeEntryCollapsed> GetTimeEntryAsync(int id)
     {
-        var url = connectionSettings.Url
+        var url = _connectionSettings.Url
             .AppendPathSegment("api/timesheets")
             .AppendPathSegment(id);
 
@@ -132,31 +148,11 @@ public class KimaiServer(
 
     #region GetCustomers
 
-    private static Task<Customers>? _cachedCustomersTask;
-
-    public void ResetCustomerCache()
-    {
-        _cachedCustomersTask = null;
-    }
+    private readonly Cache<Customers> _customersCache;
 
     public async Task<Customers> GetCustomersAsync()
     {
-        // If a fetch is already in progress or completed, await it
-        var task = _cachedCustomersTask;
-        if (task != null)
-        {
-            return await task;
-        }
-
-        // Only one thread should set _cachedCustomersTask
-        var newTask = FetchCustomersAsync();
-        var originalTask = Interlocked.CompareExchange(ref _cachedCustomersTask, newTask, null);
-        if (originalTask != null)
-        {
-            return await originalTask;
-        }
-
-        return await newTask;
+        return await _customersCache.GetValueAsync();
     }
 
     private async Task<Customers> FetchCustomersAsync()
@@ -181,7 +177,7 @@ public class KimaiServer(
 
     private async Task<Customer[]> GetCustomerMastersAsync()
     {
-        var url = connectionSettings.Url
+        var url = _connectionSettings.Url
             .AppendPathSegment("api/customers")
             .AppendQueryParam("visible", 1);
 
@@ -191,7 +187,7 @@ public class KimaiServer(
 
     private async Task<ProjectMaster[]> GetProjectMastersAsync()
     {
-        var url = connectionSettings.Url
+        var url = _connectionSettings.Url
             .AppendPathSegment("api/projects")
             .AppendQueryParam("visible", 1);
 
@@ -201,7 +197,7 @@ public class KimaiServer(
 
     private async Task<ActivityMaster[]> GetActivityMastersAsync()
     {
-        var url = connectionSettings.Url
+        var url = _connectionSettings.Url
             .AppendPathSegment("api/activities")
             .AppendQueryParam("visible", 1);
 
@@ -247,7 +243,7 @@ public class KimaiServer(
     {
         try
         {
-            return await httpClient.SendAsync(request);
+            return await _httpClient.SendAsync(request);
         }
         catch (HttpRequestException ex) when (ex.StatusCode == null)
         {
@@ -262,17 +258,17 @@ public class KimaiServer(
             throw new InvalidOperationException("Kimai is disabled");
         }
 
-        switch (connectionSettings.AuthenticationMethod)
+        switch (_connectionSettings.AuthenticationMethod)
         {
             case KimaiAuthenticationMethod.Token:
-                request.Headers.Add("Authorization", "Bearer " + connectionSettings.ApiToken);
+                request.Headers.Add("Authorization", "Bearer " + _connectionSettings.ApiToken);
                 return;
             case KimaiAuthenticationMethod.Password:
-                request.Headers.Add("X-AUTH-USER", connectionSettings.UserName);
-                request.Headers.Add("X-AUTH-TOKEN", connectionSettings.ApiPassword);
+                request.Headers.Add("X-AUTH-USER", _connectionSettings.UserName);
+                request.Headers.Add("X-AUTH-TOKEN", _connectionSettings.ApiPassword);
                 return;
             default:
-                throw new NotSupportedException("Unknown authentication method: " + connectionSettings.AuthenticationMethod);
+                throw new NotSupportedException("Unknown authentication method: " + _connectionSettings.AuthenticationMethod);
         }
     }
 

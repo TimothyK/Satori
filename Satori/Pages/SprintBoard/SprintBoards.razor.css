@@ -40,6 +40,15 @@ th,td {
     display: inline-block;
 }
 
+.running-work-item {
+    position: relative;
+    text-align: left;
+}
+.running-work-item img {
+    width: 24px;
+    height: 24px;
+}
+
 .btn-refresh-workitem {
     background-color: #00A6ED;
     color: white;

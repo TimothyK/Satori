@@ -1,8 +1,9 @@
-﻿using Autofac;
-using Builder;
+﻿using Builder;
 using Flurl;
+using Microsoft.Extensions.DependencyInjection;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Models;
+using Satori.AzureDevOps.Tests.Globals;
 using Satori.AzureDevOps.Tests.PullRequests.SampleFiles;
 using Shouldly;
 
@@ -11,13 +12,26 @@ namespace Satori.AzureDevOps.Tests.PullRequests;
 [TestClass]
 public class PrWorkItemTests
 {
+    private readonly ServiceProvider _serviceProvider;
+
+    public PrWorkItemTests()
+    {
+        var services = new AzureDevOpsServiceCollection();
+        _serviceProvider = services.BuildServiceProvider();
+
+        _connectionSettings = _serviceProvider.GetRequiredService<ConnectionSettings>();
+        _mockHttp = _serviceProvider.GetRequiredService<MockHttpMessageHandler>();
+
+    }
+
     #region Helpers
 
     #region Arrange
-        
-    private readonly ConnectionSettings _connectionSettings = Globals.Services.Scope.Resolve<ConnectionSettings>();
+
+    private readonly ConnectionSettings _connectionSettings;
 
     private readonly PullRequest _samplePullRequest = Builder<PullRequest>.New().Build(int.MaxValue);
+
 
     private Url GetPullRequestWorkItemsUrl(PullRequest pr) =>
         _connectionSettings.Url
@@ -29,7 +43,7 @@ public class PrWorkItemTests
             .AppendPathSegment("workItems")
             .AppendQueryParam("api-version", "6.0");
 
-    private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
+    private readonly MockHttpMessageHandler _mockHttp;
 
     private void SetResponse(Url url, byte[] response)
     {
@@ -49,7 +63,7 @@ public class PrWorkItemTests
         SetResponse(url, PrWorkItemResponses.PrWorkItem);
 
         //Act
-        var srv = Globals.Services.Scope.Resolve<IAzureDevOpsServer>();
+        var srv = _serviceProvider.GetRequiredService<IAzureDevOpsServer>();
         return srv.GetPullRequestWorkItemIdsAsync(_samplePullRequest).Result;
     }
 

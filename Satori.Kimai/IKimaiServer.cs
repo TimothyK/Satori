@@ -28,5 +28,4 @@ public interface IKimaiServer
     Task<TimeEntryCollapsed> GetTimeEntryAsync(int id);
 
     Task<Customers> GetCustomersAsync();
-    void ResetCustomerCache();
 }

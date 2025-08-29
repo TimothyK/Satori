@@ -26,9 +26,7 @@ public class SprintBoardService(
     ILoggerFactory loggerFactory,
     IKimaiServer kimai)
 {
-    private readonly IKimaiServer _kimai = kimai;
-
-    #region GetActiveSptringsAsync
+    #region GetActiveSprintsAsync
 
     public async Task<IEnumerable<Sprint>> GetActiveSprintsAsync()
     {
@@ -120,7 +118,7 @@ public class SprintBoardService(
         };
     }
 
-    #endregion GetActiveSptringsAsync
+    #endregion GetActiveSprintsAsync
 
     #region GetWorkItemsAsync
 
@@ -154,7 +152,7 @@ public class SprintBoardService(
 
         var links = await azureDevOpsServer.GetIterationWorkItemsAsync(iteration);
         var workItemIds = links.Select(x => x.Target.Id).ToArray();
-        var iterationWorkItems = (await azureDevOpsServer.GetWorkItemsAsync(workItemIds, _kimai)).ToList();
+        var iterationWorkItems = (await azureDevOpsServer.GetWorkItemsAsync(workItemIds, kimai)).ToList();
 
         foreach (var workItem in iterationWorkItems.OrderBy(wi => wi.AbsolutePriority))
         {
@@ -180,7 +178,7 @@ public class SprintBoardService(
 
         await ReplaceRelationPlaceholdersAsync(iterationWorkItems);
 
-        iterationBoardItems.Values.ResetPeopleRelations(_kimai);
+        iterationBoardItems.Values.ResetPeopleRelations(kimai);
         SetSprintPriority(iterationBoardItems.Values);
 
         return iterationBoardItems.Values.ToList();
@@ -253,7 +251,7 @@ public class SprintBoardService(
         var workItem = (await azureDevOpsServer.GetWorkItemsAsync(original.Id.Yield()))
             .SingleOrDefault();
         var target = workItem == null ? null 
-            : await workItem.ToViewModelAsync(_kimai);
+            : await workItem.ToViewModelAsync(kimai);
 
         if (target == null || target.State == ScrumState.Removed)
         {
@@ -279,7 +277,7 @@ public class SprintBoardService(
         await ReplaceRelationPlaceholdersAsync(allWorkItems.Concat(allWorkItems.SelectMany(wi => wi.Children)).ToList());
 
         SetSprintPriority(allWorkItems.Where(wi => wi.Sprint == target.Sprint));
-        allWorkItems.ResetPeopleRelations(_kimai);
+        allWorkItems.ResetPeopleRelations(kimai);
     }
 
     private static void SafeSetSprint(WorkItem target, WorkItem source)
@@ -352,7 +350,7 @@ public class SprintBoardService(
     {
         try
         {
-            return await azureDevOpsServer.GetWorkItemsAsync(workItemIds, _kimai);
+            return await azureDevOpsServer.GetWorkItemsAsync(workItemIds, kimai);
         }
         catch (Exception ex)
         {
@@ -379,7 +377,7 @@ public class SprintBoardService(
         var pullRequests = await PullRequestsAsync(pullRequestIds);
         ReplacePullRequests(workItems, pullRequests);
 
-        workItems.ResetPeopleRelations(_kimai);
+        workItems.ResetPeopleRelations(kimai);
     }
 
     private static int[] GetPullRequestIds(WorkItem[] workItems)
@@ -509,7 +507,7 @@ public class SprintBoardService(
         {
             SetSprintPriority(sprintWorkItems);
         }
-        request.AllWorkItems.ResetPeopleRelations(_kimai);
+        request.AllWorkItems.ResetPeopleRelations(kimai);
     }
 
     #endregion ReorderWorkItems

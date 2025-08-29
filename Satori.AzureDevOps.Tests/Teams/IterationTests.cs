@@ -1,22 +1,35 @@
-﻿using Autofac;
-using Flurl;
+﻿using Flurl;
 using RichardSzalay.MockHttp;
 using Satori.AzureDevOps.Models;
 using Satori.AzureDevOps.Tests.Teams.SampleFiles;
 using Shouldly;
 using System.Text;
+using Microsoft.Extensions.DependencyInjection;
+using Satori.AzureDevOps.Tests.Globals;
 
 namespace Satori.AzureDevOps.Tests.Teams;
 
 [TestClass]
 public class IterationTests
 {
+    private readonly ServiceProvider _serviceProvider;
+
+    public IterationTests()
+    {
+        var services = new AzureDevOpsServiceCollection();
+        _serviceProvider = services.BuildServiceProvider();
+
+        _connectionSettings = _serviceProvider.GetRequiredService<ConnectionSettings>();
+        _mockHttp = _serviceProvider.GetRequiredService<MockHttpMessageHandler>();
+
+    }
 
     #region Helpers
 
     #region Arrange
 
-    private readonly ConnectionSettings _connectionSettings = Globals.Services.Scope.Resolve<ConnectionSettings>();
+    private readonly ConnectionSettings _connectionSettings;
+
 
     private Url GetIterationUrl(Team team) =>
         _connectionSettings.Url
@@ -26,7 +39,8 @@ public class IterationTests
             .AppendQueryParam("$timeframe", "Current")
             .AppendQueryParam("api-version", "6.1-preview");
 
-    private readonly MockHttpMessageHandler _mockHttp = Globals.Services.Scope.Resolve<MockHttpMessageHandler>();
+    private readonly MockHttpMessageHandler _mockHttp;
+
 
     private void SetResponse(Team team)
     {
@@ -58,7 +72,7 @@ public class IterationTests
         SetResponse(team);
 
         //Act
-        var srv = Globals.Services.Scope.Resolve<IAzureDevOpsServer>();
+        var srv = _serviceProvider.GetRequiredService<IAzureDevOpsServer>();
         return srv.GetCurrentIterationAsync(team).Result;
     }
 
@@ -83,7 +97,7 @@ public class IterationTests
     public void Name() => 
         GetRequiredIteration(SampleTeams.Active)
             .Name.ShouldBe("Sprint 2024-02");
-    
+
     [TestMethod] 
     public void Path() => 
         GetRequiredIteration(SampleTeams.Active)

@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
-using Autofac;
 using Flurl;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.Extensions.DependencyInjection;
 using RichardSzalay.MockHttp;
 using Satori.Kimai.Tests.Globals;
 using Satori.Kimai.ViewModels;
@@ -12,12 +12,22 @@ namespace Satori.Kimai.Tests.AdminTests;
 [TestClass]
 public class GetCustomerTests
 {
+    private readonly ServiceProvider _serviceProvider;
+
     #region Helpers
 
     #region Arrange
-    private readonly ConnectionSettings _connectionSettings = Services.Scope.Resolve<ConnectionSettings>();
+    private readonly ConnectionSettings _connectionSettings;
+    private readonly MockHttpMessageHandler _mockHttp;
 
-    private readonly MockHttpMessageHandler _mockHttp = Services.Scope.Resolve<MockHttpMessageHandler>();
+    public GetCustomerTests()
+    {
+        var services = new KimaiServiceCollection();
+        _serviceProvider = services.BuildServiceProvider();
+
+        _connectionSettings = _serviceProvider.GetRequiredService<ConnectionSettings>();
+        _mockHttp = _serviceProvider.GetRequiredService<MockHttpMessageHandler>();
+    }
 
     private Url GetCustomersUrl() =>
         _connectionSettings.Url
@@ -112,8 +122,7 @@ public class GetCustomerTests
     {
         //Arrange
         DefineMock();
-        var srv = Services.Scope.Resolve<IKimaiServer>();
-        srv.ResetCustomerCache();
+        var srv = _serviceProvider.GetRequiredService<IKimaiServer>();
 
         //Act
         return await srv.GetCustomersAsync();
