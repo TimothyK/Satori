@@ -192,8 +192,9 @@ public partial class ActionItemView
     {
         get
         {
-            if (ActionItem is not PullRequestActionItem pullRequestActionItem 
-                || !pullRequestActionItem.On.Select(review => review.Person).Contains(Person.Me))
+            if (!(KimaiServer.Enabled
+                  && ActionItem is PullRequestActionItem pullRequestActionItem
+                  && pullRequestActionItem.On.Select(review => review.Person).Contains(Person.Me)))
             {
                 return [];
             }
