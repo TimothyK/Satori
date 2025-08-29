@@ -2,8 +2,10 @@
 using Satori.AppServices.Extensions;
 using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.Services.CommentParsing;
+using Satori.AppServices.ViewModels.WorkItems;
 using Satori.Kimai;
 using Satori.Kimai.Models;
+using Activity = Satori.Kimai.ViewModels.Activity;
 
 namespace Satori.AppServices.Services;
 
@@ -85,6 +87,22 @@ public class TimerService(
     }
 
     #endregion RestartTimerAsync
+
+    #region Start Timer
+
+    public async Task StartTimerAsync(WorkItem workItem, Activity activity)
+    {
+        try
+        {
+            throw new NotImplementedException("Starting the timer has not been implemented yet");
+        }
+        catch (Exception ex)
+        {
+            alertService.BroadcastAlert(ex);
+        }
+    }
+
+    #endregion Start Timer
 
     #region GetActivelyTimedWorkItemIdsAsync
 

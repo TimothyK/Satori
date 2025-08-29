@@ -95,7 +95,12 @@
 
         </div>
         <div class="dialog-buttonbar">
-            <button class="btn btn-outline-primary" @onclick="OkAsync">OK</button>
+            <button class="btn btn-outline-primary"
+                    @onclick="OkAsync"
+                    disabled="@(RequireActivity && _selectedActivity == null)"
+            >
+                OK
+            </button>
             <button class="btn btn-outline-secondary" @onclick="Cancel">Cancel</button>
         </div>
     </div>

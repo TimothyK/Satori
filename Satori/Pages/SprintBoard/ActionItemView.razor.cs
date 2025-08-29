@@ -1,6 +1,7 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.Abstractions;
 using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.PullRequests.ActionItems;
@@ -128,6 +129,47 @@ public partial class ActionItemView
 
     #endregion Open
 
+    #region Start Timer
+
+    private bool ShouldShowStartTimer => 
+        KimaiServer.Enabled 
+        && WorkItem != null 
+        && WorkItem.AssignedTo == Person.Me
+        && WorkItem.Type == WorkItemType.Task;
+    private bool WillShowStartTimerDialog => WorkItem?.KimaiActivity == null;
+
+    private SelectProjectDialog? _startTimerDialog;
+
+    private async Task OnStartTimerClickAsync()
+    {
+        var workItem = WorkItem ?? throw new InvalidOperationException();
+        _isMenuOpen = false;
+        _isWaitsForSubMenuOpen = false;
+
+        if (workItem.KimaiActivity == null)
+        {
+            _startTimerDialog?.ShowDialog(workItem);
+        }
+        else
+        {
+            await TimerService.StartTimerAsync(workItem, workItem.KimaiActivity);
+        }
+    }
+
+    private async Task OnStartTimerDialogSaveAsync((Project?, Activity?) value)
+    {
+        var workItem = WorkItem ?? throw new InvalidOperationException();
+
+        var (_, activity) = value;
+        if (activity == null)
+        {
+            return;
+        }
+
+        await TimerService.StartTimerAsync(workItem, activity);
+    }
+
+    #endregion Start Timer
 
     #region Fund Dialog
 

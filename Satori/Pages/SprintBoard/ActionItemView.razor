@@ -7,6 +7,7 @@
 @inject WorkItemUpdateService WorkItemUpdateService
 @inject IJSRuntime JsRuntime
 @inject IKimaiServer KimaiServer
+@inject TimerService TimerService
 
 <div class="flex-row">
     @foreach (var personPriority in ActionItem.On)
@@ -79,6 +80,13 @@
                     </div>
                 </div>
 
+                @* Start Timer *@
+                @if (ShouldShowStartTimer)
+                {
+                    <div class="context-menu-item" @onclick="OnStartTimerClickAsync">
+                        <div>Start Timer@(WillShowStartTimerDialog ? "..." : "")</div>
+                    </div>
+                }
 
                 @* Fund *@
                 @if (KimaiServer.Enabled && WorkItem != null)
@@ -153,6 +161,7 @@
 
 @if (WorkItem != null)
 {
+    <SelectProjectDialog @ref="_startTimerDialog" RequireActivity="true" Save="OnStartTimerDialogSaveAsync" />
     <SelectProjectDialog @ref="_fundDialog" Save="OnFundDialogSaveAsync" />
 }
 
