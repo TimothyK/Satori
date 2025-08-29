@@ -25,15 +25,7 @@ public partial class ActionItemView
 
     private bool IsRunning => (ActionItem as TaskActionItem)?.WorkItem.Id.IsIn(RunningWorkItemIds) ?? false;
 
-    private async Task OpenWorkItemAsync(WorkItem workItem)
-    {
-        await JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
-    }
-
-    private async Task OpenPullRequestAsync(PullRequest pullRequest)
-    {
-        await JsRuntime.InvokeVoidAsync("open", pullRequest.Url, "_blank");
-    }
+    #region Menu
 
     private bool _isMenuOpen;
     private bool _isMenuHovered;
@@ -107,35 +99,9 @@ public partial class ActionItemView
         }
     }
 
-    private async Task CreateWaitsForLinkAsync(WorkItem predecessor)
-    {
-        var successor = (ActionItem as TaskActionItem)?.WorkItem ?? throw new InvalidOperationException("Action Item should be a Task");
-        await WorkItemUpdateService.CreateDependencyLinkAsync(predecessor, successor);
+    #endregion Menu
 
-        _isMenuOpen = false;
-        _isWaitsForSubMenuOpen = false;
-
-        await HasChanged.InvokeAsync();
-    }
-
-    private bool HasWaitsForMenu => WaitsForSiblings().Any();
-
-    private IEnumerable<WorkItem> WaitsForSiblings()
-    {
-        if (ActionItem is not TaskActionItem actionItem 
-            || actionItem.WorkItem.State != ScrumState.ToDo
-        )
-        {
-            return [];
-        }
-
-        return actionItem.WorkItem
-                   .Parent
-                   ?.Children
-                   .Except(actionItem.WorkItem.Yield())
-                   .Where(task => task.State < ScrumState.Done) 
-               ?? [];
-    }
+    #region Open
 
     private async Task OnOpenClickAsync()
     {
@@ -149,6 +115,21 @@ public partial class ActionItemView
                 break;
         }
     }
+
+    private async Task OpenWorkItemAsync(WorkItem workItem)
+    {
+        await JsRuntime.InvokeVoidAsync("open", workItem.Url, "_blank");
+    }
+
+    private async Task OpenPullRequestAsync(PullRequest pullRequest)
+    {
+        await JsRuntime.InvokeVoidAsync("open", pullRequest.Url, "_blank");
+    }
+
+    #endregion Open
+
+
+    #region Fund Dialog
 
     private SelectProjectDialog? _fundDialog;
 
@@ -170,4 +151,41 @@ public partial class ActionItemView
 
         await HasChanged.InvokeAsync();
     }
+
+    #endregion Fund Dialog
+
+    #region Create Predecessor Link
+
+    private async Task OnCreatePredecessorLinkClickAsync(WorkItem predecessor)
+    {
+        var successor = (ActionItem as TaskActionItem)?.WorkItem ?? throw new InvalidOperationException("Action Item should be a Task");
+        await WorkItemUpdateService.CreateDependencyLinkAsync(predecessor, successor);
+
+        _isMenuOpen = false;
+        _isWaitsForSubMenuOpen = false;
+
+        await HasChanged.InvokeAsync();
+    }
+
+    private bool HasWaitsForMenu => WaitsForSiblings().Any();
+
+    private IEnumerable<WorkItem> WaitsForSiblings()
+    {
+        if (ActionItem is not TaskActionItem actionItem 
+            || actionItem.WorkItem.State != ScrumState.ToDo
+           )
+        {
+            return [];
+        }
+
+        return actionItem.WorkItem
+                   .Parent
+                   ?.Children
+                   .Except(actionItem.WorkItem.Yield())
+                   .Where(task => task.State < ScrumState.Done) 
+               ?? [];
+    }
+
+    #endregion Create Predecessor Link
+
 }
