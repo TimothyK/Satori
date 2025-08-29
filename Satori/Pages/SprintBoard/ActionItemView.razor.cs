@@ -16,7 +16,16 @@ public partial class ActionItemView
     [Parameter]
     public required ActionItem ActionItem { get; set; }
 
+    /// <summary>
+    /// Work Item related to the Action Item, if any.
+    /// </summary>
     private WorkItem? WorkItem => (ActionItem as WorkItemActionItem)?.WorkItem;
+
+    /// <summary>
+    /// Work Item related to the board work item (PBI or Bug) on the Sprint Board row.
+    /// </summary>
+    [Parameter]
+    public required WorkItem ParentWorkItem { get; set; }
 
     [Parameter]
     public EventCallback HasChanged { get; set; }
@@ -158,7 +167,7 @@ public partial class ActionItemView
 
     private async Task OnStartTimerDialogSaveAsync((Project?, Activity?) value)
     {
-        var workItem = WorkItem ?? throw new InvalidOperationException();
+        var workItem = _startTimerDialog?.WorkItem ?? throw new InvalidOperationException();
 
         var (_, activity) = value;
         if (activity == null)
@@ -176,6 +185,42 @@ public partial class ActionItemView
     }
 
     #endregion Start Timer
+
+    #region Start Timer from Pull Request
+
+    private IEnumerable<WorkItem> PullRequestTimerTasks
+    {
+        get
+        {
+            if (ActionItem is not PullRequestActionItem pullRequestActionItem 
+                || !pullRequestActionItem.On.Select(review => review.Person).Contains(Person.Me))
+            {
+                return [];
+            }
+
+            return ParentWorkItem
+                .Children
+                .Where(task => task.Type == WorkItemType.Task) // sanity check
+                .Where(task => task.AssignedTo == Person.Me);
+        }
+    }
+
+    private async Task OnPullRequestStartTimerClickAsync(WorkItem task)
+    {
+        _isMenuOpen = false;
+        _isWaitsForSubMenuOpen = false;
+
+        if (task.KimaiActivity == null)
+        {
+            _startTimerDialog?.ShowDialog(task);
+        }
+        else
+        {
+            await StartTimerAsync(task, task.KimaiActivity);
+        }
+    }
+
+    #endregion Start Timer from Pull Request
 
     #region Fund Dialog
 

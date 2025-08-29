@@ -195,7 +195,7 @@ else
                         <td class="show-menus">
                             @foreach (var actionItem in OrderActionItems(workItem))
                             {
-                                <ActionItemView ActionItem="actionItem" RunningWorkItemIds="_runningWorkItemIds" HasChanged="async () => await RefreshAsync(workItem)"></ActionItemView>
+                                <ActionItemView ActionItem="actionItem" ParentWorkItem="workItem" RunningWorkItemIds="_runningWorkItemIds" HasChanged="async () => await RefreshAsync(workItem)"></ActionItemView>
                             }
                         </td>
                     </tr>

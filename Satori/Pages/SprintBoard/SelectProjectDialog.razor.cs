@@ -7,7 +7,7 @@ namespace Satori.Pages.SprintBoard;
 
 public partial class SelectProjectDialog : ComponentBase
 {
-    private WorkItem? WorkItem { get; set; }
+    public WorkItem? WorkItem { get; set; }
     private bool IsOpen { get; set; }
     [Parameter] public EventCallback<(Project?, Activity?)> Save { get; set; }
     [Parameter] public bool RequireActivity { get; set; }
