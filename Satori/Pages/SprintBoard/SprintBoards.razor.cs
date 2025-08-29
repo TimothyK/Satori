@@ -11,7 +11,6 @@ using Satori.AppServices.ViewModels.PullRequests.ActionItems;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AppServices.ViewModels.WorkItems.ActionItems;
-using Satori.TimeServices;
 using Satori.Utilities;
 using Toolbelt.Blazor.HotKeys2;
 
@@ -107,6 +106,11 @@ public partial class SprintBoards
 
     private async Task RefreshRunningWorkItemIdsAsync()
     {
+        if (!ConnectionSettingsStore.GetKimaiSettings().Enabled)
+        {
+            return;
+        }
+
         try
         {
             _runningWorkItemIds = await TimerService.GetActivelyTimedWorkItemIdsAsync();
