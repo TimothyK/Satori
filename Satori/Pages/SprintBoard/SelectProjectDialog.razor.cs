@@ -59,7 +59,7 @@ public partial class SelectProjectDialog : ComponentBase
 
     private Customer? _selectedCustomer;
 
-    private void OnCustomerChanged(Customer? customer)
+    private void OnCustomerChanged(Customer customer)
     {
         _selectedCustomer = customer;
         _selectedProject = null;

@@ -45,9 +45,10 @@
             }
 
             <div>
-                <MudAutocomplete Label="Customer" 
+                <MudAutocomplete T="Customer" 
+                                 Label="Customer" 
                                  Value="@_selectedCustomer"
-                                 ValueChanged="(Customer? customer) => OnCustomerChanged(customer)"
+                                 ValueChanged="(Customer customer) => OnCustomerChanged(customer)"
                                  SearchFunc="SearchCustomerAsync"
                                  Placeholder="Select Customer"
                                  Dense="true"
