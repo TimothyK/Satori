@@ -102,11 +102,7 @@ code {
     color: #c02d76;
 }
 
-/* Satori */
-
-.hidden {
-    display: none;
-}
+/* Satori undoing things affected by importing MudBlazor */
 
 button {
     display: inline-block;
@@ -114,6 +110,21 @@ button {
     padding-right: 6px;
     padding-top: 1px;
     padding-bottom: 1px;
+}
+
+input {
+    border: 1px solid black;
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    line-height: normal;
+}
+
+/* Satori */
+
+.hidden {
+    display: none;
 }
 
 .flex-row {
