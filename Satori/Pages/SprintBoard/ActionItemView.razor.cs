@@ -152,7 +152,7 @@ public partial class ActionItemView
         }
         else
         {
-            await TimerService.StartTimerAsync(workItem, workItem.KimaiActivity);
+            await StartTimerAsync(workItem, workItem.KimaiActivity);
         }
     }
 
@@ -166,7 +166,13 @@ public partial class ActionItemView
             return;
         }
 
+        await StartTimerAsync(workItem, activity);
+    }
+
+    private async Task StartTimerAsync(WorkItem workItem, Activity activity)
+    {
         await TimerService.StartTimerAsync(workItem, activity);
+        await HasChanged.InvokeAsync();
     }
 
     #endregion Start Timer
