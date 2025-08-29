@@ -19,7 +19,7 @@ public class GetActivelyTimedWorkItemIdsTests
     {
         var serviceCollection = new SatoriServiceCollection();
         serviceCollection.AddSingleton<UserService>();
-        serviceCollection.AddScoped<TimerService>();  // Scoped will reset the cache on GetActivelyTimesWorkItems for each test
+        serviceCollection.AddScoped<TimerService>(); 
         _serviceProvider = serviceCollection.BuildServiceProvider();
 
         _kimai = _serviceProvider.GetRequiredService<TestKimaiServer>();
