@@ -38,6 +38,9 @@ public partial class CustomerFilter
             .Distinct()
             .OrderBy(customer => customer.Name)
             .ToArray();
+
+        //Reset the filter now that the available projects and customers is set.
+        FilterKey = _filterKey;  
     }
 
     public Customer? CurrentCustomer { get; set; }
@@ -49,14 +52,15 @@ public partial class CustomerFilter
         {
             "all" => Person.Anyone.AvatarUrl,
             "?" => Person.Empty.AvatarUrl,
-            _ => CurrentCustomer?.Logo ?? Person.Empty.AvatarUrl
+            _ => CurrentCustomer == null ? Person.Anyone.AvatarUrl // Invalid filter, can occur during loading.  Treat as "all"
+                : CurrentCustomer.Logo ?? Person.Empty.AvatarUrl  // Unknown customer logo - we could set this to an "egg" icon
         };
     public string CurrentCustomerDisplayName =>
         FilterKey switch
         {
             "all" => "Any",
             "?" => "Unknown",
-            _ => CurrentCustomer?.Name ?? throw new InvalidOperationException("Customer Name undefined")
+            _ => CurrentCustomer?.Name ?? "Any"
         };
 
     private string _filterKey = "all";
@@ -89,10 +93,6 @@ public partial class CustomerFilter
                         CurrentProject = project;
                         CurrentCustomer = project.Customer;
                         LastCustomer = CurrentCustomer;
-                    }
-                    else
-                    {
-                        throw new ArgumentException($"Invalid filter key: {value}");
                     }
                 }
             }

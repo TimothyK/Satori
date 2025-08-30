@@ -35,6 +35,7 @@ public partial class SprintBoards
             NavigationManager.NavigateTo("/");
         }
 
+        ForFilterInitializeFromUrl();
         WithFilterInitializeFromUrl();
         ActionItemFilterInitializeFromUrl();
 
@@ -67,6 +68,7 @@ public partial class SprintBoards
 
         if (TeamSelection != null)
         {
+            await SetDefaultForFilterAsync();
             await SetDefaultWithFilterAsync();
             await SetDefaultActionItemFilterAsync();
             await TeamSelection.SetDefaultTeamsAsync(LocalStorage);
@@ -178,11 +180,64 @@ public partial class SprintBoards
 
     #region For Filter
 
+    private const string DefaultForFilterStorageKey = "SprintBoard.For";
+    private const string ForQueryParamName = "for";
+
     public required CustomerFilter ForFilter { get; set; }
+
+    private async Task SetDefaultForFilterAsync()
+    {
+        var hasForFilterOnUrl = new Url(NavigationManager.Uri).QueryParams.Any(qp => qp.Name == ForQueryParamName);
+        if (hasForFilterOnUrl)
+        {
+            return;
+        }
+
+        var filterValue = await LocalStorage.GetItemAsync<string>(DefaultForFilterStorageKey) ?? "all";
+        ForFilter.FilterKey = filterValue;
+    }
 
     private async Task ForFilterChangedAsync()
     {
-        //TODO
+        ResetWorkItemCounts();
+        ResetForOnUrl();
+        await StoreForFilterAsync();
+    }
+
+    private void ResetForOnUrl()
+    {
+        var filterValue = ForFilter.FilterKey;
+
+        var url = NavigationManager.Uri
+            .RemoveQueryParam(ForQueryParamName)
+            .AppendQueryParam(ForQueryParamName, filterValue);
+
+        NavigationManager.NavigateTo(url, forceLoad: false);
+    }
+
+    private async Task StoreForFilterAsync()
+    {
+        if (LocalStorage == null)
+        {
+            return;
+        }
+
+        var filterValue = ForFilter.FilterKey;
+        await LocalStorage.SetItemAsync(DefaultForFilterStorageKey, filterValue);
+    }
+
+
+    private void ForFilterInitializeFromUrl()
+    {
+        var parameters = new Url(NavigationManager.Uri).QueryParams
+            .Where(qp => qp.Name == ForQueryParamName)
+            .ToArray();
+        if (parameters.None())
+        {
+            return;
+        }
+        var filterValue = parameters.First().Value.ToString() ?? "all";
+        ForFilter.FilterKey = filterValue;
     }
 
     #endregion For Filter
@@ -385,7 +440,33 @@ public partial class SprintBoards
         {
             return (workItem.Sprint?.TeamId.IsIn(selectedTeamIds) ?? false)
                 && (WithPersonFilter.CurrentPerson == Person.Anyone || WithPersonFilter.CurrentPerson.IsIn(workItem.WithPeople))
-                && (ActionItemPersonFilter.CurrentPerson == Person.Anyone || ActionItemPersonFilter.CurrentPerson.IsIn(workItem.ActionItems.SelectMany(actionItem => actionItem.On).Select(x => x.Person)));
+                && (ActionItemPersonFilter.CurrentPerson == Person.Anyone 
+                    || ActionItemPersonFilter.CurrentPerson.IsIn(workItem.ActionItems.SelectMany(actionItem => actionItem.On).Select(x => x.Person)))
+                && MatchesForFilter(workItem);
+        }
+
+        bool MatchesForFilter(WorkItem workItem)
+        {
+            if (ForFilter.FilterKey == "all")
+            {
+                return true;
+            }
+            if (ForFilter.FilterKey == "?")
+            {
+                return workItem.KimaiProject == null;
+            }
+            if (ForFilter.CurrentProject != null)
+            {
+                return workItem.KimaiProject == ForFilter.CurrentProject
+                       || workItem.Children.Any(task => task.KimaiProject == ForFilter.CurrentProject);
+            }
+            if (ForFilter.CurrentCustomer != null)
+            {
+                return workItem.KimaiProject?.Customer == ForFilter.CurrentCustomer
+                    || workItem.Children.Any(task => task.KimaiProject?.Customer == ForFilter.CurrentCustomer);
+            }
+
+            return true; //Invalid filter type.  Can occur during initial page load.
         }
     }
 
