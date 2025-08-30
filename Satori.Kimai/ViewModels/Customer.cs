@@ -15,7 +15,7 @@ public class Customer
 
     public static readonly Uri DefaultLogo = new Url("/images/logo-design.png").ToUri();
 
-    public Uri Logo { get; set; }
+    public required Uri Logo { get; set; }
 
     private readonly List<Project> _projects = [];
     public ReadOnlyCollection<Project> Projects => _projects.AsReadOnly();

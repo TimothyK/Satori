@@ -13,16 +13,18 @@
     <div class="dropdown">
         @* Current filter *@
         <button class="dropbtn @FilterBorders" @onclick="OnToggleFilterAsync">
-            <div class="flex-row">
+            <div class="flex-row"
+                 title="Filter for @CurrentCustomerDisplayName @(CurrentProject == null ? "" : $"» {CurrentProject.Name}")"
+            >
                 <div class="avatar-cell">
                     <img src="@CurrentCustomerLogo"
-                         alt="@CurrentCustomerDisplayName"
-                         title="Filtering to work items involving @CurrentCustomerDisplayName" />
-                </div>                @if (CurrentProject != null)
+                         alt="@CurrentCustomerDisplayName" />
+                </div>                
+                @if (CurrentProject != null)
                 {
-                <div class="project-filter">@CurrentProject.ProjectCode</div>
+                    <div class="project-filter">@CurrentProject.ProjectCode</div>
                 }
-            </div>        
+            </div>
         </button>
         
         @* Menu *@
