@@ -42,6 +42,10 @@ button {
 .dropdown {
     position: relative;
     display: inline-block;
+    margin-right: 0;
+}
+.avatar-cell {
+    margin-right: 0;
 }
 
 .dropdown-content {
