@@ -73,7 +73,7 @@ internal static class Mappers
         {
             Id = dto.Id,
             Name = dto.Name,
-            Logo = CustomerLogoParser.GetCustomerLogo(dto.Comment)
+            Logo = CustomerLogoParser.GetCustomerLogo(dto.Comment) ?? Customer.DefaultLogo
         };
     }
 

@@ -162,7 +162,7 @@ public class GetCustomerTests
     }
     
     [TestMethod]
-    public async Task Customer_NoLogo_ReturnsNull()
+    public async Task Customer_NoLogo_ReturnsDefault()
     {
         //Arrange
         var customer = BuildCustomer();
@@ -173,7 +173,7 @@ public class GetCustomerTests
 
         //Assert
         var actual = customers.Single();
-        actual.Logo.ShouldBeNull();
+        actual.Logo.ShouldBeSameAs(Customer.DefaultLogo);
     }
     
     [TestMethod]
@@ -194,7 +194,7 @@ public class GetCustomerTests
     }
     
     [TestMethod]
-    public async Task Customer_HasBadUriLogo_ReturnsNull()
+    public async Task Customer_HasBadUriLogo_ReturnsDefault()
     {
         //Arrange
         var customer = BuildCustomer();
@@ -206,7 +206,7 @@ public class GetCustomerTests
 
         //Assert
         var actual = customers.Single();
-        actual.Logo.ShouldBeNull();
+        actual.Logo.ShouldBeSameAs(Customer.DefaultLogo);
     }
 
     #endregion Customer Tests

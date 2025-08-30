@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using Flurl;
 
 namespace Satori.Kimai.ViewModels;
 
@@ -12,7 +13,9 @@ public class Customer
     public required string Name { get; set; }
     public override string ToString() => Name;
 
-    public Uri? Logo { get; set; }
+    public static readonly Uri DefaultLogo = new Url("/images/logo-design.png").ToUri();
+
+    public Uri Logo { get; set; }
 
     private readonly List<Project> _projects = [];
     public ReadOnlyCollection<Project> Projects => _projects.AsReadOnly();

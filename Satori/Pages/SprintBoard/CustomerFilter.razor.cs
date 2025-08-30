@@ -53,7 +53,7 @@ public partial class CustomerFilter
             "all" => Person.Anyone.AvatarUrl,
             "?" => Person.Empty.AvatarUrl,
             _ => CurrentCustomer == null ? Person.Anyone.AvatarUrl // Invalid filter, can occur during loading.  Treat as "all"
-                : CurrentCustomer.Logo ?? Person.Empty.AvatarUrl  // Unknown customer logo - we could set this to an "egg" icon
+                : CurrentCustomer.Logo
         };
     public string CurrentCustomerDisplayName =>
         FilterKey switch
