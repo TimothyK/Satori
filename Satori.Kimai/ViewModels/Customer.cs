@@ -13,6 +13,8 @@ public class Customer
     public required string Name { get; set; }
     public override string ToString() => Name;
 
+    public required string Acronym { get; set; }
+
     public static readonly Uri DefaultLogo = new Url("/images/logo-design.png").ToUri();
 
     public required Uri Logo { get; set; }

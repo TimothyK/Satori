@@ -78,7 +78,7 @@ public partial class CustomerFilter
             }
             else
             {
-                var customer = _customers.FirstOrDefault(c => c.Name == value);
+                var customer = _customers.FirstOrDefault(c => c.Acronym == value);
                 if (customer != null)
                 {
                     CurrentCustomer = customer;
@@ -104,7 +104,7 @@ public partial class CustomerFilter
 
     private async Task OnSetFilterAsync(Customer customer)
     {
-        FilterKey = customer.Name;
+        FilterKey = customer.Acronym;
         await OnFilterChanged.InvokeAsync();
     }
 

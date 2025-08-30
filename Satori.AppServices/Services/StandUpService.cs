@@ -217,8 +217,8 @@ public partial class StandUpService(
                     CustomerId = g.Key.CustomerID,
                     CustomerName = g.Key.CustomerName,
                     CustomerIsActive = g.Key.CustomerVisible,
-                    CustomerAcronym = GetCustomerAcronym(g.Key.CustomerName),
-                    CustomerUrl = CustomerLogoParser.GetCustomerLogo(g.Key.CustomerComment),
+                    CustomerAcronym = CustomerParser.GetAcronym(g.Key.CustomerName),
+                    CustomerUrl = CustomerParser.GetCustomerLogo(g.Key.CustomerComment),
                     TotalTime = GetDuration(g),
                     AllExported = GetAllExported(g),
                     CanExport = GetCanExport(g),
@@ -229,15 +229,6 @@ public partial class StandUpService(
             })
             .OrderByDescending(p => p.TotalTime).ThenBy(p => p.ProjectName)
             .ToArray();
-    }
-
-    [GeneratedRegex(@"\((?'acronym'.*)\)", RegexOptions.IgnoreCase)]
-    private static partial Regex CustomerAcronymRegex();
-
-    private static string? GetCustomerAcronym(string customerName)
-    {
-        var match = CustomerAcronymRegex().Match(customerName);
-        return match.Success ? match.Groups["acronym"].Value : null;
     }
 
     private ActivitySummary[] ToActivitiesViewModel(IEnumerable<KimaiTimeEntry> entries, Url url, ProjectSummary project)
