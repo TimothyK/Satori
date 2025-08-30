@@ -1,0 +1,78 @@
+﻿@using Satori.AppServices.ViewModels
+@using Satori.Kimai
+
+@inject IKimaiServer KimaiServer
+
+@if (!KimaiServer.Enabled)
+{
+    return;
+}
+
+<div class="root flex-row">
+    <span class="label">For</span>
+    <div class="dropdown">
+        @* Current filter *@
+        <button class="dropbtn @FilterBorders" @onclick="OnToggleFilterAsync">
+            <div class="flex-row">
+                <div class="avatar-cell">
+                    <img src="@CurrentCustomerLogo"
+                         alt="@CurrentCustomerDisplayName"
+                         title="Filtering to work items involving @CurrentCustomerDisplayName" />
+                </div>                @if (CurrentProject != null)
+                {
+                <div class="project-filter">@CurrentProject.ProjectCode</div>
+                }
+            </div>        
+        </button>
+        
+        @* Menu *@
+        <div class="dropdown-content">
+            @* Any Customer *@
+            <div class="dropdown-content-menu" @onclick="OnClearFilterAsync">
+                <button class="avatar-cell">
+                    <img src="@Person.Anyone.AvatarUrl"
+                         alt="Any"
+                         title="No customer filter applied"/>
+                    Any
+                </button>
+            </div>
+            @* Unknown/unfunded *@
+            <div class="dropdown-content-menu" @onclick="OnUnfundedFilterAsync">
+                <button class="avatar-cell">
+                    <img src="@Person.Empty.AvatarUrl"
+                         alt="Unknown"
+                         title="Filtering to work items where the project is undefined/unfunded"/>
+                    Unknown
+                </button>
+            </div>
+            
+            @* Customers list *@
+            @foreach (var customer in _customers)
+            {
+                <div class="dropdown-content-menu" @onclick="() => OnSetFilterAsync(customer)">
+                    <button class="avatar-cell">
+                        <img src="@customer.Logo"
+                             alt="@customer.Name"
+                             title="Filtering to work items for @customer.Name"/>
+                        @customer.Name
+                    </button>
+                </div>
+                @* Projects *@
+                @if (customer == CurrentCustomer)
+                {
+                    @foreach (var project in _projects.Where(p => p.Customer == CurrentCustomer).OrderBy(p => p.Name))
+                    {
+                        <div class="dropdown-content-menu" @onclick="() => OnSetFilterAsync(project)">
+                            <button>
+                                <div class="project-menu">
+                                    @project.Name
+                                </div>
+                            </button>
+                        </div>
+                    }
+                }
+            }
+
+        </div>
+    </div>
+</div>

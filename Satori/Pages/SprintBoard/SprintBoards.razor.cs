@@ -176,6 +176,17 @@ public partial class SprintBoards
 
     private Dictionary<WorkItem, VisibleCssClass> _workItemFilter = [];
 
+    #region For Filter
+
+    public required CustomerFilter ForFilter { get; set; }
+
+    private async Task ForFilterChangedAsync()
+    {
+        //TODO
+    }
+
+    #endregion For Filter
+
     #region With Filter
 
     private const string DefaultWithFilterStorageKey = "SprintBoard.With";
