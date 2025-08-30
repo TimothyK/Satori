@@ -2,7 +2,7 @@
 
 namespace Satori.Kimai.Utilities;
 
-public static partial class CustomerLogoParser
+public static partial class CustomerParser
 {
     [GeneratedRegex(@"\[Logo\]\((?'url'.*)\)", RegexOptions.IgnoreCase)]
     private static partial Regex CustomerLogoRegex();
@@ -29,5 +29,14 @@ public static partial class CustomerLogoParser
             return null;
 
         }
+    }
+
+    [GeneratedRegex(@"\((?'acronym'.*)\)", RegexOptions.IgnoreCase)]
+    private static partial Regex CustomerAcronymRegex();
+
+    public static string? GetAcronym(string customerName)
+    {
+        var match = CustomerAcronymRegex().Match(customerName);
+        return match.Success ? match.Groups["acronym"].Value : null;
     }
 }

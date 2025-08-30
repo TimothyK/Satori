@@ -57,12 +57,9 @@
                                  MaxItems="int.MaxValue">
                     <ItemTemplate Context="customer">
                         <div class="flex-row">
-                            @if (customer.Logo != null)
-                            {
-                                <div class="avatar-cell">
-                                    <img src="@customer.Logo" alt="@customer.Name Logo"/>
-                                </div>
-                            }
+                            <div class="avatar-cell">
+                                <img src="@customer.Logo" alt="@customer.Name Logo"/>
+                            </div>
                             <div>@customer.Name</div>
                         </div>
                     </ItemTemplate>
