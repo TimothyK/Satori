@@ -1,4 +1,20 @@
-﻿.timestamp {
+﻿.flex-row {
+    align-items: center;
+}
+.page-title {
+    font-size: 28px;
+    font-weight: 500;
+}
+.counters {
+    align-items: self-start;
+}
+
+.counters .badge {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.timestamp {
     font-size: 0.6em;
     opacity: 0.5; /* text-muted */
 }
@@ -10,8 +26,6 @@
 .pullrequest-id {
     margin-right: 5px;
     font-weight: bold;
-}
-.pullrequest-title {
 }
 
 .pullrequest-repositoryname {
