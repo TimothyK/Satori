@@ -11,6 +11,7 @@
 @inject NavigationManager NavigationManager
 @inject IConnectionSettingsStore ConnectionSettingsStore
 @inject HotKeys HotKeys
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 
 <PageTitle>Pull Requests - Satori</PageTitle>
 
@@ -19,10 +20,10 @@
     <div class="counters">
         <span class="badge bg-primary">@FilteredPullRequests.Count()</span>
     </div>
-    <CustomerFilter Projects="Projects" OnFilterChanged="OnForFilterChanged" @ref="ForFilter"></CustomerFilter>
-    <PersonFilter Label="By" People="Authors" AllowNull="false" OnFilterChanged="OnAuthorFilterChanged" @ref="AuthorFilter"></PersonFilter>
-    <PersonFilter Label="With" People="WithPeople" AllowNull="false" OnFilterChanged="OnWithFilterChanged" @ref="WithPersonFilter"></PersonFilter>
-    <PersonFilter Label="On" People="ActionItemPeople" AllowNull="false" OnFilterChanged="OnActionItemFilterChanged" @ref="ActionItemPersonFilter"></PersonFilter>
+    <CustomerFilter Projects="Projects" OnFilterChanged="OnForFilterChangedAsync" @ref="ForFilter"></CustomerFilter>
+    <PersonFilter Label="By" People="Authors" AllowNull="false" OnFilterChanged="OnAuthorFilterChangedAsync" @ref="AuthorFilter"></PersonFilter>
+    <PersonFilter Label="With" People="WithPeople" AllowNull="false" OnFilterChanged="OnWithFilterChangedAsync" @ref="WithPersonFilter"></PersonFilter>
+    <PersonFilter Label="On" People="ActionItemPeople" AllowNull="false" OnFilterChanged="OnActionItemFilterChangedAsync" @ref="ActionItemPersonFilter"></PersonFilter>
     <div>
         <button class="btn-header btn-refresh @InLoading" title="Refresh (Alt+F5)" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
     </div>
