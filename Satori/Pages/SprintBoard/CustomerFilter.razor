@@ -62,7 +62,7 @@
                 @* Projects *@
                 @if (customer == CurrentCustomer)
                 {
-                    @foreach (var project in _projects.Where(p => p.Customer == CurrentCustomer).OrderBy(p => p.Name))
+                    @foreach (var project in Projects.Where(p => p.Customer == CurrentCustomer).OrderBy(p => p.Name))
                     {
                         <div class="dropdown-content-menu" @onclick="() => OnSetFilterAsync(project)">
                             <button>

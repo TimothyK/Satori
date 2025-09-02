@@ -30,7 +30,7 @@
             <div class="badge bg-success" title="Done">@WorkItemDoneCount</div>
         }
     </div>        
-    <CustomerFilter WorkItems="_workItems" OnFilterChanged="ForFilterChangedAsync" @ref="ForFilter"></CustomerFilter>
+    <CustomerFilter Projects="_projects" OnFilterChanged="ForFilterChangedAsync" @ref="ForFilter"></CustomerFilter>
     <PersonFilter Label="With" People="_workItems?.SelectMany(wi => wi.WithPeople) ?? []" OnFilterChanged="WithFilterChangedAsync" @ref="WithPersonFilter"></PersonFilter>
     <PersonFilter Label="On" People="ActionItemPeople" OnFilterChanged="ActionItemFilterChangedAsync" @ref="ActionItemPersonFilter"></PersonFilter>
     <div>

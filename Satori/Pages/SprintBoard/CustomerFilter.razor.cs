@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Satori.AppServices.ViewModels;
-using Satori.AppServices.ViewModels.WorkItems;
 using Satori.Kimai.ViewModels;
 
 namespace Satori.Pages.SprintBoard;
@@ -8,10 +7,9 @@ namespace Satori.Pages.SprintBoard;
 public partial class CustomerFilter
 {
     private Customer[] _customers = [];
-    private Project[] _projects = [];
 
     [Parameter]
-    public required IEnumerable<WorkItem> WorkItems { get; set; }
+    public required IReadOnlyCollection<Project> Projects { get; set; }
 
     [Parameter]
     public EventCallback OnFilterChanged { get; set; }
@@ -20,20 +18,7 @@ public partial class CustomerFilter
     {
         base.OnParametersSet();
 
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-        // Will be null at initialization, despite the non-null type declaration.
-        if (WorkItems == null)
-        {
-            return;
-        }
-
-        _projects = WorkItems.Select(workItem => workItem.KimaiProject)
-            .Union(WorkItems.SelectMany(workItem => workItem.Children.Select(task => task.KimaiProject)))
-            .Where(p => p != null).Select(p => p!)
-            .Distinct()
-            .ToArray();
-
-        _customers = _projects
+        _customers = Projects
             .Select(p => p.Customer)
             .Distinct()
             .OrderBy(customer => customer.Name)
@@ -87,7 +72,7 @@ public partial class CustomerFilter
                 }
                 else
                 {
-                    var project = _projects.FirstOrDefault(p => p.ProjectCode == value);
+                    var project = Projects.FirstOrDefault(p => p.ProjectCode == value);
                     if (project != null)
                     {
                         CurrentProject = project;
