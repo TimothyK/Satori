@@ -29,6 +29,7 @@ public partial class PersonFilter
     [Parameter]
     public EventCallback OnFilterChanged { get; set; }
 
+    [Parameter] public bool AllowNull { get; set; } = true;
 
     public Person CurrentPerson { get; private set; } = Person.Anyone;
     private FilterSelectionCssClass FilterWithBorders { get; set; } = FilterSelectionCssClass.Hidden;

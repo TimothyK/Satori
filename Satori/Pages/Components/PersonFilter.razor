@@ -30,14 +30,17 @@
                     </button>
                 </div>
             }
-            <div class="dropdown-content-menu" @onclick="() => SetFilterAsync(Person.Empty)">
-                <button class="avatar-cell">
-                    <img src="@Person.Empty.AvatarUrl"
-                         alt="@Person.Empty.DisplayName"
-                         title="Filtering to work items involving @Person.Empty.DisplayName"/>
-                    @Person.Empty.DisplayName
-                </button>
-            </div>
+            @if (AllowNull)
+            {
+                <div class="dropdown-content-menu" @onclick="() => SetFilterAsync(Person.Empty)">
+                    <button class="avatar-cell">
+                        <img src="@Person.Empty.AvatarUrl"
+                             alt="@Person.Empty.DisplayName"
+                             title="Filtering to work items involving @Person.Empty.DisplayName"/>
+                        @Person.Empty.DisplayName
+                    </button>
+                </div>
+            }
             @foreach (var person in People.Except(Person.Empty.Yield()))
             {
                 <div class="dropdown-content-menu" @onclick="() => SetFilterAsync(person)">

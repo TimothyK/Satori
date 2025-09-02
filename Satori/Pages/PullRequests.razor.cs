@@ -1,6 +1,10 @@
-﻿using Microsoft.JSInterop;
+﻿using CodeMonkeyProjectiles.Linq;
+using Microsoft.JSInterop;
+using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.WorkItems;
+using Satori.Kimai.ViewModels;
+using Satori.Pages.Components;
 using Satori.Utilities;
 using Toolbelt.Blazor.HotKeys2;
 
@@ -10,18 +14,7 @@ public partial class PullRequests
 {
     private PullRequest[] _pullRequests = [];
 
-    private IEnumerable<PullRequest> FilteredPullRequests
-    {
-        get
-        {
-            return _pullRequests
-                .OrderBy(pr =>
-                    pr.WorkItems.Select(workItem => workItem.AbsolutePriority)
-                        .DefaultIfEmpty(double.MaxValue)
-                        .Min())
-                .ThenByDescending(pr => pr.Id);
-        }
-    }
+    private IReadOnlyCollection<PullRequest> FilteredPullRequests { get; set; } = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -51,16 +44,86 @@ public partial class PullRequests
         StateHasChanged();
 
         _pullRequests = (await PullRequestService.GetPullRequestsAsync()).ToArray();
+        SetFilteredPullRequests();
         StateHasChanged();  //Quickly show the PR list to the user.
 
         const int pageSize = 20;
         var topPrs = _pullRequests.Take(pageSize).ToArray();
         await PullRequestService.AddWorkItemsToPullRequestsAsync(topPrs);
+        SetFilteredPullRequests();
         StateHasChanged();
 
         await PullRequestService.AddWorkItemsToPullRequestsAsync(_pullRequests.Skip(pageSize).ToArray());
+        SetFilteredPullRequests();
 
         InLoading = CssClass.None;
+    }
+
+    private void SetFilteredPullRequests()
+    {
+        Projects = _pullRequests
+            .SelectMany(pr => pr.WorkItems)
+            .Select(workItem => workItem.KimaiProject)
+            .Where(project => project != null).Select(p => p!)
+            .Distinct()
+            .ToArray();
+
+        Authors = _pullRequests
+            .Select(pr => pr.CreatedBy)
+            .Distinct()
+            .ToArray();
+
+        WithPeople = _pullRequests.Select(pr => pr.CreatedBy)
+            .Union(_pullRequests.SelectMany(pr => pr.Reviews).Where(review => !review.HasDeclined).Select(review => review.Reviewer))
+            .Distinct()
+            .ToArray();
+
+        FilteredPullRequests = _pullRequests
+            .Where(MatchesForFilter)
+            .Where(MatchesAuthorFilter)
+            .Where(MatchesWithFilter)
+            .OrderBy(pr =>
+                pr.WorkItems.Select(workItem => workItem.AbsolutePriority)
+                    .DefaultIfEmpty(double.MaxValue)
+                    .Min())
+            .ThenByDescending(pr => pr.Id)
+            .ToArray();
+    }
+
+    private bool MatchesForFilter(PullRequest pr)
+    {
+        if (ForFilter.FilterKey == "all")
+        {
+            return true;
+        }
+        if (ForFilter.FilterKey == "?")
+        {
+            return pr.WorkItems.All(workItem => workItem.KimaiProject == null);
+        }
+
+        if (ForFilter.CurrentProject != null)
+        {
+            return pr.WorkItems.Any(workItem => workItem.KimaiProject == ForFilter.CurrentProject);
+        }
+        if (ForFilter.CurrentCustomer != null)
+        {
+            return pr.WorkItems.Any(workItem => workItem.KimaiProject?.Customer == ForFilter.CurrentCustomer);
+        }
+        return true;
+    }
+
+    private bool MatchesAuthorFilter(PullRequest pr)
+    {
+        return AuthorFilter.CurrentPerson == Person.Anyone
+               || pr.CreatedBy == AuthorFilter.CurrentPerson;
+    }
+
+    private bool MatchesWithFilter(PullRequest pr)
+    {
+        return WithPersonFilter.CurrentPerson == Person.Anyone
+               || WithPersonFilter.CurrentPerson.IsIn(
+                   pr.CreatedBy.Yield()
+                   .Union(pr.Reviews.Where(review => !review.HasDeclined).Select(review => review.Reviewer)));
     }
 
     private static readonly CssClass InLoadingCssClass = new("in-loading");
@@ -79,4 +142,42 @@ public partial class PullRequests
     }
 
     #endregion Cell Links
+
+    #region ForFilter
+
+    public required CustomerFilter ForFilter { get; set; }
+
+    private IReadOnlyCollection<Project> Projects { get; set; } = [];
+
+    private void OnForFilterChanged()
+    {
+        SetFilteredPullRequests();
+    }
+
+    #endregion ForFilter
+
+    #region Author (By) Filter
+
+    public required PersonFilter AuthorFilter { get; set; }
+
+    private IReadOnlyCollection<Person> Authors { get; set; } = [];
+
+    private void OnAuthorFilterChanged()
+    {
+        SetFilteredPullRequests();
+    }
+
+    #endregion Author (By) Filter
+
+    #region With Filter
+
+    public required PersonFilter WithPersonFilter { get; set; }
+    private IReadOnlyCollection<Person> WithPeople { get; set; } = [];
+
+    private void OnWithFilterChanged()
+    {
+        SetFilteredPullRequests();
+    }
+
+    #endregion With Filter
 }

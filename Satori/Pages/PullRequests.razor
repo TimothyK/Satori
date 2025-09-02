@@ -5,6 +5,7 @@
 @using CodeMonkeyProjectiles.Linq
 @using Satori.AppServices.Models
 @using Toolbelt.Blazor.HotKeys2
+@using Satori.Pages.Components
 @inject PullRequestService PullRequestService
 @inject IJSRuntime JsRuntime
 @inject NavigationManager NavigationManager
@@ -18,6 +19,9 @@
     <div class="counters">
         <span class="badge bg-primary">@FilteredPullRequests.Count()</span>
     </div>
+    <CustomerFilter Projects="Projects" OnFilterChanged="OnForFilterChanged" @ref="ForFilter"></CustomerFilter>
+    <PersonFilter Label="By" People="Authors" AllowNull="false" OnFilterChanged="OnAuthorFilterChanged" @ref="AuthorFilter"></PersonFilter>
+    <PersonFilter Label="With" People="WithPeople" AllowNull="false" OnFilterChanged="OnWithFilterChanged" @ref="WithPersonFilter"></PersonFilter>
     <div>
         <button class="btn-header btn-refresh @InLoading" title="Refresh (Alt+F5)" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
     </div>
