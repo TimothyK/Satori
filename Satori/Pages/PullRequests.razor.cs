@@ -8,7 +8,20 @@ namespace Satori.Pages;
 
 public partial class PullRequests
 {
-    private PullRequest[]? _pullRequests;
+    private PullRequest[] _pullRequests = [];
+
+    private IEnumerable<PullRequest> FilteredPullRequests
+    {
+        get
+        {
+            return _pullRequests
+                .OrderBy(pr =>
+                    pr.WorkItems.Select(workItem => workItem.AbsolutePriority)
+                        .DefaultIfEmpty(double.MaxValue)
+                        .Min())
+                .ThenByDescending(pr => pr.Id);
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {

@@ -16,17 +16,14 @@
 <div class="flex-row">
     <div class="page-title">Pull Requests</div>
     <div class="counters">
-        @if (_pullRequests != null)
-        {
-            <span class="badge bg-primary">@_pullRequests.Length</span>
-        }
+        <span class="badge bg-primary">@FilteredPullRequests.Count()</span>
     </div>
     <div>
         <button class="btn-header btn-refresh @InLoading" title="Refresh (Alt+F5)" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
     </div>
 </div>
 
-@if (_pullRequests == null)
+@if (InLoading == InLoadingCssClass && FilteredPullRequests.None())
 {
     <p><em>Loading...</em></p>
 }
@@ -42,7 +39,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var pullRequest in _pullRequests)
+            @foreach (var pullRequest in FilteredPullRequests)
             {
                 <tr style="vertical-align:middle;">
                     <td class="cell-link" @onclick="() => OpenPullRequestAsync(pullRequest)" title="Open PR#@(pullRequest.Id)">
