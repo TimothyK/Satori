@@ -1,5 +1,6 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Microsoft.JSInterop;
+using Satori.AppServices.Services.Converters;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.WorkItems;
@@ -78,10 +79,19 @@ public partial class PullRequests
             .Distinct()
             .ToArray();
 
+        _pullRequests.ResetActionItems();
+        ActionItemPeople = _pullRequests
+            .SelectMany(pr => pr.ActionItems)
+            .SelectMany(actionItem => actionItem.On)
+            .Select(assignment => assignment.Person)
+            .Distinct()
+            .ToArray();
+
         FilteredPullRequests = _pullRequests
             .Where(MatchesForFilter)
             .Where(MatchesAuthorFilter)
             .Where(MatchesWithFilter)
+            .Where(MatchesActionItemFilter)
             .OrderBy(pr =>
                 pr.WorkItems.Select(workItem => workItem.AbsolutePriority)
                     .DefaultIfEmpty(double.MaxValue)
@@ -124,6 +134,12 @@ public partial class PullRequests
                || WithPersonFilter.CurrentPerson.IsIn(
                    pr.CreatedBy.Yield()
                    .Union(pr.Reviews.Where(review => !review.HasDeclined).Select(review => review.Reviewer)));
+    }
+
+    private bool MatchesActionItemFilter(PullRequest pr)
+    {
+        return ActionItemPersonFilter.CurrentPerson == Person.Anyone
+               || ActionItemPersonFilter.CurrentPerson.IsIn(pr.ActionItems.SelectMany(actionItem => actionItem.On).Select(assignment => assignment.Person));
     }
 
     private static readonly CssClass InLoadingCssClass = new("in-loading");
@@ -180,4 +196,16 @@ public partial class PullRequests
     }
 
     #endregion With Filter
+
+    #region Action Items (On) Filter
+
+    public required PersonFilter ActionItemPersonFilter { get; set; }
+    private IReadOnlyCollection<Person> ActionItemPeople { get; set; } = [];
+
+    private void OnActionItemFilterChanged()
+    {
+        SetFilteredPullRequests();
+    }
+
+    #endregion Action Items (On) Filter
 }

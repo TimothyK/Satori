@@ -73,7 +73,6 @@ public class ActionItemTests
         var workItems = await GetWorkItemsAsync(sprints);
 
         return workItems.SelectMany(wi => wi.ActionItems)
-            .Concat(workItems.SelectMany(wi => wi.PullRequests.SelectMany(pr => pr.ActionItems)))
             .ToArray();
     }
 

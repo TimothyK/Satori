@@ -22,6 +22,7 @@
     <CustomerFilter Projects="Projects" OnFilterChanged="OnForFilterChanged" @ref="ForFilter"></CustomerFilter>
     <PersonFilter Label="By" People="Authors" AllowNull="false" OnFilterChanged="OnAuthorFilterChanged" @ref="AuthorFilter"></PersonFilter>
     <PersonFilter Label="With" People="WithPeople" AllowNull="false" OnFilterChanged="OnWithFilterChanged" @ref="WithPersonFilter"></PersonFilter>
+    <PersonFilter Label="On" People="ActionItemPeople" AllowNull="false" OnFilterChanged="OnActionItemFilterChanged" @ref="ActionItemPersonFilter"></PersonFilter>
     <div>
         <button class="btn-header btn-refresh @InLoading" title="Refresh (Alt+F5)" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
     </div>
@@ -40,6 +41,7 @@ else
                 <th>Work Items</th>
                 <th>Created By</th>
                 <th>Reviews</th>
+                <th>Action Items</th>
             </tr>
         </thead>
         <tbody>
@@ -131,6 +133,23 @@ else
                         </div>
                         
 
+                    </td>
+                    
+                    <td>
+                        @foreach (var actionItem in pullRequest.ActionItems)
+                        {
+                            <div class="avatar-row">
+                                @foreach (var assignee in actionItem.On)
+                                {
+                                    <div class="avatar-cell">
+                                        <img src="@assignee.Person.AvatarUrl" 
+                                             alt="@assignee.Person.DisplayName"
+                                             title="@assignee.Person.DisplayName"/>
+                                    </div>
+                                }
+                                <div>@actionItem.ActionDescription</div>
+                            </div>
+                        }
                     </td>
                 </tr>
             }
