@@ -11,6 +11,8 @@ using Satori.AppServices.ViewModels.PullRequests.ActionItems;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.AppServices.ViewModels.WorkItems.ActionItems;
+using Satori.Kimai.ViewModels;
+using Satori.Pages.Components;
 using Satori.Utilities;
 using Toolbelt.Blazor.HotKeys2;
 
@@ -132,6 +134,24 @@ public partial class SprintBoards
         InLoadingWorkItem = workItems.ToDictionary(wi => wi, _ => CssClass.None);
         _workItems = workItems;
         ResetWorkItemCounts();
+        ResetProjects();
+    }
+
+    private IReadOnlyCollection<Project> _projects = [];
+
+    private void ResetProjects()
+    {
+        if (_workItems == null)
+        {
+            _projects = [];
+            return;
+        }
+
+        _projects = _workItems.Select(workItem => workItem.KimaiProject)
+            .Union(_workItems.SelectMany(workItem => workItem.Children.Select(task => task.KimaiProject)))
+            .Where(p => p != null).Select(p => p!)
+            .Distinct()
+            .ToArray();
     }
 
     private async Task RefreshAsync(WorkItem workItem)

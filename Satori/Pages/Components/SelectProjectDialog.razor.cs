@@ -3,7 +3,7 @@ using Microsoft.JSInterop;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.Kimai.ViewModels;
 
-namespace Satori.Pages.SprintBoard;
+namespace Satori.Pages.Components;
 
 public partial class SelectProjectDialog : ComponentBase
 {

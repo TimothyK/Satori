@@ -4,26 +4,33 @@
 @using Satori.AppServices.Services
 @using CodeMonkeyProjectiles.Linq
 @using Satori.AppServices.Models
+@using Satori.AppServices.ViewModels
 @using Toolbelt.Blazor.HotKeys2
+@using Satori.Pages.Components
 @inject PullRequestService PullRequestService
 @inject IJSRuntime JsRuntime
 @inject NavigationManager NavigationManager
 @inject IConnectionSettingsStore ConnectionSettingsStore
 @inject HotKeys HotKeys
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 
 <PageTitle>Pull Requests - Satori</PageTitle>
 
-<h3>Pull Requests
-    @if (_pullRequests != null)
-    {
-        <span class="badge bg-primary">@_pullRequests.Length</span>
-    }
-    <span>
+<div class="flex-row">
+    <div class="page-title">Pull Requests</div>
+    <div class="counters">
+        <span class="badge bg-primary">@FilteredPullRequests.Count()</span>
+    </div>
+    <CustomerFilter Projects="Projects" OnFilterChanged="OnForFilterChangedAsync" @ref="ForFilter"></CustomerFilter>
+    <PersonFilter Label="By" People="Authors" AllowNull="false" OnFilterChanged="OnAuthorFilterChangedAsync" @ref="AuthorFilter"></PersonFilter>
+    <PersonFilter Label="With" People="WithPeople" AllowNull="false" OnFilterChanged="OnWithFilterChangedAsync" @ref="WithPersonFilter"></PersonFilter>
+    <PersonFilter Label="On" People="ActionItemPeople" AllowNull="false" OnFilterChanged="OnActionItemFilterChangedAsync" @ref="ActionItemPersonFilter"></PersonFilter>
+    <div>
         <button class="btn-header btn-refresh @InLoading" title="Refresh (Alt+F5)" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
-    </span>
-</h3>
+    </div>
+</div>
 
-@if (_pullRequests == null)
+@if (InLoading == InLoadingCssClass && FilteredPullRequests.None())
 {
     <p><em>Loading...</em></p>
 }
@@ -36,10 +43,11 @@ else
                 <th>Work Items</th>
                 <th>Created By</th>
                 <th>Reviews</th>
+                <th>Action Items</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var pullRequest in _pullRequests)
+            @foreach (var pullRequest in FilteredPullRequests)
             {
                 <tr style="vertical-align:middle;">
                     <td class="cell-link" @onclick="() => OpenPullRequestAsync(pullRequest)" title="Open PR#@(pullRequest.Id)">
@@ -48,7 +56,7 @@ else
                             <div>
                                 <span class="pullrequest-repositoryname">@pullRequest.Project/@pullRequest.RepositoryName</span>
                                 <br />
-                                <span class="pullrequest-title">@pullRequest.Title</span>
+                                <span>@pullRequest.Title</span>
                             </div>
                         </div>
                     </td>
@@ -127,6 +135,23 @@ else
                         </div>
                         
 
+                    </td>
+                    
+                    <td>
+                        @foreach (var actionItem in pullRequest.ActionItems)
+                        {
+                            <div class="avatar-row">
+                                @foreach (var assignee in actionItem.On)
+                                {
+                                    <div class="avatar-cell action-item-avatar @(assignee.Person == Person.Me ? "highlight" : "")">
+                                        <img src="@assignee.Person.AvatarUrl" 
+                                             alt="@assignee.Person.DisplayName"
+                                             title="@assignee.Person.DisplayName"/>
+                                    </div>
+                                }
+                                <div>@actionItem.ActionDescription</div>
+                            </div>
+                        }
                     </td>
                 </tr>
             }

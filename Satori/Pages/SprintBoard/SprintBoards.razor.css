@@ -1,10 +1,22 @@
-﻿.avatar-row {
+﻿.page-title {
+    font-size: 28px;
+    font-weight: 500;
+}
+.avatar-row {
     display: flex;
     justify-content: flex-start;
 }
 
 .counters {
     align-items: self-start;
+}
+.counters .badge {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.team-selector.avatar-row {
+    font-size: 24px;
 }
 
 .team-selector .avatar-cell {

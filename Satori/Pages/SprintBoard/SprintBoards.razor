@@ -5,6 +5,7 @@
 @using Satori.AppServices.Models
 @using Satori.AppServices.Services.Abstractions
 @using Satori.AppServices.ViewModels.WorkItems
+@using Satori.Pages.Components
 @using Toolbelt.Blazor.HotKeys2
 @attribute [StreamRendering]
 @inject NavigationManager NavigationManager
@@ -20,41 +21,39 @@
 <PageTitle>Sprint Boards - Satori</PageTitle>
 
 
-<h3>
-    <div class="flex-row">
-        <div>Sprint Boards</div>
-        <div class="counters">
-            @if (_workItems != null)
-            {
-                <div class="badge bg-primary" title="Active">@WorkItemActiveCount</div>
-                <div class="badge bg-warning" title="In Progress">@WorkInProgressCount</div>
-                <div class="badge bg-success" title="Done">@WorkItemDoneCount</div>
-            }
-        </div>        
-        <CustomerFilter WorkItems="_workItems" OnFilterChanged="ForFilterChangedAsync" @ref="ForFilter"></CustomerFilter>
-        <PersonFilter Label="With" People="_workItems?.SelectMany(wi => wi.WithPeople) ?? []" OnFilterChanged="WithFilterChangedAsync" @ref="WithPersonFilter"></PersonFilter>
-        <PersonFilter Label="On" People="ActionItemPeople" OnFilterChanged="ActionItemFilterChangedAsync" @ref="ActionItemPersonFilter"></PersonFilter>
-        <div>
-            <button class="btn-header btn-refresh @InLoading" title="Refresh (Alt+F5)" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
-        </div>
-        <div class="flex-center-whitespace"></div>
-        <div>
-            @if (_sprints != null && TeamSelection != null)
-            {
-                <div class="team-selector avatar-row">
-                    @foreach (var sprint in _sprints.OrderBy(x => x.TeamName))
-                    {
-                        <button id="@sprint.TeamId" class='avatar-cell @TeamSelection.TeamSelectedClassName[sprint.TeamId]' @onclick='() => TeamSelection.SelectTeamAsync(sprint.TeamId)'>
-                            <img src="@sprint.TeamAvatarUrl"
-                                 alt="@sprint.TeamName"
-                                 title="@sprint.TeamName @HttpUtility.HtmlEncode("\r") @sprint.Name @HttpUtility.HtmlEncode("\r") Finishes: @sprint.FinishTime.ToString("yyyy-MM-dd")"/>
-                        </button>
-                    }
-                </div>
-            }
-        </div>
+<div class="flex-row">
+    <div class="page-title">Sprint Boards</div>
+    <div class="counters">
+        @if (_workItems != null)
+        {
+            <div class="badge bg-primary" title="Active">@WorkItemActiveCount</div>
+            <div class="badge bg-warning" title="In Progress">@WorkInProgressCount</div>
+            <div class="badge bg-success" title="Done">@WorkItemDoneCount</div>
+        }
+    </div>        
+    <CustomerFilter Projects="_projects" OnFilterChanged="ForFilterChangedAsync" @ref="ForFilter"></CustomerFilter>
+    <PersonFilter Label="With" People="_workItems?.SelectMany(wi => wi.WithPeople) ?? []" OnFilterChanged="WithFilterChangedAsync" @ref="WithPersonFilter"></PersonFilter>
+    <PersonFilter Label="On" People="ActionItemPeople" OnFilterChanged="ActionItemFilterChangedAsync" @ref="ActionItemPersonFilter"></PersonFilter>
+    <div>
+        <button class="btn-header btn-refresh @InLoading" title="Refresh (Alt+F5)" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
     </div>
-</h3>
+    <div class="flex-center-whitespace"></div>
+    <div>
+        @if (_sprints != null && TeamSelection != null)
+        {
+            <div class="team-selector avatar-row">
+                @foreach (var sprint in _sprints.OrderBy(x => x.TeamName))
+                {
+                    <button id="@sprint.TeamId" class='avatar-cell @TeamSelection.TeamSelectedClassName[sprint.TeamId]' @onclick='() => TeamSelection.SelectTeamAsync(sprint.TeamId)'>
+                        <img src="@sprint.TeamAvatarUrl"
+                             alt="@sprint.TeamName"
+                             title="@sprint.TeamName @HttpUtility.HtmlEncode("\r") @sprint.Name @HttpUtility.HtmlEncode("\r") Finishes: @sprint.FinishTime.ToString("yyyy-MM-dd")"/>
+                    </button>
+                }
+            </div>
+        }
+    </div>
+</div>
 
 
 @if (_sprints == null)

@@ -144,29 +144,8 @@ public static class WorkItemExtensions
             .Where(pr => pr.Status != Status.Complete);
         foreach (var pr in pullRequests)
         {
-            var prActionItems = new List<PullRequestActionItem>();
-
-            if (pr.Status == Status.Draft)
-            {
-                prActionItems.Add(new PublishActionItem(pr));
-            }
-            else
-            {
-                var reviewActionItems = pr.Reviews
-                    .Where(review => review is { Vote: ReviewVote.NoVote, HasDeclined: false })
-                    .Select(review => new ReviewActionItem(pr, review.Reviewer));
-                prActionItems.AddRange(reviewActionItems);
-                if (pr.Reviews.Any(review => review.Vote <= ReviewVote.WaitingForAuthor))
-                {
-                    prActionItems.Add(new ReplyActionItem(pr));
-                }
-            }
-            if (prActionItems.None())
-            {
-                actionItems.Add(new CompleteActionItem(pr));
-            }
-
-            actionItems.AddRange(prActionItems);
+            pr.ResetActionItems();
+            actionItems.AddRange(pr.ActionItems);
         }
 
         if (kimai.Enabled && workItem.Type.IsIn(WorkItemType.BoardTypes) && workItem.KimaiProject == null)
@@ -180,6 +159,46 @@ public static class WorkItemExtensions
         }
 
         workItem.ActionItems = actionItems;
+    }
+
+    public static void ResetActionItems(this PullRequest[] pullRequests)
+    {
+        foreach (var pr in pullRequests)
+        {
+            pr.ResetActionItems();
+        }
+    }
+
+    private static void ResetActionItems(this PullRequest pr)
+    {
+        if (pr.Status.IsIn(Status.Complete, Status.Abandoned))
+        {
+            return;
+        }
+
+        var prActionItems = new List<PullRequestActionItem>();
+
+        if (pr.Status == Status.Draft)
+        {
+            prActionItems.Add(new PublishActionItem(pr));
+        }
+        else
+        {
+            var reviewActionItems = pr.Reviews
+                .Where(review => review is { Vote: ReviewVote.NoVote, HasDeclined: false })
+                .Select(review => new ReviewActionItem(pr, review.Reviewer));
+            prActionItems.AddRange(reviewActionItems);
+            if (pr.Reviews.Any(review => review.Vote <= ReviewVote.WaitingForAuthor))
+            {
+                prActionItems.Add(new ReplyActionItem(pr));
+            }
+        }
+        if (prActionItems.None())
+        {
+            prActionItems.Add(new CompleteActionItem(pr));
+        }
+
+        pr.ActionItems = prActionItems;
     }
 
     private static List<PullRequest> GetPullRequests(List<WorkItemRelation> relations, Uri azureDevOpsOrgUrl)
