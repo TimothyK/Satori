@@ -4,6 +4,7 @@
 @using Satori.AppServices.Services
 @using CodeMonkeyProjectiles.Linq
 @using Satori.AppServices.Models
+@using Satori.AppServices.ViewModels
 @using Toolbelt.Blazor.HotKeys2
 @using Satori.Pages.Components
 @inject PullRequestService PullRequestService
@@ -142,7 +143,7 @@ else
                             <div class="avatar-row">
                                 @foreach (var assignee in actionItem.On)
                                 {
-                                    <div class="avatar-cell">
+                                    <div class="avatar-cell action-item-avatar @(assignee.Person == Person.Me ? "highlight" : "")">
                                         <img src="@assignee.Person.AvatarUrl" 
                                              alt="@assignee.Person.DisplayName"
                                              title="@assignee.Person.DisplayName"/>

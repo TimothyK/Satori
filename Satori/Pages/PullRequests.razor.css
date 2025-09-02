@@ -54,4 +54,10 @@
     padding-left: 3px;
     font-size: 0.8em;
 }
-
+.action-item-avatar {
+    border: 3px outset darkgray;
+    margin-right: 5px;
+}
+.action-item-avatar.highlight {
+    border: 3px outset gold;
+}
