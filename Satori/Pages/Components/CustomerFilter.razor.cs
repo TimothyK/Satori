@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Satori.AppServices.ViewModels;
 using Satori.Kimai.ViewModels;
+using Satori.Pages.SprintBoard;
 
-namespace Satori.Pages.SprintBoard;
+namespace Satori.Pages.Components;
 
 public partial class CustomerFilter
 {
