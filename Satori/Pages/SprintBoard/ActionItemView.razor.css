@@ -20,7 +20,7 @@
 
 .highlight {
     border: var(--highlight-border-width) outset gold;
-    margin: 0px;
+    margin: 0;
 }
 
 .priority-number {
