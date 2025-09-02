@@ -14,7 +14,7 @@ public partial class PullRequests
     {
         if (!ConnectionSettingsStore.GetAzureDevOpsSettings().Enabled)
         {
-            // This page shouldn't be accessible if Kimai is disabled.  Go to Home page where AzureDevOps can be configured/enabled.
+            // This page shouldn't be accessible if AzureDevOps is disabled.  Go to Home page where AzureDevOps can be configured/enabled.
             NavigationManager.NavigateTo("/");
         }
 
