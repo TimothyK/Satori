@@ -1,5 +1,4 @@
 ﻿using CodeMonkeyProjectiles.Linq;
-using Flurl;
 using Microsoft.JSInterop;
 using Satori.AppServices.Services.Converters;
 using Satori.AppServices.ViewModels;
@@ -26,11 +25,6 @@ public partial class PullRequests
             NavigationManager.NavigateTo("/");
         }
 
-        ForFilterInitializeFromUrl();
-        PersonFilterInitializedFromUrl(AuthorFilter, AuthorQueryParamName);
-        PersonFilterInitializedFromUrl(WithPersonFilter, WithQueryParamName);
-        PersonFilterInitializedFromUrl(ActionItemPersonFilter, ActionItemQueryParamName);
-
         await RefreshAsync();
     }
 
@@ -41,11 +35,6 @@ public partial class PullRequests
             HotKeys.CreateContext()
                 .Add(ModCode.Alt, Code.F5, RefreshAsync, new HotKeyOptions { Description = "Refresh" });
         }
-
-        await SetDefaultForFilterAsync();
-        await SetDefaultPersonFilterAsync(AuthorFilter, DefaultAuthorFilterStorageKey, AuthorQueryParamName);
-        await SetDefaultPersonFilterAsync(WithPersonFilter, DefaultWithFilterStorageKey, WithQueryParamName);
-        await SetDefaultPersonFilterAsync(ActionItemPersonFilter, DefaultActionItemFilterStorageKey, ActionItemQueryParamName);
 
         await base.OnAfterRenderAsync(firstRender);
     }
@@ -172,154 +161,50 @@ public partial class PullRequests
 
     #region ForFilter
 
-    private const string DefaultForFilterStorageKey = "PullRequest.For";
-    private const string ForQueryParamName = "for";
-
     public required CustomerFilter ForFilter { get; set; }
 
     private IReadOnlyCollection<Project> Projects { get; set; } = [];
 
-    private async Task SetDefaultForFilterAsync()
-    {
-        var hasForFilterOnUrl = new Url(NavigationManager.Uri).QueryParams.Any(qp => qp.Name == ForQueryParamName);
-        if (hasForFilterOnUrl)
-        {
-            return;
-        }
-
-        var filterValue = await LocalStorage.GetItemAsync<string>(DefaultForFilterStorageKey) ?? "all";
-        ForFilter.FilterKey = filterValue;
-    }
-
-    private async Task OnForFilterChangedAsync()
+    private void OnForFilterChanged()
     {
         SetFilteredPullRequests();
-        ResetForOnUrl();
-        await StoreFilterAsync(DefaultForFilterStorageKey, ForFilter.FilterKey);
     }
-
-    private void ResetForOnUrl()
-    {
-        var filterValue = ForFilter.FilterKey;
-
-        var url = NavigationManager.Uri
-            .RemoveQueryParam(ForQueryParamName)
-            .AppendQueryParam(ForQueryParamName, filterValue);
-
-        NavigationManager.NavigateTo(url, forceLoad: false);
-    }
-
-    private void ForFilterInitializeFromUrl()
-    {
-        var parameters = new Url(NavigationManager.Uri).QueryParams
-            .Where(qp => qp.Name == ForQueryParamName)
-            .ToArray();
-        if (parameters.None())
-        {
-            return;
-        }
-        var filterValue = parameters.First().Value.ToString() ?? "all";
-        ForFilter.FilterKey = filterValue;
-    }
-
 
     #endregion ForFilter
 
     #region Author (By) Filter
 
-    private const string DefaultAuthorFilterStorageKey = "PullRequest.By";
-    private const string AuthorQueryParamName = "by";
-
     public required PersonFilter AuthorFilter { get; set; }
 
     private IReadOnlyCollection<Person> Authors { get; set; } = [];
 
-    private async Task OnAuthorFilterChangedAsync()
+    private void OnAuthorFilterChanged()
     {
         SetFilteredPullRequests();
-        ResetPersonOnUrl(AuthorFilter, AuthorQueryParamName);
-        await StoreFilterAsync(DefaultAuthorFilterStorageKey, AuthorFilter.FilterKey);
-    }
-
-    private void ResetPersonOnUrl(PersonFilter filter, string queryParamName)
-    {
-        var filterValue = filter.FilterKey;
-
-        var url = NavigationManager.Uri
-            .RemoveQueryParam(queryParamName)
-            .AppendQueryParam(queryParamName, filterValue);
-
-        NavigationManager.NavigateTo(url, forceLoad: false);
-    }
-
-    private async Task StoreFilterAsync(string storageKey, string filterValue)
-    {
-        if (LocalStorage == null)
-        {
-            return;
-        }
-
-        await LocalStorage.SetItemAsync(storageKey, filterValue);
-    }
-
-    private void PersonFilterInitializedFromUrl(PersonFilter filter, string paramName)
-    {
-        var parameters = new Url(NavigationManager.Uri).QueryParams
-            .Where(qp => qp.Name == paramName)
-            .ToArray();
-        if (parameters.None())
-        {
-            return;
-        }
-        var filterValue = parameters.First().Value.ToString() ?? "all";
-        filter.FilterKey = filterValue;
-    }
-
-    private async Task SetDefaultPersonFilterAsync(PersonFilter filter, string storageKey, string queryParamName)
-    {
-        var hasForFilterOnUrl = new Url(NavigationManager.Uri).QueryParams.Any(qp => qp.Name == queryParamName);
-        if (hasForFilterOnUrl)
-        {
-            return;
-        }
-
-        var filterValue = await LocalStorage.GetItemAsync<string>(storageKey) ?? "all";
-        filter.FilterKey = filterValue;
     }
 
     #endregion Author (By) Filter
 
     #region With Filter
 
-    private const string DefaultWithFilterStorageKey = "PullRequest.With";
-    private const string WithQueryParamName = "with";
-
     public required PersonFilter WithPersonFilter { get; set; }
     private IReadOnlyCollection<Person> WithPeople { get; set; } = [];
 
-    private async Task OnWithFilterChangedAsync()
+    private void OnWithFilterChanged()
     {
         SetFilteredPullRequests();
-        ResetPersonOnUrl(WithPersonFilter, WithQueryParamName);
-        await StoreFilterAsync(DefaultWithFilterStorageKey, WithPersonFilter.FilterKey);
-
     }
 
     #endregion With Filter
 
     #region Action Items (On) Filter
 
-    private const string DefaultActionItemFilterStorageKey = "PullRequest.On";
-    private const string ActionItemQueryParamName = "on";
-
     public required PersonFilter ActionItemPersonFilter { get; set; }
     private IReadOnlyCollection<Person> ActionItemPeople { get; set; } = [];
 
-    private async Task OnActionItemFilterChangedAsync()
+    private void OnActionItemFilterChanged()
     {
         SetFilteredPullRequests();
-        ResetPersonOnUrl(ActionItemPersonFilter, ActionItemQueryParamName);
-        await StoreFilterAsync(DefaultActionItemFilterStorageKey, ActionItemPersonFilter.FilterKey);
     }
 
     #endregion Action Items (On) Filter

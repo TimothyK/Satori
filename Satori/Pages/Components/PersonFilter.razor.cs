@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using Flurl;
 using Microsoft.AspNetCore.Components;
 using Satori.AppServices.ViewModels;
 using Satori.Pages.SprintBoard;
@@ -7,29 +7,61 @@ namespace Satori.Pages.Components;
 
 public partial class PersonFilter
 {
-    private Person[] _people;
-
     [Parameter]
     public required string Label { get; set; }
 
     [Parameter]
-#pragma warning disable BL0007
-    public required IEnumerable<Person> People
-#pragma warning restore BL0007
-    {
-        get => _people;
-        [MemberNotNull(nameof(_people))]
-        set
-        {
-            _people = value.Distinct().OrderBy(p => p.DisplayName).ToArray();
-            FilterKey = _filterKey;
-        }
-    }
+    public required IEnumerable<Person> People { get; set; }
 
     [Parameter]
     public EventCallback OnFilterChanged { get; set; }
 
     [Parameter] public bool AllowNull { get; set; } = true;
+
+    [Parameter] public required string QueryParamName { get; set; }
+    [Parameter] public required string StorageKeyName { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var parameters = new Url(NavigationManager.Uri).QueryParams
+            .Where(qp => qp.Name == QueryParamName)
+            .ToArray();
+        if (parameters.Any())
+        {
+            FilterKey = parameters.First().Value.ToString() ?? "all";
+        }
+        
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await SetDefaultPersonFilterAsync();
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task SetDefaultPersonFilterAsync()
+    {
+        var hasFilterOnUrl = new Url(NavigationManager.Uri).QueryParams.Any(qp => qp.Name == QueryParamName);
+        if (hasFilterOnUrl)
+        {
+            return;
+        }
+
+        var filterValue = await LocalStorage.GetItemAsync<string>(StorageKeyName) ?? "all";
+        FilterKey = filterValue;
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        People = People.Distinct().OrderBy(p => p.DisplayName).ToArray();
+
+        //Reset the filter now that the available People is set.
+        FilterKey = _filterKey;
+    }
 
     public Person CurrentPerson { get; private set; } = Person.Anyone;
     private FilterSelectionCssClass FilterWithBorders { get; set; } = FilterSelectionCssClass.Hidden;
@@ -39,11 +71,7 @@ public partial class PersonFilter
     private string _filterKey = "all";
     public string FilterKey
     {
-        get =>
-            IsMeFilter ? "me"
-            : CurrentPerson == Person.Anyone ? "all"
-            : CurrentPerson == Person.Empty ? "?"
-            : CurrentPerson.AzureDevOpsId.ToString();
+        get => _filterKey;
         set
         {
             _filterKey = value;
@@ -77,9 +105,9 @@ public partial class PersonFilter
         }
     }
 
-    private async Task SetFilterAsync(Person person)
+    private async Task OnSetFilterAsync(Person person)
     {
-        await SetFilterAsync(person, isMe: false);
+        await OnSetFilterAsync(person, isMe: false);
     }
 
     private async Task SetFilterMeAsync()
@@ -88,28 +116,52 @@ public partial class PersonFilter
         {
             throw new InvalidOperationException("Me is not defined");
         }
-        await SetFilterAsync(Person.Me, isMe: true);
+        await OnSetFilterAsync(Person.Me, isMe: true);
     }
 
-    private async Task SetFilterAsync(Person person, bool isMe)
+    private async Task OnSetFilterAsync(Person person, bool isMe)
     {
         FilterKey = isMe ? "me" 
             : person == Person.Anyone ? "all"
             : person == Person.Empty ? "?"
             : person.AzureDevOpsId.ToString();
 
+        ResetPersonOnUrl();
+        await StoreFilterAsync();
+
         await OnFilterChanged.InvokeAsync();
+    }
+
+    private void ResetPersonOnUrl()
+    {
+        var filterValue = FilterKey;
+
+        var url = NavigationManager.Uri
+            .RemoveQueryParam(QueryParamName)
+            .AppendQueryParam(QueryParamName, filterValue);
+
+        NavigationManager.NavigateTo(url, forceLoad: false);
+    }
+
+    private async Task StoreFilterAsync()
+    {
+        if (LocalStorage == null)
+        {
+            return;
+        }
+
+        await LocalStorage.SetItemAsync(StorageKeyName, FilterKey);
     }
 
     private async Task ToggleFilterAsync()
     {
         if (CurrentPerson == Person.Anyone && Person.Me != null)
         {
-            await SetFilterAsync(Person.Me, isMe: true);
+            await OnSetFilterAsync(Person.Me, isMe: true);
         }
         else
         {
-            await SetFilterAsync(Person.Anyone);
+            await OnSetFilterAsync(Person.Anyone);
         }
     }
 }

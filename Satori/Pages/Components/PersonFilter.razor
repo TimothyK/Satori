@@ -1,6 +1,9 @@
 ﻿@using CodeMonkeyProjectiles.Linq
 @using Satori.AppServices.ViewModels
 
+@inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+
 <div class="root flex-row">
     <span class="label">@Label</span>
     <div class="dropdown">
@@ -11,7 +14,7 @@
         </button>
 
         <div class="dropdown-content">
-            <div class="dropdown-content-menu" @onclick="() => SetFilterAsync(Person.Anyone)">
+            <div class="dropdown-content-menu" @onclick="() => OnSetFilterAsync(Person.Anyone)">
                 <button class="avatar-cell">
                     <img src="@Person.Anyone.AvatarUrl"
                          alt="@Person.Anyone.DisplayName"
@@ -32,7 +35,7 @@
             }
             @if (AllowNull)
             {
-                <div class="dropdown-content-menu" @onclick="() => SetFilterAsync(Person.Empty)">
+                <div class="dropdown-content-menu" @onclick="() => OnSetFilterAsync(Person.Empty)">
                     <button class="avatar-cell">
                         <img src="@Person.Empty.AvatarUrl"
                              alt="@Person.Empty.DisplayName"
@@ -43,7 +46,7 @@
             }
             @foreach (var person in People.Except(Person.Empty.Yield()))
             {
-                <div class="dropdown-content-menu" @onclick="() => SetFilterAsync(person)">
+                <div class="dropdown-content-menu" @onclick="() => OnSetFilterAsync(person)">
                     <button class="avatar-cell">
                         <img src="@person.AvatarUrl"
                              alt="@person.DisplayName"
