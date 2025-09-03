@@ -2,6 +2,8 @@
 @using Satori.Kimai
 
 @inject IKimaiServer KimaiServer
+@inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 
 @if (!KimaiServer.Enabled)
 {

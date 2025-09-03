@@ -37,10 +37,6 @@ public partial class SprintBoards
             NavigationManager.NavigateTo("/");
         }
 
-        ForFilterInitializeFromUrl();
-        WithFilterInitializeFromUrl();
-        ActionItemFilterInitializeFromUrl();
-
         var sprints = (await SprintBoardService.GetActiveSprintsAsync()).ToArray();
         TeamSelection = new TeamSelectionViewModel(sprints, NavigationManager);
         TeamSelection.SelectedTeamChanged += ResetWorkItemCounts;
@@ -70,9 +66,6 @@ public partial class SprintBoards
 
         if (TeamSelection != null)
         {
-            await SetDefaultForFilterAsync();
-            await SetDefaultWithFilterAsync();
-            await SetDefaultActionItemFilterAsync();
             await TeamSelection.SetDefaultTeamsAsync(LocalStorage);
             StateHasChanged();
             _isInitialized = true;
@@ -200,156 +193,33 @@ public partial class SprintBoards
 
     #region For Filter
 
-    private const string DefaultForFilterStorageKey = "SprintBoard.For";
-    private const string ForQueryParamName = "for";
-
     public required CustomerFilter ForFilter { get; set; }
 
-    private async Task SetDefaultForFilterAsync()
-    {
-        var hasForFilterOnUrl = new Url(NavigationManager.Uri).QueryParams.Any(qp => qp.Name == ForQueryParamName);
-        if (hasForFilterOnUrl)
-        {
-            return;
-        }
-
-        var filterValue = await LocalStorage.GetItemAsync<string>(DefaultForFilterStorageKey) ?? "all";
-        ForFilter.FilterKey = filterValue;
-    }
-
-    private async Task ForFilterChangedAsync()
+    private void ForFilterChanged()
     {
         ResetWorkItemCounts();
-        ResetForOnUrl();
-        await StoreForFilterAsync();
-    }
-
-    private void ResetForOnUrl()
-    {
-        var filterValue = ForFilter.FilterKey;
-
-        var url = NavigationManager.Uri
-            .RemoveQueryParam(ForQueryParamName)
-            .AppendQueryParam(ForQueryParamName, filterValue);
-
-        NavigationManager.NavigateTo(url, forceLoad: false);
-    }
-
-    private async Task StoreForFilterAsync()
-    {
-        if (LocalStorage == null)
-        {
-            return;
-        }
-
-        var filterValue = ForFilter.FilterKey;
-        await LocalStorage.SetItemAsync(DefaultForFilterStorageKey, filterValue);
-    }
-
-
-    private void ForFilterInitializeFromUrl()
-    {
-        var parameters = new Url(NavigationManager.Uri).QueryParams
-            .Where(qp => qp.Name == ForQueryParamName)
-            .ToArray();
-        if (parameters.None())
-        {
-            return;
-        }
-        var filterValue = parameters.First().Value.ToString() ?? "all";
-        ForFilter.FilterKey = filterValue;
     }
 
     #endregion For Filter
 
     #region With Filter
 
-    private const string DefaultWithFilterStorageKey = "SprintBoard.With";
-    private const string WithQueryParamName = "with";
-
     public required PersonFilter WithPersonFilter { get; set; }
 
-    private async Task SetDefaultWithFilterAsync()
-    {
-        var hasPersonOnUrl = new Url(NavigationManager.Uri).QueryParams.Any(qp => qp.Name == WithQueryParamName);
-        if (hasPersonOnUrl)
-        {
-            return;
-        }
-
-        var filterValue = await LocalStorage.GetItemAsync<string>(DefaultWithFilterStorageKey) ?? "all";
-        WithPersonFilter.FilterKey = filterValue;
-    }
-
-    private async Task WithFilterChangedAsync()
+    private void WithFilterChanged()
     {
         ResetWorkItemCounts();
-        ResetWithOnUrl();
-        await StoreWithFilterAsync();
-    }
-
-    private void ResetWithOnUrl()
-    {
-        var filterValue = WithPersonFilter.FilterKey;
-
-        var url = NavigationManager.Uri
-            .RemoveQueryParam(WithQueryParamName)
-            .AppendQueryParam(WithQueryParamName, filterValue);
-
-        NavigationManager.NavigateTo(url, forceLoad: false);
-    }
-
-    private async Task StoreWithFilterAsync()
-    {
-        if (LocalStorage == null)
-        {
-            return;
-        }
-
-        var filterValue = WithPersonFilter.FilterKey;
-        await LocalStorage.SetItemAsync(DefaultWithFilterStorageKey, filterValue);
-    }
-
-
-    private void WithFilterInitializeFromUrl()
-    {
-        var parameters = new Url(NavigationManager.Uri).QueryParams
-            .Where(qp => qp.Name == WithQueryParamName)
-            .ToArray();
-        if (parameters.None())
-        {
-            return;
-        }
-        var filterValue = parameters.First().Value.ToString() ?? "all";
-        WithPersonFilter.FilterKey = filterValue;
     }
 
     #endregion With Filter
 
     #region ActionItem (On) Filter
 
-    private const string DefaultActionItemFilterStorageKey = "SprintBoard.ActionItem";
-    private const string ActionItemQueryParamName = "on";
-
     public required PersonFilter ActionItemPersonFilter { get; set; }
 
-    private async Task SetDefaultActionItemFilterAsync()
-    {
-        var hasPersonOnUrl = new Url(NavigationManager.Uri).QueryParams.Any(qp => qp.Name == ActionItemQueryParamName);
-        if (hasPersonOnUrl)
-        {
-            return;
-        }
-
-        var filterValue = await LocalStorage.GetItemAsync<string>(DefaultActionItemFilterStorageKey) ?? "all";
-        ActionItemPersonFilter.FilterKey = filterValue;
-    }
-
-    private async Task ActionItemFilterChangedAsync()
+    private void ActionItemFilterChanged()
     {
         ResetWorkItemCounts();
-        ResetActionItemOnUrl();
-        await StoreActionItemFilterAsync();
     }
 
     private IEnumerable<Person> ActionItemPeople
@@ -365,42 +235,6 @@ public partial class SprintBoards
             var personPriorities = actionItems.SelectMany(actionItem => actionItem.On);
             return personPriorities.Select(x => x.Person).Distinct();
         }
-    }
-
-    private void ResetActionItemOnUrl()
-    {
-        var filterValue = ActionItemPersonFilter.FilterKey;
-
-        var url = NavigationManager.Uri
-            .RemoveQueryParam(ActionItemQueryParamName)
-            .AppendQueryParam(ActionItemQueryParamName, filterValue);
-
-        NavigationManager.NavigateTo(url, forceLoad: false);
-    }
-
-    private async Task StoreActionItemFilterAsync()
-    {
-        if (LocalStorage == null)
-        {
-            return;
-        }
-
-        var filterValue = ActionItemPersonFilter.FilterKey;
-        await LocalStorage.SetItemAsync(DefaultActionItemFilterStorageKey, filterValue);
-    }
-
-
-    private void ActionItemFilterInitializeFromUrl()
-    {
-        var parameters = new Url(NavigationManager.Uri).QueryParams
-            .Where(qp => qp.Name == ActionItemQueryParamName)
-            .ToArray();
-        if (parameters.None())
-        {
-            return;
-        }
-        var filterValue = parameters.First().Value.ToString() ?? "all";
-        ActionItemPersonFilter.FilterKey = filterValue;
     }
 
     private static IEnumerable<ActionItem> OrderActionItems(WorkItem workItem)

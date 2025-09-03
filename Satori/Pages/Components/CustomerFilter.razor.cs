@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using Flurl;
+using Microsoft.AspNetCore.Components;
 using Satori.AppServices.ViewModels;
 using Satori.Kimai.ViewModels;
 using Satori.Pages.SprintBoard;
@@ -14,6 +15,40 @@ public partial class CustomerFilter
 
     [Parameter]
     public EventCallback OnFilterChanged { get; set; }
+
+    [Parameter] public required string QueryParamName { get; set; }
+    [Parameter] public required string StorageKeyName { get; set; }
+
+    protected override Task OnInitializedAsync()
+    {
+        var parameters = new Url(NavigationManager.Uri).QueryParams
+            .Where(qp => qp.Name == QueryParamName)
+            .ToArray();
+        if (parameters.Any())
+        {
+            FilterKey = parameters.First().Value.ToString() ?? "all";
+        }
+
+        return base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await SetDefaultPersonFilterAsync();
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task SetDefaultPersonFilterAsync()
+    {
+        var hasFilterOnUrl = new Url(NavigationManager.Uri).QueryParams.Any(qp => qp.Name == QueryParamName);
+        if (hasFilterOnUrl)
+        {
+            return;
+        }
+
+        var filterValue = await LocalStorage.GetItemAsync<string>(StorageKeyName) ?? "all";
+        FilterKey = filterValue;
+    }
 
     protected override void OnParametersSet()
     {
@@ -91,25 +126,53 @@ public partial class CustomerFilter
     private async Task OnSetFilterAsync(Customer customer)
     {
         FilterKey = customer.Acronym;
-        await OnFilterChanged.InvokeAsync();
+        await OnFilterChangedAsync();
     }
 
     private async Task OnSetFilterAsync(Project project)
     {
         FilterKey = project.ProjectCode;
-        await OnFilterChanged.InvokeAsync();
+        await OnFilterChangedAsync();
     }
 
     private async Task OnUnfundedFilterAsync()
     {
         FilterKey = "?";
-        await OnFilterChanged.InvokeAsync();
+        await OnFilterChangedAsync();
     }
 
     private async Task OnClearFilterAsync()
     {
         FilterKey = "all";
+        await OnFilterChangedAsync();
+    }
+
+    private async Task OnFilterChangedAsync()
+    {
+        ResetFilterOnUrl();
+        await StoreFilterAsync();
         await OnFilterChanged.InvokeAsync();
+    }
+
+    private void ResetFilterOnUrl()
+    {
+        var filterValue = FilterKey;
+
+        var url = NavigationManager.Uri
+            .RemoveQueryParam(QueryParamName)
+            .AppendQueryParam(QueryParamName, filterValue);
+
+        NavigationManager.NavigateTo(url, forceLoad: false);
+    }
+
+    private async Task StoreFilterAsync()
+    {
+        if (LocalStorage == null)
+        {
+            return;
+        }
+
+        await LocalStorage.SetItemAsync(StorageKeyName, FilterKey);
     }
 
     private async Task OnToggleFilterAsync()

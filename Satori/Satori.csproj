@@ -22,4 +22,12 @@
     <ProjectReference Include="..\Satori.TimeServices\Satori.TimeServices.csproj" />
   </ItemGroup>
 
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<NoWarn>1701;1702;CA1860</NoWarn>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<NoWarn>1701;1702;CA1860</NoWarn>
+	</PropertyGroup>
+
 </Project>
