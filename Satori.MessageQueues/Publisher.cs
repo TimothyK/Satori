@@ -11,6 +11,11 @@ public class Publisher<T>(ConnectionSettings settings, HttpClient httpClient)
     {
         ArgumentNullException.ThrowIfNull(message);
 
+        if (!settings.Enabled)
+        {
+            return Task.CompletedTask;
+        }
+
         var payload = JsonSerializer.Serialize(message);
 
         return SendMessageAsync(payload);
