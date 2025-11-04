@@ -561,9 +561,10 @@ internal class PriorityAdjustmentViewModel
         _alertService = alertService;
 
         ClearSelectedWorkItems();
-        ShowSelectWorkItemClassName = workItems.ToDictionary(wi => wi.Id, _ => VisibleCssClass.Hidden);
-        ShowDeselectWorkItemClassName = workItems.ToDictionary(wi => wi.Id, _ => VisibleCssClass.Hidden);
-        WorkItemSelectedClassName = workItems.ToDictionary(wi => wi.Id, _ => RowSelectedCssClass.Deselected);
+        var ids = _workItems.Select(wi => wi.Id).Distinct().ToArray();
+        ShowSelectWorkItemClassName = ids.ToDictionary(id => id, _ => VisibleCssClass.Hidden);
+        ShowDeselectWorkItemClassName = ids.ToDictionary(id => id, _ => VisibleCssClass.Hidden);
+        WorkItemSelectedClassName = ids.ToDictionary(id => id, _ => RowSelectedCssClass.Deselected);
     }
 
     public ReorderRequest Request => new(
@@ -609,9 +610,10 @@ internal class PriorityAdjustmentViewModel
         var showSelectWorkItemButtonClassName =
             ShowEnterModeClassName == VisibleCssClass.Visible ? VisibleCssClass.Hidden : VisibleCssClass.Visible;
 
-        ShowSelectWorkItemClassName = _workItems.ToDictionary(wi => wi.Id, _ => showSelectWorkItemButtonClassName);
-        ShowDeselectWorkItemClassName = _workItems.ToDictionary(wi => wi.Id, _ => VisibleCssClass.Hidden);
-        WorkItemSelectedClassName = _workItems.ToDictionary(wi => wi.Id, _ => RowSelectedCssClass.Deselected);
+        var ids = _workItems.Select(wi => wi.Id).Distinct().ToArray();
+        ShowSelectWorkItemClassName = ids.ToDictionary(id => id, _ => showSelectWorkItemButtonClassName);
+        ShowDeselectWorkItemClassName = ids.ToDictionary(id => id, _ => VisibleCssClass.Hidden);
+        WorkItemSelectedClassName = ids.ToDictionary(id => id, _ => RowSelectedCssClass.Deselected);
     }
 
     public void AddSelectedWorkItem(WorkItem workItem)
