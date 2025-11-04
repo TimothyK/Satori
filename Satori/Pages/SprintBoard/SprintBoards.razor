@@ -23,6 +23,12 @@
 
 <div class="flex-row">
     <div class="page-title">Sprint Boards</div>
+    <CustomerFilter Projects="_projects" OnFilterChanged="ForFilterChanged" @ref="ForFilter" QueryParamName="for" StorageKeyName="SprintBoard.For"></CustomerFilter>
+    <PersonFilter Label="With" People="_workItems?.SelectMany(wi => wi.WithPeople) ?? []" OnFilterChanged="WithFilterChanged" @ref="WithPersonFilter" QueryParamName="with" StorageKeyName="SprintBoard.With"></PersonFilter>
+    <PersonFilter Label="On" People="ActionItemPeople" OnFilterChanged="ActionItemFilterChanged" @ref="ActionItemPersonFilter" QueryParamName="on" StorageKeyName="SprintBoard.On"></PersonFilter>
+    <div>
+        <button class="btn-header btn-refresh @InLoading" title="Refresh (Alt+F5)" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
+    </div>
     <div class="counters">
         @if (_workItems != null)
         {
@@ -30,12 +36,6 @@
             <div class="badge bg-warning" title="In Progress">@WorkInProgressCount</div>
             <div class="badge bg-success" title="Done">@WorkItemDoneCount</div>
         }
-    </div>        
-    <CustomerFilter Projects="_projects" OnFilterChanged="ForFilterChanged" @ref="ForFilter" QueryParamName="for" StorageKeyName="SprintBoard.For"></CustomerFilter>
-    <PersonFilter Label="With" People="_workItems?.SelectMany(wi => wi.WithPeople) ?? []" OnFilterChanged="WithFilterChanged" @ref="WithPersonFilter" QueryParamName="with" StorageKeyName="SprintBoard.With"></PersonFilter>
-    <PersonFilter Label="On" People="ActionItemPeople" OnFilterChanged="ActionItemFilterChanged" @ref="ActionItemPersonFilter" QueryParamName="on" StorageKeyName="SprintBoard.On"></PersonFilter>
-    <div>
-        <button class="btn-header btn-refresh @InLoading" title="Refresh (Alt+F5)" @onclick="async () => await RefreshAsync()"><span class="bi bi-refresh"></span></button>
     </div>
     <div class="flex-center-whitespace"></div>
     <div>
