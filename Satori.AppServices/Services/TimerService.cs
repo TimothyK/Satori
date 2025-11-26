@@ -15,7 +15,6 @@ namespace Satori.AppServices.Services;
 /// </summary>
 public class TimerService(
     IKimaiServer kimai
-    , UserService userService
     , IAlertService alertService
     , ITimeServer timeServer
     , WorkItemUpdateService workItemUpdateService
@@ -50,14 +49,11 @@ public class TimerService(
             entries.Add(await kimai.GetTimeEntryAsync(id));
         }
 
-        var me = await userService.GetCurrentUserAsync();
-
         var descriptions = string.Join('\n', entries.Select(t => t.Description));
         var comments = CommentParser.Parse(descriptions);
 
         var entry = new TimeEntryForCreate
         {
-            User = me.KimaiId ?? throw new InvalidOperationException("Kimai UserId is unknown"),
             Activity = entries.SelectDistinctSingle(t => t.Activity, "activities"),
             Project = entries.SelectDistinctSingle(t => t.Project, "projects"),
             Begin = startTime,
@@ -113,11 +109,8 @@ public class TimerService(
     {
         var startTime = await StopRunningTimeEntryAsync() ?? timeServer.GetUtcNow().TruncateSeconds();
 
-        var me = await userService.GetCurrentUserAsync();
-
         var entry = new TimeEntryForCreate
         {
-            User = me.KimaiId ?? throw new InvalidOperationException("Kimai UserId is unknown"),
             Activity = activity.Id,
             Project = activity.Project.Id,
             Begin = startTime,

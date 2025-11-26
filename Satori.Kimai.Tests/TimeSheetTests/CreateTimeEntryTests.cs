@@ -52,7 +52,7 @@ public class CreateTimeEntryTests
         response.End = entry.End;
         response.Description = entry.Description;
         response.Exported = entry.Exported;
-        response.User.Id = entry.User;
+        response.User.Id = 42;
 
         _mockHttp.When(GetUrl())
             .With(verifyRequest)
@@ -83,7 +83,6 @@ public class CreateTimeEntryTests
         response.End.ShouldBe(entry.End);
         response.Description.ShouldBe(entry.Description);
         response.Exported.ShouldBe(entry.Exported);
-        response.User.Id.ShouldBe(entry.User);
         response.Activity.Id.ShouldBe(entry.Activity);
         response.Project.Id.ShouldBe(entry.Project);
         return;

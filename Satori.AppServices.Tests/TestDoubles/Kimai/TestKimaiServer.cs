@@ -182,7 +182,7 @@ internal class TestKimaiServer
         var entry = new TimeEntry
         {
             Id = Sequence.TimeEntryId.Next(),
-            User = FindOrCreateUser(payload.User),
+            User = CurrentUser,
             Activity = activity,
             Project = activity.Project,
             Begin = payload.Begin,
@@ -223,23 +223,6 @@ internal class TestKimaiServer
                    project.Visible = true;
                    project.Name = $"{projectId.ToString().PadLeft(4, '0')} Project";
                });
-    }
-
-
-    private User FindOrCreateUser(int userId)
-    {
-        if (CurrentUser.Id == userId)
-        {
-            return CurrentUser;
-        }
-
-        return TimeSheet.Select(t => t.User).FirstOrDefault(user => user.Id == userId) 
-               ?? Builder<User>.New().Build(user =>
-                {
-                    user.Id = userId;
-                    user.Enabled = true;
-                    user.Language = "en_CA";
-                });
     }
 
     #endregion
