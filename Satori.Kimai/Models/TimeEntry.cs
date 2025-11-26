@@ -78,8 +78,9 @@ public class TimeEntryForCreate
     [JsonConverter(typeof(NullableDateTimeOffsetConverter))]
     public DateTimeOffset? End { get; set; }
 
-    [JsonPropertyName("user")]
-    public required int User { get; set; }
+    //user is only allowed if you are an admin - https://github.com/TimothyK/Satori/issues/123
+    //[JsonPropertyName("user")]
+    //public required int User { get; set; }
 
     [JsonPropertyName("activity")]
     public required int Activity { get; set; }

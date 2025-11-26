@@ -191,24 +191,6 @@ public class StartTimerTests
         timeEntry.Activity.Id.ShouldBe(activity.Id);
         timeEntry.Project.Id.ShouldBe(activity.Project.Id);
     }
-    
-    [TestMethod]
-    public async Task LinkedToMe()
-    {
-        // Arrange
-        var task = await BuildTask();
-        var activity = await BuildActivityAsync();
-
-        // Act
-        await StartTimerAsync(task, activity);
-
-        // Assert
-        var timeEntry = GetLastTimeEntry();
-        timeEntry.ShouldNotBeNull();
-
-        var expectedUserId = Person.Me?.KimaiId ?? throw new InvalidOperationException();
-        timeEntry.User.Id.ShouldBe(expectedUserId);
-    }
 
     [TestMethod]
     public async Task DescriptionLinksToWorkItem()
