@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Shouldly;
-using Snapshooter.MSTest;
 
 namespace Satori.Converters.Tests;
 
@@ -32,7 +31,14 @@ public class YesNoConverterTests
         var json = Serialize(survey);
 
         //Assert
-        Snapshot.Match(json);
+        const string expected = """
+                                {
+                                  "Question1Response": "Yes",
+                                  "Question2Response": "No",
+                                  "Question3Response": true
+                                }
+                                """;
+        json.ShouldBe(expected);
     }
     
     [TestMethod]
