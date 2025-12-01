@@ -1,18 +1,19 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Shouldly;
-using Snapshooter.MSTest;
 
 namespace Satori.Converters.Tests;
 
 [TestClass]
 public class EncryptedStringTests
 {
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new() {WriteIndented = true};
+
     #region Act
 
     private static string Serialize<T>(T obj)
     {
-        return JsonSerializer.Serialize(obj, new JsonSerializerOptions() {WriteIndented = true});
+        return JsonSerializer.Serialize(obj, JsonSerializerOptions);
     }
 
     #endregion Act
@@ -31,7 +32,13 @@ public class EncryptedStringTests
         var json = Serialize(credentials);
 
         //Assert
-        Snapshot.Match(json);
+        const string expected = """
+                                {
+                                  "UserName": "TimothyK",
+                                  "Password": "c2VjcmV0"
+                                }
+                                """;
+        json.ShouldBe(expected);
     }
     
     [TestMethod]

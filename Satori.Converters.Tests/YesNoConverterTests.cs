@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Shouldly;
-using Snapshooter.MSTest;
 
 namespace Satori.Converters.Tests;
 
@@ -9,10 +8,11 @@ namespace Satori.Converters.Tests;
 public class YesNoConverterTests
 {
     #region Act
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new() {WriteIndented = true};
 
     private static string Serialize(Survey survey)
     {
-        return JsonSerializer.Serialize(survey, new JsonSerializerOptions() {WriteIndented = true});
+        return JsonSerializer.Serialize(survey, JsonSerializerOptions);
     }
 
     #endregion Act
@@ -32,7 +32,14 @@ public class YesNoConverterTests
         var json = Serialize(survey);
 
         //Assert
-        Snapshot.Match(json);
+        const string expected = """
+                                {
+                                  "Question1Response": "Yes",
+                                  "Question2Response": "No",
+                                  "Question3Response": true
+                                }
+                                """;
+        json.ShouldBe(expected);
     }
     
     [TestMethod]
