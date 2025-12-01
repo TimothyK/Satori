@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -9,11 +9,11 @@
 
   <ItemGroup>
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.4" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.4" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="17.13.61" />
-    <PackageReference Include="MudBlazor" Version="8.11.0" />
-    <PackageReference Include="System.Text.Json" Version="9.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="17.14.15" />
+    <PackageReference Include="MudBlazor" Version="8.15.0" />
+    <PackageReference Include="System.Text.Json" Version="10.0.0" />
     <PackageReference Include="Toolbelt.Blazor.HotKeys2" Version="6.0.1" />
   </ItemGroup>
 
