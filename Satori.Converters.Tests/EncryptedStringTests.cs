@@ -7,11 +7,13 @@ namespace Satori.Converters.Tests;
 [TestClass]
 public class EncryptedStringTests
 {
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new() {WriteIndented = true};
+
     #region Act
 
     private static string Serialize<T>(T obj)
     {
-        return JsonSerializer.Serialize(obj, new JsonSerializerOptions() {WriteIndented = true});
+        return JsonSerializer.Serialize(obj, JsonSerializerOptions);
     }
 
     #endregion Act

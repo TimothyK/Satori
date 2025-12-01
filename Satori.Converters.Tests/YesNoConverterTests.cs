@@ -8,10 +8,11 @@ namespace Satori.Converters.Tests;
 public class YesNoConverterTests
 {
     #region Act
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new() {WriteIndented = true};
 
     private static string Serialize(Survey survey)
     {
-        return JsonSerializer.Serialize(survey, new JsonSerializerOptions() {WriteIndented = true});
+        return JsonSerializer.Serialize(survey, JsonSerializerOptions);
     }
 
     #endregion Act
