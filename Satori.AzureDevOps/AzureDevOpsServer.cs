@@ -21,13 +21,39 @@ public class AzureDevOpsServer(
 
     private ILogger<AzureDevOpsServer> Logger => loggerFactory.CreateLogger<AzureDevOpsServer>();
 
+    /// <summary>
+    /// Gets all pull requests, from all repos and all projects
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// https://learn.microsoft.com/en-us/rest/api/azure/devops/git/pull-requests/get-pull-requests?view=azure-devops-rest-6.0&tabs=HTTP
+    /// </para>
+    /// </remarks>
+    /// <returns></returns>
     public async Task<PullRequest[]> GetPullRequestsAsync()
     {
+        const int batchSize = 100;
+
         var url = ConnectionSettings.Url
             .AppendPathSegment("_apis/git/pullRequests")
+            .AppendQueryParam("$top", batchSize)
             .AppendQueryParam("api-version", "6.0");
 
-        return await GetRootValueAsync<PullRequest>(url);
+        bool allBatchesFetched;
+        var batchCount = 0;
+        List<PullRequest> pullRequests = [];
+        do
+        {
+            url.SetQueryParam("$skip", batchCount * batchSize);
+
+            var prBatch = await GetRootValueAsync<PullRequest>(url);
+            pullRequests.AddRange(prBatch);
+
+            allBatchesFetched = prBatch.Length < batchSize;
+            batchCount++;
+        } while (!allBatchesFetched);
+
+        return pullRequests.ToArray();
     }
 
     public async Task<PullRequest> GetPullRequestAsync(int pullRequestId)
