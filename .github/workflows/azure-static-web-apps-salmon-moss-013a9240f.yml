@@ -34,9 +34,9 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_SALMON_MOSS_013A9240F }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "./Satori"
+          app_location: "./Satori/bin/Release/net10.0/publish/wwwroot"
           api_location: ""
-          output_location: "bin/Release/net10.0/publish/wwwroot"
+          output_location: ""
           skip_app_build: true
 
   close_pull_request_job:
