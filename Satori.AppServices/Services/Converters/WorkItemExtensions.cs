@@ -11,13 +11,12 @@ using Satori.Kimai;
 using Satori.Kimai.ViewModels;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
-using System.Text.RegularExpressions;
 using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
 namespace Satori.AppServices.Services.Converters;
 
-public static partial class WorkItemExtensions
+public static class WorkItemExtensions
 {
     public static async Task<IEnumerable<WorkItem>> GetWorkItemsAsync(
         this IAzureDevOpsServer azureDevOpsServer,
