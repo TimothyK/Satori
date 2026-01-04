@@ -28,66 +28,68 @@ public static class WorkItemExtensions
         return viewModels;
     }
 
-    public static async Task<WorkItem> ToViewModelAsync(this AzureDevOps.Models.WorkItem workItem, IKimaiServer kimai)
+    extension(AzureDevOps.Models.WorkItem workItem)
     {
-        ArgumentNullException.ThrowIfNull(workItem);
-
-        var customers = kimai.Enabled ? await kimai.GetCustomersAsync() 
-            : new Customers([]);
-
-        try
+        public async Task<WorkItem> ToViewModelAsync(IKimaiServer kimai)
         {
-            return ToViewModelUnsafe(workItem, customers, kimai);
+            ArgumentNullException.ThrowIfNull(workItem);
+
+            var customers = kimai.Enabled ? await kimai.GetCustomersAsync() 
+                : new Customers([]);
+
+            try
+            {
+                return workItem.ToViewModelUnsafe(customers, kimai);
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException($"Failed to build view model for work item {workItem.Id}.  {ex.Message}", ex);
+            }
         }
-        catch (Exception ex)
+
+        private WorkItem ToViewModelUnsafe(Customers customers, IKimaiServer kimai)
         {
-            throw new ApplicationException($"Failed to build view model for work item {workItem.Id}.  {ex.Message}", ex);
+            var id = workItem.Id;
+            var kimaiProject = customers.FindProject(workItem.Fields.ProjectCode);
+            var kimaiActivity = kimaiProject?.FindActivity(workItem.Fields.ProjectCode);
+            var vm = new WorkItem()
+            {
+                Id = id,
+                Rev = workItem.Rev,
+                Title = workItem.Fields.Title,
+                ProjectName = workItem.Fields.ProjectName,
+                AssignedTo = workItem.Fields.AssignedTo,
+                CreatedBy = workItem.Fields.CreatedBy,
+                CreatedDate = workItem.Fields.SystemCreatedDate,
+                AreaPath = workItem.Fields.AreaPath,
+                IterationPath = workItem.Fields.IterationPath ?? string.Empty,
+                AbsolutePriority = workItem.Fields.BacklogPriority > 0.0 ? workItem.Fields.BacklogPriority : double.MaxValue,
+                Type = WorkItemType.FromApiValue(workItem.Fields.WorkItemType),
+                State = ScrumState.FromApiValue(workItem.Fields.State),
+                Triage = TriageState.FromApiValue(workItem.Fields.Triage),
+                TargetDate = workItem.Fields.TargetDate,
+                Blocked = workItem.Fields.Blocked,
+                Tags = ParseTags(workItem.Fields.Tags),
+                OriginalEstimate = workItem.Fields.OriginalEstimate.HoursToTimeSpan(),
+                CompletedWork = workItem.Fields.CompletedWork.HoursToTimeSpan(),
+                RemainingWork = workItem.Fields.RemainingWork.HoursToTimeSpan(),
+                KimaiProject = kimaiProject,
+                KimaiActivity = kimaiActivity,
+                Parent = CreateWorkItemPlaceholder(workItem.Fields.Parent, UriParser.GetAzureDevOpsOrgUrl(workItem.Url)),
+                Url = UriParser.GetAzureDevOpsOrgUrl(workItem.Url)
+                    .AppendPathSegment("_workItems/edit")
+                    .AppendPathSegment(id),
+                ApiUrl = workItem.Url,
+                Children = GetRelatedWorkItemPlaceholders(workItem.Relations, LinkType.IsChildOf),
+                Predecessors = GetRelatedWorkItemPlaceholders(workItem.Relations, LinkType.IsPredecessorOf),
+                Successors = GetRelatedWorkItemPlaceholders(workItem.Relations, LinkType.IsSuccessorOf),
+                PullRequests = GetPullRequests(workItem.Relations, UriParser.GetAzureDevOpsOrgUrl(workItem.Url)),
+            };
+
+            vm.ResetPeopleRelations(kimai);
+
+            return vm;
         }
-    }
-
-    private static WorkItem ToViewModelUnsafe(this AzureDevOps.Models.WorkItem wi, Customers customers,
-        IKimaiServer kimai)
-    {
-        var id = wi.Id;
-        var kimaiProject = customers.FindProject(wi.Fields.ProjectCode);
-        var kimaiActivity = kimaiProject?.FindActivity(wi.Fields.ProjectCode);
-        var workItem = new WorkItem()
-        {
-            Id = id,
-            Rev = wi.Rev,
-            Title = wi.Fields.Title,
-            ProjectName = wi.Fields.ProjectName,
-            AssignedTo = wi.Fields.AssignedTo,
-            CreatedBy = wi.Fields.CreatedBy,
-            CreatedDate = wi.Fields.SystemCreatedDate,
-            AreaPath = wi.Fields.AreaPath,
-            IterationPath = wi.Fields.IterationPath ?? string.Empty,
-            AbsolutePriority = wi.Fields.BacklogPriority > 0.0 ? wi.Fields.BacklogPriority : double.MaxValue,
-            Type = WorkItemType.FromApiValue(wi.Fields.WorkItemType),
-            State = ScrumState.FromApiValue(wi.Fields.State),
-            Triage = TriageState.FromApiValue(wi.Fields.Triage),
-            TargetDate = wi.Fields.TargetDate,
-            Blocked = wi.Fields.Blocked,
-            Tags = ParseTags(wi.Fields.Tags),
-            OriginalEstimate = wi.Fields.OriginalEstimate.HoursToTimeSpan(),
-            CompletedWork = wi.Fields.CompletedWork.HoursToTimeSpan(),
-            RemainingWork = wi.Fields.RemainingWork.HoursToTimeSpan(),
-            KimaiProject = kimaiProject,
-            KimaiActivity = kimaiActivity,
-            Parent = CreateWorkItemPlaceholder(wi.Fields.Parent, UriParser.GetAzureDevOpsOrgUrl(wi.Url)),
-            Url = UriParser.GetAzureDevOpsOrgUrl(wi.Url)
-                .AppendPathSegment("_workItems/edit")
-                .AppendPathSegment(id),
-            ApiUrl = wi.Url,
-            Children = GetRelatedWorkItemPlaceholders(wi.Relations, LinkType.IsChildOf),
-            Predecessors = GetRelatedWorkItemPlaceholders(wi.Relations, LinkType.IsPredecessorOf),
-            Successors = GetRelatedWorkItemPlaceholders(wi.Relations, LinkType.IsSuccessorOf),
-            PullRequests = GetPullRequests(wi.Relations, UriParser.GetAzureDevOpsOrgUrl(wi.Url)),
-        };
-
-        workItem.ResetPeopleRelations(kimai);
-
-        return workItem;
     }
 
     public static void ResetPeopleRelations(this IEnumerable<WorkItem> workItems, IKimaiServer kimai)
