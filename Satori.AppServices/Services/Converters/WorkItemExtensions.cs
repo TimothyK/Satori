@@ -10,6 +10,7 @@ using Satori.AzureDevOps.Models;
 using Satori.Kimai;
 using Satori.Kimai.ViewModels;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using PullRequest = Satori.AppServices.ViewModels.PullRequests.PullRequest;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;
 
@@ -210,7 +211,8 @@ public static class WorkItemExtensions
 
     private static PullRequest CreatePullRequestPlaceholder(WorkItemRelation relation, Uri azureDevOpsOrgUrl)
     {
-        var prParts = relation.Url.Split('/').Last().Split("%2F");
+        var encodedPath = relation.Url.Split('/').Last();
+        var prParts = WebUtility.UrlDecode(encodedPath).Split('/');
         var projectId = Guid.Parse(prParts[0]);
         var repoId = Guid.Parse(prParts[1]);
         var prId = int.Parse(prParts[2]);
