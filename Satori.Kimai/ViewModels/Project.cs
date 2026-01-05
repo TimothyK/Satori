@@ -23,6 +23,8 @@ public class Project
 
     private readonly List<Activity> _activities = [];
     public ReadOnlyCollection<Activity> Activities => _activities.AsReadOnly();
+    public bool SupportGlobalActivities { get; set; }
+
     internal void AddActivity(Activity activity) => _activities.Add(activity);
 
     public Activity? FindActivity(string? rawProjectCode)

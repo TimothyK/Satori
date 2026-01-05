@@ -41,18 +41,15 @@ public class Customers(IEnumerable<CustomerModel> customers) : IEnumerable<Custo
 
     public void Add(ActivityModel model)
     {
-        if (model.Project == null)  // global activity, not supported for linking to a AzDO Task.
-        {
-            return;
-        }
+        var projects = model.Project == null 
+            ? _projects.Values.Where(p => p.SupportGlobalActivities) 
+            : _projects.Values.Where(p => p.Id == model.Project);
 
-        var project = _projects.Values.FirstOrDefault(p => p.Id == model.Project);
-        if (project == null)
+        foreach (var project in projects)
         {
-            return;
+            var viewModel = Mappers.ToViewModel(model, project);
+            project.AddActivity(viewModel);
         }
-        var viewModel = Mappers.ToViewModel(model, project);
-        project.AddActivity(viewModel);
     }
 
     public Project? FindProject(string? projectCode)
@@ -85,7 +82,8 @@ internal static class Mappers
             Id = project.Id,
             Name = project.Name,
             ProjectCode = ProjectCodeParser.GetProjectCode(project.Name),
-            Customer = customer
+            Customer = customer,
+            SupportGlobalActivities = project.GlobalActivities,
         };
     }
 

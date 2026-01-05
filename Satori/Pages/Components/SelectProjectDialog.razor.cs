@@ -64,6 +64,7 @@ public partial class SelectProjectDialog : ComponentBase
     {
         _selectedCustomer = customer;
         _selectedProject = null;
+        _selectedActivity = null;
     }
 
     private Task<IEnumerable<Customer?>> SearchCustomerAsync(string value, CancellationToken token)
