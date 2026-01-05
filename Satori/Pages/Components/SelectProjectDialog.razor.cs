@@ -29,6 +29,7 @@ public partial class SelectProjectDialog : ComponentBase
         WorkItem = workItem;
         SetValueFromCurrentWorkItem();
         IsOpen = true;
+        StateHasChanged();
     }
 
     private void SetValueFromCurrentWorkItem()
