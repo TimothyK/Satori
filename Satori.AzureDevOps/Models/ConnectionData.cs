@@ -9,6 +9,12 @@ public class ConnectionData
 {
     [JsonPropertyName("authenticatedUser")]
     public required ConnectionUser AuthenticatedUser { get; set; }
+
+    /// <summary>
+    /// Values will be "hosted" or "onPremises"
+    /// </summary>
+    [JsonPropertyName("deploymentType")]
+    public required string DeploymentType { get; set; }
 }
 
 public class ConnectionUser

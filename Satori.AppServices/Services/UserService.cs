@@ -42,8 +42,8 @@ public class UserService(
         {
             try
             {
-                var azureDevOpsId = await azureDevOpsServer.GetCurrentUserIdAsync();
-                identity = await azureDevOpsServer.GetIdentityAsync(azureDevOpsId);
+                var connectionData = await azureDevOpsServer.GetCurrentUserAsync();
+                identity = await azureDevOpsServer.GetIdentityAsync(connectionData);
             }
             catch (Exception ex)
             {

@@ -355,24 +355,43 @@ public class AzureDevOpsServer(
         return root.Value;
     }
 
-    public async Task<Guid> GetCurrentUserIdAsync()
+    public async Task<ConnectionData> GetCurrentUserAsync()
     {
         var url = ConnectionSettings.Url
             .AppendPathSegment("_apis/ConnectionData")
             .AppendQueryParam("api-version", "6.0-preview.1");
 
         var connectionData = await GetAsync<ConnectionData>(url);
-        return connectionData.AuthenticatedUser.Id;
+        return connectionData;
     }
 
-    public async Task<Identity> GetIdentityAsync(Guid id)
+    public async Task<Identity> GetIdentityAsync(ConnectionData connectionData)
     {
-        var url = ConnectionSettings.Url
+        var url = GetVisualStudioSharedPlatformServicesUrl(connectionData)
             .AppendPathSegment("_apis/Identities")
-            .AppendPathSegment(id)
+            .AppendPathSegment(connectionData.AuthenticatedUser.Id)
             .AppendQueryParam("api-version", "6.0-preview.1");
 
         return await GetAsync<Identity>(url);
+    }
+
+    private Uri GetVisualStudioSharedPlatformServicesUrl(ConnectionData connectionData)
+    {
+        var baseUrl = ConnectionSettings.Url;
+
+        if (!string.Equals(connectionData.DeploymentType, "hosted", StringComparison.InvariantCultureIgnoreCase))
+        {
+            return baseUrl;
+        }
+
+        var uri = new Uri(baseUrl.ToString());
+        var builder = new UriBuilder(uri);
+        const string subdomain = "vssps.";
+        if (!builder.Host.StartsWith(subdomain))
+        {
+            builder.Host = $"{subdomain}{builder.Host}";
+        }
+        return builder.Uri;
     }
 
     private async Task<T[]> GetRootValueAsync<T>(Url url)

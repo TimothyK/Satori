@@ -65,10 +65,10 @@ internal class TestAzureDevOpsServer
         Mock.Setup(srv => srv.ConnectionSettings)
             .Returns(new ConnectionSettings { Url = new Uri(AzureDevOpsRootUrl), PersonalAccessToken = "token" });
 
-        Mock.Setup(srv => srv.GetCurrentUserIdAsync())
-            .ReturnsAsync(() => TestUserAzureDevOpsId);
+        Mock.Setup(srv => srv.GetCurrentUserAsync())
+            .ReturnsAsync(GetTestUserConnectionData);
 
-        Mock.Setup(srv => srv.GetIdentityAsync(TestUserAzureDevOpsId))
+        Mock.Setup(srv => srv.GetIdentityAsync(It.IsAny<ConnectionData>()))
             .ReturnsAsync(() => Identity);
 
         Mock.Setup(srv => srv.GetPullRequestsAsync())
@@ -146,6 +146,14 @@ internal class TestAzureDevOpsServer
     public bool Enabled { get; set; } = true;
 
     private Guid TestUserAzureDevOpsId { get; }
+    private ConnectionData GetTestUserConnectionData() => new ConnectionData
+    {
+        AuthenticatedUser = new ConnectionUser
+        {
+            Id = TestUserAzureDevOpsId,
+        },
+        DeploymentType = "onPremise",
+    };
 
     public Identity Identity { get; set; }
 

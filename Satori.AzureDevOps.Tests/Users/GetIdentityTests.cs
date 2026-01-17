@@ -28,37 +28,41 @@ public class GetIdentityTests
     private readonly ConnectionSettings _connectionSettings;
 
 
-    private Url GetUrl(Guid id) =>
+    private Url GetUrl(ConnectionData connectionData) =>
         _connectionSettings.Url
             .AppendPathSegment("_apis/Identities")
-            .AppendPathSegment(id)
+            .AppendPathSegment(connectionData.AuthenticatedUser.Id)
             .AppendQueryParam("api-version", "6.0-preview.1");
 
     private readonly MockHttpMessageHandler _mockHttp;
 
-    private void SetResponse(Guid id) => SetResponse(GetUrl(id), GetPayload(id));
+    private void SetResponse(ConnectionData id) => SetResponse(GetUrl(id), GetPayload(id));
     private void SetResponse(Url url, byte[] response)
     {
         _mockHttp.When(url).Respond("application/json", System.Text.Encoding.Default.GetString(response));
     }
 
-    private static byte[] GetPayload(Guid id)
+    private static byte[] GetPayload(ConnectionData user)
     {
-        if (id == TestUser)
+        if (user == TestUser)
         {
             return SampleFiles.SampleResponses.Identity;
         }
 
-        throw new ArgumentOutOfRangeException($"Unknown test identity ID: {id}");
+        throw new ArgumentOutOfRangeException($"Unknown test identity ID: {user.AuthenticatedUser.Id}");
     }
 
-    private static readonly Guid TestUser = new("c00ef764-dc77-4b32-9a19-590db59f039b");
+    private static readonly ConnectionData TestUser = new()
+    {
+        AuthenticatedUser = new ConnectionUser {Id = new Guid("c00ef764-dc77-4b32-9a19-590db59f039b") },
+        DeploymentType = "onPremises",
+    };
     
     #endregion Arrange
 
     #region Act
 
-    private Identity GetIdentity(Guid id)
+    private Identity GetIdentity(ConnectionData id)
     {
         //Arrange
         SetResponse(id);
@@ -72,7 +76,7 @@ public class GetIdentityTests
 
     #endregion Helpers
 
-    [TestMethod] public void ASmokeTest() => GetIdentity(TestUser).Id.ShouldBe(TestUser);
+    [TestMethod] public void ASmokeTest() => GetIdentity(TestUser).Id.ShouldBe(TestUser.AuthenticatedUser.Id);
     [TestMethod] public void DisplayName() => GetIdentity(TestUser).ProviderDisplayName.ShouldBe("Timothy Klenke");
     [TestMethod] public void IsActive() => GetIdentity(TestUser).IsActive.ShouldBeTrue();
     [TestMethod] public void JobTitle() => GetIdentity(TestUser).Properties.Description.ShouldHaveValue().ShouldBe("Code Monkey");

@@ -43,19 +43,23 @@ public class GetCurrentUserIdTests
 
     #region Act
 
-    private Guid GetCurrentUserId()
+    private async Task<Guid> GetCurrentUserIdAsync()
     {
         //Arrange
         SetResponse(GetUrl(), SampleFiles.SampleResponses.ConnectionData);
 
         //Act
         var srv = _serviceProvider.GetRequiredService<IAzureDevOpsServer>();
-        return srv.GetCurrentUserIdAsync().Result;
+        var connectionData = await srv.GetCurrentUserAsync();
+        return connectionData.AuthenticatedUser.Id;
     }
 
     #endregion Act
 
     #endregion Helpers
 
-    [TestMethod] public void ASmokeTest() => GetCurrentUserId().ShouldBe(new Guid("c00ef764-dc77-4b32-9a19-590db59f039b"));
+    [TestMethod] 
+    public async Task ASmokeTest() => 
+        (await GetCurrentUserIdAsync())
+        .ShouldBe(new Guid("c00ef764-dc77-4b32-9a19-590db59f039b"));
 }

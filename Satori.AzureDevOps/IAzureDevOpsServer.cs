@@ -62,8 +62,8 @@ public interface IAzureDevOpsServer
     /// </remarks>
     Task<ReorderResult[]> ReorderBacklogWorkItemsAsync(IterationId iteration, ReorderOperation operation);
 
-    Task<Guid> GetCurrentUserIdAsync();
+    Task<ConnectionData> GetCurrentUserAsync();
 
-    Task<Identity> GetIdentityAsync(Guid id);
+    Task<Identity> GetIdentityAsync(ConnectionData connectionData);
 
 }
