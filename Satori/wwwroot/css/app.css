@@ -163,6 +163,10 @@ input {
     border-left-color: #B4009E;
 }
 
+.work-item-user-story {
+    border-left-color: #0098C7;
+}
+
 .work-item-task {
     border-left-color: #F2CB1D;
 }

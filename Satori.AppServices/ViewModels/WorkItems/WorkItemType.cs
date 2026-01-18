@@ -28,6 +28,7 @@ public class WorkItemType : IComparable<WorkItemType>
     public static readonly WorkItemType Feature = new("Feature");
     public static readonly WorkItemType Epic = new("Epic");
     public static readonly WorkItemType Impediment = new("Impediment");
+    public static readonly WorkItemType UserStory = new("User Story", "user-story");
     public static readonly WorkItemType Unknown = new("Work Item", "unknown");
 
     #endregion
@@ -55,7 +56,7 @@ public class WorkItemType : IComparable<WorkItemType>
     public static ImmutableArray<WorkItemType> BoardTypes => 
         _boardTypes ??= [..All().Where(t => t.CanAssignToBoard)];
 
-    public bool CanAssignToBoard => this.IsIn(ProductBacklogItem, Bug, Impediment);
+    public bool CanAssignToBoard => this.IsIn(ProductBacklogItem, Bug, Impediment, UserStory);
 
     private string CssClassSuffix { get; }
     public string CssClass => "work-item-" + CssClassSuffix;
@@ -69,6 +70,7 @@ public class WorkItemType : IComparable<WorkItemType>
         { ProductBacklogItem, 30 },
         { Bug, 31 },
         { Impediment, 32 },
+        { UserStory, 33 },
         { Task, 100 },
         { Unknown, int.MaxValue }
     };
