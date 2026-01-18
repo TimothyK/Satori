@@ -28,15 +28,36 @@ public class GetIdentityTests
     private readonly ConnectionSettings _connectionSettings;
 
 
-    private Url GetUrl(ConnectionData connectionData) =>
-        _connectionSettings.Url
+    private Url GetUrl(ConnectionData connectionData)
+    {
+        return GetVisualStudioSharedPlatformServicesUrl(connectionData)
             .AppendPathSegment("_apis/Identities")
             .AppendPathSegment(connectionData.AuthenticatedUser.Id)
             .AppendQueryParam("api-version", "6.0-preview.1");
+    }
+
+    private Uri GetVisualStudioSharedPlatformServicesUrl(ConnectionData connectionData)
+    {
+        var baseUrl = _connectionSettings.Url;
+
+        if (!string.Equals(connectionData.DeploymentType, "hosted", StringComparison.InvariantCultureIgnoreCase))
+        {
+            return baseUrl;
+        }
+
+        var uri = new Uri(baseUrl.ToString());
+        var builder = new UriBuilder(uri);
+        const string subdomain = "vssps.";
+        if (!builder.Host.StartsWith(subdomain))
+        {
+            builder.Host = $"{subdomain}{builder.Host}";
+        }
+        return builder.Uri;
+    }
 
     private readonly MockHttpMessageHandler _mockHttp;
 
-    private void SetResponse(ConnectionData id) => SetResponse(GetUrl(id), GetPayload(id));
+    private void SetResponse(ConnectionData connectionData) => SetResponse(GetUrl(connectionData), GetPayload(connectionData));
     private void SetResponse(Url url, byte[] response)
     {
         _mockHttp.When(url).Respond("application/json", System.Text.Encoding.Default.GetString(response));
@@ -83,6 +104,20 @@ public class GetIdentityTests
     [TestMethod] public void Domain() => GetIdentity(TestUser).Properties.Domain.ShouldHaveValue().ShouldBe("Domain");
     [TestMethod] public void Account() => GetIdentity(TestUser).Properties.Account.ShouldHaveValue().ShouldBe("TimothyK");
     [TestMethod] public void Mail() => GetIdentity(TestUser).Properties.Mail.ShouldHaveValue().ShouldBe("timothy@klenkeverse.com");
+
+    [TestMethod] public void CloudHosted_UsesVssps()
+    {
+        //Arrange
+        var connectionData = TestUser;
+        connectionData.DeploymentType = "hosted";
+
+        //Act
+        var identity = GetIdentity(connectionData);
+
+        //Assert
+        identity.Id.ShouldBe(connectionData.AuthenticatedUser.Id);
+    }
+
 
     [TestMethod]
     public void ComplianceValidated() => 
