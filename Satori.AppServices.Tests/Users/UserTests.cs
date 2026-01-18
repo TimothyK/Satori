@@ -33,6 +33,11 @@ public class UserTests
             Person.Me = null;  //Clear cache
 
             TestUserAzureDevOpsId = Guid.NewGuid();
+            ConnectionData = new ConnectionData
+            {
+                AuthenticatedUser = new ConnectionUser { Id = TestUserAzureDevOpsId },
+                DeploymentType = "onPremises",
+            };
             Identity = new Identity
             {
                 Id = TestUserAzureDevOpsId,
@@ -60,6 +65,8 @@ public class UserTests
             };
 
         public Guid TestUserAzureDevOpsId { get; } 
+
+        public ConnectionData ConnectionData { get; set; }
 
         public Identity Identity { get; } 
         
@@ -93,10 +100,10 @@ public class UserTests
         mock.Setup(srv => srv.Enabled)
             .Returns(() => _testData.AzureDevOpsEnabled);
 
-        mock.Setup(srv => srv.GetCurrentUserIdAsync())
-            .ReturnsAsync(() => _testData.TestUserAzureDevOpsId);
+        mock.Setup(srv => srv.GetCurrentUserAsync())
+            .ReturnsAsync(() => _testData.ConnectionData);
 
-        mock.Setup(srv => srv.GetIdentityAsync(_testData.TestUserAzureDevOpsId))
+        mock.Setup(srv => srv.GetIdentityAsync(_testData.ConnectionData))
             .ReturnsAsync(() => _testData.Identity);
 
         mock.Setup(srv => srv.ConnectionSettings)
@@ -323,7 +330,7 @@ public class UserTests
     [TestMethod] public void AzureDevOpsConnectionError()
     {
         //Arrange
-        _azureDevOpsMock.Setup(srv => srv.GetCurrentUserIdAsync()).Throws<ApplicationException>();
+        _azureDevOpsMock.Setup(srv => srv.GetCurrentUserAsync()).Throws<ApplicationException>();
 
         //Act
         var user = GetCurrentUser();
@@ -339,7 +346,7 @@ public class UserTests
     {
         //Arrange
         _kimaiMock.Setup(srv => srv.GetMyUserAsync()).Throws<ApplicationException>();
-        _azureDevOpsMock.Setup(srv => srv.GetCurrentUserIdAsync()).Throws<ApplicationException>();
+        _azureDevOpsMock.Setup(srv => srv.GetCurrentUserAsync()).Throws<ApplicationException>();
 
         //Act
         var user = GetCurrentUser();
