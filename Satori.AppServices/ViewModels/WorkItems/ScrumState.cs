@@ -75,7 +75,7 @@ public class ScrumState : IComparable<ScrumState>
     /// </remarks>
     public static readonly ScrumState Committed = new();
     /// <summary>
-    /// Committed to by the scrum team
+    /// A task that is in progress on a Scrum team board
     /// </summary>
     /// <remarks>
     /// <para>
@@ -83,6 +83,11 @@ public class ScrumState : IComparable<ScrumState>
     /// </para>
     /// </remarks>
     public static readonly ScrumState InProgress = new();
+    /// <summary>
+    /// A task that is actively being worked on by an Agile team
+    /// </summary>
+    public static readonly ScrumState Active = new();
+
     /// <summary>
     /// Done-done
     /// </summary>
@@ -125,6 +130,7 @@ public class ScrumState : IComparable<ScrumState>
         {Approved, nameof(Approved)},
         {Committed, nameof(Committed)},
         {InProgress, nameof(InProgress)},
+        {Active, nameof(Active)},
         {Done, nameof(Done)},
         {Closed, nameof(Closed)},
         {Removed, nameof(Removed)},
@@ -154,6 +160,7 @@ public class ScrumState : IComparable<ScrumState>
         {Approved, "Approved"},
         {Committed, "Committed"},
         {InProgress, "In Progress"},
+        {Active, "Active"},
         {Done, "Done"},
         {Closed, "Closed"},
         {Removed, "Removed"},
@@ -171,6 +178,27 @@ public class ScrumState : IComparable<ScrumState>
 
     #endregion
 
+    #region Category
+
+    private static readonly Dictionary<ScrumState, StateCategory> CategoryMap = new()
+    {
+        {New, StateCategory.Proposed},
+        {ToDo, StateCategory.Proposed},
+        {Open, StateCategory.Proposed},
+        {Approved, StateCategory.Proposed},
+        {Committed, StateCategory.InProgress},
+        {InProgress, StateCategory.InProgress},
+        {Active, StateCategory.InProgress},
+        {Done, StateCategory.Completed},
+        {Closed, StateCategory.Completed},
+        {Removed, StateCategory.Removed},
+        {Unknown, StateCategory.Removed},
+    };
+
+    public StateCategory Category => CategoryMap[this];
+
+    #endregion
+
     #region IComparable
 
     private static readonly Dictionary<ScrumState, int> OrdinalMap = new()
@@ -181,6 +209,7 @@ public class ScrumState : IComparable<ScrumState>
         {Approved, 10},
         {Committed, 11},
         {InProgress, 12},
+        {Active, 13},
         {Done, 20},
         {Closed, 21},
         {Removed, 30},

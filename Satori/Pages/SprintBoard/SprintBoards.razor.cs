@@ -279,7 +279,7 @@ public partial class SprintBoards
             _workItems?.Where(IsVisible)
             .ToArray()
             ?? [];
-        WorkItemActiveCount = teamWorkItems.Count(wi => wi.State != ScrumState.Done);
+        WorkItemActiveCount = teamWorkItems.Count(wi => wi.State.Category != StateCategory.Completed);
         WorkInProgressCount = teamWorkItems.Count(IsInProgress);
         WorkItemDoneCount = teamWorkItems.Length - WorkItemActiveCount;
 
@@ -326,8 +326,8 @@ public partial class SprintBoards
 
     private static bool IsInProgress(WorkItem wi)
     {
-        return wi.State != ScrumState.Done
-               && wi.Children.Any(task => task.State.IsIn(ScrumState.InProgress, ScrumState.Done));
+        return wi.State.Category != StateCategory.Completed
+               && wi.Children.Any(task => task.State.Category.IsIn(StateCategory.InProgress, StateCategory.Resolved, StateCategory.Completed));
     }
 
     #endregion Work Item Count

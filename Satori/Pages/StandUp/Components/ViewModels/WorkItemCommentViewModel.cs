@@ -83,7 +83,7 @@ public class WorkItemCommentViewModel : CommentViewModel
 
             return WorkItem.Children
                 .Where(t => t.Type != WorkItemType.Task || (t.AssignedTo == Person.Me && t.IterationPath == WorkItem.IterationPath))
-                .Where(t => t.Type == WorkItemType.Task || t.State < ScrumState.Done);
+                .Where(t => t.Type == WorkItemType.Task || t.State.Category < StateCategory.Completed);
         }
     }
 
@@ -142,7 +142,7 @@ public class WorkItemCommentViewModel : CommentViewModel
 
     private void SetTimeRemaining()
     {
-        if (State.IsNotIn(ScrumState.ToDo, ScrumState.InProgress))
+        if (State.Category.IsNotIn(StateCategory.Proposed, StateCategory.InProgress))
         {
             TimeRemaining = null;
             return;
@@ -248,10 +248,10 @@ public class WorkItemCommentViewModel : CommentViewModel
                 return;
             }
 
-            stateValidationMessage = State == ScrumState.ToDo 
+            stateValidationMessage = State.Category == StateCategory.Proposed 
                 ? "It is not recommended that time is entered against tasks that are still 'To Do'.  Change the state to In Progress" 
                 : string.Empty;
-            var isTimingDoneTask = State == ScrumState.Done
+            var isTimingDoneTask = State.Category == StateCategory.Completed
                                    && TimeEntries
                                        .Where(timeEntry => IsActive[timeEntry])
                                        .Any(timeEntry => timeEntry.IsRunning);
@@ -260,7 +260,7 @@ public class WorkItemCommentViewModel : CommentViewModel
                 stateValidationMessage = "Actively timing a done task.  Please move the task back to 'In Progress'";
             }
 
-            if (State.IsIn(ScrumState.ToDo, ScrumState.InProgress) && TimeRemainingInput <= 0.0)
+            if (State.Category.IsIn(StateCategory.Proposed, StateCategory.InProgress) && TimeRemainingInput <= 0.0)
             {
                 timeRemainingInputValidationMessage = "Enter a current estimate for the time remaining, or mark the task as Done";
             }

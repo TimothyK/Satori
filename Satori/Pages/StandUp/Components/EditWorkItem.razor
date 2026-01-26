@@ -48,7 +48,7 @@ else
                 </div>
                 <div class="validation-error">@ViewModel.StateValidationMessage</div>
             </div>
-            @if (ViewModel.State.IsIn(ScrumState.ToDo, ScrumState.InProgress))
+            @if (ViewModel.State.Category.IsIn(StateCategory.Proposed, StateCategory.InProgress))
             {
                 <div class="update-remaining">
                     <span>Change Remaining:</span>
@@ -69,7 +69,7 @@ else
                         <label><span class="work-item-id">@child.Id</span>&nbsp;</label>
                         @child.Title
                     </span>
-                    @if (child.State == ScrumState.Done)
+                    @if (child.State.Category == StateCategory.Completed)
                     {
                         <span class="badge bg-success">✔️ Done</span>
                     }

@@ -266,8 +266,8 @@ public partial class ActionItemView
 
     private IEnumerable<WorkItem> WaitsForSiblings()
     {
-        if (ActionItem is not TaskActionItem actionItem 
-            || actionItem.WorkItem.State != ScrumState.ToDo
+        if (ActionItem is not TaskActionItem actionItem
+            || actionItem.WorkItem.State.Category != StateCategory.Proposed
            )
         {
             return [];
@@ -277,7 +277,7 @@ public partial class ActionItemView
                    .Parent
                    ?.Children
                    .Except(actionItem.WorkItem.Yield())
-                   .Where(task => task.State < ScrumState.Done) 
+                   .Where(task => task.State.Category < StateCategory.Completed) 
                ?? [];
     }
 

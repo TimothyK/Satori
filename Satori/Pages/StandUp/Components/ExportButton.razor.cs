@@ -23,7 +23,7 @@ public partial class ExportButton
             ShowDoneButton = 
                 task != null 
                 && task.Type == WorkItemType.Task 
-                && task.State != ScrumState.Done 
+                && task.State.Category != StateCategory.Completed 
                 && task.AssignedTo == Person.Me;
         }
         else

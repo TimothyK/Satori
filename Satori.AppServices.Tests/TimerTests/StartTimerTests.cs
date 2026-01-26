@@ -288,7 +288,7 @@ public class StartTimerTests
 
         // Assert
         var actual = await RefreshTaskAsync(task);
-        actual.State.ShouldBe(ScrumState.InProgress);
+        actual.State.Category.ShouldBe(StateCategory.InProgress);
         actual.Rev.ShouldBe(task.Rev + 1);
     }
     

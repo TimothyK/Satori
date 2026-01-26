@@ -1,4 +1,5 @@
-﻿@using Satori.AppServices.Extensions
+﻿@using CodeMonkeyProjectiles.Linq
+@using Satori.AppServices.Extensions
 @using Satori.AppServices.Services
 @using Satori.AppServices.ViewModels.WorkItems
 
@@ -54,19 +55,19 @@
 
         @if (WorkItem.Type == WorkItemType.Task)
         {
-            if (WorkItem.State == ScrumState.Done)
+            if (WorkItem.State.Category.IsIn(StateCategory.Resolved, StateCategory.Completed))
             {
                 <span class="badge bg-success">✔️ Done</span>
             }
             else
             {
-                if (WorkItem.State == ScrumState.Removed)
+                if (WorkItem.State.Category == StateCategory.Removed)
                 {
                     <span class="badge bg-success">✔ Removed</span>
                 }
                 else
                 {
-                    if (WorkItem.State == ScrumState.ToDo)
+                    if (WorkItem.State.Category == StateCategory.Proposed)
                     {
                         <span class="badge bg-danger">To Do</span>
                     }

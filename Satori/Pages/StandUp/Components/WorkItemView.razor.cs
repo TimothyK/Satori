@@ -84,7 +84,7 @@ public partial class WorkItemView
     private bool NeedsEstimate =>
         WorkItem != null
         && WorkItem.Type == WorkItemType.Task
-        && WorkItem.State.IsIn(ScrumState.ToDo, ScrumState.InProgress)
+        && WorkItem.State.Category.IsIn(StateCategory.Proposed, StateCategory.InProgress)
         && WorkItem.OriginalEstimate == null
         && WorkItem.RemainingWork == null;
 
