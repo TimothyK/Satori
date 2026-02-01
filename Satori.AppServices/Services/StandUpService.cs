@@ -327,8 +327,8 @@ public partial class StandUpService(
             ApiUrl = azureDevOps.ConnectionSettings.Url.AppendPathSegments("_apis/wit/workItems", id),
             AssignedTo = Person.Empty,
             CreatedBy = Person.Empty,
-            Type = WorkItemType.Unknown,
-            State = ScrumState.InProgress,
+            Type = WorkItemTypeObsolete.Unknown,
+            State = ScrumStateObsolete.InProgress,
             Tags = [],
         };
     }
@@ -392,7 +392,7 @@ public partial class StandUpService(
     /// <param name="workItems">Work Items that were loaded from Azure DevOps </param>
     private static void ResetWorkItems(TimeEntry[] timeEntries, List<WorkItem> workItems)
     {
-        foreach (var task in workItems.Where(wi => wi.Type == WorkItemType.Task))
+        foreach (var task in workItems.Where(wi => wi.Type == WorkItemTypeObsolete.Task))
         {
             task.Parent = workItems.SingleOrDefault(wi => wi.Id == task.Parent?.Id);
         }
@@ -401,10 +401,10 @@ public partial class StandUpService(
         {
             var task = GetAllWorkItemIds(entry).Distinct()
                 .Join(workItems, id => id, wi => wi.Id, (_, wi) => wi)
-                .OrderByDescending(wi => wi.Type == WorkItemType.Task)
-                .ThenByDescending(wi => wi.Type.IsIn(WorkItemType.BoardTypes))
-                .ThenByDescending(wi => wi.Type == WorkItemType.Feature)
-                .ThenByDescending(wi => wi.Type == WorkItemType.Epic)
+                .OrderByDescending(wi => wi.Type == WorkItemTypeObsolete.Task)
+                .ThenByDescending(wi => wi.Type.IsIn(WorkItemTypeObsolete.BoardTypes))
+                .ThenByDescending(wi => wi.Type == WorkItemTypeObsolete.Feature)
+                .ThenByDescending(wi => wi.Type == WorkItemTypeObsolete.Epic)
                 .ThenBy(wi => wi.Id)
                 .FirstOrDefault();
 
@@ -422,7 +422,7 @@ public partial class StandUpService(
         var workItems = (await GetWorkItemsAsync(workItemIds)).ToList();
 
         var parentIds = workItems
-            .Where(wi => wi.Type == WorkItemType.Task)
+            .Where(wi => wi.Type == WorkItemTypeObsolete.Task)
             .SelectWhereHasValue(wi => wi.Parent?.Id)
             .Except(workItems.Select(wi => wi.Id));
 
@@ -439,7 +439,7 @@ public partial class StandUpService(
             return null;
         }
 
-        if (workItem.Type == WorkItemType.Task && workItem.Parent != null && workItem.Parent.Type == WorkItemType.Unknown)
+        if (workItem.Type == WorkItemTypeObsolete.Task && workItem.Parent != null && workItem.Parent.Type == WorkItemTypeObsolete.Unknown)
         {
             var parent = await GetWorkItemAsync(workItem.Parent.Id);
             workItem.Parent = parent;
@@ -456,7 +456,7 @@ public partial class StandUpService(
     public async Task GetChildWorkItemsAsync(WorkItem workItem)
     {
         var placeholderChildren = workItem.Children
-            .Where(wi => wi.Type == WorkItemType.Unknown)
+            .Where(wi => wi.Type == WorkItemTypeObsolete.Unknown)
             .ToArray();
         if (placeholderChildren.None())
         {
@@ -518,7 +518,7 @@ public partial class StandUpService(
 
     private static void ResetTimeRemaining(TimeEntry[] timeEntries)
     {
-        foreach (var entry in timeEntries.Where(x => x.Task?.State != ScrumState.Done))
+        foreach (var entry in timeEntries.Where(x => x.Task?.State != ScrumStateObsolete.Done))
         {
             var unexported = timeEntries
                 .Where(x => x.Task?.Id == entry.Task?.Id)
@@ -538,9 +538,9 @@ public partial class StandUpService(
     
     private static void ResetNeedsEstimate(TimeEntry[] timeEntries)
     {
-        foreach (var entry in timeEntries.Where(x => x.Task != null && x.Task.State != ScrumState.Done))
+        foreach (var entry in timeEntries.Where(x => x.Task != null && x.Task.State != ScrumStateObsolete.Done))
         {
-            entry.NeedsEstimate = entry.Task!.State.IsIn(ScrumState.ToDo, ScrumState.InProgress)
+            entry.NeedsEstimate = entry.Task!.State.IsIn(ScrumStateObsolete.ToDo, ScrumStateObsolete.InProgress)
                                   && entry.Task!.OriginalEstimate == null
                                   && entry.Task!.RemainingWork == null;
         }
@@ -669,7 +669,7 @@ public partial class StandUpService(
             .Distinct()
             .ToList();
 
-        var unknownWorkItems = workItems.Where(wi => wi.Type == WorkItemType.Unknown).ToArray();
+        var unknownWorkItems = workItems.Where(wi => wi.Type == WorkItemTypeObsolete.Unknown).ToArray();
         if (unknownWorkItems.Any())
         {
             var freshWorkItems = await GetWorkItemsAsync(unknownWorkItems.Select(wi => wi.Id));
@@ -715,7 +715,7 @@ public partial class StandUpService(
     {
         var builder = new StringBuilder();
 
-        if (task.Parent != null && task.Type == WorkItemType.Task)
+        if (task.Parent != null && task.Type == WorkItemTypeObsolete.Task)
         {
             builder.Append($"D#{task.Parent.Id} {task.Parent.Title}");
             builder.Append(" » ");
@@ -875,7 +875,7 @@ public partial class StandUpService(
         timeEntry.TotalTime = end - timeEntry.Begin;
 
         var task = timeEntry.Task;
-        if (task?.RemainingWork != null && task.State != ScrumState.Done)
+        if (task?.RemainingWork != null && task.State != ScrumStateObsolete.Done)
         {
             var period = timeEntry.ParentActivitySummary.ParentProjectSummary.ParentDay.ParentPeriod;
             var timeEntries = period.TimeEntries

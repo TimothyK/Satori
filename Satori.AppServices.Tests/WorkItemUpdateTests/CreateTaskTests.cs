@@ -139,7 +139,7 @@ public class CreateTaskTests
         var task = await CreateTaskAsync(parent, title, estimate);
 
         //Assert
-        task.State.ShouldBe(ScrumState.InProgress);
+        task.State.ShouldBe(ScrumStateObsolete.InProgress);
     }
     
     [TestMethod]

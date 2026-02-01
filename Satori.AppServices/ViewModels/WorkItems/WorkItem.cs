@@ -31,8 +31,8 @@ public class WorkItem
     public DateTimeOffset CreatedDate { get; init; }
     public string? AreaPath { get; init; }
     public string? IterationPath { get; init; }
-    public required WorkItemType Type { get; init; }
-    public required ScrumState State { get; set; }
+    public required WorkItemTypeObsolete Type { get; init; }
+    public required ScrumStateObsolete State { get; set; }
     public TriageState? Triage { get; init; }
     public DateTimeOffset? TargetDate { get; init; }
 
@@ -45,7 +45,7 @@ public class WorkItem
                 return "hidden";
             }
 
-            if (ScrumState.Done <= State)
+            if (ScrumStateObsolete.Done <= State)
             {
                 return "target-date-normal";
             }
@@ -87,7 +87,7 @@ public class WorkItem
     public override string ToString() => $"D#{Id} {Title}";
 
     public string ToKimaiDescription() =>
-        Parent == null || Parent.Type.IsNotIn(WorkItemType.BoardTypes)
+        Parent == null || Parent.Type.IsNotIn(WorkItemTypeObsolete.BoardTypes)
             ? $"D#{Id} {Title}"
             : $"D#{Parent.Id} {Parent.Title} » D#{Id} {Title}";
 
@@ -95,7 +95,7 @@ public class WorkItem
     {
         get
         {
-            if (State == ScrumState.New)
+            if (State == ScrumStateObsolete.New)
             {
                 return Triage == TriageState.Pending ? "Triage Pending"
                     : Triage == TriageState.MoreInfo ? "Triage waiting for info"
@@ -103,11 +103,11 @@ public class WorkItem
                     : Triage == TriageState.Triaged ? "Triaged, waiting for approval"
                     : "New";
             }
-            if (State == ScrumState.Open)
+            if (State == ScrumStateObsolete.Open)
             {
                 return "Open";
             }
-            if (State == ScrumState.ToDo)
+            if (State == ScrumStateObsolete.ToDo)
             {
                 return "⏳ To Do" + (
                     RemainingWork != null ? $" (~{RemainingWork.Value.TotalHours:0.0} hr)"
@@ -115,26 +115,26 @@ public class WorkItem
                 );
             }
 
-            if (State == ScrumState.InProgress)
+            if (State == ScrumStateObsolete.InProgress)
             {
                 return "⌛ In Progress" + (
                     RemainingWork != null ? $" ({RemainingWork.Value.TotalHours:0.0} hr)"
                         : OriginalEstimate != null ? $" (~{OriginalEstimate.Value.TotalHours:0.0} hr)" : string.Empty
                         );
             }
-            if (State == ScrumState.Approved)
+            if (State == ScrumStateObsolete.Approved)
             {
                 return "Approved by Product Owner";
             }
-            if (State == ScrumState.Committed)
+            if (State == ScrumStateObsolete.Committed)
             {
                 return "Committed by Team";
             }
-            if (State == ScrumState.Done)
+            if (State == ScrumStateObsolete.Done)
             {
                 return "✔️ Done";
             }
-            if (State == ScrumState.Closed)
+            if (State == ScrumStateObsolete.Closed)
             {
                 return "✔️ Closed";
             }
@@ -144,9 +144,9 @@ public class WorkItem
     }
 
     public string? StatusCssClass =>
-        State == ScrumState.Done ? "status-done"
-        : State == ScrumState.InProgress ? "status-in-progress"
-        : State == ScrumState.ToDo ? "status-to-do"
-        : State == ScrumState.Closed ? "status-done"
+        State == ScrumStateObsolete.Done ? "status-done"
+        : State == ScrumStateObsolete.InProgress ? "status-in-progress"
+        : State == ScrumStateObsolete.ToDo ? "status-to-do"
+        : State == ScrumStateObsolete.Closed ? "status-done"
         : null;
 }

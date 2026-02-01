@@ -130,7 +130,7 @@ public class TimerTests : DailyStandUpTests
     {
         //Arrange
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
-        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
         var remaining = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
         task.Fields.RemainingWork = remaining.TotalHours;
 
@@ -152,7 +152,7 @@ public class TimerTests : DailyStandUpTests
     {
         //Arrange
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
-        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
         var remaining = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
         task.Fields.RemainingWork = remaining.TotalHours;
 
@@ -160,7 +160,7 @@ public class TimerTests : DailyStandUpTests
         timeEntry1.AddWorkItems(task);
 
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task2);
-        task2.Fields.State = ScrumState.InProgress.ToApiValue();
+        task2.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
         var task2Remaining = remaining.Add(TimeSpan.FromHours(2));
         task2.Fields.RemainingWork = task2Remaining.TotalHours;
         var timeEntry2 = BuildTimeEntry(Today);
@@ -198,7 +198,7 @@ public class TimerTests : DailyStandUpTests
     {
         //Arrange
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
-        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
         var remaining = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
         task.Fields.RemainingWork = remaining.TotalHours;
 

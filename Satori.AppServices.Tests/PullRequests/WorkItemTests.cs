@@ -137,7 +137,7 @@ public class WorkItemTests
         //Arrange
         var workItem = Expected;
         workItem.Fields.WorkItemType = type;
-        var expected = WorkItemType.FromApiValue(type);
+        var expected = WorkItemTypeObsolete.FromApiValue(type);
 
         //Act
         var actual = GetSingleWorkItem();

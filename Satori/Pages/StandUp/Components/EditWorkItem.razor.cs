@@ -101,7 +101,7 @@ public partial class EditWorkItem
 
     public async Task SetWorkItemAsync(WorkItem workItem)
     {
-        if (workItem.Type == WorkItemType.Unknown)
+        if (workItem.Type == WorkItemTypeObsolete.Unknown)
         {
             workItem = await StandUpService.GetWorkItemAsync(workItem.Id) ?? throw new InvalidOperationException("Work Item is not known");
         }

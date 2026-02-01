@@ -108,7 +108,7 @@ public class ActionItemTests
         actionItems.ShouldBeOfType<FinishActionItem>()
             .ShouldBeOn(People.Alice)
             .ShouldBeFor(workItem)
-            .ShouldHaveActionDescription($"Finish this {WorkItemType.FromApiValue(workItem.Fields.WorkItemType)}");
+            .ShouldHaveActionDescription($"Finish this {WorkItemTypeObsolete.FromApiValue(workItem.Fields.WorkItemType)}");
     }
     
     [TestMethod]
@@ -116,7 +116,7 @@ public class ActionItemTests
     {
         //Arrange
         BuildWorkItem(out var workItem);
-        workItem.Fields.State = ScrumState.Done.ToApiValue();
+        workItem.Fields.State = ScrumStateObsolete.Done.ToApiValue();
 
         //Act
         var actionItems = await GetActionItems();
@@ -135,7 +135,7 @@ public class ActionItemTests
             .AddChild(out var task);
         workItem.Fields.AssignedTo = People.Alice;
         task.Fields.AssignedTo = People.Bob;
-        task.Fields.State = ScrumState.ToDo.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.ToDo.ToApiValue();
 
         //Act
         var actionItems = await GetActionItems();
@@ -155,7 +155,7 @@ public class ActionItemTests
             .AddChild(out var task);
         workItem.Fields.AssignedTo = People.Alice;
         task.Fields.AssignedTo = People.Bob;
-        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
 
         //Act
         var actionItems = await GetActionItems();
@@ -176,7 +176,7 @@ public class ActionItemTests
             .AddChild(out var task);
         workItem.Fields.AssignedTo = People.Alice;
         task.Fields.AssignedTo = null;
-        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
 
         //Act
         var actionItems = await GetActionItems();
@@ -197,7 +197,7 @@ public class ActionItemTests
             .AddChild(out var task);
         workItem.Fields.AssignedTo = People.Alice;
         task.Fields.AssignedTo = People.Bob;
-        task.Fields.State = ScrumState.Done.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.Done.ToApiValue();
 
         //Act
         var actionItems = await GetActionItems();
@@ -263,9 +263,9 @@ public class ActionItemTests
         workItemBuilder.AddChild(out var testing);
         workItem.Fields.AssignedTo = People.Alice;
         coding.Fields.AssignedTo = People.Bob;
-        coding.Fields.State = ScrumState.ToDo.ToApiValue();
+        coding.Fields.State = ScrumStateObsolete.ToDo.ToApiValue();
         testing.Fields.AssignedTo = People.Cathy;
-        testing.Fields.State = ScrumState.ToDo.ToApiValue();
+        testing.Fields.State = ScrumStateObsolete.ToDo.ToApiValue();
 
         //Act
         var actionItems = await GetActionItems();
@@ -290,9 +290,9 @@ public class ActionItemTests
         workItemBuilder.AddChild(out var testing);
         workItem.Fields.AssignedTo = People.Alice;
         coding.Fields.AssignedTo = People.Bob;
-        coding.Fields.State = ScrumState.InProgress.ToApiValue();
+        coding.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
         testing.Fields.AssignedTo = People.Cathy;
-        testing.Fields.State = ScrumState.ToDo.ToApiValue();
+        testing.Fields.State = ScrumStateObsolete.ToDo.ToApiValue();
         _builder.AddLink(coding, LinkType.IsPredecessorOf, testing);
 
         //Act
@@ -315,9 +315,9 @@ public class ActionItemTests
         workItemBuilder.AddChild(out var testing);
         workItem.Fields.AssignedTo = People.Alice;
         coding.Fields.AssignedTo = People.Bob;
-        coding.Fields.State = ScrumState.Done.ToApiValue();
+        coding.Fields.State = ScrumStateObsolete.Done.ToApiValue();
         testing.Fields.AssignedTo = People.Cathy;
-        testing.Fields.State = ScrumState.ToDo.ToApiValue();
+        testing.Fields.State = ScrumStateObsolete.ToDo.ToApiValue();
         _builder.AddLink(coding, LinkType.IsPredecessorOf, testing);
 
         //Act
@@ -340,9 +340,9 @@ public class ActionItemTests
         workItemBuilder.AddChild(out var testing);
         workItem.Fields.AssignedTo = People.Alice;
         coding.Fields.AssignedTo = People.Bob;
-        coding.Fields.State = ScrumState.InProgress.ToApiValue();
+        coding.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
         testing.Fields.AssignedTo = People.Cathy;
-        testing.Fields.State = ScrumState.InProgress.ToApiValue();
+        testing.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
         _builder.AddLink(coding, LinkType.IsPredecessorOf, testing);
 
         //Act

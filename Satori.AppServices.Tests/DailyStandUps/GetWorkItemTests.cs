@@ -72,7 +72,7 @@ public class GetWorkItemTests : DailyStandUpTests
         actual.Id.ShouldBe(task.Id);
         actual.Parent.ShouldNotBeNull();
         actual.Parent.Id.ShouldBe(workItem.Id);
-        actual.Parent.Type.ShouldBe(WorkItemType.FromApiValue(workItem.Fields.WorkItemType));
+        actual.Parent.Type.ShouldBe(WorkItemTypeObsolete.FromApiValue(workItem.Fields.WorkItemType));
     }
     
     [TestMethod]

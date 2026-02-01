@@ -247,8 +247,8 @@ public partial class SprintBoards
                     PullRequestActionItem => 1,
                     _ => 2
                 })
-            .ThenBy(actionItem => actionItem is WorkItemActionItem workItemAction ? workItemAction.WorkItem.Type : WorkItemType.Task)
-            .ThenByDescending(actionItem => actionItem is WorkItemActionItem workItemAction ? workItemAction.WorkItem.State : ScrumState.Unknown)
+            .ThenBy(actionItem => actionItem is WorkItemActionItem workItemAction ? workItemAction.WorkItem.Type : WorkItemTypeObsolete.Task)
+            .ThenByDescending(actionItem => actionItem is WorkItemActionItem workItemAction ? workItemAction.WorkItem.State : ScrumStateObsolete.Unknown)
             .ThenBy(actionItem => actionItem is TaskActionItem task ? task.WorkItem.Id : int.MaxValue)
             .ThenBy(actionItem => actionItem is PullRequestActionItem pr ? pr.PullRequest.Id : int.MaxValue)
             .ThenBy(actionItem => actionItem is PullRequestActionItem pr ? (pr.PullRequest.CreatedBy.IsIn(pr.On.Select(x => x.Person)) ? 0 : 1) : int.MaxValue)

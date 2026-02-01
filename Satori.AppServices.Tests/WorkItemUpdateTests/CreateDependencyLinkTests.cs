@@ -37,7 +37,7 @@ public class CreateDependencyLinkTests
         var builder = _serviceProvider.GetRequiredService<AzureDevOpsDatabaseBuilder>();
         builder.BuildWorkItem().AddChild(out var task);
 
-        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
         task.Fields.Title = title ?? "Task " + RandomGenerator.String(5);
 
         var kimai = _serviceProvider.GetRequiredService<IKimaiServer>();

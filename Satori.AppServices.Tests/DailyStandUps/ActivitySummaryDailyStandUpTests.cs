@@ -302,7 +302,7 @@ public class ActivitySummaryDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
-        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
         task.Fields.OriginalEstimate = null;
         task.Fields.RemainingWork = null;
 
@@ -321,7 +321,7 @@ public class ActivitySummaryDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
-        task.Fields.State = ScrumState.Done.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.Done.ToApiValue();
 
         var entry = BuildTimeEntry();
         entry.AddWorkItems(task);

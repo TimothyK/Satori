@@ -6,8 +6,8 @@ public class TaskActionItem(WorkItem task)
     private static string GetActionDescription(WorkItem task)
     {
         return task.AssignedTo == Person.Empty ? "Assign"
-            : task.State == ScrumState.ToDo ? "Start"
-            : task.State == ScrumState.InProgress ? "Resume"
+            : task.State == ScrumStateObsolete.ToDo ? "Start"
+            : task.State == ScrumStateObsolete.InProgress ? "Resume"
             : "Work on";
     }
 

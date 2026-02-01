@@ -23,7 +23,7 @@ public class CompletedWorkService(IAzureDevOpsServer azureDevOpsServer) : ITaskA
     public async Task AdjustCompletedWorkAsync(int workItemId, double adjustment)
     {
         var workItem = (await azureDevOpsServer.GetWorkItemsAsync(workItemId)).Single();
-        if (WorkItemType.FromApiValue(workItem.Fields.WorkItemType) != WorkItemType.Task)
+        if (WorkItemTypeObsolete.FromApiValue(workItem.Fields.WorkItemType) != WorkItemTypeObsolete.Task)
         {
             throw new InvalidOperationException($"Work Item {workItemId} is not a task");
         }
@@ -50,7 +50,7 @@ public class CompletedWorkService(IAzureDevOpsServer azureDevOpsServer) : ITaskA
         }
 
         var remainingWork = workItem.Fields.RemainingWork ?? workItem.Fields.OriginalEstimate;
-        var isDone = ScrumState.FromApiValue(workItem.Fields.State) == ScrumState.Done;
+        var isDone = ScrumStateObsolete.FromApiValue(workItem.Fields.State) == ScrumStateObsolete.Done;
         if (remainingWork != null && !isDone)
         {
             patchItems.Add(new WorkItemPatchItem

@@ -92,7 +92,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         //Arrange
         var kimaiEntry = BuildTimeEntry();
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
-        task.Fields.WorkItemType.ShouldBe(WorkItemType.Task.ToApiValue());
+        task.Fields.WorkItemType.ShouldBe(WorkItemTypeObsolete.Task.ToApiValue());
         kimaiEntry.AddWorkItems(task);
         
         //Act
@@ -101,7 +101,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         //Assert
         var entry = entries.Single();
         entry.Task.ShouldNotBeNull();
-        entry.Task.Type.ShouldBe(WorkItemType.Task);
+        entry.Task.Type.ShouldBe(WorkItemTypeObsolete.Task);
     }
     
     [TestMethod]
@@ -118,7 +118,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         //Assert
         var entry = entries.Single();
         entry.Task.ShouldNotBeNull();
-        entry.Task.Type.ShouldBe(WorkItemType.Task);
+        entry.Task.Type.ShouldBe(WorkItemTypeObsolete.Task);
         entry.Task.Parent.ShouldNotBeNull();
         entry.Task.Parent.Id.ShouldBe(workItem.Id);
     }
@@ -222,7 +222,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         //Arrange
         var kimaiEntry = BuildTimeEntry();
         AzureDevOpsBuilder.BuildWorkItem(out var task);
-        task.Fields.WorkItemType = WorkItemType.Task.ToApiValue();
+        task.Fields.WorkItemType = WorkItemTypeObsolete.Task.ToApiValue();
         kimaiEntry.Description = $"D#{task.Id}";
         
         //Act
@@ -253,7 +253,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         var entry = entries.Single();
         entry.Task.ShouldNotBeNull();
         entry.Task.Id.ShouldBe(99999);
-        entry.Task.Type.ShouldBe(WorkItemType.Unknown);
+        entry.Task.Type.ShouldBe(WorkItemTypeObsolete.Unknown);
     }
     
     /// <summary>
@@ -275,7 +275,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         var entry = entries.Single();
         entry.Task.ShouldNotBeNull();
         entry.Task.Id.ShouldBe(task.Id);
-        entry.Task.Type.ShouldBe(WorkItemType.FromApiValue(task.Fields.WorkItemType));
+        entry.Task.Type.ShouldBe(WorkItemTypeObsolete.FromApiValue(task.Fields.WorkItemType));
     }
     
     [TestMethod]
@@ -311,7 +311,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         var entry = entries.Single();
         entry.Task.ShouldNotBeNull();
         entry.Task.Id.ShouldBe(task.Id);
-        entry.Task.Type.ShouldBe(WorkItemType.Unknown);
+        entry.Task.Type.ShouldBe(WorkItemTypeObsolete.Unknown);
     }
     
     [TestMethod]
@@ -331,7 +331,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         var entry = entries.Single();
         entry.Task.ShouldNotBeNull();
         entry.Task.Id.ShouldBe(task.Id);
-        entry.Task.State.ShouldBe(ScrumState.Unknown);
+        entry.Task.State.ShouldBe(ScrumStateObsolete.Unknown);
     }
 
     [TestMethod]
@@ -340,9 +340,9 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         //Arrange
         var kimaiEntry = BuildTimeEntry();
         var builder = AzureDevOpsBuilder.BuildWorkItem(out var feature);
-        feature.Fields.WorkItemType = WorkItemType.Feature.ToApiValue();
+        feature.Fields.WorkItemType = WorkItemTypeObsolete.Feature.ToApiValue();
         builder.AddChild(out var workItem);
-        WorkItemType.FromApiValue(workItem.Fields.WorkItemType).ShouldBeOneOf(WorkItemType.BoardTypes.ToArray());
+        WorkItemTypeObsolete.FromApiValue(workItem.Fields.WorkItemType).ShouldBeOneOf(WorkItemTypeObsolete.BoardTypes.ToArray());
         kimaiEntry.Description = $"D#{feature.Id} {feature.Fields.Title} » D#{workItem.Id} {workItem.Fields.Title}";
 
         //Act
@@ -363,9 +363,9 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         //Arrange
         var kimaiEntry = BuildTimeEntry();
         var builder = AzureDevOpsBuilder.BuildWorkItem(out var epic);
-        epic.Fields.WorkItemType = WorkItemType.Epic.ToApiValue();
+        epic.Fields.WorkItemType = WorkItemTypeObsolete.Epic.ToApiValue();
         builder.AddChild(out var feature);
-        WorkItemType.FromApiValue(feature.Fields.WorkItemType).ShouldBe(WorkItemType.Feature);
+        WorkItemTypeObsolete.FromApiValue(feature.Fields.WorkItemType).ShouldBe(WorkItemTypeObsolete.Feature);
         kimaiEntry.Description = $"D#{epic.Id} {epic.Fields.Title} » D#{feature.Id} {feature.Fields.Title}";
 
         //Act
@@ -396,7 +396,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         var kimaiEntry = BuildTimeEntry();
         kimaiEntry.AddWorkItems(task);
         kimaiEntry.Exported = true;
-        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
 
         //Act
         var entries = await GetTimesAsync();
@@ -418,7 +418,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         var kimaiEntry = BuildTimeEntry();
         kimaiEntry.AddWorkItems(task);
         kimaiEntry.Exported = true;
-        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
 
         //Act
         var entries = await GetTimesAsync();
@@ -433,7 +433,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
-        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
         var estimate = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
         task.Fields.RemainingWork = estimate.TotalHours;
 
@@ -456,7 +456,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
-        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
         var estimate = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
         task.Fields.RemainingWork = estimate.TotalHours;
 
@@ -486,7 +486,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
-        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
         var estimate = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
         task.Fields.RemainingWork = estimate.TotalHours;
 
@@ -518,12 +518,12 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task1);
-        task1.Fields.State = ScrumState.InProgress.ToApiValue();
+        task1.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
         var estimate1 = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
         task1.Fields.RemainingWork = estimate1.TotalHours;
 
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task2);
-        task2.Fields.State = ScrumState.InProgress.ToApiValue();
+        task2.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
         var estimate2 = TimeSpan.FromHours(8).Randomize().ToNearest(TimeSpan.FromMinutes(3));
         task2.Fields.RemainingWork = estimate2.TotalHours;
 
@@ -551,7 +551,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
-        task.Fields.State = ScrumState.Done.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.Done.ToApiValue();
         var estimate = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
         task.Fields.RemainingWork = estimate.TotalHours;
 
@@ -574,7 +574,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
-        task.Fields.State = ScrumState.ToDo.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.ToDo.ToApiValue();
         task.Fields.OriginalEstimate = null;
         task.Fields.RemainingWork = null;
 
@@ -594,7 +594,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
-        task.Fields.State = ScrumState.ToDo.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.ToDo.ToApiValue();
         var estimate = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
         task.Fields.OriginalEstimate = estimate.TotalHours;
         task.Fields.RemainingWork = null;
@@ -615,7 +615,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
-        task.Fields.State = ScrumState.ToDo.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.ToDo.ToApiValue();
         var estimate = TimeSpan.FromHours(4).Randomize().ToNearest(TimeSpan.FromMinutes(3));
         task.Fields.OriginalEstimate = null;
         task.Fields.RemainingWork = estimate.TotalHours;
@@ -636,7 +636,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
-        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
         task.Fields.OriginalEstimate = null;
         task.Fields.RemainingWork = null;
 
@@ -656,7 +656,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
-        task.Fields.State = ScrumState.Done.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.Done.ToApiValue();
         task.Fields.OriginalEstimate = null;
         task.Fields.RemainingWork = null;
 
@@ -676,7 +676,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
-        task.Fields.State = ScrumState.Removed.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.Removed.ToApiValue();
         task.Fields.OriginalEstimate = null;
         task.Fields.RemainingWork = null;
 
@@ -703,13 +703,13 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         boardItem.ShouldNotBeNull();
         boardItem.Children.Count.ShouldBe(1);
         boardItem.Children.Single().Id.ShouldBe(task.Id);
-        boardItem.Children.Single().Type.ShouldBe(WorkItemType.Unknown);
+        boardItem.Children.Single().Type.ShouldBe(WorkItemTypeObsolete.Unknown);
 
         //Act
         await Server.GetChildWorkItemsAsync(boardItem);
 
         //Assert
-        boardItem.Children.Single().Type.ShouldBe(WorkItemType.Task);
+        boardItem.Children.Single().Type.ShouldBe(WorkItemTypeObsolete.Task);
         boardItem.Children.Single().Id.ShouldBe(task.Id);
     }
     
@@ -722,7 +722,7 @@ public class WorkItemDailyStandUpTests : DailyStandUpTests
         boardItem.ShouldNotBeNull();
         boardItem.Children.Count.ShouldBe(1);
         boardItem.Children.Single().Id.ShouldBe(task.Id);
-        boardItem.Children.Single().Type.ShouldBe(WorkItemType.Unknown);
+        boardItem.Children.Single().Type.ShouldBe(WorkItemTypeObsolete.Unknown);
 
         //First call to load the children
         await Server.GetChildWorkItemsAsync(boardItem);
@@ -743,8 +743,8 @@ internal static class TimeEntryExtensions
 {
     public static KimaiTimeEntry AddWorkItems(this KimaiTimeEntry timeEntry, params WorkItem[] workItems)
     {
-        var tasks = workItems.Where(wi => wi.Fields.WorkItemType == WorkItemType.Task.ToApiValue()).ToArray();
-        var boardItemTypes = WorkItemType.BoardTypes.Select(x => x.ToApiValue());
+        var tasks = workItems.Where(wi => wi.Fields.WorkItemType == WorkItemTypeObsolete.Task.ToApiValue()).ToArray();
+        var boardItemTypes = WorkItemTypeObsolete.BoardTypes.Select(x => x.ToApiValue());
         var boardItems = workItems.Where(wi => wi.Fields.WorkItemType.IsIn(boardItemTypes)).ToArray();
         var otherItems = workItems.Except(tasks).Except(boardItems).ToArray();
 

@@ -145,7 +145,7 @@ public partial class ActionItemView
         KimaiServer.Enabled 
         && WorkItem != null 
         && WorkItem.AssignedTo == Person.Me
-        && WorkItem.Type == WorkItemType.Task;
+        && WorkItem.Type == WorkItemTypeObsolete.Task;
     private bool WillShowStartTimerDialog => WorkItem?.KimaiActivity == null;
 
     private SelectProjectDialog? _startTimerDialog;
@@ -202,7 +202,7 @@ public partial class ActionItemView
 
             return ParentWorkItem
                 .Children
-                .Where(task => task.Type == WorkItemType.Task) // sanity check
+                .Where(task => task.Type == WorkItemTypeObsolete.Task) // sanity check
                 .Where(task => task.AssignedTo == Person.Me);
         }
     }

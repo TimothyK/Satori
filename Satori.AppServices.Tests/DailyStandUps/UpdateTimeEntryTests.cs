@@ -125,7 +125,7 @@ public class UpdateTimeEntryTests : DailyStandUpTests
         //Assert
         var entry = period.TimeEntries.Single();
         entry.Task.ShouldNotBeNull();
-        entry.Task.Type.ShouldBe(WorkItemType.FromApiValue(workItem.Fields.WorkItemType));
+        entry.Task.Type.ShouldBe(WorkItemTypeObsolete.FromApiValue(workItem.Fields.WorkItemType));
     }
     
     [TestMethod]
@@ -142,10 +142,10 @@ public class UpdateTimeEntryTests : DailyStandUpTests
         var entry = period.TimeEntries.Single();
         entry.Task.ShouldNotBeNull();
         entry.Task.Id.ShouldBe(task.Id);
-        entry.Task.Type.ShouldBe(WorkItemType.FromApiValue(task.Fields.WorkItemType));
+        entry.Task.Type.ShouldBe(WorkItemTypeObsolete.FromApiValue(task.Fields.WorkItemType));
         entry.Task.Parent.ShouldNotBeNull();
         entry.Task.Parent.Id.ShouldBe(workItem.Id);
-        entry.Task.Parent.Type.ShouldBe(WorkItemType.FromApiValue(workItem.Fields.WorkItemType));
+        entry.Task.Parent.Type.ShouldBe(WorkItemTypeObsolete.FromApiValue(workItem.Fields.WorkItemType));
     }
     
     [TestMethod]

@@ -104,7 +104,7 @@ public class RefreshWorkItemTests
 
         //Act
         var (original, actual) = await RefreshWorkItemAsync(workItem,
-            () => workItem.Fields.State = ScrumState.Removed.ToApiValue());
+            () => workItem.Fields.State = ScrumStateObsolete.Removed.ToApiValue());
 
         //Assert
         original.Id.ShouldBe(workItem.Id);
@@ -276,7 +276,7 @@ public class RefreshWorkItemTests
 
         //Act
         var (original, actual) = await RefreshWorkItemAsync(workItem,
-            () => task.Fields.State = ScrumState.Removed.ToApiValue());
+            () => task.Fields.State = ScrumStateObsolete.Removed.ToApiValue());
 
         //Assert
         original.Children.Single().Id.ShouldBe(task.Id);

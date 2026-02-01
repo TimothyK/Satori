@@ -576,7 +576,7 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
         entry.Task.ShouldNotBeNull();
         entry.Task.Id.ShouldBe(12345);
         entry.Task.Title.ShouldBeNullOrEmpty();
-        entry.Task.Type.ShouldBe(WorkItemType.Unknown);
+        entry.Task.Type.ShouldBe(WorkItemTypeObsolete.Unknown);
         entry.Task.Parent.ShouldBeNull();
     }
     
@@ -599,7 +599,7 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
         entry.Task.ShouldNotBeNull();
         entry.Task.Id.ShouldBe(12345);
         entry.Task.Title.ShouldBe("Program should start without crash");
-        entry.Task.Type.ShouldBe(WorkItemType.Unknown);
+        entry.Task.Type.ShouldBe(WorkItemTypeObsolete.Unknown);
         entry.Task.Parent.ShouldBeNull();
     }
     
@@ -622,7 +622,7 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
         entry.Task.ShouldNotBeNull();
         entry.Task.Id.ShouldBe(12345);
         entry.Task.Title.ShouldBe("Program should start without crash");
-        entry.Task.Type.ShouldBe(WorkItemType.Unknown);
+        entry.Task.Type.ShouldBe(WorkItemTypeObsolete.Unknown);
         entry.Task.Parent.ShouldBeNull();
     }
     
@@ -657,7 +657,7 @@ public class TimeEntryDailyStandUpTests : DailyStandUpTests
         entry.Task.ShouldNotBeNull();
         entry.Task.Id.ShouldBe(12346);
         entry.Task.Title.ShouldBe("Coding");
-        entry.Task.Type.ShouldBe(WorkItemType.Unknown);
+        entry.Task.Type.ShouldBe(WorkItemTypeObsolete.Unknown);
 
         entry.Task.Parent.ShouldNotBeNull();
         entry.Task.Parent.Id.ShouldBe(12345);

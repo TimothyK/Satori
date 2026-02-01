@@ -13,7 +13,7 @@
 
 
 <div class="work-item-row">
-    @if (WorkItem.Type == WorkItemType.Task && WorkItem.Parent != null)
+    @if (WorkItem.Type == WorkItemTypeObsolete.Task && WorkItem.Parent != null)
     {
         <span class="work-item @WorkItem.Parent.Type.CssClass cell-link" @onclick="() => OpenWorkItemAsync(WorkItem.Parent)" title="Open D#@WorkItem.Parent.Id">
             <span class="work-item-id">@WorkItem.Parent.Id</span>
@@ -30,7 +30,7 @@
     }
 
     <span class="work-item @WorkItem.Type.CssClass cell-link" @onclick="() => OpenWorkItemAsync(WorkItem)" title="Open D#@WorkItem.Id">
-        @if (WorkItem.AssignedTo != CurrentUser && WorkItem.Type == WorkItemType.Task)
+        @if (WorkItem.AssignedTo != CurrentUser && WorkItem.Type == WorkItemTypeObsolete.Task)
         {
             <div class="avatar-cell">
                 <img src="@WorkItem.AssignedTo.AvatarUrl"
@@ -38,7 +38,7 @@
                      title="@WorkItem.AssignedTo.DisplayName" />
             </div>
         }
-        @if (WorkItem.Parent == null || WorkItem.Type != WorkItemType.Task)
+        @if (WorkItem.Parent == null || WorkItem.Type != WorkItemTypeObsolete.Task)
         {
             <label><span class="work-item-id">@WorkItem.Id</span>&nbsp;</label>
         }
@@ -53,7 +53,7 @@
         }
         <div class="project-code @ProjectCodeCssClass">@ProjectCode</div>
 
-        @if (WorkItem.Type == WorkItemType.Task)
+        @if (WorkItem.Type == WorkItemTypeObsolete.Task)
         {
             if (WorkItem.State.Category.IsIn(StateCategory.Resolved, StateCategory.Completed))
             {

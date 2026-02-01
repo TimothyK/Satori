@@ -530,8 +530,8 @@ public class ExportDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         AzureDevOpsBuilder.BuildWorkItem(out var feature).AddChild(out var workItem);
-        feature.Fields.WorkItemType = WorkItemType.Feature.ToApiValue();
-        workItem.Fields.WorkItemType = WorkItemType.ProductBacklogItem.ToApiValue();
+        feature.Fields.WorkItemType = WorkItemTypeObsolete.Feature.ToApiValue();
+        workItem.Fields.WorkItemType = WorkItemTypeObsolete.ProductBacklogItem.ToApiValue();
         var kimaiEntry = BuildTimeEntry().AddWorkItems(workItem);
 
         //Act
@@ -548,7 +548,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
     {
         //Arrange
         AzureDevOpsBuilder
-            .BuildWorkItem(out var feature).With(_ => feature.Fields.WorkItemType = WorkItemType.Feature.ToApiValue())
+            .BuildWorkItem(out var feature).With(_ => feature.Fields.WorkItemType = WorkItemTypeObsolete.Feature.ToApiValue())
             .AddChild(out var workItem)
             .AddChild(out var task);
         var kimaiEntry = BuildTimeEntry().AddWorkItems(workItem, task);
@@ -563,7 +563,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
 
         var actualFeature = payload.WorkItems.SingleOrDefault(x => x.Id == feature.Id);
         actualFeature.ShouldNotBeNull();
-        actualFeature.Type.ShouldBe(WorkItemType.Feature.ToApiValue());
+        actualFeature.Type.ShouldBe(WorkItemTypeObsolete.Feature.ToApiValue());
         actualFeature.Title.ShouldBe(feature.Fields.Title);
         actualFeature.ParentId.ShouldBeNull();
 
@@ -575,7 +575,7 @@ public class ExportDailyStandUpTests : DailyStandUpTests
 
         var actualTask = payload.WorkItems.SingleOrDefault(x => x.Id == task.Id);
         actualTask.ShouldNotBeNull();
-        actualTask.Type.ShouldBe(WorkItemType.Task.ToApiValue());
+        actualTask.Type.ShouldBe(WorkItemTypeObsolete.Task.ToApiValue());
         actualTask.Title.ShouldBe(task.Fields.Title);
         actualTask.ParentId.ShouldBe(workItem.Id);
     }

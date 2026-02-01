@@ -97,7 +97,7 @@ public class TimerService(
 
     private async Task UpdateWorkItem(WorkItem workItem, Activity activity)
     {
-        if (workItem.KimaiActivity == activity && workItem.State == ScrumState.InProgress)
+        if (workItem.KimaiActivity == activity && workItem.State == ScrumStateObsolete.InProgress)
         {
             return;
         }

@@ -83,7 +83,7 @@ public partial class WorkItemView
 
     private bool NeedsEstimate =>
         WorkItem != null
-        && WorkItem.Type == WorkItemType.Task
+        && WorkItem.Type == WorkItemTypeObsolete.Task
         && WorkItem.State.Category.IsIn(StateCategory.Proposed, StateCategory.InProgress)
         && WorkItem.OriginalEstimate == null
         && WorkItem.RemainingWork == null;

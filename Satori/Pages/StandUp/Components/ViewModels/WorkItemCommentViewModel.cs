@@ -76,14 +76,14 @@ public class WorkItemCommentViewModel : CommentViewModel
     {
         get
         {
-            if (WorkItem == null || WorkItem.Type == WorkItemType.Task)
+            if (WorkItem == null || WorkItem.Type == WorkItemTypeObsolete.Task)
             {
                 return [];
             }
 
             return WorkItem.Children
-                .Where(t => t.Type != WorkItemType.Task || (t.AssignedTo == Person.Me && t.IterationPath == WorkItem.IterationPath))
-                .Where(t => t.Type == WorkItemType.Task || t.State.Category < StateCategory.Completed);
+                .Where(t => t.Type != WorkItemTypeObsolete.Task || (t.AssignedTo == Person.Me && t.IterationPath == WorkItem.IterationPath))
+                .Where(t => t.Type == WorkItemTypeObsolete.Task || t.State.Category < StateCategory.Completed);
         }
     }
 
@@ -93,9 +93,9 @@ public class WorkItemCommentViewModel : CommentViewModel
 
     #region State
 
-    public ScrumState State { get; set; } = ScrumState.Unknown;
+    public ScrumStateObsolete State { get; set; } = ScrumStateObsolete.Unknown;
 
-    public void SetState(ScrumState state)
+    public void SetState(ScrumStateObsolete state)
     {
         State = state;
         SetTimeRemaining();
@@ -243,7 +243,7 @@ public class WorkItemCommentViewModel : CommentViewModel
 
         try
         {
-            if (WorkItem == null || WorkItem.Type != WorkItemType.Task)
+            if (WorkItem == null || WorkItem.Type != WorkItemTypeObsolete.Task)
             {
                 return;
             }

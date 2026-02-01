@@ -43,7 +43,7 @@ public class UpdateTaskTests
     {
         AzureDevOpsBuilder.BuildWorkItem().AddChild(out var task);
         
-        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
         
         var remaining = RandomGenerator.TimeSpan(TimeSpan.FromHours(2.5)).ToNearest(TimeSpan.FromMinutes(6));
         task.Fields.OriginalEstimate = remaining.TotalHours;
@@ -61,7 +61,7 @@ public class UpdateTaskTests
 
     #region Act
 
-    private async Task UpdateTaskAsync(WorkItem task, ScrumState state, TimeSpan? remaining = null)
+    private async Task UpdateTaskAsync(WorkItem task, ScrumStateObsolete state, TimeSpan? remaining = null)
     {
         await Server.UpdateTaskAsync(task, state, remaining);
     }
@@ -77,7 +77,7 @@ public class UpdateTaskTests
         var task = await BuildTaskAsync();
 
         //Verify BuildTask behaviour
-        task.State.ShouldBe(ScrumState.InProgress);
+        task.State.ShouldBe(ScrumStateObsolete.InProgress);
         task.RemainingWork.ShouldNotBeNull();
         var originalRev = task.Rev;
 
@@ -96,24 +96,24 @@ public class UpdateTaskTests
         var originalRev = task.Rev;
 
         //Act
-        await UpdateTaskAsync(task, ScrumState.Done);
+        await UpdateTaskAsync(task, ScrumStateObsolete.Done);
 
         //Assert
         task.Rev.ShouldBe(originalRev + 1);
-        task.State.ShouldBe(ScrumState.Done);
+        task.State.ShouldBe(ScrumStateObsolete.Done);
     }
 
     [TestMethod]
     public async Task NonTask_NotUpdated()
     {
         //Arrange
-        var nonTask = WorkItemType.All().Except(WorkItemType.Task.Yield());
+        var nonTask = WorkItemTypeObsolete.All().Except(WorkItemTypeObsolete.Task.Yield());
         var type = RandomGenerator.PickOne(nonTask);
         var task = await BuildTaskAsync(t => t.Fields.WorkItemType = type.ToApiValue());
         var originalRev = task.Rev;
 
         //Act
-        await UpdateTaskAsync(task, ScrumState.Done);
+        await UpdateTaskAsync(task, ScrumStateObsolete.Done);
 
         //Assert
         task.Rev.ShouldBe(originalRev);
@@ -162,7 +162,7 @@ public class UpdateTaskTests
         //Arrange
         var task = await BuildTaskAsync(t =>
         {
-            t.Fields.State = ScrumState.New.ToApiValue();
+            t.Fields.State = ScrumStateObsolete.New.ToApiValue();
             t.Fields.OriginalEstimate = null;
             t.Fields.RemainingWork = null;
         });
@@ -204,11 +204,11 @@ public class UpdateTaskTests
         var originalRev = task.Rev;
 
         //Act
-        await UpdateTaskAsync(task, ScrumState.ToDo);
+        await UpdateTaskAsync(task, ScrumStateObsolete.ToDo);
 
         //Assert
         task.Rev.ShouldBe(originalRev + 1);
-        task.State.ShouldBe(ScrumState.ToDo);
+        task.State.ShouldBe(ScrumStateObsolete.ToDo);
     }
     
     [TestMethod]
@@ -219,7 +219,7 @@ public class UpdateTaskTests
         var originalRev = task.Rev;
 
         //Act
-        await Should.ThrowAsync<InvalidOperationException>(() => UpdateTaskAsync(task, ScrumState.Done));
+        await Should.ThrowAsync<InvalidOperationException>(() => UpdateTaskAsync(task, ScrumStateObsolete.Done));
 
         //Assert
         task.Rev.ShouldBe(originalRev);

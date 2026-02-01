@@ -29,8 +29,8 @@ internal class WorkItemBuilder
     {
         var workItem = Builder.Builder<WorkItem>.New().Build(wi => wi.Id = Sequence.WorkItemId.Next(), int.MaxValue);
         workItem.Fields.Parent = null;
-        workItem.Fields.WorkItemType = WorkItemType.BoardTypes.SingleRandom().ToApiValue();
-        workItem.Fields.State = ScrumState.Committed.ToApiValue();
+        workItem.Fields.WorkItemType = WorkItemTypeObsolete.BoardTypes.SingleRandom().ToApiValue();
+        workItem.Fields.State = ScrumStateObsolete.Committed.ToApiValue();
         workItem.Fields.Triage = null;
         workItem.Url = $"http://devops.test/Org/{workItem.Fields.ProjectName}/_apis/wit/workItems/{workItem.Id}";
         if (workItem.Fields.AssignedTo != null)
@@ -69,20 +69,20 @@ internal class WorkItemBuilder
         return new WorkItemBuilder(_database, child);
     }
 
-    private static WorkItemType GetChildType(string workItemTypeApiValue) => GetChildType(WorkItemType.FromApiValue(workItemTypeApiValue));
-    private static WorkItemType GetChildType(WorkItemType workItemType)
+    private static WorkItemTypeObsolete GetChildType(string workItemTypeApiValue) => GetChildType(WorkItemTypeObsolete.FromApiValue(workItemTypeApiValue));
+    private static WorkItemTypeObsolete GetChildType(WorkItemTypeObsolete workItemType)
     {
-        if (workItemType.IsIn(WorkItemType.BoardTypes))
+        if (workItemType.IsIn(WorkItemTypeObsolete.BoardTypes))
         {
-            return WorkItemType.Task;
+            return WorkItemTypeObsolete.Task;
         }
-        if (workItemType == WorkItemType.Feature)
+        if (workItemType == WorkItemTypeObsolete.Feature)
         {
-            return WorkItemType.BoardTypes.SingleRandom();
+            return WorkItemTypeObsolete.BoardTypes.SingleRandom();
         }
-        if (workItemType == WorkItemType.Epic)
+        if (workItemType == WorkItemTypeObsolete.Epic)
         {
-            return WorkItemType.Feature;
+            return WorkItemTypeObsolete.Feature;
         }
         throw new InvalidOperationException("The parent type cannot add a child");
     }

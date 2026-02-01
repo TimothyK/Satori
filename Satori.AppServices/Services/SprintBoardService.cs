@@ -160,9 +160,9 @@ public class SprintBoardService(
             workItem.Sprint = sprint;
         }
 
-        var iterationTasks = iterationWorkItems.Where(wi => wi.Type == WorkItemType.Task).ToDictionary(wi => wi.Id, wi => wi);
+        var iterationTasks = iterationWorkItems.Where(wi => wi.Type == WorkItemTypeObsolete.Task).ToDictionary(wi => wi.Id, wi => wi);
         var iterationBoardItems = iterationWorkItems
-            .Where(wi => wi.Type.IsIn(WorkItemType.BoardTypes))
+            .Where(wi => wi.Type.IsIn(WorkItemTypeObsolete.BoardTypes))
             .ToDictionary(wi => wi.Id, wi => wi);
         foreach (var link in links.Where(r => r.Source != null))
         {
@@ -186,13 +186,13 @@ public class SprintBoardService(
 
     private async Task ReplaceRelationPlaceholdersAsync(List<WorkItem> workItems)
     {
-        var workItemsWithPlaceholders = workItems.Where(wi => wi.Predecessors.Any(linkedWorkItem => linkedWorkItem.Type == WorkItemType.Unknown))
-            .Concat(workItems.Where(wi => wi.Successors.Any(linkedWorkItem => linkedWorkItem.Type == WorkItemType.Unknown)))
+        var workItemsWithPlaceholders = workItems.Where(wi => wi.Predecessors.Any(linkedWorkItem => linkedWorkItem.Type == WorkItemTypeObsolete.Unknown))
+            .Concat(workItems.Where(wi => wi.Successors.Any(linkedWorkItem => linkedWorkItem.Type == WorkItemTypeObsolete.Unknown)))
             .ToArray();
 
         var placeholderIds = 
-            workItemsWithPlaceholders.SelectMany(workItem => workItem.Predecessors.Where(wi => wi.Type == WorkItemType.Unknown))
-                .Concat(workItemsWithPlaceholders.SelectMany(workItem => workItem.Successors.Where(wi => wi.Type == WorkItemType.Unknown)))
+            workItemsWithPlaceholders.SelectMany(workItem => workItem.Predecessors.Where(wi => wi.Type == WorkItemTypeObsolete.Unknown))
+                .Concat(workItemsWithPlaceholders.SelectMany(workItem => workItem.Successors.Where(wi => wi.Type == WorkItemTypeObsolete.Unknown)))
                 .Select(workItem => workItem.Id)
                 .Distinct();
 
@@ -212,7 +212,7 @@ public class SprintBoardService(
     private static void SetSprintPriority(IEnumerable<WorkItem> workItems)
     {
         foreach (var (sprintPriority, workItem) in workItems
-                     .Where(wi => wi.State != ScrumState.Done)
+                     .Where(wi => wi.State != ScrumStateObsolete.Done)
                      .OrderBy(wi => wi.AbsolutePriority).ThenBy(wi => wi.Id)
                      .Select((wi, i) => (i, wi)))
         {
@@ -253,7 +253,7 @@ public class SprintBoardService(
         var target = workItem == null ? null 
             : await workItem.ToViewModelAsync(kimai);
 
-        if (target == null || target.State == ScrumState.Removed)
+        if (target == null || target.State == ScrumStateObsolete.Removed)
         {
             allWorkItems.Remove(original);
             return;
@@ -311,7 +311,7 @@ public class SprintBoardService(
     private async Task GetChildWorkItemsAsync(WorkItem workItem)
     {
         var placeholderChildren = workItem.Children
-            .Where(wi => wi.Type == WorkItemType.Unknown)
+            .Where(wi => wi.Type == WorkItemTypeObsolete.Unknown)
             .ToArray();
         if (placeholderChildren.None())
         {
@@ -322,7 +322,7 @@ public class SprintBoardService(
         foreach (var child in children)
         {
             SafeSetSprint(child, workItem);
-            if (child.Sprint == workItem.Sprint && child.State != ScrumState.Removed)
+            if (child.Sprint == workItem.Sprint && child.State != ScrumStateObsolete.Removed)
             {
                 child.Parent = workItem;
             }
@@ -334,12 +334,12 @@ public class SprintBoardService(
     private static void ReplacePlaceholders(List<WorkItem> list, WorkItem[] source)
     {
         var replacements = list
-            .Where(wi => wi.Type == WorkItemType.Unknown)
+            .Where(wi => wi.Type == WorkItemTypeObsolete.Unknown)
             .Select(placeholder => source.FirstOrDefault(wi => wi.Id == placeholder.Id))
             .OfType<WorkItem>()
             .ToList();
 
-        list.RemoveAll(wi => wi.Type == WorkItemType.Unknown);
+        list.RemoveAll(wi => wi.Type == WorkItemTypeObsolete.Unknown);
         list.AddRange(replacements);
     }
 

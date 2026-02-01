@@ -22,7 +22,7 @@ public partial class ExportButton
             var task = GetRunningTimeEntry(Summary).Task;
             ShowDoneButton = 
                 task != null 
-                && task.Type == WorkItemType.Task 
+                && task.Type == WorkItemTypeObsolete.Task 
                 && task.State.Category != StateCategory.Completed 
                 && task.AssignedTo == Person.Me;
         }
@@ -55,7 +55,7 @@ public partial class ExportButton
             var task = runningTimeEntry.Task;
             if (task != null)
             {
-                await WorkItemUpdateService.UpdateTaskAsync(task, ScrumState.Done);
+                await WorkItemUpdateService.UpdateTaskAsync(task, ScrumStateObsolete.Done);
             }
         });
 

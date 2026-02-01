@@ -86,7 +86,7 @@ public class WorkItemUpdateService
     {
         var fields = new List<WorkItemPatchItem>()
         {
-            new() { Operation = Operation.Add, Path = "/fields/System.State", Value = ScrumState.InProgress.ToApiValue() },
+            new() { Operation = Operation.Add, Path = "/fields/System.State", Value = ScrumStateObsolete.InProgress.ToApiValue() },
             new() { Operation = Operation.Test, Path = "/rev", Value = task.Rev },
         };
 
@@ -149,7 +149,7 @@ public class WorkItemUpdateService
             {
                 Operation = Operation.Add, 
                 Path = "/fields/System.State", 
-                Value = ScrumState.InProgress.ToApiValue() 
+                Value = ScrumStateObsolete.InProgress.ToApiValue() 
             }
         };
 
@@ -183,9 +183,9 @@ public class WorkItemUpdateService
 
     #region Update Task
 
-    public async Task UpdateTaskAsync(WorkItem task, ScrumState state, TimeSpan? remaining = null)
+    public async Task UpdateTaskAsync(WorkItem task, ScrumStateObsolete state, TimeSpan? remaining = null)
     {
-        if (task.Type != WorkItemType.Task)
+        if (task.Type != WorkItemTypeObsolete.Task)
         {
             return;
         }
@@ -206,7 +206,7 @@ public class WorkItemUpdateService
         await UpdateViewModelAsync(task, patchResult, _kimai);
     }
 
-    private static List<WorkItemPatchItem> BuildPatchItems(WorkItem task, ScrumState state, TimeSpan? remaining)
+    private static List<WorkItemPatchItem> BuildPatchItems(WorkItem task, ScrumStateObsolete state, TimeSpan? remaining)
     {
         var fields = new List<WorkItemPatchItem>();
         if (state != task.State)
@@ -219,7 +219,7 @@ public class WorkItemUpdateService
             });
         }
 
-        if (state.IsIn(ScrumState.New, ScrumState.InProgress) && remaining != null)
+        if (state.IsIn(ScrumStateObsolete.New, ScrumStateObsolete.InProgress) && remaining != null)
         {
             remaining = remaining.Value.ToNearest(TimeSpan.FromMinutes(6));
             if (remaining != task.RemainingWork)

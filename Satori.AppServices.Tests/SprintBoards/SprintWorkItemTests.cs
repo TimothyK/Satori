@@ -184,9 +184,9 @@ public class SprintWorkItemTests
         //Arrange
         var sprint = BuildSprint();
         var bug = _builder.BuildWorkItem().WithSprint(sprint).WorkItem
-            .With(wi => wi.Fields.WorkItemType = WorkItemType.Bug.ToApiValue());
+            .With(wi => wi.Fields.WorkItemType = WorkItemTypeObsolete.Bug.ToApiValue());
         _builder.BuildWorkItem(out var pbi).WithSprint(sprint)
-            .With(builder => builder.WorkItem.Fields.WorkItemType = WorkItemType.ProductBacklogItem.ToApiValue())
+            .With(builder => builder.WorkItem.Fields.WorkItemType = WorkItemTypeObsolete.ProductBacklogItem.ToApiValue())
             .AddChild(bug);
 
         //Act
@@ -215,9 +215,9 @@ public class SprintWorkItemTests
         //Arrange
         var sprint = BuildSprint();
         var bug = _builder.BuildWorkItem().WithSprint(sprint).WorkItem
-            .With(wi => wi.Fields.WorkItemType = WorkItemType.Bug.ToApiValue());
+            .With(wi => wi.Fields.WorkItemType = WorkItemTypeObsolete.Bug.ToApiValue());
         _builder.BuildWorkItem(out var pbi).WithSprint(sprint)
-            .With(builder => builder.WorkItem.Fields.WorkItemType = WorkItemType.ProductBacklogItem.ToApiValue())
+            .With(builder => builder.WorkItem.Fields.WorkItemType = WorkItemTypeObsolete.ProductBacklogItem.ToApiValue())
             .AddChild(bug);
 
         //Act
@@ -485,7 +485,7 @@ public class SprintWorkItemTests
     public void Type(string type)
     {
         //Arrange
-        var expected = WorkItemType.FromApiValue(type);
+        var expected = WorkItemTypeObsolete.FromApiValue(type);
         var sprint = BuildSprint();
         _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
         workItem.Fields.WorkItemType = type;
@@ -715,7 +715,7 @@ public class SprintWorkItemTests
     public void State(string state)
     {
         //Arrange
-        var expected = ScrumState.FromApiValue(state);
+        var expected = ScrumStateObsolete.FromApiValue(state);
         var sprint = BuildSprint();
         _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
         workItem.Fields.State = state;
@@ -735,7 +735,7 @@ public class SprintWorkItemTests
     public void TaskStatus(string state)
     {
         //Arrange
-        var expected = ScrumState.FromApiValue(state);
+        var expected = ScrumStateObsolete.FromApiValue(state);
         var sprint = BuildSprint();
         _builder.BuildWorkItem().WithSprint(sprint)
             .AddChild(out var task);
@@ -754,7 +754,7 @@ public class SprintWorkItemTests
         //Arrange
         var sprint = BuildSprint();
         _builder.BuildWorkItem().WithSprint(sprint).AddChild(out var task);
-        task.Fields.State = ScrumState.ToDo.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.ToDo.ToApiValue();
         task.Fields.OriginalEstimate = null;
         task.Fields.RemainingWork = null;
 
@@ -772,7 +772,7 @@ public class SprintWorkItemTests
         //Arrange
         var sprint = BuildSprint();
         _builder.BuildWorkItem().WithSprint(sprint).AddChild(out var task);
-        task.Fields.State = ScrumState.ToDo.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.ToDo.ToApiValue();
         task.Fields.OriginalEstimate = 5.0;
         task.Fields.RemainingWork = null;
 
@@ -790,7 +790,7 @@ public class SprintWorkItemTests
         //Arrange
         var sprint = BuildSprint();
         _builder.BuildWorkItem().WithSprint(sprint).AddChild(out var task);
-        task.Fields.State = ScrumState.ToDo.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.ToDo.ToApiValue();
         task.Fields.OriginalEstimate = 10.0;
         task.Fields.RemainingWork = 9.9;
 
@@ -808,7 +808,7 @@ public class SprintWorkItemTests
         //Arrange
         var sprint = BuildSprint();
         _builder.BuildWorkItem().WithSprint(sprint).AddChild(out var task);
-        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
         task.Fields.OriginalEstimate = null;
         task.Fields.RemainingWork = null;
 
@@ -826,7 +826,7 @@ public class SprintWorkItemTests
         //Arrange
         var sprint = BuildSprint();
         _builder.BuildWorkItem().WithSprint(sprint).AddChild(out var task);
-        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
         task.Fields.OriginalEstimate = 10.0;
         task.Fields.RemainingWork = null;
 
@@ -844,7 +844,7 @@ public class SprintWorkItemTests
         //Arrange
         var sprint = BuildSprint();
         _builder.BuildWorkItem().WithSprint(sprint).AddChild(out var task);
-        task.Fields.State = ScrumState.InProgress.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
         task.Fields.RemainingWork = 9.9;
 
         //Act
@@ -861,7 +861,7 @@ public class SprintWorkItemTests
         //Arrange
         var sprint = BuildSprint();
         _builder.BuildWorkItem().WithSprint(sprint).AddChild(out var task);
-        task.Fields.State = ScrumState.Done.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.Done.ToApiValue();
 
         //Act
         var workItems = GetWorkItems(sprint);
@@ -877,7 +877,7 @@ public class SprintWorkItemTests
         //Arrange
         var sprint = BuildSprint();
         _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
-        workItem.Fields.State = ScrumState.Approved.ToApiValue();
+        workItem.Fields.State = ScrumStateObsolete.Approved.ToApiValue();
 
         //Act
         var workItems = GetWorkItems(sprint);
@@ -892,7 +892,7 @@ public class SprintWorkItemTests
         //Arrange
         var sprint = BuildSprint();
         _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
-        workItem.Fields.State = ScrumState.Committed.ToApiValue();
+        workItem.Fields.State = ScrumStateObsolete.Committed.ToApiValue();
 
         //Act
         var workItems = GetWorkItems(sprint);
@@ -909,7 +909,7 @@ public class SprintWorkItemTests
         //Arrange
         var sprint = BuildSprint();
         _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
-        workItem.Fields.WorkItemType = WorkItemType.Impediment.ToApiValue();
+        workItem.Fields.WorkItemType = WorkItemTypeObsolete.Impediment.ToApiValue();
         workItem.Fields.State = apiValue;
 
         //Act
@@ -953,8 +953,8 @@ public class SprintWorkItemTests
         //Arrange
         var sprint = BuildSprint();
         _builder.BuildWorkItem(out var workItem).WithSprint(sprint);
-        workItem.Fields.WorkItemType = WorkItemType.Bug.ToApiValue();
-        workItem.Fields.State = ScrumState.New.ToApiValue();
+        workItem.Fields.WorkItemType = WorkItemTypeObsolete.Bug.ToApiValue();
+        workItem.Fields.State = ScrumStateObsolete.New.ToApiValue();
         workItem.Fields.Triage = apiValue;
 
         //Act
@@ -1159,7 +1159,7 @@ public class SprintWorkItemTests
         firstWorkItem.Fields.BacklogPriority = 5.0;
         secondWorkItem.Fields.BacklogPriority = 10.0;
 
-        firstWorkItem.Fields.State = ScrumState.Done.ToApiValue();
+        firstWorkItem.Fields.State = ScrumStateObsolete.Done.ToApiValue();
 
         //Act
         var workItems = GetWorkItems(sprint);

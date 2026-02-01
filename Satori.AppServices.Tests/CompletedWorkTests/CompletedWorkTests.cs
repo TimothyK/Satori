@@ -227,7 +227,7 @@ public class CompletedWorkTests
         task.Fields.RemainingWork = original;
         var adjustment = RandomGenerator.Number(2.5).ToNearest(RemainingWorkPrecision);
         
-        task.Fields.State = ScrumState.Done.ToApiValue();
+        task.Fields.State = ScrumStateObsolete.Done.ToApiValue();
 
         // Act
         await AdjustCompletedWorkAsync(task.Id, adjustment);

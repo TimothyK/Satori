@@ -64,8 +64,8 @@ public static class WorkItemExtensions
                 AreaPath = workItem.Fields.AreaPath,
                 IterationPath = workItem.Fields.IterationPath ?? string.Empty,
                 AbsolutePriority = workItem.Fields.BacklogPriority > 0.0 ? workItem.Fields.BacklogPriority : double.MaxValue,
-                Type = WorkItemType.FromApiValue(workItem.Fields.WorkItemType),
-                State = ScrumState.FromApiValue(workItem.Fields.State),
+                Type = WorkItemTypeObsolete.FromApiValue(workItem.Fields.WorkItemType),
+                State = ScrumStateObsolete.FromApiValue(workItem.Fields.State),
                 Triage = TriageState.FromApiValue(workItem.Fields.Triage),
                 TargetDate = workItem.Fields.TargetDate,
                 Blocked = workItem.Fields.Blocked,
@@ -136,9 +136,9 @@ public static class WorkItemExtensions
     private static void ResetActionItems(WorkItem workItem, IKimaiServer kimai)
     {
         var actionItems = workItem.Children.SelectMany(task => task.ActionItems).ToList();
-        if (workItem.Type == WorkItemType.Task 
-            && workItem.State < ScrumState.Done
-            && (workItem.Predecessors.All(predecessor => ScrumState.Done <= predecessor.State) || workItem.State == ScrumState.InProgress))
+        if (workItem.Type == WorkItemTypeObsolete.Task 
+            && workItem.State < ScrumStateObsolete.Done
+            && (workItem.Predecessors.All(predecessor => ScrumStateObsolete.Done <= predecessor.State) || workItem.State == ScrumStateObsolete.InProgress))
         {
             actionItems.Add(new TaskActionItem(workItem));
         }
@@ -151,12 +151,12 @@ public static class WorkItemExtensions
             actionItems.AddRange(pr.ActionItems);
         }
 
-        if (kimai.Enabled && workItem.Type.IsIn(WorkItemType.BoardTypes) && workItem.KimaiProject == null)
+        if (kimai.Enabled && workItem.Type.IsIn(WorkItemTypeObsolete.BoardTypes) && workItem.KimaiProject == null)
         {
             actionItems.Add(new FundActionItem(workItem));
         }
 
-        if (workItem.State < ScrumState.Done && actionItems.None() && workItem.Type != WorkItemType.Task)
+        if (workItem.State < ScrumStateObsolete.Done && actionItems.None() && workItem.Type != WorkItemTypeObsolete.Task)
         {
             actionItems.Add(new FinishActionItem(workItem));
         }
@@ -270,8 +270,8 @@ public static class WorkItemExtensions
                 .AppendPathSegment(workItemId),
             AssignedTo = Person.Empty,
             CreatedBy = Person.Empty,
-            Type = WorkItemType.Unknown,
-            State = ScrumState.Open,
+            Type = WorkItemTypeObsolete.Unknown,
+            State = ScrumStateObsolete.Open,
             Tags = [],
         };
     }

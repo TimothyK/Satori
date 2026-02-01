@@ -22,7 +22,7 @@ else
     <div class="flex-row">
         <WorkItemView WorkItem="ViewModel.WorkItem" TimeRemaining="ViewModel.TimeRemaining" Activity="Activity"></WorkItemView>
         <div class="flex-center-whitespace"></div>
-        @if (ViewModel.WorkItem.Type != WorkItemType.Task)
+        @if (ViewModel.WorkItem.Type != WorkItemTypeObsolete.Task)
         {
             <div class="btn-add-child @ViewModel.IsAddChildExpanded">
                 <button type="button" @onclick="ToggleAddChildAsync"><span class="caret @ViewModel.IsAddChildExpanded"></span>Add Child...</button>
@@ -36,15 +36,15 @@ else
         }
     </div>
 
-    @if (ViewModel.WorkItem.Type == WorkItemType.Task && ViewModel.IsTaskMine)
+    @if (ViewModel.WorkItem.Type == WorkItemTypeObsolete.Task && ViewModel.IsTaskMine)
     {
         <div class="update-task-row">
             <div class="update-state">
                 <span>Change State:</span>
                 <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-outline-secondary @(ViewModel.State == ScrumState.ToDo ? "active" : "")" @onclick="() => ViewModel.SetState(ScrumState.ToDo)">To Do</button>
-                    <button type="button" class="btn btn-outline-secondary @(ViewModel.State == ScrumState.InProgress ? "active" : "" )" @onclick="() => ViewModel.SetState(ScrumState.InProgress)">In Progress</button>
-                    <button type="button" class="btn btn-outline-secondary @(ViewModel.State == ScrumState.Done ? "active" : "")" @onclick="() => ViewModel.SetState(ScrumState.Done)">Done</button>
+                    <button type="button" class="btn btn-outline-secondary @(ViewModel.State == ScrumStateObsolete.ToDo ? "active" : "")" @onclick="() => ViewModel.SetState(ScrumStateObsolete.ToDo)">To Do</button>
+                    <button type="button" class="btn btn-outline-secondary @(ViewModel.State == ScrumStateObsolete.InProgress ? "active" : "" )" @onclick="() => ViewModel.SetState(ScrumStateObsolete.InProgress)">In Progress</button>
+                    <button type="button" class="btn btn-outline-secondary @(ViewModel.State == ScrumStateObsolete.Done ? "active" : "")" @onclick="() => ViewModel.SetState(ScrumStateObsolete.Done)">Done</button>
                 </div>
                 <div class="validation-error">@ViewModel.StateValidationMessage</div>
             </div>
@@ -58,7 +58,7 @@ else
             }
         </div>
     }
-    else if (ViewModel.WorkItem.Type != WorkItemType.Task)
+    else if (ViewModel.WorkItem.Type != WorkItemTypeObsolete.Task)
     {
         <div class="add-child @ViewModel.IsAddChildExpanded">
             @foreach (var child in ViewModel.Children)

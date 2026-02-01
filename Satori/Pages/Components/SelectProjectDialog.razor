@@ -24,7 +24,7 @@
                     <div>
                         Add funding to:
                     </div>
-                    @if (WorkItem.Type == WorkItemType.Task && WorkItem.Parent != null)
+                    @if (WorkItem.Type == WorkItemTypeObsolete.Task && WorkItem.Parent != null)
                     {
                         <span class="work-item @WorkItem.Parent.Type.CssClass cell-link" @onclick="() => OpenWorkItemAsync(WorkItem.Parent)" title="Open D#@WorkItem.Parent.Id">
                             <span class="work-item-id">@WorkItem.Parent.Id</span>
@@ -34,7 +34,7 @@
                     <div></div>
 
                     <span class="work-item @WorkItem.Type.CssClass cell-link" @onclick="() => OpenWorkItemAsync(WorkItem)" title="Open D#@WorkItem.Id">
-                        @if (WorkItem.Parent == null || WorkItem.Type != WorkItemType.Task)
+                        @if (WorkItem.Parent == null || WorkItem.Type != WorkItemTypeObsolete.Task)
                         {
                             <label><span class="work-item-id">@WorkItem.Id</span>&nbsp;</label>
                         }

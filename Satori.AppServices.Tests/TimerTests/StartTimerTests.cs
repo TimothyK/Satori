@@ -280,7 +280,7 @@ public class StartTimerTests
     public async Task TaskIsSetToInProgress()
     {
         // Arrange
-        var task = await BuildTask(t => t.Fields.State = ScrumState.ToDo.ToApiValue());
+        var task = await BuildTask(t => t.Fields.State = ScrumStateObsolete.ToDo.ToApiValue());
         var activity = await BuildActivityAsync();
 
         // Act
@@ -317,7 +317,7 @@ public class StartTimerTests
         var task = await BuildTask(t =>
         {
             t.Fields.ProjectCode = activity.Project.ProjectCode + "." + activity.ActivityCode;
-            t.Fields.State = ScrumState.InProgress.ToApiValue();
+            t.Fields.State = ScrumStateObsolete.InProgress.ToApiValue();
         });
 
         // Act
