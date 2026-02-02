@@ -4,6 +4,7 @@ using Satori.AppServices.Extensions;
 using Satori.AppServices.Services.CommentParsing;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.DailyStandUps;
+using Satori.AppServices.ViewModels.Processes;
 using Satori.AppServices.ViewModels.WorkItems;
 using Satori.Pages.StandUp.Components.ViewModels.Models;
 using WorkItem = Satori.AppServices.ViewModels.WorkItems.WorkItem;

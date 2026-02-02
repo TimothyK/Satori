@@ -1,4 +1,4 @@
-﻿namespace Satori.AppServices.ViewModels.WorkItems;
+﻿namespace Satori.AppServices.ViewModels.Processes;
 
 public class StateCategory : IComparable<StateCategory>
 {

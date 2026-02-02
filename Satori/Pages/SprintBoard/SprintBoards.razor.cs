@@ -7,6 +7,7 @@ using Microsoft.JSInterop;
 using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.Abstractions;
+using Satori.AppServices.ViewModels.Processes;
 using Satori.AppServices.ViewModels.PullRequests.ActionItems;
 using Satori.AppServices.ViewModels.Sprints;
 using Satori.AppServices.ViewModels.WorkItems;

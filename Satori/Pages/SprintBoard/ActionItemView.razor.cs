@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.Abstractions;
+using Satori.AppServices.ViewModels.Processes;
 using Satori.AppServices.ViewModels.PullRequests;
 using Satori.AppServices.ViewModels.PullRequests.ActionItems;
 using Satori.AppServices.ViewModels.WorkItems;

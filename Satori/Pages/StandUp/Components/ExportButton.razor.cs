@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Satori.AppServices.ViewModels;
 using Satori.AppServices.ViewModels.DailyStandUps;
+using Satori.AppServices.ViewModels.Processes;
 using Satori.AppServices.ViewModels.WorkItems;
 
 namespace Satori.Pages.StandUp.Components;

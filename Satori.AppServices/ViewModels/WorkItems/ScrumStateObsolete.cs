@@ -1,4 +1,6 @@
-﻿namespace Satori.AppServices.ViewModels.WorkItems;
+﻿using Satori.AppServices.ViewModels.Processes;
+
+namespace Satori.AppServices.ViewModels.WorkItems;
 
 /// <summary>
 /// State of the work item.
