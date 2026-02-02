@@ -375,6 +375,16 @@ public class AzureDevOpsServer(
         return await GetAsync<Identity>(url);
     }
 
+    public async Task<Project[]> GetProjectsAsync()
+    {
+        var url = ConnectionSettings.Url
+            .AppendPathSegment("_apis/projects")
+            .AppendQueryParam("api-version", "7.1");
+
+        var root = await GetAsync<RootObject<Project>>(url);
+        return root.Value;
+    }
+
     private Uri GetVisualStudioSharedPlatformServicesUrl(ConnectionData connectionData)
     {
         var baseUrl = ConnectionSettings.Url;

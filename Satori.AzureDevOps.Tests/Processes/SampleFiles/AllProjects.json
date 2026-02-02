@@ -1,0 +1,25 @@
+{
+  "count": 2,
+  "value": [
+    {
+      "id": "9a8ce311-a958-47a9-9475-2a30492b8385",
+      "name": "ZeroBugProject",
+      "description": "Project that has is goal to have zero bugs.  Bugs are treated as tasks so that they are addressed before we meet the definition of done-done",
+      "url": "https://dev.azure.com/KlenkeUniverse/_apis/projects/9a8ce311-a958-47a9-9475-2a30492b8385",
+      "state": "wellFormed",
+      "revision": 63,
+      "visibility": "private",
+      "lastUpdateTime": "2026-02-01T03:53:22.407Z"
+    },
+    {
+      "id": "515730a6-e0dc-4ad2-98c2-fd26197ff98b",
+      "name": "Stock",
+      "description": "Uses the build-in Scrum process, which cannot be customized.",
+      "url": "https://dev.azure.com/KlenkeUniverse/_apis/projects/515730a6-e0dc-4ad2-98c2-fd26197ff98b",
+      "state": "wellFormed",
+      "revision": 71,
+      "visibility": "private",
+      "lastUpdateTime": "2026-02-01T05:55:38.713Z"
+    }
+  ]
+}

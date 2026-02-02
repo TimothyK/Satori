@@ -29,6 +29,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Processes\SampleFiles\Responses.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Responses.resx</DependentUpon>
+    </Compile>
     <Compile Update="PullRequests\SampleFiles\GetPullRequestResponses.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -67,6 +72,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="Processes\SampleFiles\Responses.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Responses.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Update="PullRequests\SampleFiles\GetPullRequestResponses.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>GetPullRequestResponses.Designer.cs</LastGenOutput>

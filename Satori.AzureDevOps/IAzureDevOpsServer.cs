@@ -66,4 +66,6 @@ public interface IAzureDevOpsServer
 
     Task<Identity> GetIdentityAsync(ConnectionData connectionData);
 
+    Task<Project[]> GetProjectsAsync();
+
 }
