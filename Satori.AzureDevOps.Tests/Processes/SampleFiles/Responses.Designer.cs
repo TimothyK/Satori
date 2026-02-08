@@ -82,7 +82,7 @@ namespace Satori.AzureDevOps.Tests.Processes.SampleFiles {
         
         /// <summary>
         ///   Looks up a localized string similar to {
-        ///  &quot;count&quot;: 10,
+        ///  &quot;count&quot;: 9,
         ///  &quot;value&quot;: [
         ///    {
         ///      &quot;name&quot;: &quot;System.CurrentProcessTemplateId&quot;,
@@ -101,11 +101,34 @@ namespace Satori.AzureDevOps.Tests.Processes.SampleFiles {
         ///      &quot;value&quot;: &quot;Scrum&quot;
         ///    },
         ///    {
-        ///      &quot;name&quot;: &quot;System.Microsoft.Tea [rest of string was truncated]&quot;;.
+        ///      &quot;name&quot;: &quot;System.Microsoft.Team [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string ProjectProperties {
             get {
                 return ResourceManager.GetString("ProjectProperties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;count&quot;: 9,
+        ///  &quot;value&quot;: [
+        ///    {
+        ///      &quot;referenceName&quot;: &quot;Microsoft.VSTS.WorkItemTypes.Task&quot;,
+        ///      &quot;name&quot;: &quot;Task&quot;,
+        ///      &quot;description&quot;: &quot;Tracks work that needs to be done.&quot;,
+        ///      &quot;url&quot;: &quot;https://dev.azure.com/KlenkeUniverse/_apis/work/processes/6b724908-ef14-45cf-84f8-768b5384da45/workItemTypes/Microsoft.VSTS.WorkItemTypes.Task&quot;,
+        ///      &quot;customization&quot;: &quot;system&quot;,
+        ///      &quot;color&quot;: &quot;A4880A&quot;,
+        ///      &quot;icon&quot;: &quot;icon_clipboard&quot;,
+        ///      &quot;isDisabled&quot;: false,
+        ///      &quot;inherits&quot;: null,
+        ///      &quot;states&quot;: [
+        ///     [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string ScrumWorkItemTypes {
+            get {
+                return ResourceManager.GetString("ScrumWorkItemTypes", resourceCulture);
             }
         }
     }

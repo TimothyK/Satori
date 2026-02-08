@@ -70,4 +70,5 @@ public interface IAzureDevOpsServer
 
     Task<ProjectProperty[]> GetProjectPropertiesAsync(Guid projectId);
 
+    Task<WorkItemType[]> GetWorkItemTypesAsync(Guid processId);
 }

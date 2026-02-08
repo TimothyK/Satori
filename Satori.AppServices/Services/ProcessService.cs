@@ -1,6 +1,8 @@
 ﻿using Satori.AppServices.ViewModels.Processes;
 using Satori.AzureDevOps;
 using Satori.AzureDevOps.Models;
+using State = Satori.AppServices.ViewModels.Processes.State;
+using WorkItemType = Satori.AppServices.ViewModels.Processes.WorkItemType;
 
 namespace Satori.AppServices.Services;
 

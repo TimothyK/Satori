@@ -415,6 +415,25 @@ public class AzureDevOpsServer(
         return root.Value;
     }
 
+    /// <summary>
+    /// Work Item Types - List (https://learn.microsoft.com/en-us/rest/api/azure/devops/processes/work-item-types/list?view=azure-devops-rest-7.1&tabs=HTTP)
+    /// </summary>
+    /// <param name="processId"></param>
+    /// <returns></returns>
+    public async Task<WorkItemType[]> GetWorkItemTypesAsync(Guid processId)
+    {
+        var url = ConnectionSettings.Url
+            .AppendPathSegment("_apis/processes")
+            .AppendPathSegment(processId)
+            .AppendPathSegment("workItemTypes")
+            .AppendQueryParam("$expand", "states")
+            .AppendQueryParam("api-version", "7.1");
+
+        var root = await GetAsync<RootObject<WorkItemType>>(url);
+        return root.Value;
+
+    }
+
     private Uri GetVisualStudioSharedPlatformServicesUrl(ConnectionData connectionData)
     {
         var baseUrl = ConnectionSettings.Url;
