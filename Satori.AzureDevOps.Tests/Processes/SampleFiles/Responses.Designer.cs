@@ -79,5 +79,34 @@ namespace Satori.AzureDevOps.Tests.Processes.SampleFiles {
                 return ResourceManager.GetString("AllProjects", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;count&quot;: 10,
+        ///  &quot;value&quot;: [
+        ///    {
+        ///      &quot;name&quot;: &quot;System.CurrentProcessTemplateId&quot;,
+        ///      &quot;value&quot;: &quot;d0479554-d56d-4a8a-ab22-e8f013adc467&quot;
+        ///    },
+        ///    {
+        ///      &quot;name&quot;: &quot;System.OriginalProcessTemplateId&quot;,
+        ///      &quot;value&quot;: &quot;d0479554-d56d-4a8a-ab22-e8f013adc467&quot;
+        ///    },
+        ///    {
+        ///      &quot;name&quot;: &quot;System.ProcessTemplateType&quot;,
+        ///      &quot;value&quot;: &quot;8e2e94ad-d42a-4910-b80a-e7120580a5ed&quot;
+        ///    },
+        ///    {
+        ///      &quot;name&quot;: &quot;System.Process Template&quot;,
+        ///      &quot;value&quot;: &quot;Scrum&quot;
+        ///    },
+        ///    {
+        ///      &quot;name&quot;: &quot;System.Microsoft.Tea [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string ProjectProperties {
+            get {
+                return ResourceManager.GetString("ProjectProperties", resourceCulture);
+            }
+        }
     }
 }

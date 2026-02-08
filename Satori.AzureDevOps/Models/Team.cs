@@ -4,6 +4,9 @@ namespace Satori.AzureDevOps.Models;
 
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global
+/// <summary>
+/// WebApiTeam (https://learn.microsoft.com/en-us/rest/api/azure/devops/core/teams/get-all-teams?view=azure-devops-rest-7.1&tabs=HTTPhttps://learn.microsoft.com/en-us/rest/api/azure/devops/core/teams/get-all-teams?view=azure-devops-rest-7.1&tabs=HTTP)
+/// </summary>
 public class Team
 {
     [JsonPropertyName("id")]

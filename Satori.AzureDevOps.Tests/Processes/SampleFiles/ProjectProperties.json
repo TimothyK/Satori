@@ -1,0 +1,41 @@
+{
+  "count": 9,
+  "value": [
+    {
+      "name": "System.CurrentProcessTemplateId",
+      "value": "d0479554-d56d-4a8a-ab22-e8f013adc467"
+    },
+    {
+      "name": "System.OriginalProcessTemplateId",
+      "value": "d0479554-d56d-4a8a-ab22-e8f013adc467"
+    },
+    {
+      "name": "System.ProcessTemplateType",
+      "value": "8e2e94ad-d42a-4910-b80a-e7120580a5ed"
+    },
+    {
+      "name": "System.Process Template",
+      "value": "Scrum"
+    },
+    {
+      "name": "System.Microsoft.TeamFoundation.Team.Count",
+      "value": 1
+    },
+    {
+      "name": "System.Microsoft.TeamFoundation.Team.Default",
+      "value": "2a6685f7-f5a1-4c00-aa40-0b977ffa892e"
+    },
+    {
+      "name": "System.SourceControlCapabilityFlags",
+      "value": "2"
+    },
+    {
+      "name": "System.SourceControlGitEnabled",
+      "value": "True"
+    },
+    {
+      "name": "System.SourceControlGitPermissionsInitialized",
+      "value": "True"
+    }
+  ]
+}

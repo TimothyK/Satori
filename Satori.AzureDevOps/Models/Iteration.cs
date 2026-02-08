@@ -5,6 +5,9 @@ using System.Text.Json.Serialization;
 
 namespace Satori.AzureDevOps.Models;
 
+/// <summary>
+/// TeamSettingsIteration (https://learn.microsoft.com/en-us/rest/api/azure/devops/work/iterations/list?view=azure-devops-rest-7.1&tabs=HTTP#teamsettingsiteration)
+/// </summary>
 public class Iteration
 {
     [JsonPropertyName("id")]

@@ -68,4 +68,6 @@ public interface IAzureDevOpsServer
 
     Task<Project[]> GetProjectsAsync();
 
+    Task<ProjectProperty[]> GetProjectPropertiesAsync(Guid projectId);
+
 }

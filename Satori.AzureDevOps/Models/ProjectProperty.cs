@@ -5,12 +5,12 @@ namespace Satori.AzureDevOps.Models;
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 /// <summary>
-/// TeamProjectReference (https://learn.microsoft.com/en-us/rest/api/azure/devops/core/projects/list?view=azure-devops-rest-7.1&tabs=HTTP#teamprojectreference)
+/// ProjectProperty (https://learn.microsoft.com/en-us/rest/api/azure/devops/core/projects/get-project-properties?view=azure-devops-rest-7.1&tabs=HTTP#projectproperty)
 /// </summary>
-public class Project
+public class ProjectProperty
 {
-    [JsonPropertyName("id")]
-    public Guid Id { get; set; }
     [JsonPropertyName("name")]
     public required string Name { get; set; }
+    [JsonPropertyName("value")]
+    public required object Value { get; set; }
 }

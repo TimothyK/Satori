@@ -267,6 +267,10 @@ public class AzureDevOpsServer(
         return workItem;
     }
 
+    /// <summary>
+    /// Get All Teams (https://learn.microsoft.com/en-us/rest/api/azure/devops/core/teams/get-all-teams?view=azure-devops-rest-7.1&tabs=HTTP)
+    /// </summary>
+    /// <returns></returns>
     public async Task<Team[]> GetTeamsAsync()
     {
         var url = ConnectionSettings.Url
@@ -276,6 +280,11 @@ public class AzureDevOpsServer(
         return await GetRootValueAsync<Team>(url);
     }
 
+    /// <summary>
+    /// Iteration - List (https://learn.microsoft.com/en-us/rest/api/azure/devops/work/iterations/list?view=azure-devops-rest-7.1&tabs=HTTP)
+    /// </summary>
+    /// <param name="team"></param>
+    /// <returns></returns>
     public async Task<Iteration?> GetCurrentIterationAsync(Team team)
     {
         var url = ConnectionSettings.Url
@@ -375,6 +384,10 @@ public class AzureDevOpsServer(
         return await GetAsync<Identity>(url);
     }
 
+    /// <summary>
+    /// Projects - List (https://learn.microsoft.com/en-us/rest/api/azure/devops/core/projects/list?view=azure-devops-rest-7.1&tabs=HTTP)
+    /// </summary>
+    /// <returns></returns>
     public async Task<Project[]> GetProjectsAsync()
     {
         var url = ConnectionSettings.Url
@@ -382,6 +395,23 @@ public class AzureDevOpsServer(
             .AppendQueryParam("api-version", "7.1");
 
         var root = await GetAsync<RootObject<Project>>(url);
+        return root.Value;
+    }
+
+    /// <summary>
+    /// Projects - Get Project Properties (https://learn.microsoft.com/en-us/rest/api/azure/devops/core/projects/get-project-properties?view=azure-devops-rest-7.1&tabs=HTTP)
+    /// </summary>
+    /// <param name="projectId"></param>
+    /// <returns></returns>
+    public async Task<ProjectProperty[]> GetProjectPropertiesAsync(Guid projectId)
+    {
+        var url = ConnectionSettings.Url
+            .AppendPathSegment("_apis/projects")
+            .AppendPathSegment(projectId)
+            .AppendPathSegment("properties")
+            .AppendQueryParam("api-version", "7.1-preview.1");
+
+        var root = await GetAsync<RootObject<ProjectProperty>>(url);
         return root.Value;
     }
 
