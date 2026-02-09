@@ -111,6 +111,33 @@ namespace Satori.AzureDevOps.Tests.Processes.SampleFiles {
         
         /// <summary>
         ///   Looks up a localized string similar to {
+        ///  &quot;taskBacklog&quot;: {
+        ///    &quot;id&quot;: &quot;Microsoft.TaskCategory&quot;,
+        ///    &quot;name&quot;: &quot;Tasks&quot;,
+        ///    &quot;rank&quot;: 1,
+        ///    &quot;workItemCountLimit&quot;: 1000,
+        ///    &quot;addPanelFields&quot;: [
+        ///      {
+        ///        &quot;referenceName&quot;: &quot;System.Title&quot;,
+        ///        &quot;name&quot;: &quot;Title&quot;,
+        ///        &quot;url&quot;: &quot;https://dev.azure.com/KlenkeUniverse/_apis/wit/fields/System.Title&quot;
+        ///      }
+        ///    ],
+        ///    &quot;columnFields&quot;: [
+        ///      {
+        ///        &quot;columnFieldReference&quot;: {
+        ///          &quot;referenceName&quot;: &quot;System.Title&quot;,
+        ///          &quot;name&quot;: &quot;Title&quot;,
+        ///          &quot;url&quot;: &quot;https://dev.azure.co [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string ScrumBacklogConfiguration {
+            get {
+                return ResourceManager.GetString("ScrumBacklogConfiguration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
         ///  &quot;count&quot;: 9,
         ///  &quot;value&quot;: [
         ///    {

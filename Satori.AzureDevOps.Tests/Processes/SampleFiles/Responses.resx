@@ -124,6 +124,9 @@
   <data name="ProjectProperties" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>ProjectProperties.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="ScrumBacklogConfiguration" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>ScrumBacklogConfiguration.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="ScrumWorkItemTypes" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>ScrumWorkItemTypes.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>

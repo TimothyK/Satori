@@ -4,6 +4,7 @@ using MoreLinq;
 using Satori.AzureDevOps.Exceptions;
 using Satori.AzureDevOps.Models;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 
@@ -431,7 +432,24 @@ public class AzureDevOpsServer(
 
         var root = await GetAsync<RootObject<WorkItemType>>(url);
         return root.Value;
+    }
 
+    /// <summary>
+    /// Backlog Configuration - Get (https://learn.microsoft.com/en-us/rest/api/azure/devops/work/backlogconfiguration/get?view=azure-devops-rest-7.1&tabs=HTTP)
+    /// </summary>
+    /// <param name="projectName"></param>
+    /// <param name="teamName"></param>
+    /// <returns></returns>
+    public async Task<BacklogConfiguration> GetBacklogConfigAsync(string projectName, string teamName)
+    {
+        var url = ConnectionSettings.Url
+            .AppendPathSegment(projectName)
+            .AppendPathSegment(teamName)
+            .AppendPathSegment("_apis/work/backlogConfiguration")
+            .AppendQueryParam("api-version", "7.1");
+
+        var root = await GetAsync<BacklogConfiguration>(url);
+        return root;
     }
 
     private Uri GetVisualStudioSharedPlatformServicesUrl(ConnectionData connectionData)

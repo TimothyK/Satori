@@ -71,4 +71,12 @@ public interface IAzureDevOpsServer
     Task<ProjectProperty[]> GetProjectPropertiesAsync(Guid projectId);
 
     Task<WorkItemType[]> GetWorkItemTypesAsync(Guid processId);
+
+    /// <summary>
+    /// Get Backlog configuration
+    /// </summary>
+    /// <param name="projectName"></param>
+    /// <param name="teamName"></param>
+    /// <returns></returns>
+    Task<BacklogConfiguration> GetBacklogConfigAsync(string projectName, string teamName);
 }
