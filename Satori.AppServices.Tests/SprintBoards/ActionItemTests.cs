@@ -657,7 +657,7 @@ internal static class ActionItemAssertionExtensions
         actionItems.ShouldNotBeEmpty();
         
         var matches = actionItems
-            .Where(actionItem => actionItem.On.Select(x => x.Person.AzureDevOpsId).Contains(user.Id ?? Guid.Empty))
+            .Where(actionItem => actionItem.On.Select(x => x.Person.AzureDevOpsId).Contains(user.Id))
             .ToArray();
         matches.ShouldNotBeEmpty($"No action items were found for {user.DisplayName}.  They were {string.Join(", ", actionItems.SelectMany(actionItem => actionItem.On.Select(x => x.Person.DisplayName)))}");
 
