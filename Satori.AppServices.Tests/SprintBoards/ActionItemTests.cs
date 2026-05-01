@@ -1,6 +1,7 @@
 ﻿using CodeMonkeyProjectiles.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Satori.AppServices.Services;
+using Satori.AppServices.Tests.Extensions;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps.Builders;
 using Satori.AppServices.Tests.TestDoubles.Kimai;
@@ -656,7 +657,7 @@ internal static class ActionItemAssertionExtensions
         actionItems.ShouldNotBeEmpty();
         
         var matches = actionItems
-            .Where(actionItem => actionItem.On.Select(x => x.Person.AzureDevOpsId).Contains(user.Id))
+            .Where(actionItem => actionItem.On.Select(x => x.Person.AzureDevOpsId).Contains(user.Id ?? Guid.Empty))
             .ToArray();
         matches.ShouldNotBeEmpty($"No action items were found for {user.DisplayName}.  They were {string.Join(", ", actionItems.SelectMany(actionItem => actionItem.On.Select(x => x.Person.DisplayName)))}");
 

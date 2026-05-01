@@ -10,11 +10,11 @@ public class User
     [JsonPropertyName("displayName")]
     public required string DisplayName { get; set; }
     [JsonPropertyName("id")]
-    public Guid Id { get; set; }
+    public Guid? Id { get; set; }
     [JsonPropertyName("imageUrl")]
-    public required string ImageUrl { get; set; }
+    public string? ImageUrl { get; set; }
     [JsonPropertyName("uniqueName")]
-    public required string UniqueName { get; set; }
+    public string? UniqueName { get; set; }
     [JsonPropertyName("url")]
-    public required string Url { get; set; }
+    public string? Url { get; set; }
 }

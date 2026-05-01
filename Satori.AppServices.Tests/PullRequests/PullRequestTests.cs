@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Satori.AppServices.Services;
+using Satori.AppServices.Tests.Extensions;
 using Satori.AppServices.Tests.TestDoubles;
 using Satori.AppServices.Tests.TestDoubles.AlertServices;
 using Satori.AppServices.Tests.TestDoubles.AzureDevOps;

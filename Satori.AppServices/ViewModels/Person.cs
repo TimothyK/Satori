@@ -84,15 +84,15 @@ public class Person
     public static implicit operator Person(AzDoUser? user)
     {
         return user == null ? Empty 
-            : FromAzureDevOpsId(user.Id, CreatePerson);
+            : FromAzureDevOpsId(user.Id ?? Guid.Empty, CreatePerson);
 
         Person CreatePerson()
         {
             return new Person()
             {
-                AzureDevOpsId = user.Id,
+                AzureDevOpsId = user.Id ?? Guid.Empty,
                 DisplayName = user.DisplayName,
-                AvatarUrl = new Uri(user.ImageUrl),
+                AvatarUrl = user.ImageUrl == null ? new Url("/images/NullAvatar.png").ToUri() : new Uri(user.ImageUrl),
                 DomainLogin = user.UniqueName,
             };
         }
