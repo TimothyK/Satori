@@ -1,4 +1,4 @@
-﻿using CodeMonkeyProjectiles.Linq;
+using CodeMonkeyProjectiles.Linq;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Satori.AppServices.ViewModels;
@@ -158,6 +158,7 @@ public partial class ActionItemView
 
         if (workItem.KimaiActivity == null)
         {
+            CopySiblingKimaiInfo(workItem);
             _startTimerDialog?.ShowDialog(workItem);
         }
         else
@@ -183,6 +184,21 @@ public partial class ActionItemView
     {
         await TimerService.StartTimerAsync(workItem, activity);
         await HasChanged.InvokeAsync();
+    }
+
+    private static void CopySiblingKimaiInfo(WorkItem workItem)
+    {
+        var sibling = workItem.Parent?.Children
+            .Where(s => s != workItem)
+            .FirstOrDefault(s => s.KimaiActivity != null);
+
+        if (sibling == null)
+        {
+            return;
+        }
+
+        workItem.KimaiProject = sibling.KimaiProject;
+        workItem.KimaiActivity = sibling.KimaiActivity;
     }
 
     #endregion Start Timer
@@ -214,6 +230,7 @@ public partial class ActionItemView
 
         if (task.KimaiActivity == null)
         {
+            CopySiblingKimaiInfo(task);
             _startTimerDialog?.ShowDialog(task);
         }
         else
