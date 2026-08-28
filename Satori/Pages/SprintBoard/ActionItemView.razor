@@ -1,4 +1,5 @@
-﻿@using Satori.AppServices.Services
+@using Satori.AppServices.Services
+@using Satori.AppServices.Services.Abstractions
 @using Satori.AppServices.ViewModels
 @using Satori.AppServices.ViewModels.PullRequests.ActionItems
 @using Satori.AppServices.ViewModels.WorkItems.ActionItems
@@ -9,6 +10,7 @@
 @inject IJSRuntime JsRuntime
 @inject IKimaiServer KimaiServer
 @inject TimerService TimerService
+@inject IAlertService AlertService
 
 <div class="flex-row">
     @foreach (var personPriority in ActionItem.On)
@@ -163,6 +165,10 @@
         <div class="work-item cell-link @taskAction.WorkItem.Type.CssClass" @onclick="() => OpenWorkItemAsync(taskAction.WorkItem)" title="Open D#@(taskAction.WorkItem.Id)">
             <div>@taskAction.WorkItem.Title</div>
         </div>
+        @if (taskAction.WorkItem.AssignedTo == Person.Me)
+        {
+            <button type="button" class="btn btn-outline-success btn-done" disabled="@_isCompleting" @onclick="async () => await CompleteTaskAsync(taskAction.WorkItem)" title="Mark task as Done">Done</button>
+        }
     }
     @if (ActionItem is PullRequestActionItem prAction)
     {

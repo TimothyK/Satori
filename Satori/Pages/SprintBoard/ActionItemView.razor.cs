@@ -300,4 +300,38 @@ public partial class ActionItemView
 
     #endregion Create Predecessor Link
 
+    #region Complete Task
+
+    private bool _isCompleting;
+
+    private async Task CompleteTaskAsync(WorkItem task)
+    {
+        if (_isCompleting)
+        {
+            return;
+        }
+
+        _isCompleting = true;
+        try
+        {
+            if (IsRunning && KimaiServer.Enabled)
+            {
+                await TimerService.StopRunningTimeEntryAsync();
+            }
+
+            await WorkItemUpdateService.UpdateTaskAsync(task, ScrumState.Done);
+            await HasChanged.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            AlertService.BroadcastAlert(ex);
+        }
+        finally
+        {
+            _isCompleting = false;
+        }
+    }
+
+    #endregion Complete Task
+
 }
