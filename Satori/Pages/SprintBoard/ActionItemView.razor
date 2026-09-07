@@ -1,4 +1,5 @@
-﻿@using Satori.AppServices.Services
+@using Satori.AppServices.Services
+@using Satori.AppServices.Services.Abstractions
 @using Satori.AppServices.ViewModels
 @using Satori.AppServices.ViewModels.PullRequests.ActionItems
 @using Satori.AppServices.ViewModels.WorkItems.ActionItems
@@ -9,6 +10,7 @@
 @inject IJSRuntime JsRuntime
 @inject IKimaiServer KimaiServer
 @inject TimerService TimerService
+@inject IAlertService AlertService
 
 <div class="flex-row">
     @foreach (var personPriority in ActionItem.On)
@@ -119,6 +121,18 @@
                                 <span class="project-code">@WorkItem.KimaiProject.ProjectCode@(WorkItem.KimaiActivity != null ? "." + WorkItem.KimaiActivity.ActivityCode : "")</span>...
                             </div>
                         }
+                    </div>
+                }
+
+                @* Done *@
+                @if (ActionItem is TaskActionItem doneTaskAction && doneTaskAction.WorkItem.AssignedTo == Person.Me)
+                {
+                    <div class="context-menu-item @(_isCompleting ? "disabled" : "")"
+                         title="Mark task as Done"
+                         @onclick="async () => await CompleteTaskAsync(doneTaskAction.WorkItem)">
+                        <div class="flex-menu">
+                            <div>Done</div>
+                        </div>
                     </div>
                 }
 

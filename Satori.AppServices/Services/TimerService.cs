@@ -1,4 +1,4 @@
-﻿using CodeMonkeyProjectiles.Linq;
+using CodeMonkeyProjectiles.Linq;
 using Satori.AppServices.Extensions;
 using Satori.AppServices.Services.Abstractions;
 using Satori.AppServices.Services.CommentParsing;
@@ -69,7 +69,7 @@ public class TimerService(
     /// The End time that Kimai assigns to the running time entry.
     /// Returns null if there wasn't an active time entry
     /// </returns>
-    private async Task<DateTimeOffset?> StopRunningTimeEntryAsync()
+    public async Task<DateTimeOffset?> StopRunningTimeEntryAsync()
     {
         var filter = new TimeSheetFilter
         {
