@@ -124,6 +124,18 @@
                     </div>
                 }
 
+                @* Done *@
+                @if (ActionItem is TaskActionItem doneTaskAction && doneTaskAction.WorkItem.AssignedTo == Person.Me)
+                {
+                    <div class="context-menu-item @(_isCompleting ? "disabled" : "")"
+                         title="Mark task as Done"
+                         @onclick="async () => await CompleteTaskAsync(doneTaskAction.WorkItem)">
+                        <div class="flex-menu">
+                            <div>Done</div>
+                        </div>
+                    </div>
+                }
+
                 @* Waits For *@
                 @if (HasWaitsForMenu)
                 {
@@ -165,10 +177,6 @@
         <div class="work-item cell-link @taskAction.WorkItem.Type.CssClass" @onclick="() => OpenWorkItemAsync(taskAction.WorkItem)" title="Open D#@(taskAction.WorkItem.Id)">
             <div>@taskAction.WorkItem.Title</div>
         </div>
-        @if (taskAction.WorkItem.AssignedTo == Person.Me)
-        {
-            <button type="button" class="btn btn-outline-success btn-done" disabled="@_isCompleting" @onclick="async () => await CompleteTaskAsync(taskAction.WorkItem)" title="Mark task as Done">Done</button>
-        }
     }
     @if (ActionItem is PullRequestActionItem prAction)
     {
