@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+// ReSharper disable ClassNeverInstantiated.Global
 
 namespace Satori.AzureDevOps.Models;
 
@@ -29,9 +30,9 @@ public class Tag
     [JsonPropertyName("name")]
     public required string Name { get; set; }
     [JsonPropertyName("comment")]
-    public required string Comment { get; set; }
+    public string? Comment { get; set; }
     [JsonPropertyName("tagger")]
-    public required Tagger Tagger { get; set; }
+    public Tagger? Tagger { get; set; }
     [JsonPropertyName("objectId")]
     public required string ObjectId { get; set; }
     [JsonPropertyName("resolvedCommitId")]
